@@ -1,0 +1,54 @@
+{% extends 'sms/base.html' %}
+
+{% load hitcount_tags %}
+
+{% block title %}
+<title>beginners</title>
+
+{% endblock %}
+
+
+{% block body %} 
+<style>
+    .courses{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  text-align: center;
+}
+.courses>*{
+flex: 1 1 auto;
+margin: 5px;
+border: 1px dotted rgb(16, 2, 37);;
+}
+</style>
+
+
+<h2 class="text-center"> {{ hitcount.total_hits }} <i class="fas fa-eye"></i> </h2><hr>
+<div style="width: 100%;" class="text-center">
+  <div class="col mb-2">
+    <div class="card">
+
+      <div class="card-body">
+
+  <h1><div class="text-center">{{object.title}}</div></h1><hr>
+ 
+  <div class="text-center">{{object.created}}, {{object.created|timesince}}</div><br><hr>
+  {% if object.img_post %}
+  <div  class="text-left" >{{object.img_post}}</div><br><hr>
+  {% else %}
+  <div><img src="/static/sms/images/program.jpeg" width="100%" height="500px" alt="topics image"></div><br><hr> 
+  {% endif %}
+  <div  class="text-left" >{{object.desc|linebreaksbr}}</div><br><hr>
+  <h3 class="">Activity </h3>
+  <p  class="text-left">{{object.student_activity|linebreaksbr}}</p><br><hr>
+  <h3>Evaluation </h3>
+  <p class="text-left">{{object.evaluation|linebreaksbr}}</p><br><hr>
+  <p>Join Chat Room: {{object.topics_url|urlizetrunc:15}}</p><br><hr>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
