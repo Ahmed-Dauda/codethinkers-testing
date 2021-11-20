@@ -1,0 +1,51 @@
+{% extends 'sms/base.html' %}
+
+{% load hitcount_tags %}
+
+{% block title %}
+beginners List 
+
+{% endblock %}
+
+
+{% block body %} 
+<style>
+    .courses{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  text-align: center;
+}
+.courses>*{
+flex: 1 1 auto;
+margin: 5px;
+border: 1px dotted rgb(16, 2, 37);;
+}
+</style>
+
+<h1 class="text-center">{{topics_count|length}} : Topics | {{ hitcount.total_hits }}  <i class="fas fa-eye"></i></h1>
+<h2 class="text-center"> </h2>
+
+<div  class="card text-center">
+  <div class="card-header">
+    {% for topic in topics %}
+  
+  <h1  style="background-color: rgb(16, 2, 37); color: wheat;">{{topic.title}}</h1><hr>
+  <div class="">{% get_hit_count for topic %} <i class="fas fa-eye"></i></div><hr>
+  <div>{{topic.created}}, {{topic.created|timesince}}</div><br><hr>
+  <h2>Learning Objectives</h2><hr>
+  <div class = 'body-text text-left'>{{topic.objectives|linebreaksbr}}</div><br><hr>
+  <h3><a href="{% url 'sms:topicsdetailview' topic.pk %}">Enroll {{topic.title}}</a></h3><hr>
+  
+
+  {% empty %}
+  <h1 class="card text-center text-danger">No Courses Available Yet. CHECK LATER</h1>
+  {% endfor %}
+</div>
+</div>
+
+
+
+
+
+{% endblock %}

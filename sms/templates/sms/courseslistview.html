@@ -1,0 +1,45 @@
+
+{% extends 'sms/base.html' %}
+
+{% load hitcount_tags %}
+{% block title %}<title>Courses list view page</title>{% endblock %}
+
+
+{% block body %} 
+<style>
+    .courses{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  text-align: center;
+}
+.courses>*{
+flex: 1 1 auto;
+margin: 5px;
+border: 1px dotted rgb(16, 2, 37);;
+}
+
+
+</style>
+
+
+<section >
+<h1  class="text-center">{{courses_count|length}} : Courses | {{ hitcount.total_hits }}  <i class="fas fa-eye"></i> </h1>
+
+<div  class="card text-center">
+
+  <div class="card-header">
+    {% for course in courses %}
+    <h1><a style="background-color: rgb(16, 2, 37); width: 100%; color: wheat;" href="{% url 'sms:topicslistview' course.pk %}">{{course.title}}</a></h1><hr>
+    <div class="">{% get_hit_count for course %}  <i class="fas fa-eye"></i></div><hr>
+    <div>{{course.created}}, {{course.created|timesince}}</div><br>
+  <div>{{course.desc}}</div><hr>
+  {% empty %}
+  <h1 class="card text-center text-danger">No Courses Available Yet. CHECK LATER</h1>
+  {% endfor %}
+</div>
+
+</div>
+</section>
+
+{% endblock %} 
