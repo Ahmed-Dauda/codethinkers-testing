@@ -1,24 +1,24 @@
 from django.contrib import admin
-from sms.models import Categories, Courses, Topics, Comment
+from sms.models import Categoriess, Coursess, Topicss, Comments
 # Register your models here.
 
-@admin.register(Comment)
+@admin.register(Comments)
 class commentadmin(admin.ModelAdmin):
     # list_display = ['id', 'name', 'desc', 'created']
     list_filter = ordering = ['created']
     ordering = ['created']
 
-@admin.register(Categories)
+@admin.register(Categoriess)
 class categoriesadmin(admin.ModelAdmin):
     # list_display = ['id', 'name', 'desc', 'created']
     ordering = ['created']
 
-@admin.register(Courses)
+@admin.register(Coursess)
 class coursesadmin(admin.ModelAdmin):
 #     list_display = ['id', 'name', 'desc', 'created']
     ordering = ['created']
 
-@admin.register(Topics)
+@admin.register(Topicss)
 class topicsadmin(admin.ModelAdmin):
 #     list_display = ['id', 'name', 'desc', 'created']
     ordering = ['created']
@@ -59,4 +59,4 @@ class UserAdmin(BaseUserAdmin):
     filter_horizontal = ('groups', 'user_permissions',)
 
 
-admin.site.register(User, UserAdmin)
+# admin.site.register(User, UserAdmin)

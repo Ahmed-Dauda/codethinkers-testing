@@ -37,6 +37,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend', # existing backend
     'allauth.account.auth_backends.AuthenticationBackend',
 )
+AUTH_USER_MODEL = 'users.User'
 
 INSTALLED_APPS = [
     'sms',
@@ -53,7 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',  # make sure sites is included
     'allauth',
     'allauth.account',
-    'allauth.socialaccount',
+    # 'allauth.socialaccount',
 
 # the social providers
     # 'allauth.socialaccount.providers.facebook',
@@ -111,7 +112,7 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
-AUTH_USER_MODEL = 'users.User'
+
 
 # email settings
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'

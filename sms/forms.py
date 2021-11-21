@@ -5,7 +5,7 @@ from django.db import models
 from django.forms import ModelForm
 from django import forms
 from django.db import models 
-from sms.models import Comment
+from sms.models import Comments
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
@@ -42,5 +42,5 @@ class smspostform(ModelForm):
 class feedbackform(ModelForm):
     class Meta:
         
-        model = Comment
+        model = Comments
         fields= '__all__'

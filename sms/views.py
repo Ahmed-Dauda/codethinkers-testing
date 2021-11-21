@@ -1,7 +1,7 @@
 from django.db import models
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse
-from sms.models import Categories, Courses, Topics, Comment
+from sms.models import Categoriess, Coursess, Topicss, Comments
 from django.views.generic import ListView, DetailView, CreateView
 # from django.contrib.auth.models import User
 
@@ -36,38 +36,38 @@ from django.contrib.sessions.models import Session
 from django.utils import timezone
 from hitcount.views import HitCountDetailView
 
-def get_current_users():
-    active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
-    user_id_list = []
-    for session in active_sessions:
-        data = session.get_decoded()
-        user_id_list.append(data.get('_auth_user_id', None))
-    # Query all logged in users based on id list
-    return User.objects.filter(id__in=user_id_list)
+# def get_current_users():
+#     active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+#     user_id_list = []
+#     for session in active_sessions:
+#         data = session.get_decoded()
+#         user_id_list.append(data.get('_auth_user_id', None))
+#     # Query all logged in users based on id list
+#     return User.objects.filter(id__in=user_id_list)
 
 
 
 class Categorieslistview(LoginRequiredMixin, ListView):
-    models = Categories
+    models = Categoriess
     template_name = 'sms/home.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
-    queryset = Categories.objects.all()
+    queryset = Categoriess.objects.all()
     
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['students'] = User.objects.all().count()
+        # context['students'] = User.objects.all().count()
 
-        context['category'] = Categories.objects.all().count()
-        context['courses'] = Courses.objects.all().count()
-        num_visit = self.request.session.get('num_visit', 0)
-        self.request.session['num_visit'] = num_visit + 1
-        context['num_visit'] = num_visit
-        context['user_name'] = self.request.user
-        context['current_users'] = get_current_users()
-        context['current_users_count'] = get_current_users().count()
-        context['comment_count'] = Comment.objects.all().count() 
+        # context['category'] = Categories.objects.all().count()
+        # context['courses'] = Courses.objects.all().count()
+        # num_visit = self.request.session.get('num_visit', 0)
+        # self.request.session['num_visit'] = num_visit + 1
+        # context['num_visit'] = num_visit
+        # context['user_name'] = self.request.user
+        # context['current_users'] = get_current_users()
+        # context['current_users_count'] = get_current_users().count()
+        # context['comment_count'] = Comment.objects.all().count() 
     
         sweetify.success(self.request, 'You successfully changed your password')
         return context
@@ -80,54 +80,42 @@ def logout_view(request):
     logout(request)
     return redirect('accounts/login')
 
-
-def statistic(request):
-    user = request.user
-    username = user.username
-    num_visit = request.session.get('num_visit', 0)
-    request.session['num_visit'] = num_visit + 1
-    
-    context = {
-        'user':user,
-      
-    }
-    return render(request, 'sms/home.html', context)
         
 class Courseslistview( HitCountDetailView,LoginRequiredMixin, DetailView):
-    models = Categories
+    models = Categoriess
     template_name = 'sms/courseslistview.html'
     count_hit = True
-    queryset = Categories.objects.all()
+    queryset = Categoriess.objects.all()
 
     
         
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
-        context['courses'] = Courses.objects.filter(categories__pk = self.object.id)
-        context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id)
+        context['courses'] = Coursess.objects.filter(categories__pk = self.object.id)
+        context['courses_count'] = Coursess.objects.filter(categories__pk = self.object.id)
 
         return context
 
 class Topicslistview( HitCountDetailView,LoginRequiredMixin, DetailView, ):
-    models = Courses
+    models = Coursess
     template_name = 'sms/topicslistview.html'
     count_hit = True
-    queryset = Courses.objects.all()
+    queryset = Coursess.objects.all()
   
         
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
-        context['topics'] = Topics.objects.filter(courses__pk = self.object.id) 
-        context['topics_count'] = Topics.objects.filter(courses__pk = self.object.id) 
+        context['topics'] = Topicss.objects.filter(courses__pk = self.object.id) 
+        context['topics_count'] = Topicss.objects.filter(courses__pk = self.object.id) 
         return context
 
 class Topicsdetailview( HitCountDetailView,LoginRequiredMixin,DetailView):
-    models = Topics
+    models = Topicss
     template_name = 'sms/topicsdetailview.html'
     count_hit = True
-    queryset = Topics.objects.all()
+    queryset = Topicss.objects.all()
     
         
 
@@ -145,26 +133,26 @@ class Signupsuccess(ListView):
     template_name = 'sms/signupsuccess.html'
     success_url = reverse_lazy('sms:signupview')
 
-    queryset = Comment.objects.all()
+    queryset = Comments.objects.all()
 
 class Commentlistview(LoginRequiredMixin, ListView):
-    models = Comment
+    models = Comments
     template_name = 'sms/commentlistview.html'
-    queryset = Comment.objects.all()
+    queryset = Comments.objects.all()
     
         
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
-        context['comments'] = Comment.objects.all() 
+        context['comments'] = Comments.objects.all() 
         context['user_comment'] = self.request.user
-        context['comment_count'] = Comment.objects.all().count() 
+        context['comment_count'] = Comments.objects.all().count() 
         return context
 
 class Commentlistviewsuccess(LoginRequiredMixin, ListView):
-    models = Comment
+    models = Comments
     template_name = 'sms/commentlistviewsuccess.html'
-    queryset = Comment.objects.all()
+    queryset = Comments.objects.all()
    
         
 class Feedbackformview(SuccessMessageMixin,CreateView):
