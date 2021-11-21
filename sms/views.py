@@ -11,16 +11,16 @@ from django.shortcuts import render, redirect
 from django.core.mail import send_mail, BadHeaderError
 from django.http import HttpResponse
 from django.contrib.auth.forms import PasswordResetForm
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.template.loader import render_to_string
 from django.db.models.query_utils import Q
 from django.utils.http import urlsafe_base64_encode
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.contrib import messages #import messages
-# end password reset import
-# from django.contrib.auth import get_user_model
-# User = get_user_model()
+# end password reset import.
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from sms.forms import signupform
 from django.urls import reverse
@@ -31,7 +31,7 @@ from sms.forms import feedbackform
 
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.sessions.models import Session
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 from hitcount.views import HitCountDetailView
@@ -78,7 +78,7 @@ from django.contrib.auth import logout
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('accounts/login')
 
 
 def statistic(request):
@@ -143,7 +143,7 @@ class signupview(SuccessMessageMixin,CreateView):
 class Signupsuccess(ListView):
     models = ''
     template_name = 'sms/signupsuccess.html'
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('sms:signupview')
 
     queryset = Comment.objects.all()
 
@@ -167,8 +167,6 @@ class Commentlistviewsuccess(LoginRequiredMixin, ListView):
     queryset = Comment.objects.all()
    
         
-        
-
 class Feedbackformview(SuccessMessageMixin,CreateView):
     
     form_class = feedbackform

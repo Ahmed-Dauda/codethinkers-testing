@@ -40,7 +40,7 @@ AUTHENTICATION_BACKENDS = (
 
 INSTALLED_APPS = [
     'sms',
-    # 'users',
+    'users',
     'sweetify',
     'widget_tweaks',
     'hitcount',
@@ -51,9 +51,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',  # make sure sites is included
-    # 'allauth',
-    # 'allauth.account',
-    # 'allauth.socialaccount',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
 
 # the social providers
     # 'allauth.socialaccount.providers.facebook',
@@ -106,12 +106,12 @@ SITE_ID = 1
 #     }
 # }
 
-# ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-# ACCOUNT_EMAIL_REQUIRED = True
-# ACCOUNT_USERNAME_REQUIRED = False
-# ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
-# AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'users.User'
 
 # email settings
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
