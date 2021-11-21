@@ -34,8 +34,8 @@ border: 1px dotted rgb(16, 2, 37);;
   <h1><div class="text-center">{{object.title}}</div></h1><hr>
  
   <div class="text-center">{{object.created}}, {{object.created|timesince}}</div><br><hr>
-  {% if object.img_post %}
-  <div  class="text-left" >{{object.img_post}}</div><br><hr>
+  {% if object.img_topic %}
+  <div  class="text-left" ><img src="{{object.img_topic.url}}" width="100%" height="500px" alt="topics image"> </div><br><hr>
   {% else %}
   <div><img src="/static/sms/images/program.jpeg" width="100%" height="500px" alt="topics image"></div><br><hr> 
   {% endif %}

@@ -6,8 +6,8 @@ from django.forms import ModelForm
 from django import forms
 from django.db import models 
 from sms.models import Comment
-# from django.contrib.auth import get_user_model
-# User = get_user_model()
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 class signupform(UserCreationForm):
     """docstring for signupform"""
@@ -23,7 +23,7 @@ class signupform(UserCreationForm):
         fields = [
             'first_name',
             'last_name',
-            # 'country',
+            'country',
             'email',
             'password1',
             'password2'
