@@ -60,5 +60,4 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_absolute_url(self):
         return "/users/%i/" % (self.pk)
 
-from django.contrib.auth import get_user_model
-User = get_user_model()
+
