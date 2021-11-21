@@ -37,7 +37,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend', # existing backend
     'allauth.account.auth_backends.AuthenticationBackend',
 )
-AUTH_USER_MODEL = 'users.User'
+
 
 INSTALLED_APPS = [
     'sms',
@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     # 'allauth.socialaccount.providers.google',
     # 'allauth.socialaccount.providers.twitter',
 ]
+
+AUTH_USER_MODEL = 'users.User'
 
 # SOCIAL_AUTH_GOOGLE_KEY = '571775719816-thu9u968v8gpmcuie9ojlb4u0ahig94t.apps.googleusercontent.com'
 # SOCIAL_AUTH_GOOGLE_SECRET = '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'
