@@ -19,7 +19,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.contrib import messages #import messages
 # end password reset import.
-from users.models import NewUser
+from users.models import NewUser as User
 
 from sms.forms import signupform
 from django.urls import reverse
@@ -57,17 +57,17 @@ class Categorieslistview(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # context['students'] = User.objects.all().count()
+        context['students'] = User.objects.all().count()
 
-        # context['category'] = Categories.objects.all().count()
-        # context['courses'] = Courses.objects.all().count()
+        context['category'] = Categories.objects.all().count()
+        context['courses'] = Courses.objects.all().count()
         # num_visit = self.request.session.get('num_visit', 0)
         # self.request.session['num_visit'] = num_visit + 1
         # context['num_visit'] = num_visit
         # context['user_name'] = self.request.user
         # context['current_users'] = get_current_users()
         # context['current_users_count'] = get_current_users().count()
-        # context['comment_count'] = Comment.objects.all().count() 
+        context['comment_count'] = Comment.objects.all().count() 
     
         sweetify.success(self.request, 'You successfully changed your password')
         return context
@@ -101,6 +101,7 @@ class Topicslistview( HitCountDetailView,LoginRequiredMixin, DetailView, ):
     models = Courses
     template_name = 'sms/topicslistview.html'
     count_hit = True
+
     def get_queryset(self):
         return Courses.objects.all()
   
@@ -141,6 +142,7 @@ class Signupsuccess(ListView):
 class Commentlistview(LoginRequiredMixin, ListView):
     models = Comment
     template_name = 'sms/commentlistview.html'
+
     def get_queryset(self):
         return Comment.objects.all()
     
