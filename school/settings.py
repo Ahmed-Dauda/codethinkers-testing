@@ -40,8 +40,9 @@ AUTHENTICATION_BACKENDS = (
 
 
 INSTALLED_APPS = [
-    'sms',
+   
     'users',
+     'sms',
     'sweetify',
     'widget_tweaks',
     'hitcount',
