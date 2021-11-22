@@ -5,7 +5,7 @@ from django.db import models
 from django.forms import ModelForm
 from django import forms
 from django.db import models 
-from sms.models import Comments
+from sms.models import Comment
 from users.models import NewUser
 
 class signupform(UserCreationForm):
@@ -20,9 +20,9 @@ class signupform(UserCreationForm):
     class Meta:
         model = NewUser
         fields = [
-            # 'first_name',
-            # 'last_name',
-            # 'country',
+            'first_name',
+            'last_name',
+            'country',
             'email',
             'password1',
             'password2'
@@ -41,5 +41,5 @@ class smspostform(ModelForm):
 class feedbackform(ModelForm):
     class Meta:
         
-        model = Comments
+        model = Comment
         fields= '__all__'
