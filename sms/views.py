@@ -1,7 +1,7 @@
 from django.db import models
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse
-from sms.models import Categoriess, Coursess, Topicss, Comments
+from sms.models import Categories, Courses, Topics, Comment
 from django.views.generic import ListView, DetailView, CreateView
 # from django.contrib.auth.models import User
 
@@ -47,11 +47,11 @@ from hitcount.views import HitCountDetailView
 
 
 class Categorieslistview(LoginRequiredMixin, ListView):
-    models = Categoriess
+    models = Categories
     template_name = 'sms/home.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
-    queryset = Categoriess.objects.all()
+    queryset = Categories.objects.all()
     
 
     def get_context_data(self, **kwargs):
@@ -81,40 +81,40 @@ def logout_view(request):
 
         
 class Courseslistview( HitCountDetailView,LoginRequiredMixin, DetailView):
-    models = Categoriess
+    models = Categories
     template_name = 'sms/courseslistview.html'
     count_hit = True
-    queryset = Categoriess.objects.all()
+    queryset = Categories.objects.all()
 
     
         
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
-        context['courses'] = Coursess.objects.filter(categories__pk = self.object.id)
-        context['courses_count'] = Coursess.objects.filter(categories__pk = self.object.id)
+        context['courses'] = Courses.objects.filter(categories__pk = self.object.id)
+        context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id)
 
         return context
 
 class Topicslistview( HitCountDetailView,LoginRequiredMixin, DetailView, ):
-    models = Coursess
+    models = Courses
     template_name = 'sms/topicslistview.html'
     count_hit = True
-    queryset = Coursess.objects.all()
+    queryset = Courses.objects.all()
   
         
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
-        context['topics'] = Topicss.objects.filter(courses__pk = self.object.id) 
-        context['topics_count'] = Topicss.objects.filter(courses__pk = self.object.id) 
+        context['topics'] = Topics.objects.filter(courses__pk = self.object.id) 
+        context['topics_count'] = Topics.objects.filter(courses__pk = self.object.id) 
         return context
 
 class Topicsdetailview( HitCountDetailView,LoginRequiredMixin,DetailView):
-    models = Topicss
+    models = Topics
     template_name = 'sms/topicsdetailview.html'
     count_hit = True
-    queryset = Topicss.objects.all()
+    queryset = Topics.objects.all()
     
         
 
@@ -132,26 +132,26 @@ class Signupsuccess(ListView):
     template_name = 'sms/signupsuccess.html'
     success_url = reverse_lazy('sms:signupview')
 
-    queryset = Comments.objects.all()
+    queryset = Comment.objects.all()
 
 class Commentlistview(LoginRequiredMixin, ListView):
-    models = Comments
+    models = Comment
     template_name = 'sms/commentlistview.html'
-    queryset = Comments.objects.all()
+    queryset = Comment.objects.all()
     
         
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
-        context['comments'] = Comments.objects.all() 
+        context['comments'] = Comment.objects.all() 
         context['user_comment'] = self.request.user
-        context['comment_count'] = Comments.objects.all().count() 
+        context['comment_count'] = Comment.objects.all().count() 
         return context
 
 class Commentlistviewsuccess(LoginRequiredMixin, ListView):
-    models = Comments
+    models = Comment
     template_name = 'sms/commentlistviewsuccess.html'
-    queryset = Comments.objects.all()
+    queryset = Comment.objects.all()
    
         
 class Feedbackformview(SuccessMessageMixin,CreateView):
