@@ -47,11 +47,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=254, null=True, blank=True)
     last_name = models.CharField(max_length=254, null=True, blank=True)
     country = models.CharField(choices = country_choice, max_length=254, null=True, blank=True)
-    is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    last_login = models.DateTimeField(null=True, blank=True)
-    date_joined = models.DateTimeField(auto_now_add=True)
+    # is_staff = models.BooleanField(default=False)
+    # is_superuser = models.BooleanField(default=False)
+    # is_active = models.BooleanField(default=True)
+    # last_login = models.DateTimeField(null=True, blank=True)
+    # date_joined = models.DateTimeField(auto_now_add=True)
     # class Meta:
     #   db_table = 'auth_user'
     
