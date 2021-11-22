@@ -51,8 +51,9 @@ class Categorieslistview(LoginRequiredMixin, ListView):
     template_name = 'sms/home.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
-    queryset = Categories.objects.all()
-    
+   
+    def get_queryset(self):
+        return Categories.objects.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -85,9 +86,9 @@ class Courseslistview( HitCountDetailView,LoginRequiredMixin, DetailView):
     template_name = 'sms/courseslistview.html'
     count_hit = True
     queryset = Categories.objects.all()
-
-    
-        
+    def get_queryset(self):
+        return Categories.objects.all()
+   
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
@@ -100,7 +101,8 @@ class Topicslistview( HitCountDetailView,LoginRequiredMixin, DetailView, ):
     models = Courses
     template_name = 'sms/topicslistview.html'
     count_hit = True
-    queryset = Courses.objects.all()
+    def get_queryset(self):
+        return Courses.objects.all()
   
         
     def get_context_data(self, **kwargs):
@@ -114,8 +116,9 @@ class Topicsdetailview( HitCountDetailView,LoginRequiredMixin,DetailView):
     models = Topics
     template_name = 'sms/topicsdetailview.html'
     count_hit = True
-    queryset = Topics.objects.all()
     
+    def get_queryset(self):
+        return Topics.objects.all()
         
 
 from sweetify.views import SweetifySuccessMixin
@@ -132,12 +135,14 @@ class Signupsuccess(ListView):
     template_name = 'sms/signupsuccess.html'
     success_url = reverse_lazy('sms:signupview')
 
-    queryset = Comment.objects.all()
+    def get_queryset(self):
+        return Topics.objects.all()
 
 class Commentlistview(LoginRequiredMixin, ListView):
     models = Comment
     template_name = 'sms/commentlistview.html'
-    queryset = Comment.objects.all()
+    def get_queryset(self):
+        return Comment.objects.all()
     
         
     def get_context_data(self, **kwargs):
@@ -151,7 +156,9 @@ class Commentlistview(LoginRequiredMixin, ListView):
 class Commentlistviewsuccess(LoginRequiredMixin, ListView):
     models = Comment
     template_name = 'sms/commentlistviewsuccess.html'
-    queryset = Comment.objects.all()
+    
+    def get_queryset(self):
+        return Comment.objects.all()
    
         
 class Feedbackformview(SuccessMessageMixin,CreateView):
