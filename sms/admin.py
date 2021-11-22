@@ -1,24 +1,24 @@
 from django.contrib import admin
-from sms.models import Categoriess, Coursess, Topicss, Comments
+from sms.models import Categories, Courses, Topics, Comment
 # Register your models here.
 
-@admin.register(Comments)
+@admin.register(Comment)
 class commentadmin(admin.ModelAdmin):
     # list_display = ['id', 'name', 'desc', 'created']
     # list_filter = ordering = ['created']
     ordering = ['created']
 
-@admin.register(Categoriess)
+@admin.register(Categories)
 class categoriesadmin(admin.ModelAdmin):
     # list_display = ['id', 'name', 'desc', 'created']
     ordering = ['created']
 
-@admin.register(Coursess)
+@admin.register(Courses)
 class coursesadmin(admin.ModelAdmin):
 #     list_display = ['id', 'name', 'desc', 'created']
     ordering = ['created']
 
-@admin.register(Topicss)
+@admin.register(Topics)
 class topicsadmin(admin.ModelAdmin):
 #     list_display = ['id', 'name', 'desc', 'created']
     ordering = ['created']

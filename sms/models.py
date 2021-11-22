@@ -12,7 +12,7 @@ from hitcount.models import HitCount, HitCountMixin
 # Create your models here.
 
 
-class Categoriess(models.Model, HitCountMixin):
+class Categories(models.Model, HitCountMixin):
    
     name = models.CharField(max_length=225, blank=True, null= True, unique=True)
     desc = models.TextField( blank=True, null= True)
@@ -27,9 +27,9 @@ class Categoriess(models.Model, HitCountMixin):
     def __str__(self):
         return f'{self.name}'
 
-class Coursess(models.Model):
+class Courses(models.Model):
     
-    categories=models.ForeignKey(Categoriess, on_delete= models.CASCADE)
+    categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     title = models.CharField(max_length=225, default='')
     desc = models.TextField(default='')
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
@@ -41,10 +41,10 @@ class Coursess(models.Model):
     def __str__(self):
         return f'{self.title}'
 
-class Topicss(models.Model):
+class Topics(models.Model):
     
-    categories=models.ForeignKey(Categoriess, on_delete= models.CASCADE)
-    courses=models.ForeignKey(Coursess, on_delete= models.CASCADE)
+    categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
+    courses=models.ForeignKey(Courses, on_delete= models.CASCADE)
     title = models.CharField(max_length=225, blank=True, null= True, unique=True)
     objectives = models.TextField( blank=True, null= True)
     descs = models.TextField( blank=True, null= True)
@@ -71,7 +71,7 @@ class Topicss(models.Model):
     def __str__(self):
         return f'{self.title}'
 
-class Comments(models.Model):
+class Comment(models.Model):
     
     # user_name = models.ForeignKey(User, on_delete= models.CASCADE)
     first_name = models.CharField(max_length=225, blank=True, null= True)
