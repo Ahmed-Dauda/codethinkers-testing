@@ -28,7 +28,7 @@ from django.contrib.auth import views as auth_views #import this
 
 urlpatterns = [
     path('', include('sms.urls')),
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
     
     # reset password url
     path('accounts/', include('django.contrib.auth.urls')),

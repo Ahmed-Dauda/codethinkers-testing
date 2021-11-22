@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'sweetify',
     'widget_tweaks',
     'hitcount',
-    'django.contrib.admin',
+    # 'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
