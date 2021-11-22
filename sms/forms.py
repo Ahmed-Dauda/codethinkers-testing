@@ -6,8 +6,7 @@ from django.forms import ModelForm
 from django import forms
 from django.db import models 
 from sms.models import Comments
-from django.contrib.auth import get_user_model
-User = get_user_model()
+from users.models import User
 
 class signupform(UserCreationForm):
     """docstring for signupform"""
