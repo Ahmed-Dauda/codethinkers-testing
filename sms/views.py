@@ -19,8 +19,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.contrib import messages #import messages
 # end password reset import.
-from django.contrib.auth import get_user_model
-User = get_user_model()
+from users.models import User
 
 from sms.forms import signupform
 from django.urls import reverse
