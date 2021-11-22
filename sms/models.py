@@ -47,7 +47,7 @@ class Topicss(models.Model):
     courses=models.ForeignKey(Coursess, on_delete= models.CASCADE)
     title = models.CharField(max_length=225, blank=True, null= True, unique=True)
     objectives = models.TextField( blank=True, null= True)
-    desc = models.TextField( blank=True, null= True)
+    descs = models.TextField( blank=True, null= True)
     student_activity = models.TextField(blank=True, null= True)
     evaluation = models.TextField(blank=True, null= True)
     img_topic = models.ImageField(blank = True, null = True)
