@@ -6,7 +6,7 @@ from django.forms import ModelForm
 from django import forms
 from django.db import models 
 from sms.models import Comments
-from users.models import User
+from users.models import NewUser
 
 class signupform(UserCreationForm):
     """docstring for signupform"""
@@ -18,7 +18,7 @@ class signupform(UserCreationForm):
     
     
     class Meta:
-        model = User
+        model = NewUser
         fields = [
             # 'first_name',
             # 'last_name',

@@ -40,9 +40,8 @@ AUTHENTICATION_BACKENDS = (
 
 
 INSTALLED_APPS = [
-   
+    'sms',
     'users',
-     'sms',
     'sweetify',
     'widget_tweaks',
     'hitcount',
@@ -63,7 +62,7 @@ INSTALLED_APPS = [
     # 'allauth.socialaccount.providers.twitter',
 ]
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'users.NewUser'
 
 # SOCIAL_AUTH_GOOGLE_KEY = '571775719816-thu9u968v8gpmcuie9ojlb4u0ahig94t.apps.googleusercontent.com'
 # SOCIAL_AUTH_GOOGLE_SECRET = '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'
