@@ -20,9 +20,9 @@ class signupform(UserCreationForm):
     class Meta:
         model = User
         fields = [
-            'first_name',
-            'last_name',
-            'country',
+            # 'first_name',
+            # 'last_name',
+            # 'country',
             'email',
             'password1',
             'password2'
