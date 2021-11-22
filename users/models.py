@@ -26,7 +26,10 @@ class UserManager(BaseUserManager):
     user.set_password(password)
     user.save(using=self._db)
     return user
-
+  
+  class Meta:
+        db_table = 'auth_user'
+      
   def create_user(self, email, password, **extra_fields):
     return self._create_user(email, password, False, False, **extra_fields)
 
