@@ -19,7 +19,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.contrib import messages #import messages
 # end password reset import.
-from users.models import NewUser as User
+# from users.models import NewUser as User
 
 from sms.forms import signupform
 from django.urls import reverse
@@ -34,6 +34,8 @@ from django.contrib.sessions.models import Session
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 from hitcount.views import HitCountDetailView
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 # def get_current_users():
 #     active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
