@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',  # make sure sites is included
+    
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -73,7 +74,19 @@ SOCIAL_AUTH_GOOGLE_SECRET = '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'
 
 # allauth setting
 
-SITE_ID = 1
+SITE_ID = 2
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'offline',
+        }
+    }
+}
 
 # SOCIALACCOUNT_PROVIDERS = {
 #     'google': {

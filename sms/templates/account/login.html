@@ -6,7 +6,9 @@
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
 
 {% block content %}
+{% load socialaccount %}
 
+<a href="{% provider_login_url 'google' method='oauth2' %}">Facebook OAuth2</a>
 <h1>{% trans "Sign In" %}</h1>
 
 {% get_providers as socialaccount_providers %}
