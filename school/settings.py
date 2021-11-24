@@ -72,19 +72,21 @@ SOCIAL_AUTH_GOOGLE_SECRET = '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'
 
 
 # allauth setting
-SITE_ID = 1
+
+SITE_ID = 2
+
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
+        # For each OAuth based provider, either add a ``SocialApp``
+        # (``socialaccount`` app) containing the required client
+        # credentials, or list them here:
+        'APP': {
+            'client_id': SOCIAL_AUTH_GOOGLE_KEY ,
+            'secret': SOCIAL_AUTH_GOOGLE_SECRET,
+            'key': ''
         }
     }
 }
-
 # SOCIALACCOUNT_PROVIDERS = {
 #     'facebook': {
 #         'METHOD': 'oauth2',
