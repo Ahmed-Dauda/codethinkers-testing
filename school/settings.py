@@ -87,7 +87,7 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     }
 }
-# goooodgda
+
 # SOCIALACCOUNT_PROVIDERS = {
 #     'google': {
 #         # For each OAuth based provider, either add a ``SocialApp``
