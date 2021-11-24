@@ -37,3 +37,4 @@ class UserAdmin(BaseUserAdmin):
 
 
 admin.site.register(NewUser, UserAdmin)
+

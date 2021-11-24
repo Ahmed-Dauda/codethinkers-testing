@@ -32,11 +32,6 @@ ALLOWED_HOSTS = ['*']
 # ALLOWED_HOSTS = ['codethinkers.herokuapp.com','codethinkerslms.com','www.codethinkerslms.com','codethinkers.org','www.codethinkers.org', '127.0.0.1']
 # ALLOWED_HOSTS = ['ctsaalms.herokuapp.com','codethinkers.org' ,'127.0.0.1']
 
-# Application definition
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend', # existing backend
-    'allauth.account.auth_backends.AuthenticationBackend',
-)
 
 
 INSTALLED_APPS = [
@@ -54,36 +49,41 @@ INSTALLED_APPS = [
     'django.contrib.sites',  # make sure sites is included
     'allauth',
     'allauth.account',
-    # 'allauth.socialaccount',
+    'allauth.socialaccount',
 
 # the social providers
     # 'allauth.socialaccount.providers.facebook',
-    # 'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.google',
     # 'allauth.socialaccount.providers.twitter',
 ]
+# Application definition
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend', # existing backend
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 
 AUTH_USER_MODEL = 'users.NewUser'
 
-# SOCIAL_AUTH_GOOGLE_KEY = '571775719816-thu9u968v8gpmcuie9ojlb4u0ahig94t.apps.googleusercontent.com'
-# SOCIAL_AUTH_GOOGLE_SECRET = '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'
+SOCIAL_AUTH_GOOGLE_KEY = '571775719816-thu9u968v8gpmcuie9ojlb4u0ahig94t.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_SECRET = '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'
 
 # SOCIAL_AUTH_FACEBOOK_KEY = '416474800140748'
 # SOCIAL_AUTH_FACEBOOK_SECRET = '4763331e29fc3703c82ba85f645fe5af'
 
-# SOCIALACCOUNT_PROVIDERS = {
-#     'google': {
-#         'SCOPE': [
-#             'profile',
-#             'email',
-#         ],
-#         'AUTH_PARAMS': {
-#             'access_type': 'online',
-#         }
-#     }
-# }
 
 # allauth setting
-SITE_ID = 1
+SITE_ID = 2
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
 
 # SOCIALACCOUNT_PROVIDERS = {
 #     'facebook': {
@@ -114,8 +114,10 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
+ACCOUNT_FORMS = {'signup': 'users.forms.SimpleSignupForm'}
 
-
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 # email settings
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -247,8 +249,8 @@ SWEETIFY_SWEETALERT_LIBRARY = 'sweetalert2'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = 'login'
-# LOGOUT_REDIRECT_URL = 'signupview'
+# LOGOUT_REDIRECT_URL = 'accounts/login'
+
 
 # django hit count 
 HITCOUNT_KEEP_HIT_ACTIVE = {'seconds': 2}

@@ -213,7 +213,7 @@ margin: 2px;
     <a class="" href="{% url 'sms:commentlistview' %}">Feedbacks</a>
     {% endif %}
     
-    <a class="" href="{% url 'sms:logout' %}">Log out</a>
+    <a class="" href="{% url 'account_logout' %}">Log out</a>
     <a class="" href="https://wa.me/message/3WEEV2BGDKKSG1"> Live Help <i class="fas fa-question-circle"></i> </a>
     <a  class="" href="{% url 'sms:feedbackformview' %}">Feedback Form</a>
     <a  class="" href="?">{{comment_count}} : Feedback (s)</a>
@@ -366,7 +366,7 @@ margin: 2px;
     </div>
   </div>
           
-   
+   <a href="{% url 'account_signup' %}">signup</a>
     <!-- Team-->
     <section style="background-color: blue;color: wheat;" class="page-section " id="team">
         <div class="container">

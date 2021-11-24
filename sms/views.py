@@ -80,7 +80,7 @@ from django.contrib.auth import logout
 
 def logout_view(request):
     logout(request)
-    return redirect('accounts/login')
+    return redirect('/')
 
         
 class Courseslistview( HitCountDetailView,LoginRequiredMixin, DetailView):
