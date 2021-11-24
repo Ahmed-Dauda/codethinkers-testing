@@ -120,6 +120,8 @@ ACCOUNT_FORMS = {'signup': 'users.forms.SimpleSignupForm'}
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+else:
+    EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
 # email settings
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
