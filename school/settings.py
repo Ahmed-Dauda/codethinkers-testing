@@ -89,20 +89,20 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # unused url
-# SOCIALACCOUNT_PROVIDERS = {
-#     'google': {
-#         # For each OAuth based provider, either add a ``SocialApp``
-#         # (``socialaccount`` app) containing the required client
-#         # credentials, or list them here:
-#         'APP': {
-#             'client_id': SOCIAL_AUTH_GOOGLE_KEY ,
-#             'secret': SOCIAL_AUTH_GOOGLE_SECRET,
-#             'key': ''
-#         }
-#     }
-# }
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        # For each OAuth based provider, either add a ``SocialApp``
+        # (``socialaccount`` app) containing the required client
+        # credentials, or list them here:
+        'APP': {
+            'client_id': SOCIAL_AUTH_GOOGLE_KEY ,
+            'secret': SOCIAL_AUTH_GOOGLE_SECRET,
+            'key': ''
+        }
+    }
+}
 
-# acccount
+
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_REQUIRED = True
