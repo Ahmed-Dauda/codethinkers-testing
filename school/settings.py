@@ -131,10 +131,10 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
 ACCOUNT_FORMS = {'signup': 'users.forms.SimpleSignupForm'}
 
-if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
-else:
-    EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
+# if DEBUG:
+#     EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+# else:
+#     EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
 # email settings
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -194,7 +194,7 @@ ROOT_URLCONF = 'school.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
