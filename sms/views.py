@@ -187,7 +187,7 @@ class Feedbackformview(SuccessMessageMixin,CreateView):
 # 					email_template_name = "main/password/password_reset_email.txt"
 # 					c = {
 # 					"email":user.email,
-# 					# 'domain':'127.0.0.1:8000',
+# 					'domain':'127.0.0.1:8000',
 #                     # 'domain':'https://codethinkers.org',
 # 					'site_name': 'Website',
 # 					"uid": urlsafe_base64_encode(force_bytes(user.pk)),

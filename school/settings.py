@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'sweetify',
     'widget_tweaks',
     'hitcount',
+    'crispy_forms',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -79,7 +80,7 @@ SOCIALACCOUNT_EMAIL_VERIFIATION = False
 ACCOUNT_AUTHENTICATION_METHOD ='username_email'
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_SESSION_REMEMBER = True
@@ -122,7 +123,7 @@ SOCIALACCOUNT_PROVIDERS = {
 
 
 
-EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
@@ -174,7 +175,8 @@ else:
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'securesally@gmail.com'
+# EMAIL_HOST_USER = 'securesally@gmail.com'
+EMAIL_HOST_USER = 'thinkerscode@gmail.com'
 EMAIL_HOST_PASSWORD = 'olfxieyveruumqrx'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
