@@ -34,11 +34,14 @@ from django import forms
 from .models import *
 
 class SimpleSignupForm(SignupForm):
+    user_name = forms.CharField(max_length= 225, label='username')
     phone = forms.CharField(max_length=12, label='phone')
-    country = forms.CharField(max_length=12, label='country')
+    country = forms.CharField(max_length=225, label='country')
+    
     def save(self, request):
         user = super(SimpleSignupForm, self).save(request)
         user.phone = self.cleaned_data['phone']
+        # user.user_name  = self.cleaned_data['user_name ']
         user.save()
         return user
 

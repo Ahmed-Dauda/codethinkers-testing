@@ -75,6 +75,23 @@ SOCIAL_AUTH_GOOGLE_SECRET = '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'
 # allauth setting
 
 SITE_ID = 1
+SOCIALACCOUNT_EMAIL_VERIFIATION = False
+ACCOUNT_AUTHENTICATION_METHOD ='username_email'
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
+ACCOUNT_SESSION_REMEMBER = True
+ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
+ACCOUNT_USERNAME_MIN_LENGTH = 3
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_FORMS = {'signup': 'users.forms.SimpleSignupForm'}
+
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -104,19 +121,16 @@ SOCIALACCOUNT_PROVIDERS = {
 
 
 
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
-ACCOUNT_FORMS = {'signup': 'users.forms.SimpleSignupForm'}
+EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
 
-# if DEBUG:
-#     EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
-# else:
-#     EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+else:
+    EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
+
 # email settings
-# EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
+
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_HOST = 'codethinkers.org'
 # EMAIL_PORT =465
@@ -157,6 +171,12 @@ ACCOUNT_FORMS = {'signup': 'users.forms.SimpleSignupForm'}
 # EMAIL_PORT = 587
 # EMAIL_USE_TLS = True
 # DEFAULT_FROM_EMAIL = 'CodingWithMitch Team <noreply@codingwithmitch.com>'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'securesally@gmail.com'
+EMAIL_HOST_PASSWORD = 'olfxieyveruumqrx'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
