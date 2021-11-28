@@ -176,7 +176,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 465
 # EMAIL_HOST_USER = 'securesally@gmail.com'
-EMAIL_HOST_USER = 'thinkerscode@gmail.com'
+EMAIL_HOST_USER = 'thinkerscode620@gmail.com'
 EMAIL_HOST_PASSWORD = 'olfxieyveruumqrx'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
