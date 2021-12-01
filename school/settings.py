@@ -123,62 +123,27 @@ SOCIALACCOUNT_PROVIDERS = {
 
 
 
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
-else:
-    EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
 
 # email settings
 
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# EMAIL_HOST = 'codethinkers.org'
-# EMAIL_PORT =465
-# EMAIL_HOST_USER= 'no-reply@domain.com'
-# EMAIL_HOST_PASSWORD = '0806563624937811'
-# EMAIL_USER_TLS = False
-# EMAIL_USER_SSL = True
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-# origin code
-
-# SENDGRID_API_KEY = os.environ["apikey"]
-# SENDGRID_PASSWORD= os.environ["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"]
-# SENDGRID_USERNAME= os.environ["codethinkers"]
-
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
-# # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# EMAIL_HOST = 'smtp.sendgrid.net'
-# EMAIL_PORT =587
-# EMAIL_HOST_USER = 'apikey' 
-# EMAIL_HOST_PASSWORD = SENDGRID_PASSWORD
-# EMAIL_USER_TLS = False
-# EMAIL_USER_SSL = True
-# DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
-
-# ps = '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'
-# server ='smtp.sendgrid.net'
-# ports ='25, 587 465'
-# un='apikey'
-# EHU='codethinkers'
-# EMAIL_HOST_USER=mitchelltabian@gmail.com
-# EMAIL_HOST_PASSWORD=your_app_password_here
-
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_HOST_USER = 'securesally@gmail.com'
-# EMAIL_HOST_PASSWORD = 'olfxieyveruumqrx'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# DEFAULT_FROM_EMAIL = 'CodingWithMitch Team <noreply@codingwithmitch.com>'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = True
+EMAIL_BACKED = 'django_smtp_ssl.SSLEmailBackend'
+EMAIL_HOST = 'smtppro.zoho.com'
+# EMAIL_HOST = 'smtp.zoho.com'
 EMAIL_PORT = 465
-EMAIL_HOST_USER = 'securesally@gmail.com'
-# EMAIL_HOST_USER = 'thinkerscode620@gmail.com'
-EMAIL_HOST_PASSWORD = 'olfxieyveruumqrx'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'codethinkers@codethinkerslms.com'
+EMAIL_HOST_PASSWORD = '08065636249Bm.'
+DEFAULT_FROM_EMAIL = 'codethinkers@codethinkerslms.com'
+
+# if DEBUG:
+#     EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+# else:
+#     EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
