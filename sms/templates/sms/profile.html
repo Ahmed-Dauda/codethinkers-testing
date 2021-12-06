@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+</head>
+<body>
+    <!-- <a href="{% url 'sms:userprofileform' %}">Create Profile</a> -->
+   <hr>
+    <h1>user profile</h1><br>
+<a href="{% url 'account_logout' %}">Log Out</a>
+    {% for profile in user_p %}
+    <p>Email : {{ profile.user}}</p>
+    <p>Names : {{ profile.last_name}} | {{ profile.last_name}}</p>
+    <p>Country : {{ profile.country}}</p>
+    <p>Pnonr Numbrt:{{ profile.user.phone_number}}</p>
+    <p>Date Created :{{ profile.created }} | {{ profile.created|timesince }}</p><hr>
+    <p>Last Profile Update : {{ profile.updated|timesince }}</p><hr>
+    {% if  profile.pro_img %}
+    <img src="{{ profile.pro_img.url}}" width="100px" height="100px" alt="">
+    {% else %}
+    <div><img src="/static/sms/images/program.jpeg" width="100px" height="100px" alt="user profile image"></div><br><hr> 
+    {% endif %}
+    <p>{{ profile.bio }}</p>
+    <a href="{{ profile.get_absolute_url }}"> Edit Profile</a>
+    {% endfor %}
+</body>
+</html>

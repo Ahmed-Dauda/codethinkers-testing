@@ -5,6 +5,11 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, AbstractUser,    BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
+from django.contrib.auth import get_user_model
+# User = get_user_model()
+
+from django.db.models.signals import post_save, pre_save
 
 
 class CustomUserManager(BaseUserManager):
@@ -38,16 +43,14 @@ class CustomUserManager(BaseUserManager):
     user.save(using=self._db)
     return user
 
-country_choice = [
-    ('Nigeria', 'Nigeria'), ('United State', 'United State'), ('Nigeria', 'Nigeria')
-]
 
 class NewUser(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(max_length=254, unique=True)
+    phone_number = models.EmailField(max_length=254, blank= True)
     first_name = models.CharField(max_length=254, null=True, blank=True)
     last_name = models.CharField(max_length=254, null=True, blank=True)
-    country = models.CharField(choices = country_choice, max_length=254, null=True, blank=True)
+    country = models.CharField(max_length=254, null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -70,3 +73,26 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
       db_table = 'auth_user'
 
 
+class Profile(models.Model):
+  user = models.OneToOneField(NewUser,on_delete=models.CASCADE, unique=True, related_name= 'profile')
+  first_name = models.CharField(max_length=225, blank=True, null= True)
+  last_name = models.CharField(max_length=225, blank=True, null= True)
+  phone_number = models.CharField(max_length=225, blank=True, null= True)
+  country= models.CharField(max_length=225, blank=True, null= True)
+  pro_img = models.ImageField(upload_to = 'profile', blank = True, null = True)
+  bio = models.TextField(max_length=600, blank = True, null = True)
+  created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+  updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+
+  def get_absolute_url(self):
+    from django.urls import reverse
+    # return reverse('sms:userprofilelistview')
+    return reverse ('sms:userprofileupdateform',kwargs={'pk':self.pk})
+
+  def __str__(self):
+    return f'{self.user} profile'
+
+def userprofile_receiver(sender, instance, created, *args, **kwags):
+  if created:
+    userprofile = Profile.objects.create(user = instance)
+post_save.connect(userprofile_receiver,sender = NewUser)
