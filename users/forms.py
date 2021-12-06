@@ -6,42 +6,48 @@ from django.forms import ModelForm
 from django import forms
 from django.db import models 
 from sms.models import Comment
-from users.models import NewUser, BaseUserManager
+from users.models import NewUser, BaseUserManager, Profile
 
-class signupform(UserCreationForm):
-    """docstring for signupform"""
-    # TODO: write code...
+# class signupform(UserCreationForm):
+#     """docstring for signupform"""
+#     # TODO: write code...
     
-    first_name = models.CharField(max_length = 225)
-    last_name = models.CharField(max_length = 225)
-    # email = models.EmailField(max_length = 225)
+#     first_name = models.CharField(max_length = 225)
+#     last_name = models.CharField(max_length = 225)
+#     # email = models.EmailField(max_length = 225)
     
     
-    class Meta:
-        model = NewUser
-        fields = [
-            'first_name',
-            'last_name',
-            'country',
-            'email',
-            'password1',
-            'password2'
-            ]
+#     class Meta:
+#         model = NewUser
+#         fields = [
+#             'first_name',
+#             'last_name',
+#             'country',
+#             'email',
+#             'password1',
+#             'password2'
+#             ]
             
 
 from allauth.account.forms import SignupForm
 from django import forms
 from .models import *
+country_choice = [
+    ('select country here', 'select country here'),('Nigeria', 'Nigeria'), ('United State', 'United State'), ('Nigeria', 'Nigeria')
+]
 
 class SimpleSignupForm(SignupForm):
-    user_name = forms.CharField(max_length= 225, label='username')
-    phone = forms.CharField(max_length=12, label='phone')
-    country = forms.CharField(max_length=225, label='country')
+    first_name = forms.CharField(max_length=12, label='first_name')
+    last_name  = forms.CharField(max_length=225, label='last_name')
+    phone_number = forms.CharField(max_length=12, label='phone_number')
+    country = forms.ChoiceField(choices = country_choice,label='country')
     
     def save(self, request):
         user = super(SimpleSignupForm, self).save(request)
-        user.phone = self.cleaned_data['phone']
-        # user.user_name  = self.cleaned_data['user_name ']
+        user.phone_number = self.cleaned_data['phone_number']
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        user.country = self.cleaned_data['country']
         user.save()
         return user
 
@@ -57,4 +63,10 @@ class feedbackform(ModelForm):
     class Meta:
         
         model = Comment
+        fields= '__all__'
+
+class userprofileform(ModelForm):
+    class Meta:
+        
+        model = Profile
         fields= '__all__'
