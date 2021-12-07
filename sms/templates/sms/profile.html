@@ -10,8 +10,9 @@
     <!-- <a href="{% url 'sms:userprofileform' %}">Create Profile</a> -->
    <hr>
     <h1>user profile</h1><br>
-<a href="{% url 'account_logout' %}">Log Out</a>
-    {% for profile in user_p %}
+<a href="{% url 'account_logout' %}">Log Out</a> <hr>
+<a href="{% url 'sms:categorieslist' %}">Go To Home</a>
+    {% for profile in user_profile %}
     <p>Email : {{ profile.user}}</p>
     <p>Names : {{ profile.last_name}} | {{ profile.last_name}}</p>
     <p>Country : {{ profile.country}}</p>
