@@ -5,27 +5,303 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
+    <!-- bootstrap link -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <!--font awesome-->
+  <script src="https://use.fontawesome.com/894e6d2186.js"></script>
+</script>
+    <!-- new animation effect -->
+  <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!------ Include the above in your HEAD tag ---------->
+        <!-- sweetify -->
+        <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css">
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="/static/sms/cssh/styles.css" rel="stylesheet">
+   
+<style>
+    /***
+User Profile Sidebar by @keenthemes
+A component of Metronic Theme - #1 Selling Bootstrap 3 Admin Theme in Themeforest: https://j.mp/metronictheme
+Licensed under MIT
+***/
+
+body {
+  background: #F1F3FA;
+}
+
+/* Profile container */
+.profile {
+  margin: 20px 0;
+}
+
+/* Profile sidebar */
+.profile-sidebar {
+  padding: 20px 0 10px 0;
+  background: #fff;
+}
+
+.profile-userpic img {
+  float: none;
+  margin: 0 auto;
+  width: 50%;
+  height: 50%;
+  -webkit-border-radius: 50% !important;
+  -moz-border-radius: 50% !important;
+  border-radius: 50% !important;
+}
+
+.profile-usertitle {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.profile-usertitle-name {
+  color: #5a7391;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 7px;
+}
+
+.profile-usertitle-job {
+  text-transform: uppercase;
+  color: #5b9bd1;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.profile-userbuttons {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.profile-userbuttons .btn {
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 15px;
+  margin-right: 5px;
+}
+
+.profile-userbuttons .btn:last-child {
+  margin-right: 0px;
+}
+    
+.profile-usermenu {
+  margin-top: 30px;
+}
+
+.profile-usermenu ul li {
+  border-bottom: 1px solid #f0f4f7;
+}
+
+.profile-usermenu ul li:last-child {
+  border-bottom: none;
+}
+
+.profile-usermenu ul li a {
+  color: #93a3b5;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.profile-usermenu ul li a i {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.profile-usermenu ul li a:hover {
+  background-color: #fafcfd;
+  color: #5b9bd1;
+}
+
+.profile-usermenu ul li.active {
+  border-bottom: none;
+}
+
+.profile-usermenu ul li.active a {
+  color: #5b9bd1;
+  background-color: #f6f9fb;
+  border-left: 2px solid #5b9bd1;
+  margin-left: -2px;
+}
+
+/* Profile Content */
+.profile-content {
+  padding: 20px;
+  background: #fff;
+  min-height: 460px;
+}
+
+a, button, code, div, img, input, label, li, p, pre, select, span, svg, table, td, textarea, th, ul {
+    -webkit-border-radius: 0!important;
+    -moz-border-radius: 0!important;
+    border-radius: 0!important;
+}
+.dashboard-stat, .portlet {
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    -ms-border-radius: 4px;
+    -o-border-radius: 4px;
+}
+.portlet {
+    margin-top: 0;
+    margin-bottom: 25px;
+    padding: 0;
+    border-radius: 4px;
+}
+.portlet.bordered {
+    border-left: 2px solid #e6e9ec!important;
+}
+.portlet.light {
+    padding: 12px 20px 15px;
+    background-color: #fff;
+}
+.portlet.light.bordered {
+    border: 1px solid #e7ecf1!important;
+}
+.list-separated {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+.profile-stat {
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f4f7;
+}
+.profile-stat-title {
+    color: #7f90a4;
+    font-size: 25px;
+    text-align: center;
+}
+.uppercase {
+    text-transform: uppercase!important;
+}
+
+.profile-stat-text {
+    color: #5b9bd1;
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+}
+.profile-desc-title {
+    color: #7f90a4;
+    font-size: 17px;
+    font-weight: 600;
+}
+.profile-desc-text {
+    color: #7e8c9e;
+    font-size: 14px;
+}
+.margin-top-20 {
+    margin-top: 20px!important;
+}
+[class*=" fa-"]:not(.fa-stack), [class*=" glyphicon-"], [class*=" icon-"], [class^=fa-]:not(.fa-stack), [class^=glyphicon-], [class^=icon-] {
+    display: inline-block;
+    line-height: 14px;
+    -webkit-font-smoothing: antialiased;
+}
+.profile-desc-link i {
+    width: 22px;
+    font-size: 19px;
+    color: #abb6c4;
+    margin-right: 5px;
+}
+
+.portlet{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.portlet>*{
+    flex: 1 1 auto;
+    margin: 3px;
+}
+.uppercase{
+    font-size: 18px;
+}
+</style>
 </head>
 <body>
-    <!-- <a href="{% url 'sms:userprofileform' %}">Create Profile</a> -->
-   <hr>
-    <h1>user profile</h1><br>
-<a href="{% url 'account_logout' %}">Log Out</a> <hr>
-<a href="{% url 'sms:categorieslist' %}">Go To Home</a>
+    <!-- SIDEBAR BUTTONS -->
+    <div class="profile-userbuttons">
+        <button type="button" class="btn btn-success btn-sm">Follow</button>
+    </div>
+
+
+<!-- STAT -->
+<div class="portlet light bordered">
+<div class="row list-separated profile-stat">
+
+<div class="col-md-4 col-sm-4 col-xs-6">
+<div class="uppercase profile-stat-text"><a href="{% url 'sms:categorieslist' %}">Go To Home</a></div>
+</div>
+
+<div class="col-md-4 col-sm-4 col-xs-6">
+<div class="uppercase profile-stat-text"><a href="{% url 'account_logout' %}">Log Out</a></div>
+</div>
+
+<div class="col-md-4 col-sm-4 col-xs-6">
+<div class="uppercase profile-stat-text"><a href="{% url 'account_change_password' %}">Change Password</a></div>
+</div>
+
+<div class="col-md-4 col-sm-4 col-xs-6">
+<div class="uppercase profile-stat-text"><a class="uppercase profile-stat-text" href="{% url 'account_reset_password' %}">Password Reset</a></div>
+</div>
+
+</div>
+</div>
+<!-- END STAT -->
+
+
+    <!-- STAT -->
+<div class="portlet light bordered">
+<div class="row list-separated profile-stat">
+    
+<div class="col-md-4 col-sm-4 col-xs-6">
     {% for profile in user_profile %}
-    <p>Email : {{ profile.user}}</p>
-    <p>Names : {{ profile.last_name}} | {{ profile.last_name}}</p>
-    <p>Country : {{ profile.country}}</p>
-    <p>Pnonr Numbrt:{{ profile.user.phone_number}}</p>
-    <p>Date Created :{{ profile.created }} | {{ profile.created|timesince }}</p><hr>
-    <p>Last Profile Update : {{ profile.updated|timesince }}</p><hr>
     {% if  profile.pro_img %}
-    <img src="{{ profile.pro_img.url}}" width="100px" height="100px" alt="">
+    <img src="{{ profile.pro_img.url}}" width="100px" height="100px"  class="rounded-circle" alt=""><hr>
     {% else %}
-    <div><img src="/static/sms/images/program.jpeg" width="100px" height="100px" alt="user profile image"></div><br><hr> 
+<img src="/static/sms/images/program.jpeg" width="100px" height="100px" class="rounded-circle" alt=""><hr>
     {% endif %}
-    <p>{{ profile.bio }}</p>
-    <a href="{{ profile.get_absolute_url }}"> Edit Profile</a>
-    {% endfor %}
+   
+    <div class="uppercase profile-stat-text">Names : {{ profile.last_name}} | {{ profile.last_name}}</div>
+</div>
+
+<div class="col-md-4 col-sm-4 col-xs-6">
+    <div class="uppercase profile-stat-title"><p>Email : {{ profile.user}}</p></div>
+    <div class="uppercase profile-stat-text">  <p>Country : {{ profile.country}}</p></div>
+</div>
+
+<div class="col-md-4 col-sm-4 col-xs-6">
+    <div class="uppercase profile-stat-title"><p>Date Created :{{ profile.created }} | {{ profile.created|timesince }}</p></div>
+    <div class="uppercase profile-stat-text">  <p>Biography : {{ profile.bio }}</p></div>
+</div>
+
+<div class="col-md-4 col-sm-4 col-xs-6">
+    <div class="uppercase profile-stat-title"> <p>Last Profile Update : {{ profile.updated|timesince }}</p></div>
+    <div class="uppercase profile-stat-text"> <a href="{{ profile.get_absolute_url }}"> Edit Profile</a></div>
+</div>
+{% endfor %}
+</div>
+</div>
+
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="/static/sms/jsh/scripts.js"></script>
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <!-- * *                               SB Forms JS                               * *-->
+        <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+      <!-- Code injected by live-server -->
 </body>
 </html>
