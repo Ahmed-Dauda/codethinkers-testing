@@ -187,7 +187,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user_pro = self.request.user
-        context['user_p'] = Profile.objects.filter(user = self.request.user)
+        context['user_profile'] = Profile.objects.filter(user = self.request.user)
         return context
 
 class UserProfileForm(LoginRequiredMixin, CreateView):
