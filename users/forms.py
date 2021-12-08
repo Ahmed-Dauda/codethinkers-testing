@@ -37,17 +37,17 @@ country_choice = [
 ]
 
 class SimpleSignupForm(SignupForm):
-    first_name = forms.CharField(max_length=12, label='first_name')
-    last_name  = forms.CharField(max_length=225, label='last_name')
-    phone_number = forms.CharField(max_length=12, label='phone_number')
-    country = forms.ChoiceField(choices = country_choice,label='country')
+    First_name = forms.CharField(max_length=12, label='First-name')
+    Last_name  = forms.CharField(max_length=225, label='Last-name')
+    Phone_number = forms.CharField(max_length=12, label='Phone-number')
+    Country = forms.ChoiceField(choices = country_choice,label='Country')
     
     def save(self, request):
         user = super(SimpleSignupForm, self).save(request)
-        user.phone_number = self.cleaned_data['phone_number']
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        user.country = self.cleaned_data['country']
+        user.Phone_number = self.cleaned_data['Phone-number']
+        user.First_name = self.cleaned_data['First-name']
+        user.Last_name = self.cleaned_data['Last-name']
+        user.country = self.cleaned_data['Country']
         user.save()
         return user
 

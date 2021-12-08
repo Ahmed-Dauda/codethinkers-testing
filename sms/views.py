@@ -22,9 +22,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.contrib import messages #import messages
 # end password reset import.
-# from users.models import NewUser as User
+from users.models import NewUser
 
-from sms.forms import signupform
+# from sms.forms import signupform
 from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -63,9 +63,9 @@ class Categorieslistview(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['students'] = User.objects.all().count()
-
         context['category'] = Categories.objects.all().count()
         context['courses'] = Courses.objects.all().count()
+        context['user'] = NewUser.objects.all()[1]
         # num_visit = self.request.session.get('num_visit', 0)
         # self.request.session['num_visit'] = num_visit + 1
         # context['num_visit'] = num_visit
@@ -129,20 +129,20 @@ class Topicsdetailview( HitCountDetailView,LoginRequiredMixin,DetailView):
 
 from sweetify.views import SweetifySuccessMixin
 
-class signupview(SuccessMessageMixin,CreateView):
+# class signupview(SuccessMessageMixin,CreateView):
     
-    form_class =signupform
-    template_name =  'sms/signup.html'
-    success_url = reverse_lazy('sms:signupsuccess')
-    success_message = 'TestModel successfully updated!'
+#     form_class =signupform
+#     template_name =  'sms/signup.html'
+#     success_url = reverse_lazy('sms:signupsuccess')
+#     success_message = 'TestModel successfully updated!'
     
-class Signupsuccess(ListView):
-    models = ''
-    template_name = 'sms/signupsuccess.html'
-    success_url = reverse_lazy('sms:signupview')
+# class Signupsuccess(ListView):
+#     models = ''
+#     template_name = 'sms/signupsuccess.html'
+#     success_url = reverse_lazy('sms:signupview')
 
-    def get_queryset(self):
-        return Topics.objects.all()
+#     def get_queryset(self):
+#         return Topics.objects.all()
 
 class Commentlistview(LoginRequiredMixin, ListView):
     models = Comment
