@@ -200,7 +200,7 @@ a, button, code, div, img, input, label, li, p, pre, select, span, svg, table, t
     font-size: 14px;
 }
 .margin-top-20 {
-    margin-top: 20px!important;
+    margin-top: 18px!important;
 }
 [class*=" fa-"]:not(.fa-stack), [class*=" glyphicon-"], [class*=" icon-"], [class^=fa-]:not(.fa-stack), [class^=glyphicon-], [class^=icon-] {
     display: inline-block;
@@ -218,10 +218,12 @@ a, button, code, div, img, input, label, li, p, pre, select, span, svg, table, t
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    
 }
 .portlet>*{
     flex: 1 1 auto;
     margin: 3px;
+    
 }
 .uppercase{
     font-size: 18px;
@@ -229,26 +231,21 @@ a, button, code, div, img, input, label, li, p, pre, select, span, svg, table, t
 </style>
 </head>
 <body>
-    <!-- SIDEBAR BUTTONS -->
-    <div class="profile-userbuttons">
-        <button type="button" class="btn btn-success btn-sm">Follow</button>
-    </div>
-
-
+  
 <!-- STAT -->
 <div class="portlet light bordered">
 <div class="row list-separated profile-stat">
 
 <div class="col-md-4 col-sm-4 col-xs-6">
-<div class="uppercase profile-stat-text"><a href="{% url 'sms:categorieslist' %}">Go To Home</a></div>
+<div class="uppercase profile-stat-text"><a href="{% url 'sms:categorieslist' %}">Home</a></div><br>
 </div>
 
 <div class="col-md-4 col-sm-4 col-xs-6">
-<div class="uppercase profile-stat-text"><a href="{% url 'account_logout' %}">Log Out</a></div>
+<div class="uppercase profile-stat-text"><a href="{% url 'account_logout' %}">Log Out</a></div><br>
 </div>
 
 <div class="col-md-4 col-sm-4 col-xs-6">
-<div class="uppercase profile-stat-text"><a href="{% url 'account_change_password' %}">Change Password</a></div>
+<div class="uppercase profile-stat-text"><a href="{% url 'account_change_password' %}">Change Password</a></div><br>
 </div>
 
 <div class="col-md-4 col-sm-4 col-xs-6">
@@ -292,6 +289,26 @@ a, button, code, div, img, input, label, li, p, pre, select, span, svg, table, t
 {% endfor %}
 </div>
 </div>
+
+
+<!-- STAT -->
+<div class="profile-userbuttons">
+    <button type="button" class="btn btn-success btn-sm">Follow Us</button>
+</div>
+
+<div class="portlet light bordered">
+    <div class="row list-separated profile-stat">
+    
+    <div class="col-md-4 col-sm-4 col-xs-6"><a href="https://web.facebook.com/groups/693981141155034/?_rdc=1&_rdr">Facebook Group</a></div><hr> 
+    
+    <div class="col-md-4 col-sm-4 col-xs-6"><a href="https://www.youtube.com/watch?v=PUeRGIINWVA">Youtube</a></div><hr>
+
+    <div class="col-md-4 col-sm-4 col-xs-6"><a href="https://web.facebook.com/addatainsight/">Facebook Page</a></div>
+    
+    </div>
+    </div>
+    <!-- END STAT -->
+
 
         <!-- Bootstrap core JS-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
