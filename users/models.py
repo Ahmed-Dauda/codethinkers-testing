@@ -50,7 +50,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     phone_number = models.EmailField(max_length=254, blank= True)
     first_name = models.CharField(max_length=254, null=True, blank=True)
     last_name = models.CharField(max_length=254, null=True, blank=True)
-    countries = models.CharField(max_length=254, null=True, blank=True)
+    countries = models.CharField(max_length=254,  blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -66,7 +66,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     def __str__(self):
-        return f'{self.first_name }'
+        return f'{self.email}'
 
     # def get_absolute_url(self):
     #     return "/users/%i/" % (self.pk)
