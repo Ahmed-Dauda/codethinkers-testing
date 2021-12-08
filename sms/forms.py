@@ -22,6 +22,7 @@ class signupform(UserCreationForm):
         fields = [
             'first_name',
             'last_name',
+            
             'country',
             'email',
             'password1',

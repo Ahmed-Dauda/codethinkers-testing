@@ -73,11 +73,15 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
       db_table = 'auth_user'
 
-
+gender_choice = [
+  ('Male', 'Male'),
+  ('Male', 'Male')
+]
 class Profile(models.Model):
   user = models.OneToOneField(NewUser,on_delete=models.CASCADE, unique=True, related_name= 'profile')
   first_name = models.CharField(max_length=225, blank=True, null= True)
   last_name = models.CharField(max_length=225, blank=True, null= True)
+  gender =models.CharField(choices=gender_choice, max_length=225, blank=True, null= True)
   phone_number = models.CharField(max_length=225, blank=True, null= True)
   country= models.CharField(max_length=225, blank=True, null= True)
   pro_img = models.ImageField(upload_to = 'profile', blank = True, null = True)
