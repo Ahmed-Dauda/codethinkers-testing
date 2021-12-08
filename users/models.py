@@ -50,7 +50,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     phone_number = models.EmailField(max_length=254, blank= True)
     first_name = models.CharField(max_length=254, null=True, blank=True)
     last_name = models.CharField(max_length=254, null=True, blank=True)
-    country = models.CharField(max_length=254, null=True, blank=True)
+    countries = models.CharField(max_length=254, null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -75,7 +75,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
 
 gender_choice = [
   ('Male', 'Male'),
-  ('Male', 'Male')
+  ('Female', 'Female')
 ]
 class Profile(models.Model):
   user = models.OneToOneField(NewUser,on_delete=models.CASCADE, unique=True, related_name= 'profile')
@@ -83,7 +83,7 @@ class Profile(models.Model):
   last_name = models.CharField(max_length=225, blank=True, null= True)
   gender =models.CharField(choices=gender_choice, max_length=225, blank=True, null= True)
   phone_number = models.CharField(max_length=225, blank=True, null= True)
-  country= models.CharField(max_length=225, blank=True, null= True)
+  countries= models.CharField(max_length=225, blank=True, null= True)
   pro_img = models.ImageField(upload_to = 'profile', blank = True, null = True)
   bio = models.TextField(max_length=600, blank = True, null = True)
   created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
