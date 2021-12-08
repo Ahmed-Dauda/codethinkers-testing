@@ -77,7 +77,7 @@ SOCIAL_AUTH_GOOGLE_SECRET = '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'
 
 SITE_ID = 1
 # SOCIALACCOUNT_EMAIL_VERIFIATION = False
-ACCOUNT_AUTHENTICATION_METHOD ='username_email'
+# ACCOUNT_AUTHENTICATION_METHOD ='username_email'
 # ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_REQUIRED = True
 # ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
@@ -135,9 +135,9 @@ EMAIL_HOST = 'smtppro.zoho.com'
 EMAIL_PORT = 465
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'codethinkers@codethinkerslms.com'
+EMAIL_HOST_USER = 'codethinkersa@gmail.com'
 EMAIL_HOST_PASSWORD = '08065636249Bm.'
-DEFAULT_FROM_EMAIL = 'codethinkers@codethinkerslms.com'
+DEFAULT_FROM_EMAIL = 'codethinkersa@gmail.com'
 
 # if DEBUG:
 #     EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
