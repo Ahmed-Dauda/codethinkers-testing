@@ -128,9 +128,9 @@ SOCIALACCOUNT_PROVIDERS = {
 # email settings
 
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# EMAIL_BACKED = 'django_smtp_ssl.SSLEmailBackend'
+EMAIL_BACKED = 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = 'smtppro.zoho.com'
 EMAIL_PORT = 465
 EMAIL_USE_TLS = False

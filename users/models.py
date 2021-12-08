@@ -59,6 +59,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     
 
     USERNAME_FIELD = 'email'
+    # USERNAME_FIELD = 'user_name'
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = []
 
