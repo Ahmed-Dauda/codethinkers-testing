@@ -47,7 +47,7 @@ class SimpleSignupForm(SignupForm):
         user.Phone_number = self.cleaned_data['Phone-number']
         user.First_name = self.cleaned_data['First-name']
         user.Last_name = self.cleaned_data['Last-name']
-        user.country = self.cleaned_data['Country']
+        user.Country = self.cleaned_data['Country']
         user.save()
         return user
 
