@@ -66,7 +66,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     def __str__(self):
-        return f'{self.First_name }'
+        return f'{self.first_name }'
 
     # def get_absolute_url(self):
     #     return "/users/%i/" % (self.pk)
