@@ -65,7 +65,7 @@ class Categorieslistview(LoginRequiredMixin, ListView):
         context['students'] = User.objects.all().count()
         context['category'] = Categories.objects.all().count()
         context['courses'] = Courses.objects.all().count()
-        context['user'] = NewUser.objects.all()[1]
+        context['user'] = NewUser.objects.all()
         # num_visit = self.request.session.get('num_visit', 0)
         # self.request.session['num_visit'] = num_visit + 1
         # context['num_visit'] = num_visit
@@ -172,7 +172,7 @@ class Feedbackformview(SuccessMessageMixin,CreateView):
     
     form_class = feedbackform
     template_name =  'sms/feedbackformview.html'
-    success_url = reverse_lazy('sms:commentlistviewsuccess')
+    success_url = reverse_lazy('sms:userprofilelistview')
     success_message = 'TestModel successfully updated!'
 
 class UserProfilelistview(LoginRequiredMixin, ListView):
@@ -201,7 +201,7 @@ class UserProfileForm(LoginRequiredMixin, CreateView):
         return Profile.objects.all()
 
 class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
-    models = SimpleSignupForm
+    models = Profile
     fields = '__all__'
     template_name = 'sms/userprofileupdateform.html'
     success_message = 'TestModel successfully updated!'

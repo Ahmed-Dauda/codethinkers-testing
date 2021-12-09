@@ -36,4 +36,4 @@ class UserAdmin(BaseUserAdmin):
     filter_horizontal = ('groups', 'user_permissions',)
 
 admin.site.register(NewUser, UserAdmin)
-# admin.site.register(Profile)
+admin.site.register(Profile)

@@ -28,9 +28,9 @@
 <!-- end of animation effect -->
         <title>Codethinkers Academy Feedback Form</title> 
 <style>
-textarea{
-  width: 200px;
-  height: 200px;
+textarea, input{
+  width: 100%;
+
 }
 </style>
 
@@ -44,9 +44,7 @@ body{
     padding: 0%;
   
 }
-form{
-  width: 100%;
-}
+
 </style>
 
 
@@ -72,32 +70,44 @@ form{
                                <script>
                                  Swal.fire({
                                   icon: 'error',
-                                  title: 'Oops...',
+                                  title: 'First Name and Desc can not be empty',
                                   text: 'Please Try Again.',
                                   footer: '<h4 style="color: red;"> Submission Failed. </h4><hr>!',
                                   
                                   })
                                   
                                </script>
-                            
-                       <!-- <h4 style="color: red;">Registration unsuccessful. </h4><hr> -->
+                                {% else %}
+                                <script>
+                                  Swal.fire({
+                                   icon: 'success',
+                                   confirmButtonTxt: 'Save',
+                                   title: 'form successfully submitted',
+                                   footer: '<a style ="font-size:30px" href="{% url "sms:userprofileform" %}">Go to Profile</a>',
+
+                                   }).then((result)=>{
+                                    if (result.isConfirmed){
+                                      Swal.fire('saved!', '', 'success')
+                                    }else if (result.isDenied){
+                                      Swal.fire('not saved')
+                                    }
+                                   }
+                                   )
+                                   
+                                </script>
                                {% endif %}
+                             
               {% for field in form %}
               <div class="container ">
-                          <p class="">{{field.label_tag}}</p> 
-                          <p class="">{{field}}</p> 
-                        </div>
+              <p class="">{{field.label_tag}}</p> 
+                <p class="">{{field}}</p> 
+                </div>
                           {% endfor %}               
                            <br>
 
-        <label class="form-check-label" for="form2Example3g">
-         I agree all statements in <a href="#!" class="text-body"><u>Terms of service</u></a><br><hr>
-        </label>
-
         <div class="d-flex justify-content-center">
-          <button type="submit"  class="btn btn-success btn-block btn-lg  text-body">Submit Feedback</button>
-       <hr>
-       <p class="text-center  mt-5 mb-0">Have already an account? <a class= 'login' href="{% url 'login' %}" class=" text-body">Login Here</a></p>
+          <button type="submit"  class="btn btn-success ">Submit Feedback</button>
+      
         </div>
         </div>
   
