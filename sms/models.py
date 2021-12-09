@@ -74,10 +74,10 @@ class Topics(models.Model):
 class Comment(models.Model):
     
     # user_name = models.ForeignKey(User, on_delete= models.CASCADE)
-    first_name = models.CharField(max_length=225, blank=True, null= True)
+    first_name = models.CharField(max_length=225)
     last_name = models.CharField(max_length=225, blank=True, null= True)
     title = models.CharField(max_length=225,  null=True, blank =True )
-    desc = models.TextField(blank=True, null= True)
+    desc = models.TextField(max_length=500)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
     # id = models.BigAutoField(primary_key=True)
