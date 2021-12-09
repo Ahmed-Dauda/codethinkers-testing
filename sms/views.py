@@ -172,7 +172,7 @@ class Feedbackformview(SuccessMessageMixin,CreateView):
     
     form_class = feedbackform
     template_name =  'sms/feedbackformview.html'
-    success_url = reverse_lazy('sms:userprofilelistview')
+    success_url = reverse_lazy('sms:feedbackformview')
     success_message = 'TestModel successfully updated!'
 
 class UserProfilelistview(LoginRequiredMixin, ListView):

@@ -70,30 +70,27 @@ body{
                                <script>
                                  Swal.fire({
                                   icon: 'error',
+                                  closeOnConfirm: True,
                                   title: 'First Name and Desc can not be empty',
                                   text: 'Please Try Again.',
                                   footer: '<h4 style="color: red;"> Submission Failed. </h4><hr>!',
                                   
-                                  })
+                                  }) 
+                                  
+
                                   
                                </script>
                                 {% else %}
                                 <script>
                                   Swal.fire({
                                    icon: 'success',
-                                   confirmButtonTxt: 'Save',
+                                   closeOnConfirm: True,
                                    title: 'form successfully submitted',
                                    footer: '<a style ="font-size:30px" href="{% url "sms:userprofileform" %}">Go to Profile</a>',
-
-                                   }).then((result)=>{
-                                    if (result.isConfirmed){
-                                      Swal.fire('saved!', '', 'success')
-                                    }else if (result.isDenied){
-                                      Swal.fire('not saved')
-                                    }
-                                   }
-                                   )
-                                   
+                                   })
+                                   ,function(isConfirm){
+'fjdjjdjjdjjdd'
+                                  }
                                 </script>
                                {% endif %}
                              
