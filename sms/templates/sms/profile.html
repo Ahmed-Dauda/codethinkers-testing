@@ -237,7 +237,7 @@ img{
   
 <!-- STAT -->
 <div class="portlet light bordered">
-<div class="row list-separated profile-stat">
+<div class="text-white row list-separated profile-stat" style="background-color: rgb(16, 2, 37);">
 
 <div class="col-md-4 col-sm-4 col-xs-6">
 <div class="uppercase profile-stat-text"><a href="{% url 'sms:categorieslist' %}">Home</a></div><br>
@@ -271,22 +271,26 @@ img{
     {% else %}
 <img src="/static/sms/images/program.jpeg" width="100px" height="100px" class="rounded-circle" alt=""><hr>
     {% endif %}
-   
+    <div class="uppercase profile-stat-text"> <a href="{{ profile.get_absolute_url }}"> Edit Profile</a></div><hr>
     <div class="uppercase profile-stat-text">Names : {{ profile.first_name}} | {{ profile.last_name}}</div>
     <div class="uppercase profile-stat-title"> <p>Last Profile Update : {{ profile.updated|timesince }}</p></div>
     <div class="uppercase profile-stat-title"> <p>Sex : {{ profile.gender}}</p></div>
-    <div class="uppercase profile-stat-text"> <a href="{{ profile.get_absolute_url }}"> Edit Profile</a></div>
+    
 </div>
 
 <div class="col-md-4 col-sm-4 col-xs-6">
     <div class="uppercase profile-stat-title"><p>Email : {{ profile.user}}</p></div>
     <div class="uppercase profile-stat-text">  <p>Country : {{ profile.countries}}</p></div>
-    <div class="uppercase profile-stat-text"> <a href="{% url 'sms:feedbackformview' %}">Feedback Form</a> </div>
+  
 </div>
 
 <div class="col-md-4 col-sm-4 col-xs-6">
     <div class="uppercase profile-stat-title"><p>Date Created :{{ profile.created }} | {{ profile.created|timesince }}</p></div>
-    <div ></div><p>Biography : {{ profile.bio }}</p></div>
+    <div class=""><p>BIOGRAPHY : {{ profile.bio }}</p></div><hr style="color: rgb(16, 2, 37);">
+</div>
+
+<div class="col-md-4 col-sm-4 col-xs-6"><hr>
+  <div class="uppercase profile-stat-text"> <a href="{% url 'sms:feedbackformview' %}">Feedback Form</a> </div>
 </div>
 
 <!-- <div class="col-md-4 col-sm-4 col-xs-6">
@@ -305,13 +309,13 @@ img{
 </div>
 
 <div class="portlet light bordered">
-    <div class="row list-separated profile-stat">
-    
-    <div class="col-md-4 col-sm-4 col-xs-6"><a href="https://web.facebook.com/groups/693981141155034/?_rdc=1&_rdr">Facebook Group</a></div><hr> 
-    
-    <div class="col-md-4 col-sm-4 col-xs-6"><a href="https://www.youtube.com/watch?v=PUeRGIINWVA">Youtube</a></div><hr>
+    <div class=" text-center row list-separated profile-stat" style="background-color: rgb(16, 2, 37);">
 
-    <div class="col-md-4 col-sm-4 col-xs-6"><a href="https://web.facebook.com/addatainsight/">Facebook Page</a></div>
+    <div class=""><a href="https://web.facebook.com/groups/693981141155034/?_rdc=1&_rdr">Facebook Group</a></div><hr> 
+    
+    <div class=""><a href="https://www.youtube.com/watch?v=PUeRGIINWVA">Youtube</a></div><hr>
+
+    <div class=""><a href="https://web.facebook.com/addatainsight/">Facebook Page</a></div>
     
     </div>
     </div>
