@@ -1,1 +1,1 @@
-web: gunicorn school.wsgi --log-file -
+web: gunicorn codethinkers.wsgi --log-file -
