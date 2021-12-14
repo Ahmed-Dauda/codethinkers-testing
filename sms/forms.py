@@ -6,7 +6,7 @@ from django.forms import ModelForm
 from django import forms
 from django.db import models 
 from sms.models import Comment
-# from users.models import  BaseUserManager
+from users.models import NewUser, BaseUserManager
 
 # class signupform(UserCreationForm):
 #     """docstring for signupform"""
