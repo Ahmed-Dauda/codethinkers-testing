@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',
+    'django.contrib.sites', # make sure sites is included
     'users',
     'sms',
     'sweetify',
@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    # make sure sites is included
+    
 # the social providers
     # 'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.google',
