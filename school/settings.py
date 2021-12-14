@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 from posixpath import join
 
+from django.contrib.auth import SESSION_KEY
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -128,7 +130,7 @@ SOCIALACCOUNT_PROVIDERS = {
 
 
 
-
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 # email settings
 
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
