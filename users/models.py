@@ -71,8 +71,9 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
 
     # def get_absolute_url(self):
     #     return "/users/%i/" % (self.pk)
-    class Meta:
-      db_table = 'auth_user'
+    # class Meta:
+    #   models= User
+      # db_table = 'auth_user'
 
 gender_choice = [
   ('Male', 'Male'),
