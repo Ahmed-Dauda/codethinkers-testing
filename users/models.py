@@ -78,7 +78,6 @@ gender_choice = [
   ('Female', 'Female')
 ]
 
-# from sms.models import User
 
 class Profile(models.Model):
   user = models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, unique=True, related_name= 'profile')
