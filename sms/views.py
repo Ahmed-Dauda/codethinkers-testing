@@ -31,10 +31,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 import sweetify
 from sms.forms import feedbackform
 
-from django.contrib.messages.views import SuccessMessageMixin
-from django.contrib.sessions.models import Session
+# from django.contrib.messages.views import SuccessMessageMixin
+# from django.contrib.sessions.models import Session
 # from django.contrib.auth.models import User
-from django.contrib.sessions.models import Session
+# from django.contrib.sessions.models import Session
 from django.utils import timezone
 from hitcount.views import HitCountDetailView
 from django.contrib.auth import get_user_model
@@ -168,7 +168,7 @@ class Commentlistviewsuccess(LoginRequiredMixin, ListView):
         return Comment.objects.all()
    
         
-class Feedbackformview(SuccessMessageMixin,CreateView):
+class Feedbackformview(CreateView):
     
     form_class = feedbackform
     template_name =  'sms/feedbackformview.html'
