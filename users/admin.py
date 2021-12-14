@@ -13,7 +13,7 @@ class UserAdmin(BaseUserAdmin):
         (None, {'fields': ('email', 'password','countries', 'phone_number','last_login')}),
         ('Permissions', {'fields': (
             'is_active', 
-            'is_staff', 
+            # 'is_staff', 
             'is_superuser',
             'groups', 
             'user_permissions',
@@ -29,8 +29,8 @@ class UserAdmin(BaseUserAdmin):
         ),
     )
 
-    list_display = ('first_name','last_name', 'email','countries', 'phone_number','is_staff', 'last_login')
-    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
+    list_display = ('first_name','last_name', 'email','countries', 'phone_number', 'last_login')
+    list_filter = ( 'is_superuser', 'is_active', 'groups')
     search_fields = ('email',)
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)

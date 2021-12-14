@@ -35,36 +35,37 @@ ALLOWED_HOSTS = ['*']
 
 
 INSTALLED_APPS = [
-    'sms',
-    'users',
-    'sweetify',
-    'widget_tweaks',
-    'hitcount',
-    'crispy_forms',
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',  # make sure sites is included
     
+    'users',
+    'sms',
+    'sweetify',
+    'widget_tweaks',
+    'hitcount',
+    'crispy_forms',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-
+    'django.contrib.sites',  # make sure sites is included
 # the social providers
     # 'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.google',
     # 'allauth.socialaccount.providers.twitter',
 ]
+AUTH_USER_MODEL = 'users.NewUser'
 # Application definition
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend', # existing backend
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-AUTH_USER_MODEL = 'users.NewUser'
+
 
 SOCIAL_AUTH_GOOGLE_KEY = '571775719816-thu9u968v8gpmcuie9ojlb4u0ahig94t.apps.googleusercontent.com'
 SOCIAL_AUTH_GOOGLE_SECRET = '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'
