@@ -72,7 +72,6 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     # def get_absolute_url(self):
     #     return "/users/%i/" % (self.pk)
 
-
 gender_choice = [
   ('Male', 'Male'),
   ('Female', 'Female')
