@@ -1,6 +1,6 @@
 from django.contrib import admin
 from sms.models import Categories, Courses, Topics, Comment
-from users.models import Profile
+# from users.models import Profile
 # Register your models here.
 
 @admin.register(Comment)

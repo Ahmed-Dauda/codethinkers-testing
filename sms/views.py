@@ -5,9 +5,9 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse
 from sms.models import Categories, Courses, Topics, Comment
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
-from users.models import Profile
+# from users.models import Profile
 # from django.contrib.auth.models import User
-from users.forms import userprofileform, SimpleSignupForm
+# from users.forms import userprofileform, SimpleSignupForm
 # password reset import
 
 from django.shortcuts import render, redirect
@@ -22,7 +22,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.contrib import messages #import messages
 # end password reset import.
-from users.models import NewUser
+# from users.models import NewUser
 
 # from sms.forms import signupform
 from django.urls import reverse
@@ -176,36 +176,39 @@ class Feedbackformview(SuccessMessageMixin,CreateView):
     success_message = 'TestModel successfully updated!'
 
 class UserProfilelistview(LoginRequiredMixin, ListView):
-    models = Profile
+    # models = Profile
     template_name = 'sms/profile.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
    
     def get_queryset(self):
-        return Profile.objects.all()
+        pass
+        # return Profile.objects.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user_pro = self.request.user
-        context['user_profile'] = Profile.objects.filter(user = self.request.user)
+        # context['user_profile'] = Profile.objects.filter(user = self.request.user)
         return context
 
 class UserProfileForm(LoginRequiredMixin, CreateView):
-    models = Profile
+    # models = Profile
     fields = '__all__'
     template_name = 'sms/userprofileform.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
 
     def get_queryset(self):
-        return Profile.objects.all()
+        pass
+        # return Profile.objects.all()
 
 class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
-    models = Profile
+    # models = Profile
     fields = '__all__'
     template_name = 'sms/userprofileupdateform.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
 
     def get_queryset(self):
-        return Profile.objects.all()
+        pass
+        # return Profile.objects.all()
