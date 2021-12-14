@@ -14,14 +14,14 @@ from django.db.models.signals import post_save, pre_save
 
 class CustomUserManager(BaseUserManager):
 
-  def _create_user(self, email, password, is_superuser, **extra_fields):
+  def _create_user(self, email, password,is_staff, is_superuser, **extra_fields):
     if not email:
         raise ValueError('Users must have an email address')
     now = timezone.now()
     email = self.normalize_email(email)
     user = self.model(
         email=email,
-        # is_staff=is_staff, 
+        is_staff=is_staff, 
         is_active=True,
         is_superuser=is_superuser, 
         last_login=now,
@@ -32,8 +32,8 @@ class CustomUserManager(BaseUserManager):
     user.save(using=self._db)
     return user
   
-  # class Meta:
-  #       db_table = 'auth_user'
+  class Meta:
+        db_table = 'auth_user'
       
   def create_user(self, email, password, **extra_fields):
     return self._create_user(email, password, False, False, **extra_fields)
@@ -52,7 +52,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=254, null=True, blank=True)
     last_name = models.CharField(max_length=254, null=True, blank=True)
     countries = models.CharField(max_length=254,  blank=True, null=True)
-    # is_staff = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     last_login = models.DateTimeField(null=True, blank=True)
@@ -68,13 +68,10 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return f'{self.email}'
    
-    class Meta:
-      db_table = 'auth_user'
 
     # def get_absolute_url(self):
     #     return "/users/%i/" % (self.pk)
-    class Meta:
-      verbose_name = 'user'
+
 
 gender_choice = [
   ('Male', 'Male'),

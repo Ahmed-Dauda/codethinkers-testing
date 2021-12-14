@@ -13,7 +13,7 @@ class UserAdmin(BaseUserAdmin):
         (None, {'fields': ('email', 'password','countries', 'phone_number','last_login')}),
         ('Permissions', {'fields': (
             'is_active', 
-            # 'is_staff', 
+            'is_staff', 
             'is_superuser',
             'groups', 
             'user_permissions',
