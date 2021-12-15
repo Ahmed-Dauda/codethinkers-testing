@@ -126,8 +126,6 @@ SOCIALACCOUNT_PROVIDERS = {
 
 
 
-
-# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 # email settings
 
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
