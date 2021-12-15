@@ -35,10 +35,7 @@ ALLOWED_HOSTS = ['*']
 # ALLOWED_HOSTS = ['codethinkers.herokuapp.com','codethinkerslms.com','www.codethinkerslms.com','codethinkers.org','www.codethinkers.org', '127.0.0.1']
 # ALLOWED_HOSTS = ['ctsaalms.herokuapp.com','codethinkers.org' ,'127.0.0.1']
 
-
-
 INSTALLED_APPS = [
-    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -130,7 +127,7 @@ SOCIALACCOUNT_PROVIDERS = {
 
 
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 # email settings
 
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
