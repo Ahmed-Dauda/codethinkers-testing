@@ -69,8 +69,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return f'{self.email}'
 
-    # def get_absolute_url(self):
-    #     return "/users/%i/" % (self.pk)
+ 
     class Meta:
       db_table = 'auth_user'
 
