@@ -47,7 +47,7 @@ class Topics(models.Model):
     courses=models.ForeignKey(Courses, on_delete= models.CASCADE)
     title = models.CharField(max_length=225, blank=True, null= True, unique=True)
     objectives = models.TextField( blank=True, null= True)
-    descs = models.TextField( blank=True, null= True)
+    desc = models.TextField( blank=True, null= True)
     student_activity = models.TextField(blank=True, null= True)
     evaluation = models.TextField(blank=True, null= True)
     img_topic = models.ImageField(blank = True, null = True)
@@ -73,7 +73,7 @@ class Topics(models.Model):
 
 class Comment(models.Model):
     
-    # username = models.CharField(default='fff', max_length=225, blank=True, null= True)
+    username = models.CharField(default='fff', max_length=225, blank=True, null= True, unique=True)
     first_name = models.CharField(default='fff', max_length=225, blank=True, null= True)
     last_name = models.CharField(max_length=225, blank=True, null= True)
     title = models.CharField(max_length=225,  null=True, blank =True )
