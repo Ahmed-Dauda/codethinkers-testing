@@ -237,7 +237,7 @@ margin: 2px;
                     icon: 'success',
                     height: 10,
                     width: 205,
-                    title: 'welcome {{u.first_name}}',
+                    title: 'welcome {{u.username}}',
                     showConfirmButton: false,
                     timer: 5500
                           })
@@ -330,7 +330,7 @@ margin: 2px;
                     <h1><a class="category-head" style="color: rgb(16, 2, 37);" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a></h1><hr>
                     <div class="">{% get_hit_count for category %} <i class="fas fa-eye"></i> </div><hr>
                     <div class="">{{category.created}}</div><br>
-                    <div class="">{{category.desc}}</div><hr>
+                    <div class="text-left">{{category.desc}}</div><hr>
                    
                     {% empty %}
             <h1 class="card text-center text-danger">No Courses Available Yet. CHECK LATER</h1>

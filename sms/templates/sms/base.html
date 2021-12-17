@@ -100,7 +100,6 @@ body {
 }
  
 
-
 @keyframes dots-loader {
   0% {
     box-shadow: #f86 -14px -14px 0 7px, #fc6 14px -14px 0 7px, #6d7 14px 14px 0 7px, #4ae -14px 14px 0 7px;
@@ -263,7 +262,8 @@ margin: 2px;
                     <li class="nav-item"><a class="nav-link" href="#team">Team</a></li>
                     <hr>
                     <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li><hr>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'account_logout' %}">Log out</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'account_logout' %}">Log out</a></li><hr>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'sms:userprofilelistview' %}">My Profile</a></li>
                 </ul>
             </div>
         </div>
@@ -297,7 +297,7 @@ margin: 2px;
                 </div>
                 <div class="col-lg-4">
                     <div class="team-member">
-                        <img class="mx-auto rounded-circle" src="/static/sms/assets/img/team/2.jpg" alt="...">
+                      <img class="mx-auto rounded-circle" src="/static/sms/assets/img/team/robot.jpeg" alt="...">
                         <h4>Diana Petersen</h4>
                         <p class="text-muted">Lead Marketer</p>
                     
@@ -306,7 +306,7 @@ margin: 2px;
                 </div>
                 <div class="col-lg-4">
                     <div class="team-member">
-                        <img class="mx-auto rounded-circle" src="/static/sms/assets/img/team/3.jpg" alt="...">
+                      <img class="mx-auto rounded-circle" src="/static/sms/assets/img/team/coding.jpeg" alt="...">
                         <h4>Larry Parker</h4>
                         <p class="text-muted">Lead Developer</p>
                           
