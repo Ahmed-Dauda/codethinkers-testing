@@ -234,30 +234,29 @@ img{
 </style>
 </head>
 <body>
-  <div class="dropdown text-center">
+  <div class="dropdow">
     <button class="btn  dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
       Account Credentials
     </button>
-    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-      <li><a class="dropdown-item" href="#">
-         <a href="{% url 'account_logout' %}">Log Out</a><br>
-      </a>
+    <ul style="text-align: center;"  class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+      <li>
+    <a class="" href="{% url 'account_logout' %}">Log Out</a><br>
     </li><hr>
 
-      <li><a class="dropdown-item" href="#">
+      <li>
     <a href="{% url 'sms:categorieslist' %}">Home</a><br>
-      </a>
+    
     </li><hr>
 
-      <li><a class="dropdown-item" href="#">
+      <li>
  <a href="{% url 'account_change_password' %}">Change Password</a><br>  
-      </a>
+      
     </li><hr>
 
       <li><a class="dropdown-item" href="#">
-        <a class="uppercase" href="{% url 'account_reset_password' %}">Password Reset</a>
+        <a class="" href="{% url 'account_reset_password' %}">Password Reset</a>
       </a>
-    </li>
+    </li><hr>
 
     </ul>
   </div>
