@@ -5,6 +5,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from users.models import Profile
 from users.models import NewUser
+from quiz.models import Course, Question, Result
+from student.models import Student
 # from django.contrib.auth import get_user_model
 # User = get_user_model()
 
@@ -37,3 +39,7 @@ class UserAdmin(BaseUserAdmin):
 
 admin.site.register(NewUser, UserAdmin)
 admin.site.register(Profile)
+admin.site.register(Course)
+admin.site.register(Question)
+admin.site.register(Result)
+admin.site.register(Student)

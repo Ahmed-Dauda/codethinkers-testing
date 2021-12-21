@@ -24,6 +24,7 @@ class topicsadmin(admin.ModelAdmin):
 #     list_display = ['id', 'name', 'desc', 'created']
     ordering = ['created']
 
+
 # @admin.register(Profile)
 # class userprofileadmin(admin.ModelAdmin):
 # #     list_display = ['id', 'name', 'desc', 'created']
