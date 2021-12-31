@@ -209,3 +209,4 @@ class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return Profile.objects.all()
+
