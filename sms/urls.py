@@ -6,10 +6,7 @@ from sms.views import(
      Courseslistview,
       Topicslistview,
       Topicsdetailview,
-    #   signupview,
-    #   logout_view,
       Feedbackformview,
-    #   Signupsuccess,
       Commentlistview,
       Commentlistviewsuccess,
       UserProfilelistview,
@@ -34,10 +31,8 @@ urlpatterns = [
     path('userprofilelistview', UserProfilelistview.as_view(), name ='userprofilelistview'),
     path('userprofileform', UserProfileForm.as_view(), name ='userprofileform'),
     path('userprofileupdateform/<pk>/', UserProfileUpdateForm.as_view(), name ='userprofileupdateform'),
-    # path('logout',views.logout_view , name ='logout'),
-    # path('notification',views.notification , name ='notification'),
-    # path("password_reset", views.password_reset_request, name="password_reset")
-   
+
+ 
 ]
 
 

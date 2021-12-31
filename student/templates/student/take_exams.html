@@ -7,8 +7,11 @@
     <title>Document</title>
 </head>
 <body>
-    {{course}} <hr>
-    {{total_questions}} <hr>
-    {{total_marks}} <hr>
+    {% for course in courses %}
+    <div><a href="{% url 'student:start-exam' course.id %}">{{course}}</a></div><br>
+    {% empty %}
+<h4>No exam Available for this course yet.</h4>
+    {% endfor %}
+
 </body>
 </html>
