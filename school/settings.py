@@ -80,6 +80,7 @@ SOCIAL_AUTH_GOOGLE_SECRET = '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'
 # allauth setting
 
 SITE_ID = 1
+
 # SOCIALACCOUNT_EMAIL_VERIFIATION = False
 # ACCOUNT_AUTHENTICATION_METHOD ='username_email'
 # ACCOUNT_CONFIRM_EMAIL_ON_GET = True
@@ -183,7 +184,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'school.wsgi.application'
 
 
-# Database
+
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 PROJECT_PATH =os.path.dirname(os.path.abspath(__file__))
 DATABASES = {
