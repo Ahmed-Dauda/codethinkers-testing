@@ -1,5 +1,6 @@
 from django.db import models
 from student.models import Student
+from users.models import Profile
 
 class Course(models.Model):
    course_name = models.CharField(max_length=50)
@@ -26,10 +27,13 @@ class Question(models.Model):
         return f"{self.course} | {self.question}"
     
 class Result(models.Model):
-    student = models.ForeignKey(Student,on_delete=models.CASCADE)
+
+    student = models.ForeignKey(Profile,on_delete=models.CASCADE)
     exam = models.ForeignKey(Course,on_delete=models.CASCADE)
     marks = models.PositiveIntegerField()
     date = models.DateTimeField(auto_now=True)
     id = models.AutoField(primary_key=True)
+    def __str__(self):
+        return f"{self.student.user}"
 
 
