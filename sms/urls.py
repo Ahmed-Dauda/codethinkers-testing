@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+
 from sms.views import(
     Categorieslistview,
      Courseslistview,
@@ -9,7 +10,7 @@ from sms.views import(
       Feedbackformview,
       Commentlistview,
       Commentlistviewsuccess,
-      UserProfilelistview,
+    #   UserProfilelistview,
       UserProfileForm,
       UserProfileUpdateForm,
       
@@ -28,7 +29,8 @@ urlpatterns = [
     # path('signupsuccess', Signupsuccess.as_view(), name ='signupsuccess'),
     path('commentlistview', Commentlistview.as_view(), name ='commentlistview'),
     path('commentlistviewsuccess', Commentlistviewsuccess.as_view(), name ='commentlistviewsuccess'),
-    path('userprofilelistview', UserProfilelistview.as_view(), name ='userprofilelistview'),
+    # path('userprofilelistview', UserProfilelistview.as_view(), name ='userprofilelistview'),
+    path('userprofilelistview/<pk>/', views.check_marks_view, name ='userprofilelistview'),
     path('userprofileform', UserProfileForm.as_view(), name ='userprofileform'),
     path('userprofileupdateform/<pk>/', UserProfileUpdateForm.as_view(), name ='userprofileupdateform'),
 
