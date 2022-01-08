@@ -57,6 +57,7 @@ def calculate_marks_view(request):
 
         return HttpResponseRedirect('view_result')
 import itertools
+
 def view_result_view(request):
     courses=QMODEL.Course.objects.all()
     return render(request,'student/view_result.html',{'courses':courses})

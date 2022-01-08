@@ -286,7 +286,7 @@ img{
 
 
     <!-- STAT -->
-<div class="portlet light bordered">
+<!-- <div class="portlet light bordered">
 <div class="row list-separated profile-stat">
     
 <div class="col-md-4 col-sm-4 col-xs-6">
@@ -300,9 +300,9 @@ img{
     <div class="uppercase profile-stat-text">Names : {{ profile.first_name}} | {{ profile.last_name}}</div>
     <div class="uppercase profile-stat-title"> <p>Last Profile Update : {{ profile.updated|timesince }}</p></div>
     <div class="uppercase profile-stat-title"> <p>Sex : {{ profile.gender}}</p></div>
-    <div class="uppercase profile-stat-title"> <p>username : {{ profile.username}}</p></div>
-    
-</div>
+    <div class="uppercase profile-stat-title"> <p>username : {{ profile.username}}</p></div> -->
+   
+<!-- </div>
 
 <div class="col-md-4 col-sm-4 col-xs-6">
     <div class="uppercase profile-stat-title"><p>Email : {{ profile.user}}</p></div>
@@ -317,7 +317,7 @@ img{
 
 <div class="col-md-4 col-sm-4 col-xs-6"><hr>
   <div class="uppercase profile-stat-text"> <a href="{% url 'sms:feedbackformview' %}">Feedback Form</a> </div>
-</div>
+</div> -->
 
 <!-- <div class="col-md-4 col-sm-4 col-xs-6">
     <div class="uppercase profile-stat-title"> <p>Last Profile Update : {{ profile.updated|timesince }}</p></div>
@@ -331,6 +331,31 @@ img{
 
 <!-- STAT -->
 <div class="profile-userbuttons">
+  <table class="table table-hover" id="dev-table">
+    <thead>
+      <tr>
+
+        <th>Exam Name</th>
+        
+        <th>Total Marks</th>
+        <th>Attempt</th>
+        <th>Exam Date</th>
+       
+      </tr>
+    </thead>
+    {% for t in results %}
+    <tr>
+
+      <td> {{t.exam}}</td>
+      <td> {{t.marks}} / {{course.total_marks}}</td>
+      <td>Attemp {{ forloop.counter }}</td>
+      <td> {{t.date}}</td>
+     
+      
+      
+    </tr>
+    {% endfor %}
+  </table>
     <button type="button" class="btn btn-success btn-sm">Follow Us</button>
 </div>
 

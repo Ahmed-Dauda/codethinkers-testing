@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from sms.models import Categories, Courses, Topics, Comment
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from users.models import Profile
-# from django.contrib.auth.models import User
+from quiz import models as QMODEL
 from users.forms import userprofileform, SimpleSignupForm
 # password reset import
 
@@ -175,20 +175,45 @@ class Feedbackformview(CreateView):
     success_url = reverse_lazy('sms:feedbackformview')
     success_message = 'TestModel successfully updated!'
 
-class UserProfilelistview(LoginRequiredMixin, ListView):
-    models = Profile
-    template_name = 'sms/profile.html'
-    success_message = 'TestModel successfully updated!'
-    count_hit = True
+# class UserProfilelistview(LoginRequiredMixin, ListView):
+#     models = Profile
+#     template_name = 'sms/profile.html'
+#     success_message = 'TestModel successfully updated!'
+#     count_hit = True
    
-    def get_queryset(self):
-        return Profile.objects.all()
+#     def get_queryset(self):
+#         return Profile.objects.all()
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user_pro = self.request.user
-        context['user_profile'] = Profile.objects.filter(user = self.request.user)
-        return context
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         user_pro = self.request.user
+#         context['user_profile'] = Profile.objects.filter(user = self.request.user)
+#         course=QMODEL.Course.objects.all()
+#         # course=QMODEL.Course.objects.get(id_in =course)
+#         # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
+#         student = Profile.objects.get(user_id=self.request.user.id)
+#         context['results']= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
+#         return context
+from django.db.models import Count
+
+def check_marks_view(request,pk):
+    course=QMODEL.Course.objects.get(id=pk)
+    student = Profile.objects.get(user_id=request.user.id)
+    res= QMODEL.Result.objects.values_list('marks', flat=True).order_by('-marks').distinct()
+    stu= QMODEL.Result.objects.values('student','exam','marks').distinct()
+    
+    vr = QMODEL.Result.objects.values('marks', 'student').annotate(marks_count = Count('marks')).filter(marks_count__gt = 0)
+        
+
+    results= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
+    context = {
+        'results':results,
+        'course':course,
+        'st':request.user,
+        'res':res,
+        'stu':stu
+    }
+    return render(request,'sms/profile.html', context)
 
 class UserProfileForm(LoginRequiredMixin, CreateView):
     models = Profile
