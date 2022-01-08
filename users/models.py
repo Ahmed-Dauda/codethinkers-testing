@@ -77,8 +77,10 @@ gender_choice = [
   ('Male', 'Male'),
   ('Female', 'Female')
 ]
+
 class Profile(models.Model):
   user = models.OneToOneField(NewUser,on_delete=models.CASCADE, unique=True, related_name= 'profile')
+  username = models.CharField(max_length=225,  blank=True)
   first_name = models.CharField(max_length=225, blank=True, null= True)
   last_name = models.CharField(max_length=225, blank=True, null= True)
   gender =models.CharField(choices=gender_choice, max_length=225, blank=True, null= True)
