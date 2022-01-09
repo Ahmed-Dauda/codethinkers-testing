@@ -7,6 +7,7 @@ from sms.models import Categories, Courses, Topics, Comment
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from users.models import Profile
 from quiz import models as QMODEL
+from quiz.models import Result, Course
 from users.forms import userprofileform, SimpleSignupForm
 # password reset import
 
@@ -200,18 +201,18 @@ def check_marks_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
     student = Profile.objects.get(user_id=request.user.id)
     res= QMODEL.Result.objects.values_list('marks', flat=True).order_by('-marks').distinct()
-    stu= QMODEL.Result.objects.values('student','exam','marks').distinct()
+    stu= QMODEL.Result.objects.order_by('-marks')
     
-    vr = QMODEL.Result.objects.values('marks', 'student').annotate(marks_count = Count('marks')).filter(marks_count__gt = 0)
+    vr = QMODEL.Result.objects.values('marks', 'student').annotate(marks_count = Count('marks')).filter(marks_count__gt = 1)
         
-
     results= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
     context = {
         'results':results,
         'course':course,
         'st':request.user,
         'res':res,
-        'stu':stu
+        'stu':stu,
+        'vr':vr
     }
     return render(request,'sms/profile.html', context)
 
@@ -235,3 +236,28 @@ class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
     def get_queryset(self):
         return Profile.objects.all()
 
+# admin result view
+
+class Admin_Result(LoginRequiredMixin, ListView):
+    models = QMODEL.Course
+    template_name = 'sms/admin_result.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+   
+    def get_queryset(self):
+        return QMODEL.Course.objects.all()
+
+class Admin_result_detail_view(LoginRequiredMixin, DetailView):
+    models = Course
+    template_name = 'sms/Admin_result_detail_view.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+   
+    def get_queryset(self):
+        return QMODEL.Result.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['results'] = QMODEL.Result.objects.order_by('-marks').filter(exam__pk = self.object.id).distinct('marks')
+       
+        return context
