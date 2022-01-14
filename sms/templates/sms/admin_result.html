@@ -10,6 +10,8 @@
     {% for r in object_list %}
    <a href="{% url 'sms:admin_result_detail_view' r.id %}">{{r}}</a>
    
+   {% empty %}
+   <p>no post yet</p>
     {% endfor %}
 </body>
 </html>

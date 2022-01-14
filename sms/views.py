@@ -251,11 +251,11 @@ class Admin_result(LoginRequiredMixin, ListView):
 
 def Admin_detail_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
-    student = Profile.objects.get(user_id=request.user.id)
-
+    # student = Profile.objects.get(user_id=request.user.id)
+    r = []
     max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id'), ).order_by('-marks').values('id')
-    results = QMODEL.Result.objects.filter(id = Subquery(max_q[:1])) 
-
+    results = QMODEL.Result.objects.filter(id = Subquery(max_q[:1]), marks__gte =2)
+    
     context = {
         'results':results,
         'course':course,

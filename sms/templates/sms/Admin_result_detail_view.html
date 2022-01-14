@@ -25,11 +25,9 @@
         </tr>
         {% for r in results %}
         <tr>
-            
             <td>{{r.student}}</td>
             <td>{{r.exam}}</td>
-            <td>{{r.marks}} / {{course.total_marks}}</td>
-            
+            <td>{{r.marks}} / {{course.total_marks}}</td>   
         </tr>
         {% empty %}
         <p>no post yet</p>
