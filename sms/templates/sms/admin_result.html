@@ -8,7 +8,7 @@
 </head>
 <body>
     {% for r in object_list %}
-   <div> <a href="{% url 'sms:admin_result_detail_view' r.id %}">{{r}}</a> </div>
+   <a href="{% url 'sms:admin_result_detail_view' r.id %}">{{r}}</a>
    
     {% endfor %}
 </body>

@@ -1,3 +1,4 @@
+from tokenize import group
 from django.contrib.auth import forms
 from django.db import models
 from django.db.models import fields
@@ -196,23 +197,22 @@ class Feedbackformview(CreateView):
 #         context['results']= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
 #         return context
 from django.db.models import Count
+import numpy as np
+from django.db.models import Max, Subquery, OuterRef
 
 def check_marks_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
     student = Profile.objects.get(user_id=request.user.id)
-    res= QMODEL.Result.objects.values_list('marks', flat=True).order_by('-marks').distinct()
-    stu= QMODEL.Result.objects.order_by('-marks')
+
+    max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id'), ).order_by('-marks').values('id')
+    r = QMODEL.Result.objects.filter(id = Subquery(max_q[:1])) 
+
+    results=QMODEL.Result.objects.order_by('-marks').filter(exam=course,student=student)
     
-    vr = QMODEL.Result.objects.values('marks', 'student').annotate(marks_count = Count('marks')).filter(marks_count__gt = 1)
-        
-    results= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
     context = {
         'results':results,
         'course':course,
         'st':request.user,
-        'res':res,
-        'stu':stu,
-        'vr':vr
     }
     return render(request,'sms/profile.html', context)
 
@@ -238,7 +238,7 @@ class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
 
 # admin result view
 
-class Admin_Result(LoginRequiredMixin, ListView):
+class Admin_result(LoginRequiredMixin, ListView):
     models = QMODEL.Course
     template_name = 'sms/admin_result.html'
     success_message = 'TestModel successfully updated!'
@@ -247,17 +247,34 @@ class Admin_Result(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return QMODEL.Course.objects.all()
 
-class Admin_result_detail_view(LoginRequiredMixin, DetailView):
-    models = Course
-    template_name = 'sms/Admin_result_detail_view.html'
-    success_message = 'TestModel successfully updated!'
-    count_hit = True
-   
-    def get_queryset(self):
-        return QMODEL.Result.objects.all()
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['results'] = QMODEL.Result.objects.order_by('-marks').filter(exam__pk = self.object.id)
-       
-        return context
+
+def Admin_detail_view(request,pk):
+    course=QMODEL.Course.objects.get(id=pk)
+    student = Profile.objects.get(user_id=request.user.id)
+
+    max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id'), ).order_by('-marks').values('id')
+    results = QMODEL.Result.objects.filter(id = Subquery(max_q[:1])) 
+
+    context = {
+        'results':results,
+        'course':course,
+        'st':request.user,
+    }
+    return render(request,'sms/Admin_result_detail_view.html', context)
+
+# class Admin_result_detail_view(LoginRequiredMixin, DetailView):
+#     models = QMODEL.Result
+#     template_name = 'sms/Admin_result_detail_view.html'
+#     success_message = 'TestModel successfully updated!'
+#     count_hit = True
+   
+#     def get_queryset(self):
+#         return QMODEL.Result.objects.all()
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+
+#         max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id'), ).order_by('-marks').values('id')
+#         context['results'] = QMODEL.Result.objects.filter(id = Subquery(max_q[:1])) 
+#         return context

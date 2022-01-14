@@ -216,6 +216,10 @@ margin: 2px;
     <a class="" href="{% url 'account_logout' %}">Log out</a>
     <a class="" href="https://wa.me/message/3WEEV2BGDKKSG1"> Live Help <i class="fas fa-question-circle"></i> </a>
     <a  class="" href="?">{{comment_count}} : Feedback (s)</a>
+    {% if user.is_superuser %}
+  <a class="" href="{% url 'sms:admin_result' %}">Admin results view</a>
+    {% endif %}
+   
     
 </div>
   </div>

@@ -135,13 +135,17 @@ SOCIALACCOUNT_PROVIDERS = {
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# code to unblock zoho account
+# https://mail.zoho.com/UnblockMe
+
 EMAIL_BACKED = 'django_smtp_ssl.SSLEmailBackend'
+# EMAIL_HOST = 'smtppro.zoho.eu'
 EMAIL_HOST = 'smtppro.zoho.com'
-EMAIL_PORT = 465
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False 
 EMAIL_HOST_USER = 'codethinkersa@gmail.com'
-EMAIL_HOST_PASSWORD = '08065636249Bm.'
+EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
 DEFAULT_FROM_EMAIL = 'codethinkersa@gmail.com'
 
 # if DEBUG:
