@@ -16,7 +16,7 @@
       }
       .quest>*{
         flex: 1 1 auto;
-        margin: 2px;
+        margin: 10px;
         overflow: hidden;
         /* height: 100%; */
         /* position: fixed; */
@@ -40,8 +40,9 @@
   {% for q in  questions %}
   
  <div class="quest">
-  <pre> {{forloop.counter}}. {{q.question|linebreaksbr|wordwrap:30}}</pre> <h6 style="text-align: right;">[marks {{q.marks}}]</h6>
+  <pre> {{forloop.counter}}. {{q.question|wordwrap:50}}</pre> 
 </div>
+<h6 style="text-align: right;">[marks {{q.marks}}]</h6>
 <br>
   <div class="card-header">
     
