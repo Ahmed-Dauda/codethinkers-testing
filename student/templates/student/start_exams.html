@@ -44,8 +44,8 @@
     <hr>
   {% for q in  questions %}
   
- <div class="quest ">
-  <pre> {{forloop.counter}}. {{q.question|wordwrap:30}}</pre> 
+ <div class="">
+  <pre style="white-space: pre-wrap; font-weight: bold;" > <code> {{forloop.counter}}. {{q.question}}</code></pre> 
 </div>
 <h6 style="text-align: right;">[marks {{q.marks}}]</h6>
 <br>
