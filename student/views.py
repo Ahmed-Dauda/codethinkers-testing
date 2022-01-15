@@ -24,9 +24,11 @@ def start_exams_view(request, pk):
 
     course = QMODEL.Course.objects.get(id = pk)
     questions = QMODEL.Question.objects.all().filter(course = course)
+    q_count = QMODEL.Question.objects.all().filter(course = course).count()
     context = {
         'course':course,
-        'questions':questions
+        'questions':questions,
+        'q_count':q_count
     }
     if request.method == 'POST':
         pass
