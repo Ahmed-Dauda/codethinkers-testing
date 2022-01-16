@@ -40,12 +40,12 @@
   {% csrf_token %}
   <input type="hidden" name="csrfmiddlewaretoken" value="C24rUotmdHawVQJL3KrqiWxvti8UffOFYUc8TRbZtLt36AVLdP3jbkzUVe3beRAa">
     <h1>{{course}} Quiz</h1><br>
-    <h6>Number of Questions in the Quiz: {{q_count}}</h6>
+    <h4>Number of Questions in the Quiz: {{q_count}}</h4>
     <hr>
   {% for q in  questions %}
   
  <div class="">
-  <pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;" > <code> {{forloop.counter}}. {{q.question}}</code></pre> 
+  <pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;" >{{forloop.counter}}. {{q.question}}</pre> 
 </div>
 <h6 style="text-align: right;">[marks {{q.marks}}]</h6>
 <br>

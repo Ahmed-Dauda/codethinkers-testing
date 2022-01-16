@@ -8,7 +8,9 @@
 </head>
 <body>
     {% for r in object_list %}
-   <a href="{% url 'sms:admin_result_detail_view' r.id %}">{{r}}</a>
+    <div class="container">
+    <div class="card-header"><a href="{% url 'sms:admin_result_detail_view' r.id %}">{{r}}</a></div>
+    </div>
    
    {% empty %}
    <p>no post yet</p>

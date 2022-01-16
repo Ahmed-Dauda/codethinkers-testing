@@ -32,7 +32,7 @@ urlpatterns = [
     path('commentlistview', Commentlistview.as_view(), name ='commentlistview'),
     path('commentlistviewsuccess', Commentlistviewsuccess.as_view(), name ='commentlistviewsuccess'),
     # path('userprofilelistview', UserProfilelistview.as_view(), name ='userprofilelistview'),
-    path('userprofilelistview/<pk>/', views.check_marks_view, name ='userprofilelistview'),
+    path('userprofileview/<pk>/', views.userprofileview, name ='userprofileview'),
 
     path('admin_result', Admin_result.as_view(), name ='admin_result'),
     path('admin_result_detail_view/<pk>/', Admin_detail_view, name ='admin_result_detail_view'),

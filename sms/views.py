@@ -4,7 +4,7 @@ from django.db import models
 from django.db.models import fields
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse
-from sms.models import Categories, Courses, Topics, Comment
+from sms.models import Categories, Courses, Topics, Comment, course_links
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from users.models import Profile
 from quiz import models as QMODEL
@@ -68,6 +68,7 @@ class Categorieslistview(LoginRequiredMixin, ListView):
         context['category'] = Categories.objects.all().count()
         context['courses'] = Courses.objects.all().count()
         context['user'] = NewUser.objects.all()
+        
         # num_visit = self.request.session.get('num_visit', 0)
         # self.request.session['num_visit'] = num_visit + 1
         # context['num_visit'] = num_visit
@@ -101,7 +102,7 @@ class Courseslistview( HitCountDetailView,LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['courses'] = Courses.objects.filter(categories__pk = self.object.id)
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id)
-
+        context['course_links'] = course_links.objects.filter(courses_id = self.object.id)
         return context
 
 class Topicslistview( HitCountDetailView,LoginRequiredMixin, DetailView, ):
@@ -200,7 +201,7 @@ from django.db.models import Count
 import numpy as np
 from django.db.models import Max, Subquery, OuterRef
 
-def check_marks_view(request,pk):
+def userprofileview(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
     student = Profile.objects.get(user_id=request.user.id)
 
