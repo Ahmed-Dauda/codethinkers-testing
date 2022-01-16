@@ -32,6 +32,7 @@ class Courses(models.Model):
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     title = models.CharField(max_length=225, default='')
     desc = models.TextField(default='')
+    course_link = models.URLField(max_length=225, blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
     hit_count_generic = GenericRelation(
@@ -84,3 +85,14 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'{self.title}'
+
+class course_links(models.Model):
+    courses = models.ForeignKey(Courses, on_delete= models.CASCADE)
+    topics = models.ForeignKey(Topics, on_delete= models.CASCADE, blank=True, null= True)
+    course_link = models.URLField(max_length=225, blank=True, null= True)
+    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+    
+
+    def __str__(self):
+        return f'{self.course_link}'
