@@ -1,9 +1,9 @@
 from django.db import models
-from student.models import Student
+# from student.models import Student
 from users.models import Profile
 
 class Course(models.Model):
-   course_name = models.CharField(max_length=50)
+   course_name = models.CharField(max_length=50, unique= True)
    question_number = models.PositiveIntegerField()
    total_marks = models.PositiveIntegerField()
    id = models.AutoField(primary_key=True)

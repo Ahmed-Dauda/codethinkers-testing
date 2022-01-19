@@ -9,7 +9,7 @@ from django.conf import settings
 from datetime import date, timedelta
 from quiz import models as QMODEL
 from teacher import models as TMODEL
-from student.models import  Student
+# from student.models import  Student
 from users.models import NewUser
 from users.models import Profile
 
@@ -58,7 +58,7 @@ def calculate_marks_view(request):
         result.save()
 
         return HttpResponseRedirect('view_result')
-import itertools
+
 
 def view_result_view(request):
     courses=QMODEL.Course.objects.all()
@@ -69,19 +69,17 @@ from django.db.models import Count
 
 def check_marks_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
-    student = Profile.objects.get(user_id=request.user.id)
-    res= QMODEL.Result.objects.values_list('marks', flat=True).order_by('-marks').distinct()
-    stu= QMODEL.Result.objects.values('student','exam','marks').distinct()
+    student = Profile.objects.get()
+    # res= QMODEL.Result.objects.values_list('marks', flat=True).order_by('-marks').distinct()
+    # stu= QMODEL.Result.objects.values('student','exam','marks').distinct()
     
-    vr = QMODEL.Result.objects.values('marks', 'student').annotate(marks_count = Count('marks')).filter(marks_count__gt = 0)
+    # vr = QMODEL.Result.objects.values('marks', 'student').annotate(marks_count = Count('marks')).filter(marks_count__gt = 0)
         
-
-    results= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
+    # results= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
     context = {
-        'results':results,
+        # 'results':results,
         'course':course,
         'st':request.user,
-        'res':res,
-        'stu':stu
+        
     }
     return render(request,'student/check_marks.html', context)

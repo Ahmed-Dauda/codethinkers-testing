@@ -31,10 +31,10 @@
           })
     </script> -->
 {% endif %}
-<div class="container"><a href="{% url 'sms:userprofilelistview' %}">Go To My Profile</a></div> <br> 
+
 {{form.as_p}}
 <hr>
-<div class="container"><a href="{% url 'sms:userprofilelistview' %}">My Profile</a></div><br>
+<div class="container"><a href="{% url 'sms:userprofileview' %}">My Profile</a></div><br>
 <button class="btn btn-primary" type="submit">Create</button>
     </form>
 </div>

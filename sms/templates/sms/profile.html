@@ -260,76 +260,6 @@ img{
 
     </ul>
   </div>
-<!-- STAT -->
-<!-- <div class="portlet light bordered">
-<div class="text-white row list-separated profile-stat" style="background-color: rgb(16, 2, 37);">
-
-<div class="col-md-4 col-sm-4 col-xs-6">
-<div class="uppercase profile-stat-text"><a href="{% url 'sms:categorieslist' %}">Home</a></div><br>
-</div>
-
-<div class="col-md-4 col-sm-4 col-xs-6">
-<div class="uppercase profile-stat-text"><a href="{% url 'account_logout' %}">Log Out</a></div><br>
-</div>
-
-<div class="col-md-4 col-sm-4 col-xs-6">
-<div class="uppercase profile-stat-text"><a href="{% url 'account_change_password' %}">Change Password</a></div><br>
-</div>
-
-<div class="col-md-4 col-sm-4 col-xs-6">
-<div class="uppercase profile-stat-text"><a class="uppercase profile-stat-text" href="{% url 'account_reset_password' %}">Password Reset</a></div>
-</div>
-
-</div>
-</div> -->
-<!-- END STAT -->
-
-
-    <!-- STAT -->
-<!-- <div class="portlet light bordered">
-<div class="row list-separated profile-stat">
-    
-<div class="col-md-4 col-sm-4 col-xs-6">
-    {% for profile in user_profile %}
-    {% if  profile.pro_img %}
-    <img src="{{ profile.pro_img.url}}" width="100px" height="100px"  class="rounded-circle" alt=""><hr>
-    {% else %}
-<img src="/static/sms/images/newlogo2.jpg" width="100px" height="100px" class="rounded-circle" alt=""><hr>
-    {% endif %}
-    <div class="uppercase profile-stat-text"> <a href="{{ profile.get_absolute_url }}"> Edit Profile</a></div><hr>
-    <div class="uppercase profile-stat-text">Names : {{ profile.first_name}} | {{ profile.last_name}}</div>
-    <div class="uppercase profile-stat-title"> <p>Last Profile Update : {{ profile.updated|timesince }}</p></div>
-    <div class="uppercase profile-stat-title"> <p>Sex : {{ profile.gender}}</p></div>
-    <div class="uppercase profile-stat-title"> <p>username : {{ profile.username}}</p></div> -->
-   
-<!-- </div>
-
-<div class="col-md-4 col-sm-4 col-xs-6">
-    <div class="uppercase profile-stat-title"><p>Email : {{ profile.user}}</p></div>
-    <div class="uppercase profile-stat-text">  <p>Country : {{ profile.countries}}</p></div>
-  
-</div>
-
-<div class="col-md-4 col-sm-4 col-xs-6">
-    <div class="uppercase profile-stat-title"><p>Date Created :{{ profile.created }} | {{ profile.created|timesince }}</p></div>
-    <div class=""><p>BIOGRAPHY : {{ profile.bio }}</p></div><hr style="color: rgb(16, 2, 37);">
-</div>
-
-<div class="col-md-4 col-sm-4 col-xs-6"><hr>
-  <div class="uppercase profile-stat-text"> <a href="{% url 'sms:feedbackformview' %}">Feedback Form</a> </div>
-</div> -->
-
-<!-- <div class="col-md-4 col-sm-4 col-xs-6">
-    <div class="uppercase profile-stat-title"> <p>Last Profile Update : {{ profile.updated|timesince }}</p></div>
-    <div class="uppercase profile-stat-title"> <p>Sex : {{ profile.gender}}</p></div>
-    <div class="uppercase profile-stat-text"> <a href="{{ profile.get_absolute_url }}"> Edit Profile</a></div>
-</div> -->
-{% endfor %}
-</div>
-</div>
-
-
-<!-- STAT -->
 
 
 <div class="profile-userbuttons">
@@ -337,7 +267,8 @@ img{
   <table class="table table-hover" id="dev-table">
     <thead>
       <tr>
-        
+        <th>Names</th>
+        <th>users Email</th>
         <th>Exam Name</th>
         
         <th>Total Marks</th>
@@ -350,7 +281,8 @@ img{
    
     {% for t in results %}
     <tr>
-
+      <td> {{t.student.first_name}} {{t.student.last_name}}</td>
+      <td> {{t.student}}</td>
       <td> {{t.exam}}</td>
       <td> {{t.marks}} / {{course.total_marks}}</td>
       <td>Attemp {{ forloop.counter }}</td>
@@ -362,6 +294,54 @@ img{
   <hr>
 </table>
 
+      <!-- STAT -->
+<!--       
+  <div class="portlet light bordered">
+  <div class="row list-separated profile-stat">
+      
+  <div class="col-md-4 col-sm-4 col-xs-6">
+      {% for profile in user_profile %}
+      {% if  profile.pro_img %}
+      <img src="{{ profile.pro_img.url}}" width="100px" height="100px"  class="rounded-circle" alt=""><hr>
+      {% else %}
+  <img src="/static/sms/images/newlogo2.jpg" width="100px" height="100px" class="rounded-circle" alt=""><hr>
+      {% endif %}
+      
+      <div class="uppercase profile-stat-text">Names : {{ profile.first_name}} | {{ profile.last_name}}</div>
+      <div class="uppercase profile-stat-title"> <p>Last Profile Update : {{ profile.updated|timesince }}</p></div>
+      <div class="uppercase profile-stat-title"> <p>Sex : {{ profile.gender}}</p></div>
+      <div class="uppercase profile-stat-title"> <p>username : {{ profile.username}}</p></div>
+     
+  </div>
+  
+  <div class="col-md-4 col-sm-4 col-xs-6">
+      <div class="uppercase profile-stat-title"><p>Email : {{ profile.user}}</p></div>
+      <div class="uppercase profile-stat-text">  <p>Country : {{ profile.countries}}</p></div>
+    
+  </div>
+  
+  <div class="col-md-4 col-sm-4 col-xs-6">
+      <div class="uppercase profile-stat-title"><p>Date Created :{{ profile.created }} | {{ profile.created|timesince }}</p></div>
+      <div class=""><p>BIOGRAPHY : {{ profile.bio }}</p></div><hr style="color: rgb(16, 2, 37);">
+  </div>
+  
+  <div class="col-md-4 col-sm-4 col-xs-6"><hr>
+    <div class="uppercase profile-stat-text"> <a href="{% url 'sms:feedbackformview' %}">Feedback Form</a> </div>
+  </div> 
+  
+  <div class="col-md-4 col-sm-4 col-xs-6">
+      <div class="uppercase profile-stat-title"> <p>Last Profile Update : {{ profile.updated|timesince }}</p></div>
+      <div class="uppercase profile-stat-title"> <p>Sex : {{ profile.gender}}</p></div>
+      <div class="uppercase profile-stat-text"> <a href="{{ profile.get_absolute_url }}"> Edit Profile</a></div>
+  </div>
+  
+  {% endfor %}
+  </div>
+  </div> -->
+  
+  
+  <!-- STAT -->
+<hr>
     <button type="button" class="btn btn-success btn-sm">Follow Us</button>
 </div>
 

@@ -6,7 +6,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from users.models import Profile
 from users.models import NewUser
 from quiz.models import Course, Question, Result
-from student.models import Student
+# from student.models import Student
 # from django.contrib.auth import get_user_model
 # User = get_user_model()
 
