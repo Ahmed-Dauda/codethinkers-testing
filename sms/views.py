@@ -1,4 +1,5 @@
 from tokenize import group
+from unittest import result
 from django.contrib.auth import forms
 from django.db import models
 from django.db.models import fields
@@ -203,17 +204,21 @@ from django.db.models import Max, Subquery, OuterRef
 
 def userprofileview(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
-    student = Profile.objects.get(user_id=request.user.id)
-
-    max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id'), ).order_by('-marks').values('id')
-    r = QMODEL.Result.objects.filter(id = Subquery(max_q[:1])) 
-
-    results=QMODEL.Result.objects.order_by('-marks').filter(exam=course,student=student)
-    
+    # student = Profile.objects.get(user_id=request.user.id)
+    student = request.user.id  
+    # m = QMODEL.Result.objects.aggregate(Max('marks'))  
+    max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
+    results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course, student = student)
+    Result.objects.filter(id = Subquery(max_q[1:]), exam=course).delete()
+    # QMODEL.Result.objects.exclude(id = m).delete()
+    user_profile =  Profile.objects.filter(user_id = request.user)
+    # results=QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
+              
     context = {
         'results':results,
         'course':course,
         'st':request.user,
+        'user_profile':user_profile 
     }
     return render(request,'sms/profile.html', context)
 
@@ -252,15 +257,24 @@ class Admin_result(LoginRequiredMixin, ListView):
 
 def Admin_detail_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
-    # student = Profile.objects.get(user_id=request.user.id)
-    r = []
-    max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id'), ).order_by('-marks').values('id')
-    results = QMODEL.Result.objects.filter(id = Subquery(max_q[:1]), marks__gte =2)
+    student = Profile.objects.get(user_id=request.user.id)
+
+    # m = QMODEL.Result.objects.aggregate(Max('marks'))   
+    # max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id') ,).order_by('-marks').values('id')
+    max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
+    results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course).order_by('-marks')
+    Result.objects.filter(id = Subquery(max_q[1:]), exam=course).delete()   
+    # max_q = QMODEL.Result.objects.filter(marks = OuterRef('marks') ,).order_by('-marks').values('id')
+    # results = QMODEL.Result.objects.filter(id = Subquery(max_q[:1]), marks__gte =2)
+    # QMODEL.Result.objects.exclude(id = results[:1]).delete() 
+    # QMODEL.Result.objects.get(~Q(id = results[:1]), student_id = results[:1].student.id, exam_id = results[:1].exam.id).delete()
+
     
-    context = {
+    context = { 
         'results':results,
         'course':course,
         'st':request.user,
+        # 'm':m
     }
     return render(request,'sms/Admin_result_detail_view.html', context)
 
