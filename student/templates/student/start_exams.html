@@ -42,7 +42,9 @@
     <h1>{{course}} Quiz</h1><br>
     <h4>Number of Questions in the Quiz: {{q_count}}</h4>
     <hr>
-  {% for q in  questions %}
+    <p>pages {{page_obj}}</p>
+    <hr>
+  {% for q in  page_obj %}
   
  <div class="">
   <pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;" >{{forloop.counter}}. {{q.question}}</pre> 
@@ -74,8 +76,40 @@
 {% endif %}
 <br>
   {% endfor %}
-  <br><br>
+  <br>
   <input class="btn btn-primary" type="submit" value="Submit">
+<br>
+       
+<!-- pagination codes start -->
+<div style="font-size: 20px; float: left;" class="" >
+
+{% for contact in page_obj %}
+{# Each "contact" is a Contact model object. #}
+{{ contact.full_name|upper }}<br>
+
+{% endfor %}
+
+<div class="pagination">
+<span class="step-links">
+    {% if page_obj.has_previous %}
+        <a style="padding-left: 100px;" href="?page=1">&raquo&raquo&raquo; first</a><br>
+        <a href="?page={{ page_obj.previous_page_number }}">&laquo; previous</a>
+    {% endif %}
+
+    <span class="current">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+    </span>
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">next &raquo;</a><br>
+        <a style="padding-left: 100px;" href="?page={{ page_obj.paginator.num_pages }}">last &raquo&raquo&raquo;</a>
+    {% endif %}
+</span>
+
+</div>
+<!-- end of pagination -->
+</div>
+
 </form>
   </div>
       <script> 
@@ -100,7 +134,7 @@
       }
       
       </script> 
-      
+ 
 </body>
 </html>
 
@@ -164,7 +198,7 @@
     </form>
   </div> -->
 
-<!-- <script> 
+ <script> 
     function saveAns(){  
 
         var ele = document.getElementsByTagName('input'); 
@@ -185,6 +219,6 @@
   document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
 
-</script>  -->
+</script> 
 
 <br><br><br><br><br><br>

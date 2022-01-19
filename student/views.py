@@ -12,6 +12,7 @@ from teacher import models as TMODEL
 # from student.models import  Student
 from users.models import NewUser
 from users.models import Profile
+from django.core.paginator import Paginator
 
 def take_exams_view(request):
     course = QMODEL.Course.objects.all()
@@ -23,12 +24,20 @@ def take_exams_view(request):
 def start_exams_view(request, pk):
 
     course = QMODEL.Course.objects.get(id = pk)
-    questions = QMODEL.Question.objects.all().filter(course = course)
+    # questions = QMODEL.Question.objects.all().filter(course = course).order_by('?')
+    questions = QMODEL.Question.objects.all().filter(course = course).order_by('?')
+
     q_count = QMODEL.Question.objects.all().filter(course = course).count()
+    
+    paginator = Paginator(questions, 20) # Show 25 contacts per page.
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
         'course':course,
         'questions':questions,
-        'q_count':q_count
+        'q_count':q_count,
+        'page_obj':page_obj
     }
     if request.method == 'POST':
         pass
@@ -69,15 +78,10 @@ from django.db.models import Count
 
 def check_marks_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
-    student = Profile.objects.get()
-    # res= QMODEL.Result.objects.values_list('marks', flat=True).order_by('-marks').distinct()
-    # stu= QMODEL.Result.objects.values('student','exam','marks').distinct()
-    
-    # vr = QMODEL.Result.objects.values('marks', 'student').annotate(marks_count = Count('marks')).filter(marks_count__gt = 0)
-        
-    # results= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
+    student = Profile.objects.all()
+ 
     context = {
-        # 'results':results,
+        'results':student,
         'course':course,
         'st':request.user,
         
