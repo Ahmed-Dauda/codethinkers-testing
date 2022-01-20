@@ -78,15 +78,11 @@
   {% endfor %}
 
   <input class="btn btn-primary" type="submit" value="Submit">
-      
+   
 <!-- pagination codes start -->
-{% for contact in page_obj %}
-    {# Each "contact" is a Contact model object. #}
-    {{ contact.full_name|upper }}<br>
-
-{% endfor %}
-
-<div class="pagination">
+<div class="container card-header">
+  <br>   
+<div style="font-size: 25px;" class="pagination">
     <span class="step-links" style="float: right;">
         {% if page_obj.has_previous %}
             <a href="?page=1">&laquo; first</a>
@@ -102,6 +98,7 @@
             <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
         {% endif %}
     </span>
+</div>
 </div>
 <!-- end of pagination -->
 </div>
