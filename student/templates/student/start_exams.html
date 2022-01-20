@@ -47,7 +47,7 @@
   {% for q in  page_obj %}
   
  <div class="">
-  <pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;" >{{forloop.counter}}. {{q.question}}</pre> 
+  <pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;" > {{q.question}}</pre> 
 </div>
 <h6 style="text-align: right;">[marks {{q.marks}}]</h6>
 <br>
@@ -78,41 +78,41 @@
   {% endfor %}
   <br>
   <input class="btn btn-primary" type="submit" value="Submit">
+
 <br>
        
 <!-- pagination codes start -->
-<div style="font-size: 20px; float: left;" class="" >
-
 {% for contact in page_obj %}
-{# Each "contact" is a Contact model object. #}
-{{ contact.full_name|upper }}<br>
+    {# Each "contact" is a Contact model object. #}
+    {{ contact.full_name|upper }}<br>
 
 {% endfor %}
 
 <div class="pagination">
-<span class="step-links">
-    {% if page_obj.has_previous %}
-        <a style="padding-left: 100px;" href="?page=1">&raquo&raquo&raquo; first</a><br>
-        <a href="?page={{ page_obj.previous_page_number }}">&laquo; previous</a>
-    {% endif %}
+    <span class="step-links" style="float: right;">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
 
-    <span class="current">
-        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
     </span>
-
-    {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}">next &raquo;</a><br>
-        <a style="padding-left: 100px;" href="?page={{ page_obj.paginator.num_pages }}">last &raquo&raquo&raquo;</a>
-    {% endif %}
-</span>
-
 </div>
 <!-- end of pagination -->
 </div>
 
 </form>
   </div>
+
       <script> 
+
           function saveAns(){  
       
               var ele = document.getElementsByTagName('input'); 
@@ -133,8 +133,12 @@
         document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
       }
       
-      </script> 
- 
+</script>
+
+<script>
+// timespent
+
+</script>
 </body>
 </html>
 
