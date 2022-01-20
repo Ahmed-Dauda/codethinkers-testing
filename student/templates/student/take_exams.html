@@ -10,6 +10,10 @@
 </head>
 <body>
     <h1 class="card-header text-center">Select a Course to Take Exam</h1><br>
+    <div class="container text-center">
+    <p>Start the Quiz</p>
+    <p>Good luck!</p>
+    </div>
     {% for course in courses %}
 <div class="card">
     <a class="card-header text-center" href="{% url 'student:start-exam' course.id %}">{{course}}</a>
