@@ -1,6 +1,9 @@
 {% extends 'sms/base.html' %}
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 
 {% load hitcount_tags %}
+{% load cloudinary %}
+
 
 {% block title %}
 <title>beginners</title>
@@ -43,14 +46,60 @@ border: 1px dotted rgb(16, 2, 37);;
 
   <div><pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;"   class="container text-left" >{{object.desc}}</pre></div><br><hr>
   <h3 class="">Activity </h3>
-  <p  class="text-left">{{object.student_activity|linebreaksbr}}</p><br><hr>
+  <p id="demo2"></p>
+  <p id="demo3"></p>
+  <pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;"   class="container text-center" >{{object.student_activity|linebreaksbr}}</pre><br><hr>
 
-  
+  <!-- <button type="submit" onclick = "checkPassword();" >Check answer</button> -->
+
+
+  <hr>
   <p>Join Chat Room: {{object.topics_url|urlizetrunc:15}}</p><br><hr>
 
       </div>
     </div>
   </div>
 </div>
+<hr>
+<!-- <h1 id="demo"></h1> -->
+
+
+
+<script>  
+
+function checkPassword(){
+  var x = [1, 2, 3, 4]
+  password= document.getElementById('passwordBox');
+  passwordText = password.value;
+  correct = document.getElementById('demo2')
+  wrong = document.getElementById('demo3')
+  for (i = 0; i < x.length; i ++){
+    if (passwordText === x[i]){
+     
+      correct.innerHTML='correct answer'
+      // alert('good')
+      
+    }
+  
+    else {
+      
+      correct.innerHTML='wrong answer'
+      
+    }
+}
+}
+
+</script>
+
+<script>
+  $(document).ready(function(){
+        $("botton").click(function(){
+          "location.href = location.href";
+        });
+    });
+</script>
+
 
 {% endblock %}
+
+ 
