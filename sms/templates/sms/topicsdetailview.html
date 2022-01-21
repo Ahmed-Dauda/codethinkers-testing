@@ -46,9 +46,13 @@ border: 1px dotted rgb(16, 2, 37);;
 
   <div><pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;"   class="container text-left" >{{object.desc}}</pre></div><br><hr>
   <h3 class="">Activity </h3>
-  <p id="demo2"></p>
-  <p id="demo3"></p>
-  <pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;"   class="container text-center" >{{object.student_activity|linebreaksbr}}</pre><br><hr>
+  {% if object.img_topic %}
+  <div  class="text-center" ><img src="{{object.img_tutorial.url}}" width="90%" height="300px" alt="img_tutorial image"> </div><br><hr>
+  {% else %}
+
+  {% endif %}
+
+  <pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;"   class="container text-left" >{{object.student_activity|linebreaksbr}}</pre><br><hr>
 
   <!-- <button type="submit" onclick = "checkPassword();" >Check answer</button> -->
 
