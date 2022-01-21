@@ -233,8 +233,19 @@ a, button, code, div, img, input, label, li, p, pre, select, span, svg, table, t
 img{
     object-fit: cover;
 }
-table, tr, td{
+table,tr, td, th{
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
   border: 1px solid black;
+
+}
+tr, td{
+  text-align: left;
+  padding: 8px;
+}
+tr:nth-child(even){
+  background-color: blanchedalmond;
 }
 </style>
 </head>
@@ -270,7 +281,7 @@ table, tr, td{
 <div class="profile-userbuttons">
   <div>Unique Id : {{request.user}}</div><div><a href="{% url 'student:take-exam' %}">Take Exam Again</a></div>
 
-  <table class=" container table table-hover" id="dev-table">
+  <table class=" container table " id="">
     <thead>
       <tr>
         <th>Names</th>
