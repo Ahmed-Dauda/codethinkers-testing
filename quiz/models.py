@@ -1,6 +1,7 @@
 from django.db import models
 # from student.models import Student
 from users.models import Profile
+from cloudinary.models import CloudinaryField
 
 class Course(models.Model):
    course_name = models.CharField(max_length=50, unique= True)
@@ -15,6 +16,7 @@ class Question(models.Model):
     course=models.ForeignKey(Course,on_delete=models.CASCADE)
     marks=models.PositiveIntegerField()
     question=models.TextField(blank=True, null = True)
+    img_quiz = CloudinaryField('image', blank=True, null= True)
     option1=models.CharField(max_length=200, blank=True, null = True)
     option2=models.CharField(max_length=200, blank=True, null = True)
     option3=models.CharField(max_length=200, blank=True, null = True)
