@@ -52,6 +52,7 @@ class Topics(models.Model):
     student_activity = models.TextField(blank=True, null= True)
     evaluation = models.TextField(blank=True, null= True)
     img_topic = CloudinaryField('image', blank=True, null= True)
+    img_tutorial = CloudinaryField('image', blank=True, null= True)
     # img_topic = models.ImageField(blank = True, null = True)
     top_urls = [
         ('https://t.me/joinchat/4F9VVjDPLzAwM2Q0', 'Beginners python_url'),
