@@ -34,6 +34,8 @@ Licensed under MIT
 
 body {
   background: #F1F3FA;
+  margin: 0;
+  padding: 0;
 }
 
 /* Profile container */
@@ -231,6 +233,9 @@ a, button, code, div, img, input, label, li, p, pre, select, span, svg, table, t
 img{
     object-fit: cover;
 }
+table, tr, td{
+  border: 1px solid black;
+}
 </style>
 </head>
 <body>
@@ -264,11 +269,12 @@ img{
 
 <div class="profile-userbuttons">
   <div>Unique Id : {{request.user}}</div><div><a href="{% url 'student:take-exam' %}">Take Exam Again</a></div>
-  <table class="table table-hover" id="dev-table">
+
+  <table class=" container table table-hover" id="dev-table">
     <thead>
       <tr>
         <th>Names</th>
-        <th>users Email</th>
+        
         <th>Exam Name</th>
         <th>Total Marks</th>
         <th>Attempt</th>
@@ -281,7 +287,7 @@ img{
     {% for t in results %}
     <tr>
       <td> {{t.student.first_name}} {{t.student.last_name}}</td>
-      <td> {{t.student}}</td>
+     
       <td> {{t.exam}}</td>
       <td> {{t.marks}} / {{course.total_marks}}</td>
       <td>Attemp {{ forloop.counter }}</td>
