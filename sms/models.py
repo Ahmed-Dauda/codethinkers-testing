@@ -4,7 +4,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models.deletion import CASCADE
 from django.contrib.auth.models import User
-
+from cloudinary.models import CloudinaryField
 
 
 from hitcount.models import HitCount, HitCountMixin
@@ -51,7 +51,8 @@ class Topics(models.Model):
     desc = models.TextField( blank=True, null= True)
     student_activity = models.TextField(blank=True, null= True)
     evaluation = models.TextField(blank=True, null= True)
-    img_topic = models.ImageField(blank = True, null = True)
+    img_topic = CloudinaryField('image', blank=True, null= True)
+    # img_topic = models.ImageField(blank = True, null = True)
     top_urls = [
         ('https://t.me/joinchat/4F9VVjDPLzAwM2Q0', 'Beginners python_url'),
         ('https://t.me/joinchat/5CBRm0mlq5VlZmE0', 'Beginners html_url'),

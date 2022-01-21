@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 from posixpath import join
+from django.conf import settings
 
 from django.contrib.auth import SESSION_KEY
 
@@ -55,6 +56,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'cloudinary',
     
 # the social providers
     # 'allauth.socialaccount.providers.facebook',
@@ -127,9 +129,22 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+# cloudinary settings
+# cloud_name = 'ds5l3gqr6'
+# api_key = '671667183251344'
+# api_secret = 'P5WKA1qweMmd1i4TkU2W_ZY9ZuA'
+# secure = True
+CLOUDINARY_URL = 'CLOUDINARY_URL=cloudinary://671667183251344:P5WKA1qweMmd1i4TkU2W_ZY9ZuA@ds5l3gqr6'
+cname='mydomain.com&upload_prefix=myprefix.com'
 
+import cloudinary
 
-
+cloudinary.config( 
+  cloud_name = "ds5l3gqr6", 
+  api_key ="671667183251344", 
+  api_secret = "P5WKA1qweMmd1i4TkU2W_ZY9ZuA",
+  secure = True
+)
 # email settings
 
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
