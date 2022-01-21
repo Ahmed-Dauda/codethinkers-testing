@@ -48,15 +48,10 @@
     <hr>
   {% for q in  page_obj %}
   
- <div class="">
-  {% if q.question %}
+<!-- <h6 style="text-align: right;">[marks {{q.marks}}]</h6> -->
+<div  class="text-center" ><img src="{{q.img_quiz.url}}" width="100%" height="300px" alt="img_quiz image"> </div><br>
   <pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;" > {{q.question}}</pre> 
-</div>
 <h6 style="text-align: right;">[marks {{q.marks}}]</h6>
-{% else %}
-<div  class="text-center" ><img src="{{q.img_quiz.url}}" width="100%" height="300px" alt="img_quiz image"> </div><br><hr>
-<h6 style="text-align: right;">[marks {{q.marks}}]</h6>
-{% endif %}
 <br>
   <div class="card-header">
     
@@ -81,7 +76,7 @@
   <label  for="option4">{{q.option4}}</label><br>
 </div>
 {% endif %}
-<br>
+<br><br>
   {% endfor %}
 
   <input onclick="disp()" class="btn btn-primary" type="submit" value="Submit">
