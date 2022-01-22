@@ -13,7 +13,7 @@ from teacher import models as TMODEL
 from users.models import NewUser
 from users.models import Profile
 from django.core.paginator import Paginator
-
+from django.contrib.auth.decorators import login_required
 def take_exams_view(request):
     course = QMODEL.Course.objects.all()
     context = {
@@ -45,7 +45,7 @@ def start_exams_view(request, pk):
     response.set_cookie('course_id', course.id)
     return response
 
-
+@login_required
 def calculate_marks_view(request):
     if request.COOKIES.get('course_id') is not None:
         course_id = request.COOKIES.get('course_id')

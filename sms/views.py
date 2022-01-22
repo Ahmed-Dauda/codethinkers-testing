@@ -247,7 +247,7 @@ class Admin_result(LoginRequiredMixin, ListView):
         return QMODEL.Course.objects.all()
 
 
-
+@login_required
 def Admin_detail_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
     student = Profile.objects.get(user_id=request.user.id)
@@ -267,7 +267,7 @@ def Admin_detail_view(request,pk):
         'results':results,
         'course':course,
         'st':request.user,
-        # 'm':m
+     
     }
     return render(request,'sms/Admin_result_detail_view.html', context)
 

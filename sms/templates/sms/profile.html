@@ -269,9 +269,10 @@ tr:nth-child(even){
   </div>
 
 
-<div class="profile-userbuttons">
-  <div>Unique Id : {{request.user}}</div><div><a href="{% url 'student:take-exam' %}">Take Exam Again</a></div>
-
+<div style="background-color: orange; font-size: 20px;" class="card-header text-center">
+  <div>User Email: {{request.user}}</div>
+  <div><a href="{% url 'student:take-exam' %}">Take Exam Again</a></div>
+</div>
       <!-- STAT -->
 <!--       
   <div class="portlet light bordered">
@@ -320,8 +321,8 @@ tr:nth-child(even){
   
   <!-- STAT -->
     <!-- END STAT -->
-<div class="container text-center card-body">
-    <table class="table-responsive" id="">
+<div class="table-responsive container text-center card-body">
+    <table class="table" id="">
       <thead>
         <tr>
           <th>Names</th>
