@@ -256,7 +256,7 @@ def Admin_detail_view(request,pk):
     # max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id') ,).order_by('-marks').values('id')
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course).order_by('-marks')
-    Result.objects.filter(id = Subquery(max_q[1:]), exam=course).delete()   
+    Result.objects.filter(id = Subquery(max_q[1:]), exam=course, marks = 1).delete()   
     # max_q = QMODEL.Result.objects.filter(marks = OuterRef('marks') ,).order_by('-marks').values('id')
     # results = QMODEL.Result.objects.filter(id = Subquery(max_q[:1]), marks__gte =2)
     # QMODEL.Result.objects.exclude(id = results[:1]).delete() 
