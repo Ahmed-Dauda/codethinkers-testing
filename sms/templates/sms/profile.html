@@ -33,7 +33,8 @@ Licensed under MIT
 ***/
 
 body {
-  background: #F1F3FA;
+ font-family: sans-serif;
+ font-size: 20px;
   margin: 0;
   padding: 0;
 }
@@ -59,10 +60,7 @@ body {
   border-radius: 50% !important;
 }
 
-.profile-usertitle {
-  text-align: center;
-  margin-top: 20px;
-}
+
 
 .profile-usertitle-name {
   color: #5a7391;
@@ -188,7 +186,7 @@ a, button, code, div, img, input, label, li, p, pre, select, span, svg, table, t
 
 .profile-stat-text {
     color: #5b9bd1;
-    font-size: 10px;
+    font-size: 20px;
     font-weight: 600;
     text-align: center;
 }
@@ -238,6 +236,7 @@ table,tr, td, th{
   border-spacing: 0;
   width: 100%;
   border: 1px solid black;
+  font-size: 20px;
 
 }
 tr, td{
@@ -280,35 +279,6 @@ tr:nth-child(even){
 
 <div class="profile-userbuttons">
   <div>Unique Id : {{request.user}}</div><div><a href="{% url 'student:take-exam' %}">Take Exam Again</a></div>
-
-  <table class=" container table " id="">
-    <thead>
-      <tr>
-        <th>Names</th>
-        
-        <th>Exam Name</th>
-        <th>Total Marks</th>
-        <th>Attempt</th>
-        <th>Exam Date</th>
-       
-      </tr>
-    </thead>
-   
-   
-    {% for t in results %}
-    <tr>
-      <td> {{t.student.first_name}} {{t.student.last_name}}</td>
-     
-      <td> {{t.exam}}</td>
-      <td> {{t.marks}} / {{course.total_marks}}</td>
-      <td>Attemp {{ forloop.counter }}</td>
-      <td> {{t.date}}</td>
-     
-    </tr>
-    {% endfor %}
-   
-  <hr>
-</table>
 
       <!-- STAT -->
 <!--       
@@ -357,7 +327,40 @@ tr:nth-child(even){
   
   
   <!-- STAT -->
+    <!-- END STAT -->
+
+    <table class="" id="">
+      <thead>
+        <tr>
+          <th>Names</th>
+          <th>email</th>
+          <th>Exam Name</th>
+          <th>Total Marks</th>
+          <th>Attempt</th>
+          <th>Exam Date</th>
+         
+        </tr>
+      </thead>
+     
+     
+      {% for t in results %}
+      <tr>
+        <td> {{t.student.first_name}} {{t.student.last_name}}</td>
+        <td> {{t.student}}</td>
+        <td> {{t.exam}}</td>
+        <td> {{t.marks}} / {{course.total_marks}}</td>
+        <td>Attemp {{ forloop.counter }}</td>
+        <td> {{t.date}}</td>
+       
+      </tr>
+      {% endfor %}
+     
+    <hr>
+  </table>
+  
+  
 <hr>
+<div style="width: 100%; text-align: center;" class="container">
     <button type="button" class="btn btn-success btn-sm">Follow Us</button>
 </div>
 
@@ -372,8 +375,9 @@ tr:nth-child(even){
     
     </div>
     </div>
-    <!-- END STAT -->
 
+  </div>
+  
 
         <!-- Bootstrap core JS-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
