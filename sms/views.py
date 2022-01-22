@@ -4,7 +4,7 @@ from django.contrib.auth import forms
 from django.db import models
 from django.db.models import fields
 from django.shortcuts import redirect, render, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from sms.models import Categories, Courses, Topics, Comment, course_links
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from users.models import Profile
@@ -191,6 +191,9 @@ from django.db.models import Count
 import numpy as np
 from django.db.models import Max, Subquery, OuterRef
 
+from django.contrib.auth.decorators import login_required
+
+@login_required
 def userprofileview(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
     # student = Profile.objects.get(user_id=request.user.id)
@@ -201,6 +204,7 @@ def userprofileview(request,pk):
     Result.objects.filter(id = Subquery(max_q[1:]), exam=course).delete()
     # QMODEL.Result.objects.exclude(id = m).delete()
     user_profile =  Profile.objects.filter(user_id = request.user)
+
     # results=QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
               
     context = {
