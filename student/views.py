@@ -67,7 +67,8 @@ def calculate_marks_view(request):
         result.save()
 
         return HttpResponseRedirect('view_result')
-
+    else:
+        return HttpResponseRedirect('student:take-exam')
 
 def view_result_view(request):
     courses=QMODEL.Course.objects.all()
