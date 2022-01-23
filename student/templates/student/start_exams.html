@@ -79,6 +79,8 @@
 </div>
 {% endif %}
 <br><br>
+{% empty %}
+<h1 class="card text-center text-danger">No Exam Available Yet. CHECK LATER</h1>
   {% endfor %}
 
   <input onclick="disp()" class="btn btn-primary" type="submit" value="Submit">
