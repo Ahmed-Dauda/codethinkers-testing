@@ -201,8 +201,8 @@ def userprofileview(request,pk):
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course, student = student)
-    if not Result.objects.filter(id = Subquery(max_q[1:]), exam=course).delete():
-        results
+    Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
+      
     
     # QMODEL.Result.objects.exclude(id = m).delete()
     user_profile =  Profile.objects.filter(user_id = request.user)
