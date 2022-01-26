@@ -219,8 +219,7 @@ margin: 2px;
     <!-- {% if request.user.is_superuser %} -->
   <a class="" href="{% url 'sms:admin_result' %}">Admin results view</a>
     <!-- {% endif %} -->
-    <a class="" href="{% url 'sms:bloglistview' %}">Article Page</a>
-    
+
 </div>
   </div>
 
@@ -258,7 +257,8 @@ margin: 2px;
          
                     <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
                     <hr>
-                    <li class="nav-item"><a class="nav-link" href="#">Courses</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'sms:bloglistview' %}">Article Page</a></li>
+                    
                     <hr>
                     <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
                     <hr>

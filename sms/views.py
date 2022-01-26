@@ -296,6 +296,11 @@ class Bloglistview(LoginRequiredMixin, ListView):
     count_hit = True
     queryset = Blog.objects.all()
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['blogs_count'] =Blog.objects.all().count() 
+        return context
+
 class Blogdetaillistview(HitCountDetailView,DetailView):
     models = Blog
     template_name = 'sms/bloglistdetailview.html'
