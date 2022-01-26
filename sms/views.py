@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import fields
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
-from sms.models import Categories, Courses, Topics, Comment, course_links
+from sms.models import Categories, Courses, Topics, Comment, Blog
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from users.models import Profile
 from quiz import models as QMODEL
@@ -92,7 +92,7 @@ class Courseslistview( HitCountDetailView,LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['courses'] = Courses.objects.filter(categories__pk = self.object.id)
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id)
-        context['course_links'] = course_links.objects.filter(courses_id = self.object.id)
+       
         return context
 
 class Topicslistview( HitCountDetailView,LoginRequiredMixin, DetailView, ):
@@ -288,3 +288,27 @@ def Admin_detail_view(request,pk):
 #         max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id'), ).order_by('-marks').values('id')
 #         context['results'] = QMODEL.Result.objects.filter(id = Subquery(max_q[:1])) 
 #         return context
+
+class Bloglistview(LoginRequiredMixin, ListView):
+    models = Blog
+    template_name = 'sms/bloglistview.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+    queryset = Blog.objects.all()
+
+class Blogdetaillistview(HitCountDetailView,DetailView):
+    models = Blog
+    template_name = 'sms/bloglistdetailview.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+
+    def get_queryset(self):
+        return Blog.objects.all()
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+        context['blogs'] =Blog.objects.all() 
+        context['blogs_count'] =Blog.objects.all().count() 
+       
+        return context

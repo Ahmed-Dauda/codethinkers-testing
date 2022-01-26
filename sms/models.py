@@ -88,13 +88,14 @@ class Comment(models.Model):
     def __str__(self):
         return f'{self.title}'
 
-class course_links(models.Model):
-    courses = models.ForeignKey(Courses, on_delete= models.CASCADE)
-    topics = models.ForeignKey(Topics, on_delete= models.CASCADE, blank=True, null= True)
-    course_link = models.URLField(max_length=225, blank=True, null= True)
+class Blog(models.Model):
+    title = models.CharField(max_length=225, blank=True, null= True, unique=True)
+    img_blog = CloudinaryField('image', blank=True, null= True)
+    desc = models.TextField( blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
-    
-
+    hit_count_generic = GenericRelation(
+    HitCount, object_id_field='object_pk',
+    related_query_name='hit_count_generic_relation')
     def __str__(self):
-        return f'{self.course_link}'
+        return f'{self.title}'
