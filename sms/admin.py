@@ -1,10 +1,10 @@
 from django.contrib import admin
-from sms.models import Categories, Courses, Topics, Comment, course_links
+from sms.models import Categories, Courses, Topics, Comment, Blog
 # from users.models import Profile
 # Register your models here.
 
-@admin.register(course_links)
-class courseurladmin(admin.ModelAdmin):
+@admin.register(Blog)
+class blogadmin(admin.ModelAdmin):
     # list_display = ['id', 'name', 'desc', 'created']
     # list_filter = ordering = ['created']
     ordering = ['created'] 

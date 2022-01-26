@@ -15,6 +15,8 @@ from sms.views import(
       UserProfileUpdateForm,
       Admin_result,
       Admin_detail_view,
+      Bloglistview,
+      Blogdetaillistview,
       
 ) 
 
@@ -38,7 +40,8 @@ urlpatterns = [
     path('admin_result_detail_view/<pk>/', Admin_detail_view, name ='admin_result_detail_view'),
     path('userprofileform', UserProfileForm.as_view(), name ='userprofileform'),
     path('userprofileupdateform/<pk>/', UserProfileUpdateForm.as_view(), name ='userprofileupdateform'),
-
+    path('bloglistview', Bloglistview.as_view(), name ='bloglistview'),
+    path('blogdetaillistview/<pk>/', Blogdetaillistview.as_view(), name='blogdetaillistview'),
  
 ]
 
