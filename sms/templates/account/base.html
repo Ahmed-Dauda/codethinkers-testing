@@ -35,15 +35,15 @@
     {% endif %}
 
     <div>
-      <strong>Menu:</strong>
-      <div class="card-header">
+      <!-- <strong>Menu:</strong> -->
+      <div class="card-header text-white text-center bg-primary">
       <ul style="list-style: none;">
         {% if user.is_authenticated %}
         <li><a href="{% url 'account_email' %}">Change E-mail</a></li>
         <li><a href="{% url 'account_logout' %}">Sign Out</a></li>
         {% else %}
-        <li><a href="{% url 'account_login' %}">Sign In</a></li>
-        <li><a href="{% url 'account_signup' %}">Sign Up</a></li>
+        <li><a class="text-white" href="{% url 'account_login' %}">Sign In</a></li>
+        <li><a class="text-white" href="{% url 'account_signup' %}">Sign Up</a></li>
         {% endif %}
       </ul>
     </div>
