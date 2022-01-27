@@ -6,7 +6,7 @@
 <meta property ='og:url' content="{{request.build_absolute_url}}"/>
 <meta property ='og:title' content="{{object.title}}"/>
 <meta property ='og:image' content="https://codethinkers.org{{object.thumbnail.url}}"/>
-<meta property ='og:image:alt' content="{{object.title:truncatechars:30}}"/>
+<meta property ='og:image:alt' content="{{object.title|truncatechars:30}}"/>
 
 {% block body %} 
 <style>
