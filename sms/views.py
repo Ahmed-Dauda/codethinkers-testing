@@ -289,7 +289,7 @@ def Admin_detail_view(request,pk):
 #         context['results'] = QMODEL.Result.objects.filter(id = Subquery(max_q[:1])) 
 #         return context
 
-class Bloglistview(LoginRequiredMixin, ListView):
+class Bloglistview(ListView):
     models = Blog
     template_name = 'sms/bloglistview.html'
     success_message = 'TestModel successfully updated!'

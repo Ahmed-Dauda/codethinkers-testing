@@ -30,7 +30,6 @@ urlpatterns = [
     path('topicsdetailview/<pk>/', Topicsdetailview.as_view(), name='topicsdetailview'),
     # path('signupview', signupview.as_view(), name ='signupview'),
     path('feedbackformview', Feedbackformview.as_view(), name ='feedbackformview'),
-  
     path('commentlistview', Commentlistview.as_view(), name ='commentlistview'),
     path('commentlistviewsuccess', Commentlistviewsuccess.as_view(), name ='commentlistviewsuccess'),
     # path('userprofilelistview', UserProfilelistview.as_view(), name ='userprofilelistview'),
