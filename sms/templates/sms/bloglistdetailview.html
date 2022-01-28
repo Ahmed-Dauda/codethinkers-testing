@@ -2,15 +2,26 @@
 
 {% load hitcount_tags %}
 {% block title %}<title>Codethinker's Blog Writing Page</title>{% endblock %}
-
-{% block body %} 
-<meta property ='og:url' content="{{request.build_absolute_url}}"/>
+<head>
+<meta property ='og:url' content="{{https://www.codethinkers.org}}"/>
 <meta property ='og:title' content="{{object.title|title}}"/>
-<meta property ='og:title' content="{{object.desc}}"/>
+<meta property ='og:description' content="{{object.desc}}"/>
 <meta property ='og:image' content="{{object.img_blog.url}}"/>
-<meta property ='og:image' content="https://www.codethinkers.org{{object.thumbnail.url}}"/>
+<meta property ='og:image:secure_url' content="https://www.codethinkers.org}}"/>
 <meta property ='og:image:alt' content="{{object.title|truncatechars:30}}"/>
 
+</head>
+{% block body %} 
+<head>
+    <meta property ='og:url' content="{{https://www.codethinkers.org}}"/>
+    <meta property ='og:title' content="{{object.title|title}}"/>
+    <meta property ='og:description' content="{{object.desc}}"/>
+    <meta property ='og:image' content="{{object.img_blog.url}}"/>
+    <meta property ='og:image:secure_url' content="https://www.codethinkers.org}}"/>
+    <meta property ='og:image:alt' content="{{object.title|truncatechars:30}}"/>
+    
+    </head>
+    
 <style>
     .courses{
   display: flex;
