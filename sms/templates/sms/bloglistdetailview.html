@@ -5,9 +5,11 @@
 
 {% block body %} 
 <meta property ='og:url' content="{{request.build_absolute_url}}"/>
-<meta property ='og:title' content="{{post.title}}"/>
-<meta property ='og:image' content="https://codethinkers.org{{post.thumbnail.url}}"/>
-<meta property ='og:image:alt' content="{{post.title|truncatechars:30}}"/>
+<meta property ='og:title' content="{{object.title|title}}"/>
+<meta property ='og:title' content="{{object.desc}}"/>
+<meta property ='og:image' content="{{object.img_blog.url}}"/>
+<meta property ='og:image' content="https://www.codethinkers.org{{object.thumbnail.url}}"/>
+<meta property ='og:image:alt' content="{{object.title|truncatechars:30}}"/>
 
 <style>
     .courses{
