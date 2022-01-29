@@ -3,7 +3,7 @@
 
 {% load hitcount_tags %}
 {% load cloudinary %}
-
+{% load embed_video_tags %}
 
 {% block title %}
 <title>beginners</title>
@@ -44,6 +44,9 @@ border: 1px dotted rgb(16, 2, 37);;
   <div><img src="/static/sms/images/newlogo2.jpg" width="100%" height="500px" alt="topics image"></div><br><hr> 
   {% endif %}
 
+  <!-- {# or use variables (with embedding, too) #} -->
+  <div style="overflow-x: auto;" class="text-center">{% video object.video 'small' %}</div><hr>
+ 
   <div><pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;"   class="container text-left" >{{object.desc}}</pre></div><br><hr>
   <h3 class="">Activity </h3>
   {% if object.img_tutorial %}
