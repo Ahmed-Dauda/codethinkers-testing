@@ -45,8 +45,9 @@ border: 1px dotted rgb(16, 2, 37);;
   {% endif %}
 
   <!-- {# or use variables (with embedding, too) #} -->
+  {% if object.video %}
   <div style="overflow-x: auto;" class="text-center">{% video object.video 'small' %}</div><hr>
- 
+ {% endif %}
   <div><pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;"   class="container text-left" >{{object.desc}}</pre></div><br><hr>
   <h3 class="">Activity </h3>
   {% if object.img_tutorial %}
