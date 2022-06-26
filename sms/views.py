@@ -43,7 +43,7 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 
-class Categorieslistview(LoginRequiredMixin, ListView):
+class Categorieslistview(ListView):
     models = Categories
     template_name = 'sms/home.html'
     success_message = 'TestModel successfully updated!'
@@ -77,9 +77,8 @@ from django.contrib.auth import logout
 def logout_view(request):
     logout(request)
     return redirect('/')
-
-        
-class Courseslistview( HitCountDetailView,LoginRequiredMixin, DetailView):
+    
+class Courseslistview( HitCountDetailView, DetailView):
     models = Categories
     template_name = 'sms/courseslistview.html'
     count_hit = True
@@ -95,7 +94,7 @@ class Courseslistview( HitCountDetailView,LoginRequiredMixin, DetailView):
        
         return context
 
-class Topicslistview( HitCountDetailView,LoginRequiredMixin, DetailView, ):
+class Topicslistview( HitCountDetailView, DetailView, ):
     models = Courses
     template_name = 'sms/topicslistview.html'
     count_hit = True
@@ -111,7 +110,7 @@ class Topicslistview( HitCountDetailView,LoginRequiredMixin, DetailView, ):
         context['topics_count'] = Topics.objects.filter(courses__pk = self.object.id) 
         return context
 
-class Topicsdetailview( HitCountDetailView,LoginRequiredMixin,DetailView):
+class Topicsdetailview( HitCountDetailView,DetailView):
     models = Topics
     template_name = 'sms/topicsdetailview.html'
     count_hit = True
@@ -137,7 +136,7 @@ from sweetify.views import SweetifySuccessMixin
 #     def get_queryset(self):
 #         return Topics.objects.all()
 
-class Commentlistview(LoginRequiredMixin, ListView):
+class Commentlistview( ListView):
     models = Comment
     template_name = 'sms/commentlistview.html'
 
@@ -153,7 +152,7 @@ class Commentlistview(LoginRequiredMixin, ListView):
         context['comment_count'] = Comment.objects.all().count() 
         return context
 
-class Commentlistviewsuccess(LoginRequiredMixin, ListView):
+class Commentlistviewsuccess( ListView):
     models = Comment
     template_name = 'sms/commentlistviewsuccess.html'
     
