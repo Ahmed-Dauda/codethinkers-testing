@@ -54,10 +54,10 @@ class Categorieslistview(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['students'] = User.objects.all().count()
+        # context['students'] = User.objects.all().count()
         context['category'] = Categories.objects.all().count()
         context['courses'] = Courses.objects.all().count()
-        context['user'] = NewUser.objects.all()
+        # context['user'] = NewUser.objects.all()
         
         # num_visit = self.request.session.get('num_visit', 0)
         # self.request.session['num_visit'] = num_visit + 1
