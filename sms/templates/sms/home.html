@@ -234,19 +234,7 @@ margin: 2px;
             
             <a class="navbar-brand" href="#page-top"><img src="/static/sms/images/newlogo3.jpg" width="50px" height="50px" alt="..."></a>
             <div style="color: wheat; text-align: cente">
-              {% for u in user %}
-                <script>
-                    Swal.fire({
-                    position: 'top-end',
-                    icon: 'success',
-                    height: 10,
-                    width: 205,
-                    title: 'welcome {{u.username}}',
-                    showConfirmButton: false,
-                    timer: 5500
-                          })
-                    </script>
-                    {% endfor %}
+           
             </div>
             <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                 Menu
