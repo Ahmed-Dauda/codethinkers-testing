@@ -55,7 +55,7 @@ class Categorieslistview(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # context['students'] = User.objects.all().count()
-        context['category'] = Categories.objects.all()[0]
+        # context['category'] = Categories.objects.all()
         # context['courses'] = Courses.objects.all().count()
         # context['user'] = NewUser.objects.all()
         
@@ -65,7 +65,7 @@ class Categorieslistview(ListView):
         # context['user_name'] = self.request.user
         # context['current_users'] = get_current_users()
         # context['current_users_count'] = get_current_users().count()
-        context['comment_count'] = Comment.objects.all().count() 
+        # context['comment_count'] = Comment.objects.all().count() 
     
         sweetify.success(self.request, 'You successfully changed your password')
         return context
