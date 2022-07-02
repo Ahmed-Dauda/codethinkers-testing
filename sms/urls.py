@@ -23,7 +23,7 @@ app_name = 'sms'
 
 urlpatterns = [
   
-    path('', Categorieslistview.as_view(), name='categorieslist'),
+    path('home', Categorieslistview.as_view(), name='categorieslist'),
     path('courseslist/<pk>/', Courseslistview.as_view(), name='courseslist'),
     path('topicslistview/<pk>/', Topicslistview.as_view(), name='topicslistview'),
     path('topicsdetailview/<pk>/', Topicsdetailview.as_view(), name='topicsdetailview'),
@@ -38,7 +38,7 @@ urlpatterns = [
     path('admin_result_detail_view/<pk>/', Admin_detail_view, name ='admin_result_detail_view'),
     path('userprofileform', UserProfileForm.as_view(), name ='userprofileform'),
     path('userprofileupdateform/<pk>/', UserProfileUpdateForm.as_view(), name ='userprofileupdateform'),
-    path('bloglistview', Bloglistview.as_view(), name ='bloglistview'),
+    path('', Bloglistview.as_view(), name ='bloglistview'),
     path('blogdetaillistview/<pk>/', Blogdetaillistview.as_view(), name='blogdetaillistview'),
  
 ]
