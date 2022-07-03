@@ -92,6 +92,7 @@ class Comment(models.Model):
 
 class Blog(models.Model):
     title = models.CharField(max_length=225, blank=True, null= True, unique=True)
+    slug = models.SlugField(null=False, unique=True) 
     img_blog = CloudinaryField('image', blank=True, null= True)
     desc = models.TextField( blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)

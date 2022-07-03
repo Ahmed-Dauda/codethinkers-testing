@@ -3,11 +3,17 @@ from sms.models import Categories, Courses, Topics, Comment, Blog
 # from users.models import Profile
 # Register your models here.
 
-@admin.register(Blog)
-class blogadmin(admin.ModelAdmin):
+# @admin.register(Blog)
+# class blogadmin(admin.ModelAdmin):
     # list_display = ['id', 'name', 'desc', 'created']
     # list_filter = ordering = ['created']
-    ordering = ['created'] 
+    # ordering = ['created'] 
+
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = ("title", "desc",)
+    prepopulated_fields = {"slug": ("title",)}  # new
+
+admin.site.register(Blog, ArticleAdmin)
 
 @admin.register(Comment)
 class commentadmin(admin.ModelAdmin):
