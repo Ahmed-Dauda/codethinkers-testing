@@ -1,6 +1,6 @@
 {% extends 'sms/baseblog.html' %}
 
-{% block title %}blog details views {% endblock %}
+{% block title %} {{object.title|title}} {% endblock %}
 
   {% block content %} 
   {% load hitcount_tags %}
