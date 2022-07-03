@@ -3,26 +3,26 @@
 {% block title %} {{object.title|title}} {% endblock %}
 
   {% block content %} 
-  {% load hitcount_tags %}
-
+  <br><br>
   
+  {% load hitcount_tags %}
 <section >
-  <div class="container">
-      <a class="" href="https://wa.me/message/3WEEV2BGDKKSG1"> CONTACT US <i class="fas fa-question-circle"></i> </a>
-  </div>
+
   <!-- <h3  class="text-center">{{ hitcount.total_hits}} <i class="fas fa-eye"></i> </h3> -->
   
   <div  class="card container text-center">
   
-    <div style="display: block;" class="card-body container">
-      
-      <h1><b> {{object.title|title}}</b></h1><hr>
-      <div class="">viewers: {% get_hit_count for object%}  <i class="fas fa-eye"></i></div><hr>
-      <div>{{object.created}}, {{object.created|timesince}}</div><br>
-      <div  class="text-left" ><img src="{{object.img_blog.url}}" width="100%" height="400px" alt="blog image"> </div><br><hr>
-      <div class="">
-      <div class="content">{{object.desc}}</div><hr>
-  
+      <div class="card-header card d-flex">
+      <p class="card-text">{% get_hit_count for object %} <i class="fas fa-eye"></i></p>
+      <p class="card-text">{{object.created}}, {{object.created|timesince}}</p>
+    </div><hr>
+      <h5 class="card-title">{{object.title|title}}</h5><br>
+      <img src="{{object.img_blog.url}}" class="card-img-top" alt="Fissure in Sandstone"/>
+      <div class="card-body">
+        
+        <p class="card-text">{{object.desc}}</p>
+        <a href="{% url 'sms:bloglistview' %}" class="btn btn-secondary">read more....</a>
+      </div>
     </div>
     
   
