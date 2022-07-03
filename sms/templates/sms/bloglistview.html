@@ -9,7 +9,7 @@
   <div  class="card text-center">
     <div class="card-header">
       {% for blog in object_list %}
-      <h1><a style="background-color: rgb(16, 2, 37); width: 100%; color: wheat;" href="{% url 'sms:blogdetaillistview' blog.pk %}">{{blog.title|title}}</a></h1><hr>
+      <h1><a style="background-color: rgb(16, 2, 37); width: 100%; color: wheat;" href="{% url 'sms:blogdetaillistview' blog.slug %}">{{blog.title|title}}</a></h1><hr>
       <!-- <div class="">{% get_hit_count for blog %}  <i class="fas fa-eye"></i></div><hr> -->
       <div>{{blog.created}}, {{blog.created|timesince}}</div><br>
       <!-- <div  class="text-left" ><img src="{{blog.img_blog.url}}" width="100%" height="400px" alt="blog image"> </div><br><hr> -->
