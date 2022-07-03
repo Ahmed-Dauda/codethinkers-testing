@@ -1,15 +1,27 @@
 <!DOCTYPE html>
+{% load hitcount_tags %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %}</title>
-    <meta property="og:url" content="https://codethinkers.org" />
-    <meta property="og:image" content="https://codethinkers.org"/>
+   
+    <title> {{object.title|title}}</title>
+    <meta property="og:title" content=" {{object.title|title}}">
+    <meta name="description" property="og:description" content="{{object.desc|striptags|truncatewords:20}}">
+    <meta property="og:image" content="{{object.img_blog.url}}">
+    <meta property="og:image:alt" content="{{object.img_blog.url_alt}}">
+    <meta property="og:url" content="https://codethinkers.org/{{object.id}}">
+    <meta name="twitter:card" value="summary">
 </head>
 <body>
 
+<h1><b> {{object.title|title}}</b></h1><hr>
+<div class="">{% get_hit_count for object%}  <i class="fas fa-eye"></i></div><hr>
+<div>{{object.created}}, {{object.created|timesince}}</div><br>
+<div  class="text-left" ><img src="{{object.img_blog.url}}" width="100%" height="400px" alt="blog image"> </div><br><hr>
+<div class="">
+<div class="content">{{object.desc}}</div><hr>
 
     {% block content %} 
     <meta property="og:image" content="https://codethinkers.org"/>
