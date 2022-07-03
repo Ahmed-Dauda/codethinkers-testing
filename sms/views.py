@@ -316,3 +316,20 @@ class Blogdetaillistview(HitCountDetailView,DetailView):
         context['blogs_count'] =Blog.objects.all().count() 
        
         return context
+
+class Baseblogview(HitCountDetailView,DetailView):
+    models = Blog
+    template_name = 'sms/baseblog.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+
+    def get_queryset(self):
+        return Blog.objects.all()
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+        context['blogs'] =Blog.objects.all() 
+        context['blogs_count'] =Blog.objects.all().count() 
+       
+        return context
