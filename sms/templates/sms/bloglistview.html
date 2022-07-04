@@ -31,7 +31,7 @@
 		{% for blog in object_list %}
 		<div class="col-sm-12 col-md-6 col-lg-3 pb-4">
 			<div class="card h-100" style="border:none">
-				<img src="{{blog.img_blog.url}}" class="card-img-top" alt="{{ p.product_name}}">
+				<img src="{{blog.img_blog.url}}" class="card-img-top" style="width: auto; height: 250px; object-fit: scale-down;" alt="{{ p.product_name}}">
 			  	<div class="card-body">
 					<h5 class="card-title">{{blog.created}}, {{blog.created|timesince}}</h5>
 				  	<p class="card-text text-muted" style="font-size:12px">{{ p.product_type }}</p>
