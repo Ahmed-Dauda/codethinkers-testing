@@ -3,23 +3,45 @@
 {% block title %}blog list{% endblock %}
 
   {% block content %} 
-  <section >
+<!-- 
     {% load hitcount_tags %}
   <h3  class="text-center">{{blogs_count}}  Article (s) </h3>
-  <div  class="card text-center">
-    <div class="card-header">
+  <div  class="card  container shadow-lg p-3 ">
       {% for blog in object_list %}
-      <h1><a style="background-color: rgb(16, 2, 37); width: 100%; color: wheat;" href="{% url 'sms:blogdetaillistview' blog.slug %}">{{blog.title|title}}</a></h1><hr>
-      <!-- <div class="">{% get_hit_count for blog %}  <i class="fas fa-eye"></i></div><hr> -->
-      <div>{{blog.created}}, {{blog.created|timesince}}</div><br>
-      <!-- <div  class="text-left" ><img src="{{blog.img_blog.url}}" width="100%" height="400px" alt="blog image"> </div><br><hr> -->
-    <div class="text-left">{{blog.desc}}</div><hr>
+      
+     <div class="">{% get_hit_count for blog %}  <i class="fas fa-eye"></i></div><hr> -->
+     
+    <!-- <img src="{{blog.img_blog.url}}" width="100%" height="400px" alt="blog image"/> <br><hr>
+    <p>{{blog.created}}, {{blog.created|timesince}}</p><br>
+    <P class="text-left">{{blog.desc|striptags|truncatewords:60}}</P>
+    <a class="btn btn-primary" href="{% url 'sms:blogdetaillistview' blog.slug %}">{{blog.title|title}}</a><hr>
     {% empty %}
-    <h1 class="card text-center text-danger">No Article Available Yet. CHECK LATER</h1>
-    {% endfor %}
-  </div>
+    <h1 class="card text-center text-danger">No Article Available Yet. CHECK LATER</h1> -->
   
-  </div>
-  </section>
+    <!-- {% endfor %}
+  </div>  -->
+
+
+  <!--Products-->
+<div class="container py-3">
+	<h2>Articles</h2>
+	<hr>
+	<br>
+	<div class="container shadow-lg m-auto row">
+		{% for blog in object_list %}
+		<div class="col-sm-12 col-md-6 col-lg-3 pb-4">
+			<div class="card h-100" style="border:none">
+				<img src="{{blog.img_blog.url}}" class="card-img-top" alt="{{ p.product_name}}">
+			  	<div class="card-body">
+					<h5 class="card-title">{{blog.created}}, {{blog.created|timesince}}</h5>
+				  	<p class="card-text text-muted" style="font-size:12px">{{ p.product_type }}</p>
+				  	<p class="card-text">{{blog.desc|striptags|truncatewords:20}}</p>
+				  	<a href="{% url 'sms:blogdetaillistview' blog.slug %}" class="btn btn-warning">{{blog.title|title}}</a>
+			  	</div>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+</div>
   {% endblock %} 
  

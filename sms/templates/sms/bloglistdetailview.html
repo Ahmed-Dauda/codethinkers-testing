@@ -10,18 +10,19 @@
 
   <!-- <h3  class="text-center">{{ hitcount.total_hits}} <i class="fas fa-eye"></i> </h3> -->
   
-  <div  class="card container text-center">
+  <div  class="card container shadow-lg p-3 mb-5 bg-body rounded">
   
       <div class="card-header card d-flex">
       <p class="card-text">{% get_hit_count for object %} <i class="fas fa-eye"></i></p>
       <p class="card-text">{{object.created}}, {{object.created|timesince}}</p>
-    </div><hr>
-      <h5 class="card-title">{{object.title|title}}</h5><br>
+      <h5 class="card-title">{{object.title|title}}</h5>
+    </div>
+      
       <img src="{{object.img_blog.url}}" class="card-img-top" alt="Fissure in Sandstone"/>
       <div class="card-body">
         
         <p style="text-align: left;" class="card-text">{{object.desc}}</p>
-        <a href="{% url 'sms:bloglistview' %}" class="btn btn-secondary">read more....</a>
+        <a href="{% url 'sms:bloglistview' %}" class="btn btn-primary">read more articles....</a>
       </div>
     </div>
     
