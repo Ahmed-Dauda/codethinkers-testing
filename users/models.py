@@ -97,7 +97,7 @@ class Profile(models.Model):
     return reverse ('sms:userprofileupdateform',kwargs={'pk':self.pk})
 
   def __str__(self):
-    return f'{self.user} profile'
+    return f'{self.first_name} {self.last_name} profile'
 
 def userprofile_receiver(sender, instance, created, *args, **kwags):
   if created:

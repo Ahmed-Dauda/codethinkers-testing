@@ -275,9 +275,10 @@ SWEETIFY_SWEETALERT_LIBRARY = 'sweetalert2'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
-# LOGIN_REDIRECT_URL = '/'
-# LOGIN_URL = 'account_login'
-# LOGOUT_REDIRECT_URL = 'account_logout'
+LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = 'account_login'
+LOGOUT_REDIRECT_URL = 'account_logout'
+ACCOUNT_SIGNUP_REDIRECT_URL= 'settings.LOGOUT_URL'
 
 # LOGIN_REDIRECT_URL = '/'
 # LOGIN_URL = ''

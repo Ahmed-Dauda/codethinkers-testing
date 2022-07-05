@@ -1,13 +1,13 @@
 from typing import cast
 from django.contrib.contenttypes.fields import GenericRelation
-
+from users.models import Profile
 from django.db import models
 from django.db.models.deletion import CASCADE
-from django.contrib.auth.models import User
+from users.models import NewUser
 from cloudinary.models import CloudinaryField
 from django.db import models
 from embed_video.fields import EmbedVideoField
-
+from django.conf import settings
 from hitcount.models import HitCount, HitCountMixin
 
 # Create your models here.
@@ -91,7 +91,10 @@ class Comment(models.Model):
         return f'{self.title}'
 
 class Blog(models.Model):
+
+    author=models.ForeignKey(Profile,on_delete=models.CASCADE, blank=True, null= True)
     title = models.CharField(max_length=225, blank=True, null= True, unique=True)
+    img_source = models.CharField(max_length=225, null= True)
     slug = models.SlugField(null=False, unique=True) 
     img_blog = CloudinaryField('image', blank=True, null= True)
     desc = models.TextField( blank=True, null= True)

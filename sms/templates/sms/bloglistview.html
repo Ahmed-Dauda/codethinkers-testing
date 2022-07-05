@@ -24,19 +24,23 @@
 
   <!--Products-->
 <div class="container py-3">
-	<h2>Articles</h2>
+	<h2>Articles Archive</h2>
 	<hr>
 	<br>
 	<div class="container shadow-lg m-auto row">
 		{% for blog in object_list %}
 		<div class="col-sm-12 col-md-6 col-lg-3 pb-4">
 			<div class="card h-100" style="border:none">
+        <h1  style="width: auto; height: 60px; object-fit: scale-down;" alt="{{ p.product_name}}" class="btn btn-warning">{{blog.title|title}}</h1>
 				<img src="{{blog.img_blog.url}}" class="card-img-top" style="width: auto; height: 250px; object-fit: scale-down;" alt="{{ p.product_name}}">
+				<small class="container">Image source: {{blog.img_source}}</small>
+				
 			  	<div class="card-body">
-					<h5 class="card-title">{{blog.created}}, {{blog.created|timesince}}</h5>
+					<small >{{blog.created}}, {{blog.created|timesince}}</small>
 				  	<p class="card-text text-muted" style="font-size:12px">{{ p.product_type }}</p>
+					  <small >by {{blog.author}}</small><hr>
 				  	<p class="card-text">{{blog.desc|striptags|truncatewords:20}}</p>
-				  	<a href="{% url 'sms:blogdetaillistview' blog.slug %}" class="btn btn-warning">{{blog.title|title}}</a>
+				  	<a href="{% url 'sms:blogdetaillistview' blog.slug %}" class="btn btn-warning">Read More....</a>
 			  	</div>
 			</div>
 		</div>
