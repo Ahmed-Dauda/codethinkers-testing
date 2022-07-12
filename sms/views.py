@@ -43,7 +43,7 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 
-class Categorieslistview(ListView):
+class Categorieslistview(LoginRequiredMixin, ListView):
     models = Categories
     template_name = 'sms/home.html'
     success_message = 'TestModel successfully updated!'
@@ -78,7 +78,7 @@ def logout_view(request):
     logout(request)
     return redirect('/')
     
-class Courseslistview( HitCountDetailView, DetailView):
+class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
     models = Categories
     template_name = 'sms/courseslistview.html'
     count_hit = True
@@ -94,7 +94,7 @@ class Courseslistview( HitCountDetailView, DetailView):
        
         return context
 
-class Topicslistview( HitCountDetailView, DetailView, ):
+class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
     models = Courses
     template_name = 'sms/topicslistview.html'
     count_hit = True
@@ -110,7 +110,7 @@ class Topicslistview( HitCountDetailView, DetailView, ):
         context['topics_count'] = Topics.objects.filter(courses__pk = self.object.id) 
         return context
 
-class Topicsdetailview( HitCountDetailView,DetailView):
+class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
     models = Topics
     template_name = 'sms/topicsdetailview.html'
     count_hit = True
