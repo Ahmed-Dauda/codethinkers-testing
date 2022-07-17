@@ -54,10 +54,10 @@ class Categorieslistview(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # context['students'] = User.objects.all().count()
-        # context['category'] = Categories.objects.all()
-        # context['courses'] = Courses.objects.all().count()
-        # context['user'] = NewUser.objects.all()
+        context['students'] = User.objects.all().count()
+        context['category'] = Categories.objects.count()
+        context['courses'] = Courses.objects.all().count()
+        context['user'] = NewUser.objects.all()
         
         # num_visit = self.request.session.get('num_visit', 0)
         # self.request.session['num_visit'] = num_visit + 1
@@ -167,25 +167,25 @@ class Feedbackformview(CreateView):
     success_url = reverse_lazy('sms:feedbackformview')
     success_message = 'TestModel successfully updated!'
 
-# class UserProfilelistview(LoginRequiredMixin, ListView):
-#     models = Profile
-#     template_name = 'sms/profile.html'
-#     success_message = 'TestModel successfully updated!'
-#     count_hit = True
+class UserProfilelistview(LoginRequiredMixin, ListView):
+    models = Profile
+    template_name = 'sms/profile.html'
+    count_hit = True
    
-#     def get_queryset(self):
-#         return Profile.objects.all()
+    def get_queryset(self):
+        return Profile.objects.all()
 
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         user_pro = self.request.user
-#         context['user_profile'] = Profile.objects.filter(user = self.request.user)
-#         course=QMODEL.Course.objects.all()
-#         # course=QMODEL.Course.objects.get(id_in =course)
-#         # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
-#         student = Profile.objects.get(user_id=self.request.user.id)
-#         context['results']= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
-#         return context
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_pro = self.request.user
+        context['user_profile'] = Profile.objects.filter(user = self.request.user)
+        course=QMODEL.Course.objects.all()
+        # course=QMODEL.Course.objects.get(id_in =course)
+        # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
+        student = Profile.objects.get(user_id=self.request.user.id)
+        # context['results']= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
+        return context
+
 from django.db.models import Count
 import numpy as np
 from django.db.models import Max, Subquery, OuterRef
@@ -231,6 +231,7 @@ class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
     fields = '__all__'
     template_name = 'sms/userprofileupdateform.html'
     success_message = 'TestModel successfully updated!'
+    success_url= reverse_lazy('sms:userprofilelistview')
     count_hit = True
 
     def get_queryset(self):

@@ -9,7 +9,7 @@ from sms.views import(
       Feedbackformview,
       Commentlistview,
       Commentlistviewsuccess,
-    # UserProfilelistview,
+      UserProfilelistview,
       UserProfileForm,
       UserProfileUpdateForm,
       Admin_result,
@@ -32,7 +32,7 @@ urlpatterns = [
     path('feedbackformview', Feedbackformview.as_view(), name ='feedbackformview'),
     path('commentlistview', Commentlistview.as_view(), name ='commentlistview'),
     path('commentlistviewsuccess', Commentlistviewsuccess.as_view(), name ='commentlistviewsuccess'),
-    # path('userprofilelistview', UserProfilelistview.as_view(), name ='userprofilelistview'),
+    path('userprofilelistview', UserProfilelistview.as_view(), name ='userprofilelistview'),
     path('userprofileview/<pk>/', views.userprofileview, name ='userprofileview'),
 
     path('admin_result', Admin_result.as_view(), name ='admin_result'),
