@@ -180,7 +180,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         user_pro = self.request.user
         context['user_profile'] = Profile.objects.filter(user = self.request.user)
         course=QMODEL.Course.objects.all()
-        # course=QMODEL.Course.objects.get(id_in =course)
+        context['courses']=QMODEL.Course.objects.all()
         # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
         student = Profile.objects.get(user_id=self.request.user.id)
         # context['results']= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
@@ -195,6 +195,7 @@ from django.contrib.auth.decorators import login_required
 @login_required
 def userprofileview(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
+    courses = QMODEL.Course.objects.all()
     # student = Profile.objects.get(user_id=request.user.id)
     student = request.user.id  
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
@@ -212,7 +213,8 @@ def userprofileview(request,pk):
         'results':results,
         'course':course,
         'st':request.user,
-        'user_profile':user_profile 
+        'user_profile':user_profile,
+        'courses':courses 
     }
     return render(request,'sms/profile.html', context)
 

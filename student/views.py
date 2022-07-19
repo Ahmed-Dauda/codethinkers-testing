@@ -1,6 +1,9 @@
 from django.db.models.aggregates import Count
 from django.shortcuts import render,redirect,reverse
+from pytz import timezone
+import datetime
 from . import models
+from django.shortcuts import render, HttpResponse,redirect, get_list_or_404
 from django.db.models import Sum
 from django.contrib.auth.models import Group
 from django.http import HttpResponseRedirect
@@ -14,6 +17,16 @@ from users.models import NewUser
 from users.models import Profile
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
+from django.db.models import Max, Subquery, OuterRef
+#  xhtml2 pdf
+
+import os
+from django.conf import settings
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from django.contrib.staticfiles import finders
+from quiz.models import Result, Course
 
 def take_exams_view(request):
     course = QMODEL.Course.objects.all()
@@ -89,3 +102,78 @@ def check_marks_view(request,pk):
         
     }
     return render(request,'student/check_marks.html', context)
+
+# @login_required
+# def userprofileview(request,pk):
+#     course=QMODEL.Course.objects.get(id=pk)
+#     # student = Profile.objects.get(user_id=request.user.id)
+#     student = request.user.id  
+#     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
+#     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
+#     results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course, student = student)
+#     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
+      
+    
+#     # QMODEL.Result.objects.exclude(id = m).delete()
+#     user_profile =  Profile.objects.filter(user_id = request.user)
+
+#     # results=QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
+#     template_path = 'student/pdf_id.html'         
+#     context = {
+#         'results':results,
+#         'course':course,
+#         'st':request.user,
+#         'user_profile':user_profile 
+#     }
+#     # Create a Django response object, and specify content_type as pdf
+#     response = HttpResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = ' filename="report.pdf"'
+#     # find the template and render it.
+#     template = get_template(template_path)
+#     html = template.render(context)
+
+#     # create a pdf
+#     pisa_status = pisa.CreatePDF(
+#        html, dest=response)
+#     # if error then show some funy view
+#     if pisa_status.err:
+#        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+#     return response
+
+# download pdf id view
+def pdf_id_view(request, *args, **kwarks):
+
+    course=QMODEL.Course.objects.all()
+    student = Profile.objects.get(user_id=request.user.id)
+    date = datetime.datetime.now() 
+    # m = QMODEL.Result.objects.aggregate(Max('marks'))  
+    max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
+    results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course, student = student)
+    Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
+      
+    pk = kwarks.get('pk')
+    posts = get_list_or_404(course, pk= pk)
+    # QMODEL.Result.objects.exclude(id = m).delete()
+    user_profile =  Profile.objects.filter(user_id = request.user)
+    template_path = 'student/pdf_id.html'
+    context = {
+        'results': posts,
+        'student':student,
+        'date':date,
+        'course':posts
+        
+        }
+    # Create a Django response object, and specify content_type as pdf
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = ' filename="report.pdf"'
+    # find the template and render it.
+    template = get_template(template_path)
+    html = template.render(context)
+
+    # create a pdf
+    pisa_status = pisa.CreatePDF(
+       html, dest=response)
+    # if error then show some funy view
+    if pisa_status.err:
+       return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response

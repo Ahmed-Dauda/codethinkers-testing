@@ -2,7 +2,7 @@ from django.db import models
 from users.models import NewUser
 
 class Teacher(models.Model):
-    user=models.OneToOneField(NewUser,on_delete=models.CASCADE)
+    user=models.OneToOneField(NewUser,on_delete=models.CASCADE, null=False)
     profile_pic= models.ImageField(upload_to='profile_pic/Teacher/',null=True,blank=True)
     address = models.CharField(max_length=40)
     mobile = models.CharField(max_length=20,null=False)

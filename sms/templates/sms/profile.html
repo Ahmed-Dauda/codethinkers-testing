@@ -271,10 +271,10 @@ tr:nth-child(even){
 
 <div style="background-color: orange; font-size: 20px;" class="card-header text-center">
   <div>User Email: {{request.user}}</div>
-  <div><a href="{% url 'student:take-exam' %}">Take Exam Again</a></div>
+ 
 </div>
       <!-- STAT -->
-    
+  
   <div class="portlet light bordered">
   <div class="row list-separated profile-stat">
       
@@ -290,12 +290,15 @@ tr:nth-child(even){
       <div class="uppercase profile-stat-title"> <p>Last Profile Update : {{ profile.updated|timesince }}</p></div>
       <div class="uppercase profile-stat-title"> <p>Sex : {{ profile.gender}}</p></div>
       <div class="uppercase profile-stat-title"> <p>username : {{ profile.username}}</p></div>
+      
+      
      
   </div>
   
   <div class="col-md-4 col-sm-4 col-xs-6">
       <div class="uppercase profile-stat-title"><p>Email : {{ profile.user}}</p></div>
       <div class="uppercase profile-stat-text">  <p>Country : {{ profile.countries}}</p></div>
+     
     
   </div>
   
@@ -322,6 +325,7 @@ tr:nth-child(even){
     <!-- END STAT -->
 <div class="table-responsive container text-center card-body">
     <table class="table" id="">
+      <div><a href="{% url 'student:take-exam' %}">Take Exam Again</a></div>
       <thead>
         <tr>
           <th>Names</th>
@@ -335,7 +339,7 @@ tr:nth-child(even){
       </thead>
      
      <tbody>
-      
+
       <tr>
         {% for t in results %}
         <td> {{t.student.first_name}} {{t.student.last_name}}</td>
@@ -352,6 +356,9 @@ tr:nth-child(even){
   </table>
 </div>
 
+{% for c in courses %}
+<a href="{% url 'student:pdf' c.id %}">certificate {{c}}</a>
+{% endfor %}
 <br>
 <div  class="container text-center">
     <button type="button" class="btn btn-success btn-sm ">Follow Us</button>
