@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>certificate</title>
+</head>
+<style>
+
+@page {
+        size: a4 portrait;
+        @frame header_frame {           /* Static Frame */
+            -pdf-frame-content: header_content;
+            left: 50pt; width: 512pt; top: 50pt; height: 40pt;
+        }
+        @frame content_frame {          /* Content Frame */
+            left: 50pt; width: 512pt; top: 20pt; height: 632pt;color:aqua;
+        }
+        @frame footer_frame {           /* Another static Frame */
+            -pdf-frame-content: footer_content;
+            left: 50pt; width: 512pt; top: 772pt; height: 20pt;
+        }
+    }
+
+
+</style>
+<body>
+
+    <h1 style="font-size: 20px;">CODETHINKERS' ACADEMY</h1> 
+    <a class="navbar-brand" href=""><img src="newlogo3.jpg" width="50px" height="50px" alt="..."></a>
+    <hr>
+  
+   
+    <h1>Certificate of Completion awarded to</h1>
+    <h3>{{student.username}}</h3>
+    <h1>for successfully Completion of 
+        {% for t in results %}
+    <div class="container text-center">
+     <h1>Fundaments of  {{t.course_name}}</h1><hr>
+    </div>
+    {% endfor %}
+    </h1>
+    <h1>on {{date}}</h1>
+
+
+</body>
+</html>
