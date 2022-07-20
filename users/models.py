@@ -1,3 +1,4 @@
+from email.policy import default
 from django.contrib.auth.models import AbstractBaseUser, AbstractUser,    BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
@@ -82,7 +83,8 @@ class Profile(models.Model):
   gender =models.CharField(choices=gender_choice, max_length=225, blank=True, null= True)
   phone_number = models.CharField(max_length=225, blank=True, null= True)
   countries= models.CharField(max_length=225, blank=True, null= True)
-  pro_img = models.ImageField(upload_to = 'profile', blank = True, null = True)
+  pro_img = models.ImageField(upload_to = 'profile',default='profile/newlogo3.jpg', blank = True, null = True)
+  cert_img = models.ImageField(upload_to = 'profile',default='profile/newlogo3.jpg', blank = True, null = True)
   bio = models.TextField(max_length=600, blank = True, null = True)
   created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
   updated = models.DateTimeField(auto_now=True, blank=True, null= True)

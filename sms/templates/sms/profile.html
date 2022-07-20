@@ -280,10 +280,10 @@ tr:nth-child(even){
       
   <div class="col-md-4 col-sm-4 col-xs-6">
       {% for profile in user_profile %}
-      {% if  profile.pro_img %}
+      {% if profile.pro_img %}
       <img src="{{ profile.pro_img.url}}" width="100px" height="100px"  class="rounded-circle" alt=""><hr>
       {% else %}
-  <img src="/static/sms/images/newlogo2.jpg" width="100px" height="100px" class="rounded-circle" alt=""><hr>
+  <img src="/static/sms/images/newlogo3.jpg" width="100px" height="100px" class="rounded-circle" alt=""><hr>
       {% endif %}
       
       <div class="uppercase profile-stat-text">Names : {{ profile.first_name}} | {{ profile.last_name}}</div>
@@ -348,6 +348,13 @@ tr:nth-child(even){
         <td> {{t.marks}} / {{course.total_marks}}</td>
         <td>Attemp {{ forloop.counter }}</td>
         <td> {{t.date}}</td>
+
+{% if  t.marks >= 2 %}
+{% for c in courses %}
+<a href="{% url 'student:pdf' c.id %}">certificate {{c}}</a>
+{% endfor %}
+{% endif  %}
+
         {% endfor %}
       </tr>
      
@@ -356,9 +363,6 @@ tr:nth-child(even){
   </table>
 </div>
 
-{% for c in courses %}
-<a href="{% url 'student:pdf' c.id %}">certificate {{c}}</a>
-{% endfor %}
 <br>
 <div  class="container text-center">
     <button type="button" class="btn btn-success btn-sm ">Follow Us</button>
