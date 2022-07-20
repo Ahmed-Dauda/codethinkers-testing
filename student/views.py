@@ -12,6 +12,7 @@ from django.conf import settings
 from datetime import date, timedelta
 from quiz import models as QMODEL
 from teacher import models as TMODEL
+from student.models import Logo
 # from student.models import  Student
 from users.models import NewUser
 from users.models import Profile
@@ -146,7 +147,7 @@ def pdf_id_view(request, *args, **kwarks):
     course=QMODEL.Course.objects.all()
     student = Profile.objects.get(user_id=request.user.id)
     date = datetime.datetime.now()
-    user_profile = Profile.objects.filter(user = request.user) 
+    logo = Logo.objects.all() 
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course, student = student)
@@ -162,7 +163,7 @@ def pdf_id_view(request, *args, **kwarks):
         'student':student,
         'date':date,
         'course':posts,
-        'user_profile':user_profile
+        'logo':logo
         
         }
     # Create a Django response object, and specify content_type as pdf
