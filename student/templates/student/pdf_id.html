@@ -1,10 +1,18 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>certificate</title>
+     <!-- bootstrap link -->
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+   <!-- Google fonts-->
+   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+    <link href="/static/sms/cssh/styles.css" rel="stylesheet">
+
 </head>
 <style>
 
@@ -12,24 +20,36 @@
         size: a4 portrait;
         @frame header_frame {           /* Static Frame */
             -pdf-frame-content: header_content;
-            left: 50pt; width: 512pt; top: 50pt; height: 40pt;
+            left: 50pt; width: 512pt; top: 50pt; height: 40pt;background:aqua;
         }
         @frame content_frame {          /* Content Frame */
-            left: 50pt; width: 512pt; top: 20pt; height: 632pt;color:aqua;
+            left: 50pt; width: 512pt; top: 20pt; height: 632pt;background:aqua;
         }
         @frame footer_frame {           /* Another static Frame */
             -pdf-frame-content: footer_content;
             left: 50pt; width: 512pt; top: 772pt; height: 20pt;
         }
     }
-
-
+   
 </style>
 <body>
+<div class="heading container">
+    <h1 style="font-size: 20px;">CODETHINKERS' ACADEMY</h1>
+    <div>
+       
+    {% for profile in user_profile %}
+      {% if profile.pro_img %}
+      <img src="{{ profile.pro_img.path}}" width="100px" height="100px"  class="rounded-circle" alt=""><hr>
+      {% else %}
+  <img src="/static/sms/images/newlogo3.jpg" width="100px" height="100px" class="rounded-circle" alt=""><hr>
+      {% endif %}
+      
 
-    <h1 style="font-size: 20px;">CODETHINKERS' ACADEMY</h1> 
-    <a class="navbar-brand" href=""><img src="newlogo3.jpg" width="50px" height="50px" alt="..."></a>
-    <hr>
+  {% endfor %}
+    </div>
+    
+    </div>
+  
   
    
     <h1>Certificate of Completion awarded to</h1>
@@ -43,6 +63,6 @@
     </h1>
     <h1>on {{date}}</h1>
 
-
+    
 </body>
 </html>

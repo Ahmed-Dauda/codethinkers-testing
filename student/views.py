@@ -145,7 +145,8 @@ def pdf_id_view(request, *args, **kwarks):
 
     course=QMODEL.Course.objects.all()
     student = Profile.objects.get(user_id=request.user.id)
-    date = datetime.datetime.now() 
+    date = datetime.datetime.now()
+    user_profile = Profile.objects.filter(user = request.user) 
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course, student = student)
@@ -160,7 +161,8 @@ def pdf_id_view(request, *args, **kwarks):
         'results': posts,
         'student':student,
         'date':date,
-        'course':posts
+        'course':posts,
+        'user_profile':user_profile
         
         }
     # Create a Django response object, and specify content_type as pdf
