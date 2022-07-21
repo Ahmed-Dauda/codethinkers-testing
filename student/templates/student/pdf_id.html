@@ -6,9 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>certificate</title>
-     <!-- bootstrap link -->
-     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-
+    
 </head>
 <style>
 
@@ -27,37 +25,59 @@
         }
     }
    
+    .test{
+    background: #fff;
+    width: 100px;
+    height: 100px;
+    border-radius: 20px;
+}
 
-
+.tt{
+  
+  background: linear-gradient(
+    50deg,
+    rgba(255, 255, 255, 0.4) 12%,
+    rgba(255, 255, 255, 0.1) 77%
+  );
+  box-shadow: 0px 4px 24px 1px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
 </style>
+
 <body>
-    
-<div class="heading container">
-    <h1 style="font-size: 20px;">CODETHINKERS' ACADEMY</h1>
-    <div>
-       
+
+<div style="width:800px; height:600px; padding:20px; text-align:center; border: 2px saddlebrown;">
+<div style="width:750px; height:550px; padding:20px; text-align:center;">
+  <div class="tt">
+  {% for t in results %}
     {% for profile in logo %}
       {% if profile.logo %}
-      <img src="{{ profile.logo.url}}" width="100px" height="100px"  class="rounded-circle" alt=""><hr>
-      {% endif %}   
-  {% endfor %}
-    </div>
-    
-    </div>
+      <img style="margin-right: 200px" src="{{ profile.logo.url}}" width="100px" height="100px"  class="rounded-circle" alt="">
+      {% endif %}
+      <img style="margin-right: 200px" src="{{ logo.url}}" width="100px" height="100px"  class="rounded-circle" alt="">  
+  {% endfor %} <br><br>
+    <span  style="font-size:40px; font-weight:bold;color:blue;">CODETHINKERS' ACADEMY</span><br><br><hr>
   
-  
-   
-    <h1>Certificate of Completion awarded to</h1>
-    <h3>{{student.username}}</h3>
-    <h1>for successfully Completion of 
-        {% for t in results %}
-    <div class="container text-center">
-     <h1>Fundaments of  {{t.course_name}}</h1><hr>
     </div>
-    {% endfor %}
-    </h1>
-    <h1>on {{date}}</h1>
 
-    
+       <span style="font-size:30px; font-weight:bold">Certificate of Completion</span><br><br>
+      
+       <span style="font-size:25px"><i>This is to certify that</i></span>
+       <br><br>
+       <span style="font-size:30px; color:blue ;"><b>{{student.username}}</b></span><br/><br/>
+       <span style="font-size:20px"><i>has successfully completed the fundamentals of</i></span> <br/><br/>
+       <span style="font-size:30px; color:blue ;">{{t.course_name}}</span> <br/><br/>
+       <span style="font-size:20px ;"><b>{{t.exam}}</b></span> <br/><br/><br/><br/>
+       <span style="font-size:20px"><i>dated:  {{date}}</i></span><br>
+      
+      <span style="font-size:30px"></span>
+
+
+{% endfor %}
+
+</div>
+</div>
+
 </body>
 </html>
