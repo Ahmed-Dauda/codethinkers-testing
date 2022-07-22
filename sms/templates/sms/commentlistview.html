@@ -16,7 +16,7 @@ Codethinkers' Academy form comment feedback system
         <div class="card-body"><h3>{{comment.title}}</h3>  </div>
         <div class="card-body">Posted by : {{comment.first_name}} {{comment.last_name|upper}} |  {{comment.created|timesince}}</div>
         <div class="card-body"> </div><hr>
-        <div class="card-body"> {{comment.desc}} </div><hr>
+        <div class="card-body"> {{comment.desc|safe}} </div><hr>
         {% empty %}
 <h1>No Comment Yet</h1>
 

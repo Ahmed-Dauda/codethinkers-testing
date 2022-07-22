@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'embed_video',
     'xhtml2pdf',
+    'tinymce',
     
 # the social providers
     # 'allauth.socialaccount.providers.facebook',
