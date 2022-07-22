@@ -29,7 +29,7 @@
       <small class="container text-center">Image source: {{object.img_source}}</small>
       <div class="card-body">
         
-        <p style="text-align: left;" class="card-text">{{object.desc}}</p>
+        <p style="text-align: left;" class="card-text">{{object.desc|safe}}</p>
         <a href="{% url 'sms:bloglistview' %}" class="btn btn-primary">read more articles....</a>
       </div>
     </div>
