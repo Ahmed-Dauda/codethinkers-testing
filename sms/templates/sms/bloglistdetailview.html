@@ -58,7 +58,12 @@
 <div id="home_page" class="container share-icon">
   <p style="color: blue;">share post: </p>
 <!-- <p class="btn btn-light btn-social mx-2"><i class="fa-2x fas fa-share"> </i>share</p>       -->
-{% post_to_facebook object_or_url  "<i class='fab fa-facebook'> </i>" %}
+{% post_to_facebook object_or_url  "<i class='fa-2x fab fa-facebook'> </i>" %}
+{% post_to_twitter "New Song: {{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-twitter'> </i>" %}
+{% post_to_telegram "New Song: {{object.title}}" object_or_url "<i class='fa-2x fab fa-telegram'> </i>" %}
+{% send_email object.title "New Song: {{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-google'> </i>" %}
+{% post_to_whatsapp object_or_url "<i class='fa-2x fab fa-whatsapp'> </i>" %}
+
 
 </div>  
 <hr>
