@@ -7,12 +7,37 @@
     .share-icon{
       display: flex;
     }
+    button {
+            margin: 30px;
+        }
+
+        a {
+            color: white !important;
+            display: inline;
+        }
+
+        span div {
+            display: inline;
+        }
   </style> 
   <br><br>
   
   {% load hitcount_tags %}
 <section >
+  ggg
+  {% post_to_facebook object_or_url '<i class="fab fa-facebook"></i>' %}
+  <button class="btn btn-primary"><span
+            class="fab fa-facebook">{% post_to_facebook data "Post to Facebook!" %}</span></button>
+    <br>
+    <button class="btn btn-primary"><span
+            class="fab fa-whatsapp">{% post_to_whatsapp  data "Share To WA" %}</span></button>
+    <br>
+    <button class="btn btn-primary"><span
+            class="fab fa-reddit-alien">{% post_to_reddit  data "Share To Reddit" %}</span></button>
+    <br>
+    
 
+<hr>
   <!-- <h3  class="text-center">{{ hitcount.total_hits}} <i class="fas fa-eye"></i> </h3> -->
   
   <div  class="card container shadow-lg p-3 mb-5 bg-body rounded">
