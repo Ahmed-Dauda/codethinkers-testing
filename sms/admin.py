@@ -1,5 +1,6 @@
 from django.contrib import admin
-from sms.models import Categories, Courses, Topics, Comment, Blog
+from sms.models import (
+    Categories, Courses, Topics, Comment, Blog, MyModel)
 # from users.models import Profile
 # Register your models here.
 
@@ -37,10 +38,9 @@ class topicsadmin(admin.ModelAdmin):
     ordering = ['created']
 
 
-# @admin.register(Profile)
-# class userprofileadmin(admin.ModelAdmin):
-# #     list_display = ['id', 'name', 'desc', 'created']
-#     ordering = ['created']
+@admin.register(MyModel)
+class mymodeldmin(admin.ModelAdmin):
+    ordering = ['content']
 
 
 
