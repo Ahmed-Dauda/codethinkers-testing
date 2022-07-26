@@ -106,42 +106,7 @@ def check_marks_view(request,pk):
     }
     return render(request,'student/check_marks.html', context)
 
-# @login_required
-# def userprofileview(request,pk):
-#     course=QMODEL.Course.objects.get(id=pk)
-#     # student = Profile.objects.get(user_id=request.user.id)
-#     student = request.user.id  
-#     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
-#     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-#     results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course, student = student)
-#     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
-      
-    
-#     # QMODEL.Result.objects.exclude(id = m).delete()
-#     user_profile =  Profile.objects.filter(user_id = request.user)
-
-#     # results=QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
-#     template_path = 'student/pdf_id.html'         
-#     context = {
-#         'results':results,
-#         'course':course,
-#         'st':request.user,
-#         'user_profile':user_profile 
-#     }
-#     # Create a Django response object, and specify content_type as pdf
-#     response = HttpResponse(content_type='application/pdf')
-#     response['Content-Disposition'] = ' filename="report.pdf"'
-#     # find the template and render it.
-#     template = get_template(template_path)
-#     html = template.render(context)
-
-#     # create a pdf
-#     pisa_status = pisa.CreatePDF(
-#        html, dest=response)
-#     # if error then show some funy view
-#     if pisa_status.err:
-#        return HttpResponse('We had some errors <pre>' + html + '</pre>')
-#     return response
+#
 
 # download pdf id view
 def pdf_id_view(request, *args, **kwargs):
