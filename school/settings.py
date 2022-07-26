@@ -36,7 +36,10 @@ DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 ALLOWED_HOSTS = ['codethinkers.herokuapp.com','codethinkerslms.com','www.codethinkerslms.com','codethinkers.org','www.codethinkers.org', '127.0.0.1']
 # ALLOWED_HOSTS = ['ctsaalms.herokuapp.com','codethinkers.org' ,'127.0.0.1']
 
+# wyswyg = ['grappelli', 'filebrowser']
 INSTALLED_APPS = [
+    # 'grappelli',
+    # 'filebrowser',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -59,12 +62,15 @@ INSTALLED_APPS = [
     'cloudinary',
     'embed_video',
     'xhtml2pdf',
+    'tinymce',
+    'django_social_share',
     
 # the social providers
     # 'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.google',
     # 'allauth.socialaccount.providers.twitter',
 ]
+
 AUTH_USER_MODEL = 'users.NewUser'
 # Application definition
 AUTHENTICATION_BACKENDS = (
@@ -313,3 +319,36 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Simplified static file serving.
 # https://warehouse.python.org/project/whitenoise/
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+TINYMCE_DEFAULT_CONFIG = {
+    "height": "320px",
+    "width": "960px",
+    'plugins': 'image',
+    "menubar": "file edit view insert format tools table help",
+    "plugins": "advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code "
+    "fullscreen insertdatetime media table paste code help wordcount spellchecker",
+    "toolbar": "undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft "
+    "aligncenter alignright alignjustify | outdent indent |  numlist bullist checklist | forecolor "
+    "backcolor casechange permanentpen formatpainter removeformat | pagebreak | charmap emoticons | "
+    "fullscreen  preview save print | insertfile image media pageembed template link anchor codesample | "
+    "a11ycheck ltr rtl | showcomments addcomment code",
+    "custom_undo_redo_levels": 10,
+    "language": "en_EN",  # To force a specific language instead of the Django current language.
+    #  "spell_check":True
+    # 'a11y_advanced_options':True
+}
+
+TINYMCE_SPELLCHECKER = True
+
+TINYMCE_EXTRA_MEDIA = {
+    'css': {
+        'all': [
+           
+        ],
+    },
+    'js': [
+     
+    ],
+}
+
