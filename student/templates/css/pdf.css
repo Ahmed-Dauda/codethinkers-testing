@@ -1,0 +1,27 @@
+body, html{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+}
+
+body {
+    color: black;
+    display: table;
+    font-family: Georgia, serif;
+    font-size: 24px;
+    text-align: center;
+}
+.container {
+    border: 20px solid tan;
+    width: 100%;
+    height: 563px;
+    padding:265px 0;
+    font-size: 32px;
+    font-style: italic;
+    margin: 20px auto;
+    width: 400px;
+}
+.reason {
+    margin: 20px;
+}

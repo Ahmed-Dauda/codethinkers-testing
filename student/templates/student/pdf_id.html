@@ -1,63 +1,80 @@
-<!DOCTYPE html>
-{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>certificate</title>
-     <!-- bootstrap link -->
-     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <title>Document</title>
+    <style type='text/css'>
+        body, html{
+            margin:0;
+            padding:0;
+            width:100%;
+            height:100%;
+        }
 
+        body {
+            color: black;
+            display: table;
+            font-family: Georgia, serif;
+            font-size: 24px;
+            text-align: center;
+        }
+        .container {
+            border: 20px solid tan;
+            width: 100%;
+            height: 563px;
+            padding: 265px 0;
+            display: table-cell;
+            vertical-align: middle;
+        }
+        .logo {
+            color: tan;
+        }
+
+        .marquee {
+            color: tan;
+            font-size: 48px;
+            margin: 20px;
+        }
+        .assignment {
+            margin: 20px;
+        }
+        .person {
+            border-bottom: 2px solid black;
+            font-size: 32px;
+            font-style: italic;
+            margin: 20px auto;
+            width: 400px;
+        }
+        .reason {
+            margin: 20px;
+        }
+    </style>
 </head>
-<style>
-
-@page {
-        size: a4 portrait;
-        @frame header_frame {           /* Static Frame */
-            -pdf-frame-content: header_content;
-            left: 50pt; width: 512pt; top: 50pt; height: 40pt;background:aqua;
-        }
-        @frame content_frame {          /* Content Frame */
-            left: 50pt; width: 512pt; top: 20pt; height: 632pt;background:aqua;
-        }
-        @frame footer_frame {           /* Another static Frame */
-            -pdf-frame-content: footer_content;
-            left: 50pt; width: 512pt; top: 772pt; height: 20pt;
-        }
-    }
-   
-
-
-</style>
 <body>
+    <div class="container">
+        <div class="certificate">
+            <div class="logo">
+                An Organization
+            </div>
     
-<div class="heading container">
-    <h1 style="font-size: 20px;">CODETHINKERS' ACADEMY</h1>
-    <div>
-       
-    {% for profile in logo %}
-      {% if profile.logo %}
-      <img src="{{ profile.logo.url}}" width="100px" height="100px"  class="rounded-circle" alt=""><hr>
-      {% endif %}   
-  {% endfor %}
-    </div>
+            <div class="marquee">
+                Certificate of Completion
+            </div>
     
-    </div>
-  
-  
-   
-    <h1>Certificate of Completion awarded to</h1>
-    <h3>{{student.username}}</h3>
-    <h1>for successfully Completion of 
-        {% for t in results %}
-    <div class="container text-center">
-     <h1>Fundaments of  {{t.course_name}}</h1><hr>
-    </div>
-    {% endfor %}
-    </h1>
-    <h1>on {{date}}</h1>
-
+            <div class="assignment">
+                This certificate is presented to
+            </div>
     
+            <div class="person">
+                {{request.user}}
+            </div>
+    
+            <div class="reason">
+                For deftly defying the laws of gravity<br/>
+                and flying high
+            </div>
+        </div>
+    </div>
 </body>
 </html>
