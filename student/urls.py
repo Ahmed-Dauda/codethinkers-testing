@@ -9,6 +9,7 @@ urlpatterns = [
     path('start-exam/<pk>/', views.start_exams_view,name='start-exam'),
     path('calculate_marks', views.calculate_marks_view,name='calculate_marks'),
     path('view_result', views.view_result_view,name='view_result'),
+    path('pdf-all/<pk>/', views.pdf_all_view,name='pdf-all'),
     path('pdf/<pk>/', views.pdf_id_view,name='pdf'),
     # path('check_marks/<pk>/', views.check_marks_view,name='check_marks'),
    

@@ -9,6 +9,12 @@ from sms.models import Categories, Courses, Topics, Comment, Blog
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from users.models import Profile
 from quiz import models as QMODEL
+    
+from django.db.models import Count
+import numpy as np
+from django.db.models import Max, Subquery, OuterRef
+
+from django.contrib.auth.decorators import login_required
 from quiz.models import Result, Course
 from users.forms import userprofileform, SimpleSignupForm
 # password reset import
@@ -169,7 +175,7 @@ class Feedbackformview(CreateView):
 
 class UserProfilelistview(LoginRequiredMixin, ListView):
     models = Profile
-    template_name = 'sms/profile.html'
+    template_name = 'sms/myprofile.html'
     count_hit = True
    
     def get_queryset(self):
@@ -186,22 +192,37 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         # context['results']= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
         return context
 
-from django.db.models import Count
-import numpy as np
-from django.db.models import Max, Subquery, OuterRef
 
-from django.contrib.auth.decorators import login_required
+# class Certificates(LoginRequiredMixin, ListView):
+#     models = Profile
+#     template_name = 'sms/pdf_all.html'
+#     count_hit = True
+   
+#     def get_queryset(self):
+#         return Profile.objects.all()
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         user_pro = self.request.user
+#         context['user_profile'] = Profile.objects.filter(user = self.request.user)
+#         course=QMODEL.Course.objects.all()
+#         context['courses']=QMODEL.Course.objects.all()
+#         # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
+#         student = Profile.objects.get(user_id=self.request.user.id)
+#         context['results']= QMODEL.Result.objects.all().order_by('-marks')
+#         return context
+    
 
 @login_required
-def userprofileview(request,pk):
+def Certificates(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
     courses = QMODEL.Course.objects.all()
     # student = Profile.objects.get(user_id=request.user.id)
     student = request.user.id  
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-    results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course, student = student)
-    Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
+    results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
+    # Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
       
     
     # QMODEL.Result.objects.exclude(id = m).delete()
@@ -216,7 +237,8 @@ def userprofileview(request,pk):
         'user_profile':user_profile,
         'courses':courses 
     }
-    return render(request,'sms/profile.html', context)
+    return render(request,'sms/certificates.html', context)
+
 
 class UserProfileForm(LoginRequiredMixin, CreateView):
     models = Profile

@@ -7,6 +7,8 @@ class Course(models.Model):
    course_name = models.CharField(max_length=50, unique= True)
    question_number = models.PositiveIntegerField()
    total_marks = models.PositiveIntegerField()
+   pass_mark = models.PositiveIntegerField(null=True)
+   constant = models.PositiveIntegerField(null=True, default=2)
    id = models.AutoField(primary_key=True)
    
    def __str__(self):
@@ -34,6 +36,7 @@ class Result(models.Model):
     exam = models.ForeignKey(Course,on_delete=models.CASCADE)
     marks = models.PositiveIntegerField()
     date = models.DateTimeField(auto_now=True)
+    constant = models.PositiveIntegerField(null=True, default=2)
     id = models.AutoField(primary_key=True)
     def __str__(self):
         return f"{self.student}"

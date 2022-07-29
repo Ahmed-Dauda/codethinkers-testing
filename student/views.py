@@ -125,16 +125,22 @@ def pdf_id_view(request, *args, **kwargs):
     # QMODEL.Result.objects.exclude(id = m).delete()
     user_profile =  Profile.objects.filter(user_id = request.user)
     template_path = 'student/pdf_id.html'
-    context = {
-        'results': posts,
-        'student':student,
+    # context = {
+    #     'results': posts,
+    #     'student':student,
+    #     'date':date,
+    #     'course':posts,
+    #     'logo':logo
+        
+    #     }
+    template = loader.get_template(template_path)
+    html = template.render({
         'date':date,
+        'student':student,
+        'results': posts,
         'course':posts,
         'logo':logo
-        
-        }
-    template = loader.get_template(template_path)
-    html = template.render({'request':request})
+        })
     options = {
         'page-size':'Letter',
         'encoding': "UTF-8",
@@ -151,7 +157,56 @@ def pdf_id_view(request, *args, **kwargs):
 
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
-
     return response
 
 
+# download pdf id view
+def pdf_all_view(request, *args, **kwargs):
+
+    course=QMODEL.Course.objects.all()
+    student = Profile.objects.get(user_id=request.user.id)
+    date = datetime.datetime.now()
+    logo = Logo.objects.all() 
+    # m = QMODEL.Result.objects.aggregate(Max('marks'))  
+    max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
+    results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course, student = student)
+    Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
+    
+    pk = kwargs.get('pk')
+    posts = get_list_or_404(course, pk= pk)
+    # QMODEL.Result.objects.exclude(id = m).delete()
+    user_profile =  Profile.objects.filter(user_id = request.user)
+    template_path = 'student/pdf_id.html'
+    # context = {
+    #     'results': posts,
+    #     'student':student,
+    #     'date':date,
+    #     'course':posts,
+    #     'logo':logo
+        
+    #     }
+    template = loader.get_template(template_path)
+    html = template.render({
+        'date':date,
+        'student':student,
+        'results': posts,
+        'course':posts,
+        'logo':logo
+        })
+    options = {
+        'page-size':'Letter',
+        'encoding': "UTF-8",
+        'title':"Certificate",
+        'orientation':'landscape',
+        # 'margin-top': '0mm',
+        # 'margin-left':'0mm',
+        # 'margin-right':'0mm',
+        # 'margin-bottom':'0mm',
+        'no-outline': None,
+
+    }
+    pdf = pdfkit.from_string(html, False, options, css="student/templates/css/pdf.css")
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
+    return response

@@ -38,8 +38,7 @@ ALLOWED_HOSTS = ['codethinkers.herokuapp.com','codethinkerslms.com','www.codethi
 
 # wyswyg = ['grappelli', 'filebrowser']
 INSTALLED_APPS = [
-    # 'grappelli',
-    # 'filebrowser',
+  
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
