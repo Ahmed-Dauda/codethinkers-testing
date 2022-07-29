@@ -12,7 +12,7 @@
 <h1 class="card-header text-center text-white bg-primary">Select Course to View</h1><br>
   {% for t in courses %}
 <div class="container text-center">
- <div ><a class="" href="{% url 'sms:userprofileview' t.id %}">{{t.course_name}}</a></div><hr>
+ <div ><a class="" href="{% url 'sms:certificates' t.id %}">{{t.course_name}}</a></div><hr>
 </div>
 {% endfor %}
 </body>
