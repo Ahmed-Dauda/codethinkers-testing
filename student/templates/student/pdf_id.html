@@ -1,80 +1,109 @@
+<!DOCTYPE html>
 <html lang="en">
+ 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style type='text/css'>
-        body, html{
-            margin:0;
-            padding:0;
-            width:100%;
-            height:100%;
-        }
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content=
+        "width=device-width, initial-scale=1.0" />
+ 
+    <title>
+        How to Create Wave Background using CSS ?
+    </title>
+ 
+    <style>
         body {
-            color: black;
-            display: table;
-            font-family: Georgia, serif;
-            font-size: 24px;
+          
+            padding: 0%;
+            margin: 0%;
+            background: url(
+                https://drive.google.com/drive/folders/1XC8pUq05xJFoLl_XGSMZluQ5JnOcnsFm);
+                        background-size: cover;
+                        background-repeat: no-repeat;
+        }
+ 
+        .geeks {
+            padding: 200px;
             text-align: center;
         }
-        .container {
-            border: 20px solid tan;
+ 
+        section {
             width: 100%;
-            height: 563px;
-            padding: 265px 0;
-            display: table-cell;
-            vertical-align: middle;
+            min-height: 300px;
         }
-        .logo {
-            color: tan;
+ 
+        .pattern {
+            height: 860px;
+            border: 20px solid limegreen;
+            position: relative;
+            background-color: rgb(16, 2, 37);
+            background-image: linear-gradient(315deg,
+                    #252726 0%, #0e100f 74%);
         }
-
-        .marquee {
-            color: tan;
-            font-size: 48px;
-            margin: 20px;
+ 
+        .pattern:before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 270px;
+            background: url(
+https://media.geeksforgeeks.org/wp-content/uploads/20200326181026/wave3.png);
+            background-size: cover;
+            background-repeat: no-repeat;
         }
-        .assignment {
-            margin: 20px;
-        }
-        .person {
-            border-bottom: 2px solid black;
-            font-size: 32px;
-            font-style: italic;
-            margin: 20px auto;
-            width: 400px;
-        }
-        .reason {
-            margin: 20px;
-        }
+    
+        
     </style>
 </head>
+ 
 <body>
-    <div class="container">
-        <div class="certificate">
-            <div class="logo">
-                An Organization
+    <section class="pattern">
+        <div class="geeks">
+            <div style="width:100%" class="container">
+                {% for image in logo %}
+                {% if image.logo %}
+                <img  src="{{image.logo.url}}" width="100px" height="100px"  class="rounded-circle" alt="">
+                {% endif %}
+                {% endfor %}
+        
+                
+                <div class="certificate">
+                    <div style="color:limegreen;font-size:35px" class="logo">
+                        Codethinker's Software Application Academy
+                    </div><hr>
+            
+                    <div class="marquee">
+                        Certificate of Completion
+                    </div><br>
+        
+                    <div class="assignment">
+                        This is to certify that
+                    </div>
+                    <h1 class="marquee" style="color:limegreen">{{student.first_name }} {{student.last_name}}</h1>
+            
+                    <div class="assignment">
+                        has succefully completed the course
+                    </div>
+                    {% for name in course %}
+                    <h1 class="marquee" style="color:limegreen">{{name}}</h1>
+                    {% endfor %}
+                    {% comment %} <div class="person">
+                        {{request.user}}
+                    </div> {% endcomment %}
+            
+                    <div class="reason">
+                       on {{date}}<br/>
+                        
+                    </div>
+        
             </div>
-    
-            <div class="marquee">
-                Certificate of Completion
-            </div>
-    
-            <div class="assignment">
-                This certificate is presented to
-            </div>
-    
-            <div class="person">
-                {{request.user}}
-            </div>
-    
-            <div class="reason">
-                For deftly defying the laws of gravity<br/>
-                and flying high
-            </div>
+        
         </div>
-    </div>
+    </section>
+
+
 </body>
+
+ 
 </html>

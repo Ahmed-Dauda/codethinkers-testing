@@ -11,6 +11,7 @@ from sms.views import(
       Commentlistviewsuccess,
       UserProfilelistview,
       UserProfileForm,
+      Certificates,
       UserProfileUpdateForm,
       Admin_result,
       Admin_detail_view,
@@ -33,7 +34,8 @@ urlpatterns = [
     path('commentlistview', Commentlistview.as_view(), name ='commentlistview'),
     path('commentlistviewsuccess', Commentlistviewsuccess.as_view(), name ='commentlistviewsuccess'),
     path('userprofilelistview', UserProfilelistview.as_view(), name ='userprofilelistview'),
-    path('userprofileview/<pk>/', views.userprofileview, name ='userprofileview'),
+
+    path('certificates/<pk>/', views.Certificates, name ='certificates'),
 
     path('admin_result', Admin_result.as_view(), name ='admin_result'),
     path('admin_result_detail_view/<pk>/', Admin_detail_view, name ='admin_result_detail_view'),

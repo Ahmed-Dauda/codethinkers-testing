@@ -1,27 +1,36 @@
 body, html{
     margin:0;
     padding:0;
-    width:100%;
-    height:100%;
+    /* width:100%;
+    height:100%; */
 }
 
 body {
-    color: black;
+    color: white;
     display: table;
     font-family: Georgia, serif;
     font-size: 24px;
     text-align: center;
+    
 }
 .container {
-    border: 20px solid tan;
-    width: 100%;
-    height: 563px;
-    padding:265px 0;
+ 
+    width: 100%; 
+    /* height: 910px;
+    padding:0px 0; */
     font-size: 32px;
     font-style: italic;
-    margin: 20px auto;
-    width: 400px;
+    margin: -200px auto;
+    /* width: 400px; */
+    background-color:rgb(16, 2, 37);
 }
+
+  
 .reason {
     margin: 20px;
 }
+img {
+    border-radius: 50%;
+  }
+
+  
