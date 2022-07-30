@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'xhtml2pdf',
     'tinymce',
     'django_social_share',
+    'wkhtmltopdf',
     
 # the social providers
     # 'allauth.socialaccount.providers.facebook',
@@ -351,3 +352,11 @@ TINYMCE_EXTRA_MEDIA = {
     ],
 }
 
+
+# problem of hosting to heroku and solution
+# error: failed to push some refs to 'https://git.heroku.com/codethinkers.git'
+# git checkout -b master
+# git add .
+# git commit -m "your commit message"
+# git push -u origin master
+# git push heroku master
