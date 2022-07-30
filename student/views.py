@@ -153,7 +153,9 @@ def pdf_id_view(request, *args, **kwargs):
         'no-outline': None,
 
     }
-    pdf = pdfkit.from_string(html, False, options, css="student/templates/css/pdf.css")
+    config = pdfkit.configuration(wkhtmltopdf="C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe")
+    # pdfkit.from_string(html, 'MyPDF.pdf', configuration=config)
+    pdf = pdfkit.from_string(html, False, options, configuration=config,css="student/templates/css/pdf.css")
 
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
