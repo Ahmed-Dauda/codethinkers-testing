@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate</title>
+    <link href="https://fonts.googleapis.com/css?family=Satisfy" rel="stylesheet">
+
+    <style>
+      
+      @page {
+        size: a4 portrait;
+        @frame header_frame {           /* Static Frame */
+            -pdf-frame-content: header_content;
+            left: 0pt; width: 612pt; top: 50pt; height: 0pt;
+        }
+        @frame content_frame {          /* Content Frame */
+            left: 0pt; width: 592pt; top: 0pt; height: pt;margin: 0pt;
+        }
+        @frame footer_frame {           /* Another static Frame */
+            -pdf-frame-content: footer_content;
+            left: 0pt; width: 512pt; top: 772pt; height: 0pt;
+        }
+    }  
+       table{
+       background-color:rgb(16, 2, 37) ; 
+        color: blanchedalmond;
+        max-height: 512px;
+        
+       }  
+      
+    </style>
+</head>
+<body>
+    
+<table class="cert">
+
+  <tr style="font-size: 20px;max-height: 612px;">
+    <td>
+        
+<div style="width:800px; height:700px; padding:20px; text-align:center;">
+    <div style="width:750px; height:550px; padding:20px; text-align:center; border: 50px solid #1382dd">
+         <br>
+         {% for image in logo %}
+         {% if image.logo %}
+         
+         <img style="width: 150px;height:150px;border-radius:100px; margin-top:-200px" src="{{image.logo.url}}" alt="">  <br>
+         {% endif %}
+         {% endfor %}
+         <br>
+         <!-- <img style="width: 200px;height:200px" src="https://www.davidbenrimon.com/files-wide/uploads/logo-placeholder@2x.png" alt="logo">  <br>-->
+        <span style="font-size:50px; font-weight:bold;color:rgb(47, 126, 237);font-style: oblique;">Codethinker's Academy</span> <br><br><br>
+           <span style="font-size:40px; font-weight:bold">Certificate of Completion</span>
+           <br><br>
+           <span style="font-size:25px"><i>This is to certify that</i></span>
+           <br><br>
+           <span style="font-size:30px;color:rgb(47, 126, 237)"><b>{{student.first_name|title }} {{student.last_name|title}}</b></span><br/><br/>
+           <span style="font-size:25px"><i>has successfully completed the course</i></span> <br/><br/><br>
+           {% for name in course %}
+
+           <span style="font-size:30px;">{{name}}</span> <br/><br/>
+           {% endfor %}
+           
+
+           <br/><br/><br/><br/><br><br><br>
+           <span style="font-size:25px; "><i>dated</i></span><br>
+          on {{date}} 
+          <br><br><br><br><br><br><br><br><br><br><br>
+          
+          <!-- <h1>dhkksdjjkdskjkdsjkjhdsfjhdshhjsdjhhdsjsdjhsdkjkjsdd</h1> -->
+          <span style="font-size:30px"></span>
+          
+    </div>
+    </div>
+    </td>
+  </tr>
+  <tr>
+    <td style="">
+     
+     
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

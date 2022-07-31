@@ -63,7 +63,8 @@ INSTALLED_APPS = [
     'xhtml2pdf',
     'tinymce',
     'django_social_share',
-    'wkhtmltopdf',
+    
+    
     
 # the social providers
     # 'allauth.socialaccount.providers.facebook',
