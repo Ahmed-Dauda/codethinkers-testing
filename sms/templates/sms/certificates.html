@@ -82,10 +82,10 @@ tr, td, th{
 
 <a href="{% url 'student:pdf' course.id %}">Get Certificate {{course}}</a><br>
 
-{% elif course != t.exam and t.marks <= t.constant %}
-
-{% else  %}
+{% elif course == t.exam and t.marks <= t.constant %}
 <h4 style = 'color:green'>No Certificate Yet. You have to Score >= 70</h4>
+{% else  %}
+
 {% endif  %}
 
 
