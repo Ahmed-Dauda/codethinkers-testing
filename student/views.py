@@ -1,3 +1,4 @@
+from inspect import signature
 from django.db.models.aggregates import Count
 from django.shortcuts import render,redirect,reverse
 from pytz import timezone
@@ -12,7 +13,7 @@ from django.conf import settings
 from datetime import date, timedelta
 from quiz import models as QMODEL
 from teacher import models as TMODEL
-from student.models import Logo
+from student.models import Logo, signature
 # from student.models import  Student
 from users.models import NewUser
 from users.models import Profile
@@ -78,10 +79,14 @@ def calculate_marks_view(request):
                 total_marks = total_marks + questions[i].marks
         student = Profile.objects.get(user_id=request.user.id)
         result = QMODEL.Result()
+        
         result.marks=total_marks
+        print('total marks',total_marks)
         result.exam=course
         result.student=student
-        result.save()
+        print('result',result)
+        if total_marks >= 2:
+            result.save()
 
         return HttpResponseRedirect('view_result')
     else:
@@ -115,6 +120,7 @@ def pdf_id_view(request, *args, **kwargs):
     student = Profile.objects.get(user_id=request.user.id)
     date = datetime.datetime.now()
     logo = Logo.objects.all() 
+    sign = signature.objects.all()
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course, student = student)
@@ -130,7 +136,8 @@ def pdf_id_view(request, *args, **kwargs):
         'student':student,
         'date':date,
         'course':posts,
-        'logo':logo
+        'logo':logo,
+        'sign':sign
         
         }
     

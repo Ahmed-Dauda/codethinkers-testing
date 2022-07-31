@@ -39,6 +39,6 @@ class Result(models.Model):
     constant = models.PositiveIntegerField(null=True, default=2)
     id = models.AutoField(primary_key=True)
     def __str__(self):
-        return f"{self.student}"
+        return f"{self.student}---{self.exam.course_name}----{self.marks}"
 
 

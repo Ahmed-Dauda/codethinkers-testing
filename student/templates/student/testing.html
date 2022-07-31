@@ -67,13 +67,23 @@
            <span style="font-size:30px;">{{name}}</span> <br/><br/>
            {% endfor %}
            
-
+           <br><br><br>
+           <span style="font-size:25px; "><i>Signed by Codethinker's Academy</i></span><br>
+           {% for image in sign %}
+           {% if image.sign %}
+           
+          <img style="width:200px;height:100px;" src="{{image.sign.url}}" alt="">
+         
+           {% endif %}
+           {% endfor %}
+           <br>
+           
            <br/><br/><br/><br/><br><br><br>
            <span style="font-size:25px; "><i>dated</i></span><br>
           on {{date}} 
           <br><br><br><br><br><br><br><br><br><br><br>
           
-          <!-- <h1>dhkksdjjkdskjkdsjkjhdsfjhdshhjsdjhhdsjsdjhsdkjkjsdd</h1> -->
+
           <span style="font-size:30px"></span>
           
     </div>

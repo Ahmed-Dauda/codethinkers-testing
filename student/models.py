@@ -10,7 +10,13 @@ class Logo(models.Model):
    
    def __str__(self):
         return f"{self.logo}"
+
+class signature(models.Model):
+       
+   sign = CloudinaryField('image', blank=True, null= True)
    
+   def __str__(self):
+        return f"{self.sign}"  
 
 
     # @property
