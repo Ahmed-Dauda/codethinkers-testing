@@ -135,7 +135,7 @@ def pdf_id_view(request, *args, **kwargs):
         }
     
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="report.pdf"'
+    response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
     # find the template and render it.
     
     template = get_template(template_path)
