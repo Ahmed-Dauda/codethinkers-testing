@@ -318,7 +318,7 @@ class Bloglistview(ListView):
     template_name = 'sms/bloglistview.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
-    queryset = Blog.objects.all()
+    queryset = Blog.objects.order_by('-created')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -349,12 +349,12 @@ class Baseblogview(HitCountDetailView,DetailView):
     count_hit = True
 
     def get_queryset(self):
-        return Blog.objects.all()
+        return Blog.objects.order_by('-created')
 
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
-        context['blogs'] =Blog.objects.all() 
+        context['blogs'] =Blog.objects.order_by('-created')
         context['blogs_count'] =Blog.objects.all().count() 
        
         return context
