@@ -37,8 +37,14 @@
 				
 			  	<div class="card-body">
 					<small >{{blog.created}}, {{blog.created|timesince}}</small>
+					<p style="color: rgb(19, 19, 80);" class="card-text">Article Number: {{forloop.counter}}</p>
 				  	<p class="card-text text-muted" style="font-size:12px">{{ p.product_type }}</p>
-					  <small >by {{blog.author}}</small><hr>
+					  {% if blog.author %}
+					<small class="card-text">By {{blog.author}}</small><hr>
+					{% else %}
+					<small class="card-text">By {{blog.poster}}</small><hr>
+				    {% endif %}
+					
 				  	<p class="card-text">{{blog.desc|safe|striptags|truncatewords:20}}</p>
 				  	<a href="{% url 'sms:blogdetaillistview' blog.slug %}" class="btn btn-warning">Read More....</a>
 			  	</div>

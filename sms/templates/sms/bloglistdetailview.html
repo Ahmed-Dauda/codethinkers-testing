@@ -37,7 +37,11 @@
       
       <h1 class="card-title">{{object.title|title}}</h1>
       <small class="card-text">{{object.created}}, {{object.created|timesince}}</small>
-      <small class="card-text">By {{blog.author}}</small><hr>
+      {% if blog.author %}
+        <small class="card-text">By {{blog.author}}</small><hr>
+        {% else %}
+        <small class="card-text">By {{blog.poster}}</small><hr>
+      {% endif %}
       <div class="col-lg-4 my-3 my-lg-0">
         <!-- <p class="text-primary">connect with us:</p> 
 <a class="rounded-circle btn btn-dark btn-social mx-2" href="https://youtu.be/cvamcQ-ltO8" role="button"><i  class=" rounded-circle fab fa-youtube"></i></a>        

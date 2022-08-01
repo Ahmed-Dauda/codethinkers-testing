@@ -33,7 +33,7 @@ urlpatterns = [
     path('feedbackformview', Feedbackformview.as_view(), name ='feedbackformview'),
     path('commentlistview', Commentlistview.as_view(), name ='commentlistview'),
     path('commentlistviewsuccess', Commentlistviewsuccess.as_view(), name ='commentlistviewsuccess'),
-    path('userprofilelistview', UserProfilelistview.as_view(), name ='userprofilelistview'),
+    path('myprofile', UserProfilelistview.as_view(), name ='myprofile'),
 
     path('certificates/<pk>/', views.Certificates, name ='certificates'),
 

@@ -97,6 +97,7 @@ class Comment(models.Model):
 class Blog(models.Model):
 
     author=models.ForeignKey(Profile,on_delete=models.CASCADE, blank=True, null= True)
+    poster = models.CharField(max_length=225,  null=True, blank =True )
     title = models.CharField(max_length=225,  null=True, blank =True )
     img_source = models.CharField(max_length=225, null= True)
     slug = models.SlugField(null=False, unique=True) 
