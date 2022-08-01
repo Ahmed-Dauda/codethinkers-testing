@@ -35,6 +35,7 @@ class coursesadmin(admin.ModelAdmin):
 @admin.register(Topics)
 class topicsadmin(admin.ModelAdmin):
 #     list_display = ['id', 'name', 'desc', 'created']
+    prepopulated_fields = {"slug": ("title",)}
     ordering = ['created']
 
 
