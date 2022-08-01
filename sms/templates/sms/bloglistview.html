@@ -37,7 +37,7 @@
 				
 			  	<div class="card-body">
 					<small >{{blog.created}}, {{blog.created|timesince}}</small>
-					<p style="background-color: rgb(19, 19, 80);" class="card-text text-white">Article Number: {{forloop.counter}}</p>
+					<p style="background-color: rgb(19, 19, 80);" class="card-text text-white">Article Number: {{forloop.revcounter}}</p>
 				  	<p class="card-text text-muted" style="font-size:12px">{{ p.product_type }}</p>
 					  {% if blog.author %}
 					<small class="card-text">By {{blog.author}}</small><hr>
