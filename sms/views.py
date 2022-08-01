@@ -189,7 +189,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         context['courses']=QMODEL.Course.objects.all()
         # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
         student = Profile.objects.get(user_id=self.request.user.id)
-        # context['results']= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
+        context['results']= QMODEL.Result.objects.order_by('-marks')
         return context
 
 
