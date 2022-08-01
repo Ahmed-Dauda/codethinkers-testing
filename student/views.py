@@ -47,7 +47,7 @@ def start_exams_view(request, pk):
 
     q_count = QMODEL.Question.objects.all().filter(course = course).count()
  
-    paginator = Paginator(questions, 50) # Show 25 contacts per page.
+    paginator = Paginator(questions, 100) # Show 25 contacts per page.
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -130,7 +130,7 @@ def pdf_id_view(request, *args, **kwargs):
     posts = get_list_or_404(course, pk= pk)
     # QMODEL.Result.objects.exclude(id = m).delete()
     user_profile =  Profile.objects.filter(user_id = request.user)
-    template_path = 'student/testing.html'
+    template_path = 'student/certificatepdf.html'
     context = {
         'results': posts,
         'student':student,

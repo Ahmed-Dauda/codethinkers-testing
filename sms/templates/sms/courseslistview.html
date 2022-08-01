@@ -35,7 +35,7 @@ border: 1px dotted rgb(16, 2, 37);;
     <div class="">{% get_hit_count for course %}  <i class="fas fa-eye"></i></div><hr>
     <div>{{course.created}}, {{course.created|timesince}}</div><br>
     <!-- <div class="text-left">{{course.course_link|urlize}}</div><hr> -->
-  <div class="text-left">{{course.desc|safec}}</div><hr>
+  <div class="text-left">{{course.desc|safe}}</div><hr>
   {% empty %}
   <h1 class="card text-center text-danger">No Courses Available Yet. CHECK LATER</h1>
   {% endfor %}
