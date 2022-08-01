@@ -9,7 +9,7 @@ from sms.models import Categories, Courses, Topics, Comment, Blog
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from users.models import Profile
 from quiz import models as QMODEL
-    
+from django.core.paginator import Paginator    
 from django.db.models import Count
 import numpy as np
 from django.db.models import Max, Subquery, OuterRef
@@ -101,25 +101,36 @@ class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         return context
 
 class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
+    
     models = Courses
     template_name = 'sms/topicslistview.html'
     count_hit = True
+    paginate_by = 1
 
     def get_queryset(self):
         return Courses.objects.all()
   
         
     def get_context_data(self, **kwargs):
-
+        
         context = super().get_context_data(**kwargs)
-        context['topics'] = Topics.objects.filter(courses__pk = self.object.id) 
+        t = Topics.objects.filter(courses__pk = self.object.id)
+        c = Topics.objects.filter(courses__pk = self.object.id).count()
+        paginator = Paginator(t, 1) # Show 25 contacts per page.
+
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        context['topics'] = page_obj
+        context['c'] = c
         context['topics_count'] = Topics.objects.filter(courses__pk = self.object.id) 
         return context
 
 class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
+    
     models = Topics
     template_name = 'sms/topicsdetailview.html'
     count_hit = True
+    
     
     def get_queryset(self):
         return Topics.objects.all()
