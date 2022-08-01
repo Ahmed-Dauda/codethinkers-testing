@@ -32,7 +32,7 @@ border: 1px dotted rgb(16, 2, 37);;
   <div>{{topic.created}}, {{topic.created|timesince}}</div><br><hr>
   <h2>Learning Objectives</h2><hr>
   <div class = 'body-text text-left'>{{topic.objectives|linebreaksbr}}</div><br><hr>
-  <h3><a href="{% url 'sms:topicsdetailview' topic.pk %}">Enroll {{topic.title}}</a></h3><hr>
+  <h3><a href="{% url 'sms:topicsdetailview' topic.slug %}">Enroll {{topic.title}}</a></h3><hr>
   
 
   {% empty %}

@@ -50,8 +50,9 @@ class Courses(models.Model):
 class Topics(models.Model):
     
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
-    courses=models.ForeignKey(Courses, on_delete= models.CASCADE)
+    courses=models.ForeignKey(Courses, on_delete= models.CASCADE) 
     title = models.CharField(max_length=225, blank=True, null= True, unique=True)
+    slug = models.SlugField(null=False, unique=True,)
     objectives = models.TextField( blank=True, null= True)
     desc = tinymce_models.HTMLField( blank=True, null= True)
     student_activity = models.TextField(blank=True, null= True)
