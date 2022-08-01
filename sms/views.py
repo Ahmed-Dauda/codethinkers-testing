@@ -255,7 +255,7 @@ class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
     fields = '__all__'
     template_name = 'sms/userprofileupdateform.html'
     success_message = 'TestModel successfully updated!'
-    success_url= reverse_lazy('sms:userprofilelistview')
+    success_url= reverse_lazy('sms:myprofile')
     count_hit = True
 
     def get_queryset(self):
