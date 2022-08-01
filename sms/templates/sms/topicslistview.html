@@ -24,6 +24,9 @@ border: 1px dotted rgb(16, 2, 37);;
 <h2 class="text-center"> </h2>
 
 <progress style="width:100%" value="{{ topics.number }}" max="{{c}}">70 %</progress>
+{% if topics.number == c %}
+<h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4>
+{% endif %}
 <button class="text-white btn btn-primary" >{{ topics.number }} / {{c}}</button>
 <div  class="card text-center">
   <div class="card-header">
@@ -41,15 +44,7 @@ border: 1px dotted rgb(16, 2, 37);;
   {% empty %}
   <h1 class="card text-center text-danger">No Courses Available Yet. CHECK LATER</h1>
   {% endfor %}
-  <hr>
-  <h3>After completion of the Topics, take Exam</h3>
-  <h1 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h1>
-  
-</div>
-</div>
-
-
-<!-- pagination codes star -->
+  <!-- pagination codes star -->
 	
 {% if topics.has_other_pages %}
 <div class="container" id = ''>
@@ -78,6 +73,15 @@ border: 1px dotted rgb(16, 2, 37);;
 </nav>
 </div> 
 {% endif %}
+  <hr>
+  <h3>After completion of the Topics, take Exam</h3>
+  <h1 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h1>
+  
+</div>
+</div>
+
+
+
 
 
 <!-- pagination codes start -->
