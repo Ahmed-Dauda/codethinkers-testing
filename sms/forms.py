@@ -1,4 +1,4 @@
-from tkinter import Widget
+# from tkinter import Widget
 from django.contrib.auth.forms import UserCreationForm
 # from django.contrib.auth.models import User
 from django import forms
@@ -26,7 +26,4 @@ class BlogcommentForm(forms.ModelForm):
     class Meta:
         model = Blogcomment
         fields = ('post', 'content')
-        # Widgets ={
-        #     'post':forms.TextInput(attrs={'class':'form-conrol'}),
-        #     'content':forms.Textarea(attrs={'class':'form-conrol'})
-        # }
+       
