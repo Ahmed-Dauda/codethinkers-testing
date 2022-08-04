@@ -1,14 +1,10 @@
 from django.contrib import admin
 from sms.models import (
-    Categories, Courses, Topics, Comment, Blog, MyModel)
-# from users.models import Profile
-# Register your models here.
+    Categories, Courses, Topics, 
+    Comment, Blog, Blogcomment
+    )
 
-# @admin.register(Blog)
-# class blogadmin(admin.ModelAdmin):
-    # list_display = ['id', 'name', 'desc', 'created']
-    # list_filter = ordering = ['created']
-    # ordering = ['created'] 
+
 
 class ArticleAdmin(admin.ModelAdmin):
     list_display = ("title", "desc",)
@@ -39,9 +35,10 @@ class topicsadmin(admin.ModelAdmin):
     ordering = ['created']
 
 
-@admin.register(MyModel)
-class mymodeldmin(admin.ModelAdmin):
-    ordering = ['content']
-
-
-
+@admin.register(Blogcomment)
+class blogcommentadmin(admin.ModelAdmin):
+    list_display = ['id','post','author' ,'content']
+    # prepopulated_fields = {"slug": ("title",)}
+    list_filter =  ['post','created','author']
+    search_fields= ['post','author']
+    ordering = ['created']

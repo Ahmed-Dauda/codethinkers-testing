@@ -6,6 +6,12 @@
   <style>
     .share-icon{
       display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .share-icon>*{
+      flex: 1px 1px auto;
+      margin: 10px;
     }
     /* button {
             margin: 30px;
@@ -36,6 +42,7 @@
       <p class="card-text">{% get_hit_count for object %} <i class="fas fa-eye"></i></p>
       
       <h1 class="card-title">{{object.title|title}}</h1>
+
       <small class="card-text">{{object.created}}, {{object.created|timesince}}</small>
       {% if blog.author %}
         <small class="card-text">By {{blog.author}}</small><hr>
@@ -43,10 +50,7 @@
         <small class="card-text">By {{blog.poster}}</small><hr>
       {% endif %}
       <div class="col-lg-4 my-3 my-lg-0">
-        <!-- <p class="text-primary">connect with us:</p> 
-<a class="rounded-circle btn btn-dark btn-social mx-2" href="https://youtu.be/cvamcQ-ltO8" role="button"><i  class=" rounded-circle fab fa-youtube"></i></a>        
-<a class=" rounded-circle btn btn-dark btn-social mx-2" href="https://web.facebook.com/addatainsight"><svg class=" svg-inline--fa fa-facebook-f fa-w-10" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="facebook-f" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" data-fa-i2svg=""><path fill="currentColor" d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"></path></svg><!-- <i class="fab fa-facebook-f"></i> Font Awesome fontawesome.com --></a>
-         
+   
 </div>
     </div>
       
@@ -54,10 +58,9 @@
       <small class="container text-center">Image source: {{object.img_source}}</small>
       <div class="card-body">
         
-        <p style="text-align: left;" class="card-text">{{object.desc|safe}}</p>
+        <p style="text-align: left;" class="card-text">{{object.desc|safe}}</p><hr>
        
-        <!-- <a class="btn btn-light btn-social mx-2" href="https://youtube.com/channel/UCZLdq1lpQOZAO7fDc6n8GtQ" role="button"><i class="fab fa-youtube"></i></a>         -->
-        <hr>
+       
         {% load social_share %}      
 <div id="home_page" class="container share-icon">
   <p style="color: blue;">share post: </p>
@@ -68,10 +71,25 @@
 {% send_email object.title "New Song: {{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-google'> </i>" %}
 {% post_to_whatsapp object_or_url "<i class='fa-2x fab fa-whatsapp'> </i>" %}
 
-
+ <button onclick="comment()" class="btn">{{comments_count}} comments</button>
+ 
+ <a  href="{% url 'sms:blogcommentform' object.slug %}" class="btn btn-primary">Add comment</a><br> 
 </div>  
 <hr>
-        <a href="{% url 'sms:bloglistview' %}" class="btn btn-primary">read more articles....</a>
+        <a href="{% url 'sms:bloglistview' %}" class="btn btn-primary">read more articles....</a><hr>
+  
+    <h3>comments...</h3>
+    <div id="comment" style="display: none;">
+  {% for comment  in comments  %}
+  
+  <h4>{{comment.author}} {{comment.created|timesince}}</h4>
+ 
+  <p>{{comment.content}}</p>
+ 
+  {% empty %}
+  <h2>no comment</h2>
+  {% endfor %}
+</div>
       </div>
     </div>
     
@@ -82,6 +100,11 @@
   </section>
   
   
-
+  <script>
+    function comment() {
+      var x = document.getElementById("comment");
+        x.style.display = "block";
+    }
+  </script>
   {% endblock %} 
  
