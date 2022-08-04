@@ -26,7 +26,7 @@ class BlogcommentForm(forms.ModelForm):
     class Meta:
         model = Blogcomment
         fields = ('post', 'content')
-        Widgets ={
-            'post':forms.TextInput(attrs={'class':'form-conrol'}),
-            'content':forms.Textarea(attrs={'class':'form-conrol'})
-        }
+        # Widgets ={
+        #     'post':forms.TextInput(attrs={'class':'form-conrol'}),
+        #     'content':forms.Textarea(attrs={'class':'form-conrol'})
+        # }
