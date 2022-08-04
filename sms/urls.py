@@ -18,6 +18,7 @@ from sms.views import(
       Bloglistview,
       Blogdetaillistview,
       Baseblogview,
+      BlogcommentCreateView,
       
 ) 
 
@@ -44,6 +45,7 @@ urlpatterns = [
     path('bloglistview', Bloglistview.as_view(), name ='bloglistview'),
     path('blog/<slug:slug>/', Blogdetaillistview.as_view(), name='blogdetaillistview'),
     path('baseview/<pk>/',  Baseblogview.as_view(), name='baseview'),
+    path('blog/<slug:slug>/blogcommentform/', BlogcommentCreateView.as_view(), name ='blogcommentform'),
  
 ]
 

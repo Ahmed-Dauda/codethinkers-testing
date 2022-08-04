@@ -112,7 +112,24 @@ class Blog(models.Model):
     def __str__(self):
         return f'{self.title}'
 
+from django.utils import timezone
+from django.urls import reverse
+# MainApp/models.py
+class Blogcomment(models.Model):
+    post = models.ForeignKey(Blog,related_name='comments' ,on_delete=models.SET_NULL, null=True)
+    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    # title = models.CharField(max_length=100, null=True)
+    # subtitle = models.CharField(max_length=200, blank=True, null=True)
+    content = models.TextField()
+    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+   
+    img_blogcomment = CloudinaryField('image', blank=True, null= True)
+    
+    # def get_absolute_url(self):
+        
+    #       return reverse('sms:blogdetaillistview', kwargs={'slug':self.slug})
+    
+    def __str__(self):
+        return f'{self.post}'
 
-class MyModel(models.Model):
-    ...
-    content = HTMLField()
