@@ -91,7 +91,8 @@
   <p>{{comment.content}}</p>
  
   {% empty %}
-  <h2>no comment</h2>
+  <h2>No comment Yet</h2>
+<a  href="{% url 'sms:blogcommentform' object.slug %}" class="btn btn-primary">Add comment</a><br>
   {% endfor %}
 </div>
       </div>
