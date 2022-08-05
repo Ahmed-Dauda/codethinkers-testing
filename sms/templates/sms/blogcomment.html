@@ -10,12 +10,12 @@
 </head>
 <body>
 
+  
     <!-- COMMENTS  -->
-  <div style="text-align: center;" class="container">
-<h2>Select Post Title to Add Comment!</h2>
-<div id="comments_section">
 
-  {% if user.is_authenticated %}
+<div style="padding-top: 100px;" class="card-header container text-center" >
+
+
   <form method="POST">
     {% csrf_token %}
     <div class="form-group">
@@ -25,11 +25,5 @@
     </div>
   </form>
 
-  {% else %}
-  <a class="btn btn-outline-info" href="{% url 'login' %}?next={{request.path}}">Log in to add a comment!</a><br>
-  {% endif %}
-</div>
-
-</div>
 </body>
 </html>

@@ -11,24 +11,16 @@
     }
     .share-icon>*{
       flex: 1px 1px auto;
-      margin: 10px;
-<<<<<<< HEAD
-=======
+      margin: 7px;
     }
->>>>>>> 4d84b657e233aba16b608f8b122ac53dc55c3676
+    .comments-section{
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
     }
-    /* button {
-            margin: 30px;
-        }
-
-        a {
-            color: white !important;
-            display: inline;
-        }
-
-        span div {
-            display: inline;
-        } */
+    .comments-section>*{
+      flex: 1px 1px auto;
+      margin: 7px;
   </style> 
   <br><br>
   
@@ -40,7 +32,7 @@
 <hr>
   <!-- <h3  class="text-center">{{ hitcount.total_hits}} <i class="fas fa-eye"></i> </h3> -->
   
-  <div  class="card container shadow-lg p-3 mb-5 bg-body rounded">
+  <div  class="  shadow-lg p-3 mb-5 bg-body rounded">
   
       <div class="card-header card d-flex">
       <p class="card-text">{% get_hit_count for object %} <i class="fas fa-eye"></i></p>
@@ -75,18 +67,20 @@
 {% send_email object.title "New Song: {{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-google'> </i>" %}
 {% post_to_whatsapp object_or_url "<i class='fa-2x fab fa-whatsapp'> </i>" %}
 
- <button onclick="comment()" class="btn">{{comments_count}} comments</button>
- 
- <a  href="{% url 'sms:blogcommentform' object.slug %}" class="btn btn-primary">Add comment</a><br> 
-</div>  
+</div>
 <hr>
-        <a href="{% url 'sms:bloglistview' %}" class="btn btn-primary">read more articles....</a><hr>
-  
-    <h3>comments...</h3>
+<a href="{% url 'sms:bloglistview' %}" class="btn btn-primary">read more articles....</a>
+<hr>
+
+  <div class="comments-section">
+    <button class="btn" onclick="comment()">See comments...</button>
+    <p  class="">{{comments_count}} comments</p>
+    <a  href="{% url 'sms:blogcommentform' object.slug %}" class="btn btn-primary">Add comment</a><br>  
+  </div>
     <div id="comment" style="display: none;">
   {% for comment  in comments  %}
   
-  <h4>{{comment.author}} {{comment.created|timesince}}</h4>
+  <h6 class=" btn-primary" style="color:white;">{{comment.author}} {{comment.created|timesince}}</h6>
  
   <p>{{comment.content}}</p>
  

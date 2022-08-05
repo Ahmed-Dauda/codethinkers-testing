@@ -100,10 +100,13 @@ border: 1px dotted rgb(16, 2, 37);;
 
 <hr>
   <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br><hr>
-  <h3><a href="{% url 'sms:topicsdetailview' topic.slug %}">Enroll {{topic.title}}</a></h3><hr>
+  <!-- <h3><a href="{% url 'sms:topicsdetailview' topic.slug %}">Enroll {{topic.title}}</a></h3><hr> -->
   <div style="text-align: center;" class="container">
   {% if topics.number == c %}
   <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4>
+  <!-- <h3>After completion of the Topics, take Exam</h3> -->
+  <h1 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h1>
+  
    {% endif %}
 </div>
 <hr>
@@ -112,9 +115,6 @@ border: 1px dotted rgb(16, 2, 37);;
   {% endfor %}
  
 
-  <h3>After completion of the Topics, take Exam</h3>
-  <h1 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h1>
-  
 </div>
 </div>
 </div>
