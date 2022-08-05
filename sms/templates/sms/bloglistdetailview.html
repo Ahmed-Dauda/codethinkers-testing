@@ -63,15 +63,19 @@
        
        
         {% load social_share %}      
-<div id="home_page" class="container share-icon">
-  <p style="color: blue;">share post: </p>
-<!-- <p class="btn btn-light btn-social mx-2"><i class="fa-2x fas fa-share"> </i>share</p>       -->
+<div id="home_page" class="share-icon">
+  <!-- <p style="color: blue;">share post: </p> -->
+  <p  class="">{{comments_count}} <i  class=" fas fa-comment"> </i></p>
+  <p  class="text-center">{{ hitcount.total_hits}} <i class="fas fa-eye"></i> </p>
+<p onclick="share()" ><i class="fa-2x fas fa-share"> </i></p><br>
+<div id="share" style="display: none;">
+
 {% post_to_facebook object_or_url  "<i class='fa-2x fab fa-facebook'> </i>" %}
 {% post_to_whatsapp object_or_url "<i class='fa-2x fab fa-whatsapp'> </i>" %}
 {% post_to_twitter "{{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-twitter'> </i>" %}
 {% post_to_telegram "{{object.title}}" object_or_url "<i class='fa-2x fab fa-telegram'> </i>" %}
 {% send_email object.title "{{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-google'> </i>" %}
-
+</div>
 
 </div>
 <hr>
@@ -79,11 +83,10 @@
 <hr>
 
   <div class="comments-section">
-    <p  class="">{{comments_count}} comments</p>
-    <p  class="text-center">{{ hitcount.total_hits}} <i class="fas fa-eye"></i> </p>
-    <button class="btn" onclick="comment()">See comments...</button>
+
+    <button style="width: 110px;"  class="btn" onclick="comment()">See comments...</button>
   
-    <a  href="{% url 'sms:blogcommentform' object.slug %}" class="btn btn-primary">Add comment</a><br>  
+    <a style="width: 110px;" href="{% url 'sms:blogcommentform' object.slug %}" class="btn btn-primary">Add comment</a><br>  
   </div>
     <div id="comment" style="display: none;">
   {% for comment  in comments  %}
@@ -94,7 +97,7 @@
  
   {% empty %}
   <h2>No comment Yet</h2>
-<a  href="{% url 'sms:blogcommentform' object.slug %}" class="btn btn-primary">Add comment</a><br>
+
   {% endfor %}
 </div>
       </div>
@@ -114,6 +117,14 @@
     }
   </script>
 
+  <script>
+    function share() {
+      var x = document.getElementById("share");
+        x.style.display = "block";
+      
+    }
+  </script>
 
+  
   {% endblock %} 
  
