@@ -8,7 +8,7 @@ from django import forms
 from django.db import models 
 from sms.models import Comment, Blogcomment
 from users.models import NewUser, BaseUserManager
-
+from tinymce.widgets import TinyMCE
 class smspostform(ModelForm):
     class Meta:
         
@@ -27,4 +27,7 @@ class BlogcommentForm(forms.ModelForm):
     class Meta:
         model = Blogcomment
         fields = ('name','content')
+        widgets={
+            'content':TinyMCE
+        }
        

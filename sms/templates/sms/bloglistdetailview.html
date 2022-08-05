@@ -3,10 +3,18 @@
 {% block title %} {{object.title|title}} {% endblock %}
 
   {% block content %}
+  {% load static %}
+  <!-- <script src="prism.js" data-manual></script>
+<script src="tinymce.js"></script>
+
+<link rel="stylesheet" type="text/css" href="/static/sms/prism.css">
+<script src="/static/sms/prism.js"></script> -->
+
+
   <style>
      .share-icon{
       display: flex;
-      justify-content: center;
+      justify-content: flex-start;
       flex-wrap: wrap;
     }
     .share-icon>*{
@@ -15,12 +23,14 @@
     }
     .comments-section{
       display: flex;
-      justify-content: center;
+      justify-content: flex-start;
       flex-wrap: wrap;
     }
     .comments-section>*{
       flex: 1px 1px auto;
       margin: 7px;
+
+      
   </style> 
   <br><br>
   
@@ -28,14 +38,9 @@
 <section >
 
     
-
-<hr>
-  <!-- <h3  class="text-center">{{ hitcount.total_hits}} <i class="fas fa-eye"></i> </h3> -->
-  
   <div  class="  shadow-lg p-3 mb-5 bg-body rounded">
   
       <div class="card-header card d-flex">
-      <p class="card-text">{% get_hit_count for object %} <i class="fas fa-eye"></i></p>
       
       <h1 class="card-title">{{object.title|title}}</h1>
 
@@ -54,7 +59,7 @@
       <small class="container text-center">Image source: {{object.img_source}}</small>
       <div class="card-body">
         
-        <p style="text-align: left;" class="card-text">{{object.desc|safe}}</p><hr>
+        <p style="text-align: left;" class=" card-text">{{object.desc|safe}}</p><hr>
        
        
         {% load social_share %}      
@@ -62,10 +67,11 @@
   <p style="color: blue;">share post: </p>
 <!-- <p class="btn btn-light btn-social mx-2"><i class="fa-2x fas fa-share"> </i>share</p>       -->
 {% post_to_facebook object_or_url  "<i class='fa-2x fab fa-facebook'> </i>" %}
-{% post_to_twitter "New Song: {{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-twitter'> </i>" %}
-{% post_to_telegram "New Song: {{object.title}}" object_or_url "<i class='fa-2x fab fa-telegram'> </i>" %}
-{% send_email object.title "New Song: {{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-google'> </i>" %}
 {% post_to_whatsapp object_or_url "<i class='fa-2x fab fa-whatsapp'> </i>" %}
+{% post_to_twitter "{{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-twitter'> </i>" %}
+{% post_to_telegram "{{object.title}}" object_or_url "<i class='fa-2x fab fa-telegram'> </i>" %}
+{% send_email object.title "{{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-google'> </i>" %}
+
 
 </div>
 <hr>
@@ -73,8 +79,10 @@
 <hr>
 
   <div class="comments-section">
-    <button class="btn" onclick="comment()">See comments...</button>
     <p  class="">{{comments_count}} comments</p>
+    <p  class="text-center">{{ hitcount.total_hits}} <i class="fas fa-eye"></i> </p>
+    <button class="btn" onclick="comment()">See comments...</button>
+  
     <a  href="{% url 'sms:blogcommentform' object.slug %}" class="btn btn-primary">Add comment</a><br>  
   </div>
     <div id="comment" style="display: none;">
@@ -105,5 +113,7 @@
         x.style.display = "block";
     }
   </script>
+
+
   {% endblock %} 
  
