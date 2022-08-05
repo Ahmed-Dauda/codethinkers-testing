@@ -52,10 +52,10 @@ class Topics(models.Model):
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     courses=models.ForeignKey(Courses, on_delete= models.CASCADE) 
     title = models.CharField(max_length=225, blank=True, null= True, unique=True)
-    slug = models.SlugField(null=False, unique=True,)
-    objectives = tinymce_models.HTMLField(null= True)
+    slug = models.SlugField(null=True,blank=True, unique=True,)
+    objectives = tinymce_models.HTMLField(null= True,blank=True,)
     desc = tinymce_models.HTMLField( blank=True, null= True)
-    student_activity = tinymce_models.HTMLField(null= True)
+    student_activity = tinymce_models.HTMLField(null= True,blank=True,)
     evaluation = models.TextField(blank=True, null= True)
     img_topic = CloudinaryField('image', blank=True, null= True)
     img_tutorial = CloudinaryField('image', blank=True, null= True)
@@ -117,18 +117,14 @@ from django.urls import reverse
 # MainApp/models.py
 class Blogcomment(models.Model):
     post = models.ForeignKey(Blog,related_name='comments' ,on_delete=models.SET_NULL, null=True)
-    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    # title = models.CharField(max_length=100, null=True)
+    # author = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, null=True)
     # subtitle = models.CharField(max_length=200, blank=True, null=True)
     content = models.TextField()
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
    
     img_blogcomment = CloudinaryField('image', blank=True, null= True)
-    
-    # def get_absolute_url(self):
-        
-    #       return reverse('sms:blogdetaillistview', kwargs={'slug':self.slug})
     
     def __str__(self):
         return f'{self.post}'

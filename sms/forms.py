@@ -23,7 +23,8 @@ class feedbackform(ModelForm):
         
 
 class BlogcommentForm(forms.ModelForm):
+    
     class Meta:
         model = Blogcomment
-        fields = ('post', 'content')
+        fields = ('name','content')
        

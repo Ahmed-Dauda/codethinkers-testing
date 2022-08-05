@@ -322,36 +322,70 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
+# TINYMCE_DEFAULT_CONFIG = {
+#     "height": "320px",
+#     "width": "960px",
+#     'plugins': 'image',
+#     "menubar": "file edit view insert format tools table help",
+#     "plugins": "advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code "
+#     "fullscreen insertdatetime media table paste code help wordcount spellchecker",
+#     "toolbar": "undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft "
+#     "aligncenter alignright alignjustify | outdent indent |  numlist bullist checklist | forecolor "
+#     "backcolor casechange permanentpen formatpainter removeformat | pagebreak | charmap emoticons | "
+#     "fullscreen  preview save print | insertfile image media pageembed template link anchor codesample | "
+#     "a11ycheck ltr rtl | showcomments addcomment code",
+#     "custom_undo_redo_levels": 10,
+#     "language": "en_EN",  # To force a specific language instead of the Django current language.
+    
+# }
+
+# for TinyMCE 
+
 TINYMCE_DEFAULT_CONFIG = {
-    "height": "320px",
-    "width": "960px",
-    'plugins': 'image',
-    "menubar": "file edit view insert format tools table help",
-    "plugins": "advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code "
-    "fullscreen insertdatetime media table paste code help wordcount spellchecker",
-    "toolbar": "undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft "
-    "aligncenter alignright alignjustify | outdent indent |  numlist bullist checklist | forecolor "
-    "backcolor casechange permanentpen formatpainter removeformat | pagebreak | charmap emoticons | "
-    "fullscreen  preview save print | insertfile image media pageembed template link anchor codesample | "
-    "a11ycheck ltr rtl | showcomments addcomment code",
-    "custom_undo_redo_levels": 10,
-    "language": "en_EN",  # To force a specific language instead of the Django current language.
-    #  "spell_check":True
-    # 'a11y_advanced_options':True
+    'cleanup_on_startup': True,
+    'custom_undo_redo_levels': 20,
+    'selector': 'textarea',
+    'theme': 'silver',
+    "height": 600,
+    'plugins': '''
+   
+#           fullscreen insertdatetime media table paste code help wordcount spellchecker
+            advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code
+            textcolor save link image media preview codesample contextmenu
+            table code lists fullscreen  insertdatetime  nonbreaking
+            contextmenu directionality searchreplace wordcount visualblocks
+            visualchars code fullscreen autolink lists  charmap print  hr
+            anchor pagebreak help paste
+            ''',
+
+    'toolbar1': '''
+            backcolor casechange permanentpen formatpainter removeformat | pagebreak | charmap emoticons |
+            undo redo |fullscreen | formatselect | bold italic underline | fontselect,
+            fontsizeselect  | forecolor backcolor | alignleft alignright |
+            aligncenter alignjustify | indent outdent | bullist numlist table |
+            | link image media | codesample | preview
+            ''',
+    'toolbar2': '''
+            visualblocks visualchars |
+            charmap hr pagebreak nonbreaking anchor |  code | help
+            ''',
+    'contextmenu': 'formats | link image',
+    'menubar': True,
+    'statusbar': True,
 }
 
 TINYMCE_SPELLCHECKER = True
 
-TINYMCE_EXTRA_MEDIA = {
-    'css': {
-        'all': [
+# TINYMCE_EXTRA_MEDIA = {
+#     'css': {
+#         'all': [
            
-        ],
-    },
-    'js': [
+#         ],
+#     },
+#     'js': [
      
-    ],
-}
+#     ],
+# }
 
 
 # problem of hosting to heroku and solution

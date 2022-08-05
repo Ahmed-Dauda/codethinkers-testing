@@ -37,8 +37,8 @@ class topicsadmin(admin.ModelAdmin):
 
 @admin.register(Blogcomment)
 class blogcommentadmin(admin.ModelAdmin):
-    list_display = ['id','post','author' ,'content']
+    list_display = ['id','post','name' ,'content']
     # prepopulated_fields = {"slug": ("title",)}
-    list_filter =  ['post','created','author']
-    search_fields= ['post','author']
+    list_filter =  ['post','created','name']
+    search_fields= ['post','name']
     ordering = ['created']

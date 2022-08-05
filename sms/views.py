@@ -340,7 +340,7 @@ class Blogdetaillistview(HitCountDetailView,DetailView):
        
         return context
     
-class BlogcommentCreateView(LoginRequiredMixin, CreateView):
+class BlogcommentCreateView( CreateView):
     model = Blogcomment
     form_class= BlogcommentForm
     template_name = 'sms/blogcomment.html'
@@ -348,14 +348,15 @@ class BlogcommentCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse_lazy('sms:blogdetaillistview', kwargs= {'slug':self.kwargs['slug']})
     
-    def form_valid(self, form):
-        form.instance.author_id=self.request.user.id
-        return super().form_valid(form)
-    
     # def form_valid(self, form):
-        
-    #     form.instance.post_slug=self.kwargs['slug']
+    #     form.instance.author_id=self.request.user.id
     #     return super().form_valid(form)
+    
+    def form_valid(self, form):
+        # form.instance.author_id=self.request.user.id
+        form.instance.post = Blog.objects.get(slug=self.kwargs["slug"])
+        
+        return super().form_valid(form)
     
     
     # success_url = reverse_lazy("sms:bloglistview")
