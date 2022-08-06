@@ -88,6 +88,13 @@ SOCIAL_AUTH_GOOGLE_SECRET = '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'
 # SOCIAL_AUTH_FACEBOOK_KEY = '416474800140748'
 # SOCIAL_AUTH_FACEBOOK_SECRET = '4763331e29fc3703c82ba85f645fe5af'
 
+# django import and export setting
+IMPORT_EXPORT_CHUNK_SIZE = 1000 # speed import and export
+IMPORT_EXPORT_EXPORT_PERMISSION_CODE = True # you must have permission b4 export
+IMPORT_EXPORT_IMPORT_PERMISSION_CODE = True # you must have permission b4 import
+IMPORT_EXPORT_IMPORT_PERMISSION_CODE
+IMPORT_EXPORT_SKIP_ADMIN_LOG = True # speed import and export
+IMPORT_EXPORT_USE_TRANSACTIONS = True  # import won’t import only part of the data set.
 
 # allauth setting
 
