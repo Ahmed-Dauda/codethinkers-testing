@@ -96,7 +96,7 @@ IMPORT_EXPORT_IMPORT_PERMISSION_CODE
 IMPORT_EXPORT_SKIP_ADMIN_LOG = True # speed import and export
 IMPORT_EXPORT_USE_TRANSACTIONS = True  # import won’t import only part of the data set.
 
-# allauth setting
+# allauth settings
 
 SITE_ID = 1
 
