@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'xhtml2pdf',
     'tinymce',
     'django_social_share',
+    'import_export',
     
     
     
