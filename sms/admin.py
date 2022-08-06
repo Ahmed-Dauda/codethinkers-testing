@@ -1,3 +1,4 @@
+from turtle import title
 from django.contrib import admin
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
@@ -56,14 +57,14 @@ class blogcommentadmin(admin.ModelAdmin):
 
 class BookResource(resources.ModelResource):
     
-    course_name = fields.Field(
-        # column_name='course title',
+    courses = fields.Field(
+        column_name= 'courses',
         attribute='courses',
         widget=ForeignKeyWidget(Courses,'title') )
     
     class Meta:
         model = Topics
-        # exclude = ('id', )
+        # fields = ('title',)
                
 class BookAdmin(ImportExportModelAdmin):
     resource_class = BookResource
