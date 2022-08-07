@@ -1,11 +1,13 @@
 <!DOCTYPE html>
+{% load static %}
 {% load hitcount_tags %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   
+    <!-- prism css for syntax highlighter  -->
+    <link rel="stylesheet" href="{% static 'css/prism.css' %}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
    
     
@@ -223,6 +225,10 @@ rel="stylesheet"
   <!-- Copyright -->
 </footer>
 <!-- Footer -->
+
+<script src="{% static 'sms/prism.js' %}"></script>
+<script src="{% static 'sms/tiny_mce/tiny_mce.js' %}"></script>
+
 </body>
 </html>
 

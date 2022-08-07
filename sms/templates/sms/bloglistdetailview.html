@@ -3,31 +3,36 @@
 {% block title %} {{object.title|title}} {% endblock %}
 
   {% block content %}
+  {% load static %}
+  <!-- <script src="prism.js" data-manual></script>
+<script src="tinymce.js"></script>
+
+<link rel="stylesheet" type="text/css" href="/static/sms/prism.css">
+<script src="/static/sms/prism.js"></script> -->
+
+
   <style>
-    .share-icon{
+     .share-icon{
       display: flex;
-      justify-content: center;
+
+      justify-content: flex-start;
       flex-wrap: wrap;
     }
     .share-icon>*{
-      flex; 1px 1px auto;
-      margin: 5px;
-      
+      flex: 1px 1px auto;
+      margin: 7px;
     }
-    
-    
-    /* button {
-            margin: 30px;
-        }
+    .comments-section{
+      display: flex;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+    .comments-section>*{
+      flex: 1px 1px auto;
+      margin: 7px;
 
-        a {
-            color: white !important;
-            display: inline;
-        }
 
-        span div {
-            display: inline;
-        } */
+      
   </style> 
   <br><br>
   
@@ -35,23 +40,20 @@
 <section >
 
     
-
-<hr>
-  <!-- <h3  class="text-center">{{ hitcount.total_hits}} <i class="fas fa-eye"></i> </h3> -->
-  
-  <div  class="card container shadow-lg p-3 mb-5 bg-body rounded">
+  <div  class="  shadow-lg p-3 mb-5 bg-body rounded">
   
       <div class="card-header card d-flex">
-      <p class="card-text">{% get_hit_count for object %} <i class="fas fa-eye"></i></p>
       
       <h1 class="card-title">{{object.title|title}}</h1>
+
       <small class="card-text">{{object.created}}, {{object.created|timesince}}</small>
-      <small class="card-text">By {{blog.author}}</small><hr>
+      {% if blog.author %}
+        <small class="card-text">By {{blog.author}}</small><hr>
+        {% else %}
+        <small class="card-text">By {{blog.poster}}</small><hr>
+      {% endif %}
       <div class="col-lg-4 my-3 my-lg-0">
-        <!-- <p class="text-primary">connect with us:</p> 
-<a class="rounded-circle btn btn-dark btn-social mx-2" href="https://youtu.be/cvamcQ-ltO8" role="button"><i  class=" rounded-circle fab fa-youtube"></i></a>        
-<a class=" rounded-circle btn btn-dark btn-social mx-2" href="https://web.facebook.com/addatainsight"><svg class=" svg-inline--fa fa-facebook-f fa-w-10" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="facebook-f" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" data-fa-i2svg=""><path fill="currentColor" d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"></path></svg><!-- <i class="fab fa-facebook-f"></i> Font Awesome fontawesome.com --></a>
-         -->
+   
 </div>
     </div>
       
@@ -59,24 +61,47 @@
       <small class="container text-center">Image source: {{object.img_source}}</small>
       <div class="card-body">
         
-        <p style="text-align: left;" class="card-text">{{object.desc|safe}}</p>
+        <p style="text-align: left;" class=" card-text">{{object.desc|safe}}</p><hr>
        
-        <!-- <a class="btn btn-light btn-social mx-2" href="https://youtube.com/channel/UCZLdq1lpQOZAO7fDc6n8GtQ" role="button"><i class="fab fa-youtube"></i></a>         -->
-        <hr>
+       
         {% load social_share %}      
-<div id="home_page" class="container share-icon">
-  <p style="color: blue;">share post: </p>
-<!-- <p class="btn btn-light btn-social mx-2"><i class="fa-2x fas fa-share"> </i>share</p>       -->
+<div id="home_page" class="share-icon">
+  <!-- <p style="color: blue;">share post: </p> -->
+  <p  class="">{{comments_count}} <i  class=" fas fa-comment"> </i></p>
+  <p  class="text-center">{{ hitcount.total_hits}} <i class="fas fa-eye"></i> </p>
+<p onclick="share()" ><i class="fa-2x fas fa-share"> </i></p><br>
+<div id="share" style="display: none;">
+
 {% post_to_facebook object_or_url  "<i class='fa-2x fab fa-facebook'> </i>" %}
-{% post_to_twitter "New Song: {{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-twitter'> </i>" %}
-{% post_to_telegram "New Song: {{object.title}}" object_or_url "<i class='fa-2x fab fa-telegram'> </i>" %}
-{% send_email object.title "New Song: {{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-google'> </i>" %}
 {% post_to_whatsapp object_or_url "<i class='fa-2x fab fa-whatsapp'> </i>" %}
+{% post_to_twitter "{{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-twitter'> </i>" %}
+{% post_to_telegram "{{object.title}}" object_or_url "<i class='fa-2x fab fa-telegram'> </i>" %}
+{% send_email object.title "{{object.title}}. Check it out!" object_or_url "<i class='fa-2x fab fa-google'> </i>" %}
+</div>
 
-
-</div>  
+</div>
 <hr>
-        <a href="{% url 'sms:bloglistview' %}" class="btn btn-primary">read more articles....</a>
+<a href="{% url 'sms:bloglistview' %}" class="btn btn-primary">read more articles....</a>
+<hr>
+
+  <div class="comments-section">
+
+    <button style="width: 110px;"  class="btn" onclick="comment()">See comments...</button>
+  
+    <a style="width: 110px;" href="{% url 'sms:blogcommentform' object.slug %}" class="btn btn-primary">Add comment</a><br>  
+  </div>
+    <div id="comment" style="display: none;">
+  {% for comment  in comments  %}
+  
+  <h6 class=" btn-primary" style="color:white;">{{comment.author}} {{comment.created|timesince}}</h6>
+ 
+  <p>{{comment.content}}</p>
+ 
+  {% empty %}
+  <h2>No comment Yet</h2>
+
+  {% endfor %}
+</div>
       </div>
     </div>
     
@@ -87,6 +112,21 @@
   </section>
   
   
+  <script>
+    function comment() {
+      var x = document.getElementById("comment");
+        x.style.display = "block";
+    }
+  </script>
 
+  <script>
+    function share() {
+      var x = document.getElementById("share");
+        x.style.display = "block";
+      
+    }
+  </script>
+
+  
   {% endblock %} 
  

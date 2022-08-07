@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate</title>
+    <link href="https://fonts.googleapis.com/css?family=Satisfy" rel="stylesheet">
+
+    <style>
+      body{
+        margin: 0;
+        padding: 0;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 40px;
+      }
+      @page {
+        size: a4 portrait;
+        @frame header_frame {           /* Static Frame */
+            -pdf-frame-content: header_content;
+            left: 0pt; width: 512pt; top: 0pt; height: 0pt;margin: 0pt;
+        }
+        @frame content_frame {          /* Content Frame */
+            left: 0pt; width: 592pt; top: 0pt; height: 887pt;margin: 0pt;
+        }
+        @frame footer_frame {           /* Another static Frame */
+            -pdf-frame-content: footer_content;
+            left: 0pt; width: 512pt; top: 772pt; height: 0pt;margin: 0pt;
+        }
+    }  
+       table{
+       background-color:rgb(16, 2, 37) ; 
+        color: white;
+        max-height: 512px;
+        font-family: 'Times New Roman', Times, serif;
+        
+       } 
+      
+       @page page1 {
+        
+        size: a4;
+        background-image: url('https://www.davidbenrimon.com/img/press/big/2021/bigpress-15.jpg');
+ }
+    </style>
+</head>
+<body>
+    
+<table class="cert">
+
+  <tr style="font-size: 20px;max-height: 612px;">
+    <td>
+        
+<div style="width:800px; height:700px; padding:0px; text-align:center;">
+    <div style="width:750px; height:550px; padding:0px; text-align:center; border: 40px dashed rgb(47, 126, 237)">
+         
+         {% for image in logo %}
+         {% if image.logo %}
+         
+         <img style="width: 150px;height:150px;border-radius:100px; margin-top:-400px" src="{{image.logo.url}}" alt="">  <br>
+         {% endif %}
+         {% endfor %}
+         <br>
+       
+        <span style="font-size:90px; font-weight:bold;color:rgb(47, 126, 237);font-style: Times;">CODETHINKER'S ACADEMY</span> <br><br><br><br>
+           <span style="font-size:70px; font-weight:bold">Certificate of Completion</span>
+           <br><br>
+           <span style="font-size:40px"><i>This is to certify that</i></span>
+           <br><br><br>
+           <span style="font-size:40px;color:rgb(47, 126, 237)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/>
+           <span style="font-size:35px"><i>has successfully completed the course</i></span> <br/><br/><br>
+           {% for name in course %}
+
+           <span style="font-size:40px;">{{name|upper}}</span> <br/><br/>
+           {% endfor %}
+           
+           <br><br><br>
+           <span style="font-size:40px; "><i>Signed by Codethinker's Academy</i></span><br>
+           {% for image in sign %}
+           {% if image.sign %}
+           
+          <img style="width:200px;height:100px;" src="{{image.sign.url}}" alt="">
+         
+           {% endif %}
+           {% endfor %}
+           <br>
+           
+
+           <br/><br/><br/><br/><br><br><br>
+           <span style="font-size:35px; "><i>dated</i></span><br>
+          on {{date}} 
+          <br><br><br><br><br><br><br><br><br><br><br>
+          
+
+      
+          
+    </div>
+    </div>
+    </td>
+  </tr>
+ 
+</table>
+
+</body>
+</html>
