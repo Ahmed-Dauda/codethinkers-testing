@@ -122,9 +122,9 @@ def pdf_id_view(request, *args, **kwargs):
     logo = Logo.objects.all() 
     sign = signature.objects.all()
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
-    max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-    results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course, student = student)
-    Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
+    # max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
+    # results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course, student = student)
+    # Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
     
     pk = kwargs.get('pk')
     posts = get_list_or_404(course, pk= pk)
