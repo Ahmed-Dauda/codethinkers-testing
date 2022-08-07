@@ -5,14 +5,18 @@ from django.db import models
 from django.db.models import fields
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
-from sms.models import Categories, Courses, Topics, Comment, Blog
+from sms.models import (Categories, Courses, Topics, 
+                        Comment, Blog, Blogcomment
+                        )
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from users.models import Profile
 from quiz import models as QMODEL
-    
+from django.core.paginator import Paginator    
 from django.db.models import Count
 import numpy as np
 from django.db.models import Max, Subquery, OuterRef
+# from .forms import BlogcommentForm
+from django.shortcuts import get_object_or_404
 
 from django.contrib.auth.decorators import login_required
 from quiz.models import Result, Course
@@ -101,25 +105,36 @@ class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         return context
 
 class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
+    
     models = Courses
     template_name = 'sms/topicslistview.html'
     count_hit = True
+    paginate_by = 1
 
     def get_queryset(self):
         return Courses.objects.all()
   
         
     def get_context_data(self, **kwargs):
-
+        
         context = super().get_context_data(**kwargs)
-        context['topics'] = Topics.objects.filter(courses__pk = self.object.id) 
+        t = Topics.objects.filter(courses__pk = self.object.id)
+        c = Topics.objects.filter(courses__pk = self.object.id).count()
+        paginator = Paginator(t, 1) # Show 25 contacts per page.
+
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        context['topics'] = page_obj
+        context['c'] = c
         context['topics_count'] = Topics.objects.filter(courses__pk = self.object.id) 
         return context
 
 class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
+    
     models = Topics
     template_name = 'sms/topicsdetailview.html'
     count_hit = True
+    
     
     def get_queryset(self):
         return Topics.objects.all()
@@ -189,7 +204,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         context['courses']=QMODEL.Course.objects.all()
         # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
         student = Profile.objects.get(user_id=self.request.user.id)
-        # context['results']= QMODEL.Result.objects.order_by('-marks').filter(exam=course).filter(student=student)[:3]
+        context['results']= QMODEL.Result.objects.order_by('-marks')
         return context
 
 
@@ -255,7 +270,7 @@ class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
     fields = '__all__'
     template_name = 'sms/userprofileupdateform.html'
     success_message = 'TestModel successfully updated!'
-    success_url= reverse_lazy('sms:userprofilelistview')
+    success_url= reverse_lazy('sms:myprofile')
     count_hit = True
 
     def get_queryset(self):
@@ -283,12 +298,7 @@ def Admin_detail_view(request,pk):
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course).order_by('-marks')
     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course, marks = 1).delete()   
-    # max_q = QMODEL.Result.objects.filter(marks = OuterRef('marks') ,).order_by('-marks').values('id')
-    # results = QMODEL.Result.objects.filter(id = Subquery(max_q[:1]), marks__gte =2)
-    # QMODEL.Result.objects.exclude(id = results[:1]).delete() 
-    # QMODEL.Result.objects.get(~Q(id = results[:1]), student_id = results[:1].student.id, exam_id = results[:1].exam.id).delete()
-
-    
+ 
     context = { 
         'results':results,
         'course':course,
@@ -297,51 +307,72 @@ def Admin_detail_view(request,pk):
     }
     return render(request,'sms/Admin_result_detail_view.html', context)
 
-# class Admin_result_detail_view(LoginRequiredMixin, DetailView):
-#     models = QMODEL.Result
-#     template_name = 'sms/Admin_result_detail_view.html'
-#     success_message = 'TestModel successfully updated!'
-#     count_hit = True
-   
-#     def get_queryset(self):
-#         return QMODEL.Result.objects.all()
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-
-#         max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id'), ).order_by('-marks').values('id')
-#         context['results'] = QMODEL.Result.objects.filter(id = Subquery(max_q[:1])) 
-#         return context
-
 class Bloglistview(ListView):
     models = Blog
     template_name = 'sms/bloglistview.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
-    queryset = Blog.objects.all()
+    queryset = Blog.objects.order_by('-created')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['blogs_count'] =Blog.objects.all().count() 
         return context
-
+    
+from sms.forms import BlogcommentForm
 class Blogdetaillistview(HitCountDetailView,DetailView):
     models = Blog
     template_name = 'sms/bloglistdetailview.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
-
+     
     def get_queryset(self):
         return Blog.objects.all()
 
     def get_context_data(self, **kwargs):
-
         context = super().get_context_data(**kwargs)
+        
         context['blogs'] =Blog.objects.all() 
-        context['blogs_count'] =Blog.objects.all().count() 
+        comments = Blogcomment.objects.filter(post__slug=self.object.slug).order_by('-created')
+        context['blogs_count'] =Blog.objects.all().count()
+        context['comments'] = comments 
+        context['comments_count'] = comments.count() 
        
         return context
-
+    
+class BlogcommentCreateView( CreateView):
+    model = Blogcomment
+    form_class= BlogcommentForm
+    template_name = 'sms/blogcomment.html'
+    # fields = ['id','post' ,'author','content']
+    def get_success_url(self):
+        return reverse_lazy('sms:blogdetaillistview', kwargs= {'slug':self.kwargs['slug']})
+    
+    # def form_valid(self, form):
+    #     form.instance.author_id=self.request.user.id
+    #     return super().form_valid(form)
+    
+    def form_valid(self, form):
+        # form.instance.author_id=self.request.user.id
+        form.instance.post = Blog.objects.get(slug=self.kwargs["slug"])
+        
+        return super().form_valid(form)
+    
+    
+    # success_url = reverse_lazy("sms:bloglistview")
+    # def get_context_data(self,**kwargs):
+        
+    #     context = super().get_context_data(**kwargs)
+        # com= comment.comments.all()
+        # comments_connected = Blogcomment.objects.all().order_by('-created')
+        # comments_connected = Blogcomment.objects.all().order_by('-created')
+        
+        # context['blogs'] =Blog.objects.all() 
+        # context['blogs_count'] =Blog.objects.all().count() 
+        # context['comments'] = com
+       
+        # return context
+# arbitrary view
 class Baseblogview(HitCountDetailView,DetailView):
     models = Blog
     template_name = 'sms/baseblog.html'
@@ -349,12 +380,14 @@ class Baseblogview(HitCountDetailView,DetailView):
     count_hit = True
 
     def get_queryset(self):
-        return Blog.objects.all()
+        return Blog.objects.order_by('-created')
 
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
-        context['blogs'] =Blog.objects.all() 
+        context['blogs'] =Blog.objects.order_by('-created')
         context['blogs_count'] =Blog.objects.all().count() 
        
         return context
+    
+

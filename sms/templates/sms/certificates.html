@@ -47,12 +47,12 @@ tr, td, th{
 <body>
   <br>
   <div style="text-align: center;margin:auto">
-  <a  href="{% url 'sms:userprofilelistview' %}">My Profile</a><hr>
+  <a  href="{% url 'sms:myprofile' %}">My Profile</a><hr>
 </div>
     <br><br>
 <div class="table-responsive container text-center card-body">
     <table class="table" id="">
-      <div><a href="{% url 'student:take-exam' %}">Take Exam Again</a></div>
+      <div><a href="{% url 'student:take-exam' %}">Take Exam</a></div><br>
       <thead>
         <tr>
           <th>Names</th>
@@ -78,20 +78,20 @@ tr, td, th{
 
 
 {% for course in courses %}
+
 {% if course == t.exam and t.marks >= t.constant %}
 
 <a href="{% url 'student:pdf' course.id %}">Get Certificate {{course}}</a><br>
 
-{% elif course != t.exam and t.marks <= t.constant %}
-
 {% else  %}
-<h4 style = 'color:green'>No Certificate Yet. You have to Score >= 70</h4>
+
 {% endif  %}
 
 
 {% endfor %}
 
-
+{% empty  %}
+<h4 style = 'color:green'>No Certificate Yet. You have to Score >= 70</h4>
     {% endfor %}
       </tr>
      

@@ -18,6 +18,7 @@ from sms.views import(
       Bloglistview,
       Blogdetaillistview,
       Baseblogview,
+      BlogcommentCreateView,
       
 ) 
 
@@ -28,12 +29,12 @@ urlpatterns = [
     path('', Categorieslistview.as_view(), name='categorieslist'),
     path('courseslist/<pk>/', Courseslistview.as_view(), name='courseslist'),
     path('topicslistview/<pk>/', Topicslistview.as_view(), name='topicslistview'),
-    path('topicsdetailview/<pk>/', Topicsdetailview.as_view(), name='topicsdetailview'),
+    path('topicsdetailview/<slug:slug>/', Topicsdetailview.as_view(), name='topicsdetailview'),
     # path('signupview', signupview.as_view(), name ='signupview'),
     path('feedbackformview', Feedbackformview.as_view(), name ='feedbackformview'),
     path('commentlistview', Commentlistview.as_view(), name ='commentlistview'),
     path('commentlistviewsuccess', Commentlistviewsuccess.as_view(), name ='commentlistviewsuccess'),
-    path('userprofilelistview', UserProfilelistview.as_view(), name ='userprofilelistview'),
+    path('myprofile', UserProfilelistview.as_view(), name ='myprofile'),
 
     path('certificates/<pk>/', views.Certificates, name ='certificates'),
 
@@ -44,6 +45,7 @@ urlpatterns = [
     path('bloglistview', Bloglistview.as_view(), name ='bloglistview'),
     path('blog/<slug:slug>/', Blogdetaillistview.as_view(), name='blogdetaillistview'),
     path('baseview/<pk>/',  Baseblogview.as_view(), name='baseview'),
+    path('blog/<slug:slug>/blogcommentform/', BlogcommentCreateView.as_view(), name ='blogcommentform'),
  
 ]
 

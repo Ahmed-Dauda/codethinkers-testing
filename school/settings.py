@@ -32,8 +32,8 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'cg#p$g+j9tax!#a3cup@1$8obt2_+&
 # SECURITY WARNING: don't run with debug turned on in production!
 #DEBUG = True
 DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
-# ALLOWED_HOSTS = ['*']
-ALLOWED_HOSTS = ['codethinkers.herokuapp.com','codethinkerslms.com','www.codethinkerslms.com','codethinkers.org','www.codethinkers.org', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['codethinkers.herokuapp.com','codethinkerslms.com','www.codethinkerslms.com','codethinkers.org','www.codethinkers.org', '127.0.0.1']
 # ALLOWED_HOSTS = ['ctsaalms.herokuapp.com','codethinkers.org' ,'127.0.0.1']
 
 # wyswyg = ['grappelli', 'filebrowser']
@@ -63,6 +63,9 @@ INSTALLED_APPS = [
     'xhtml2pdf',
     'tinymce',
     'django_social_share',
+    'import_export',
+    
+    
     
 # the social providers
     # 'allauth.socialaccount.providers.facebook',
@@ -85,8 +88,15 @@ SOCIAL_AUTH_GOOGLE_SECRET = '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'
 # SOCIAL_AUTH_FACEBOOK_KEY = '416474800140748'
 # SOCIAL_AUTH_FACEBOOK_SECRET = '4763331e29fc3703c82ba85f645fe5af'
 
+# django import and export setting
+IMPORT_EXPORT_CHUNK_SIZE = 1000 # speed import and export
+IMPORT_EXPORT_EXPORT_PERMISSION_CODE = True # you must have permission b4 export
+IMPORT_EXPORT_IMPORT_PERMISSION_CODE = True # you must have permission b4 import
+IMPORT_EXPORT_IMPORT_PERMISSION_CODE
+IMPORT_EXPORT_SKIP_ADMIN_LOG = True # speed import and export
+IMPORT_EXPORT_USE_TRANSACTIONS = True  # import won’t import only part of the data set.
 
-# allauth setting
+# allauth settings
 
 SITE_ID = 1
 
@@ -261,8 +271,8 @@ USE_TZ = True
 
 # ADDITIONAL SITE SECURITY
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SECURE_SSL_REDIRECT = True
 
 # SECURE_BROWSER_XSS_FILTER = True
 # X_FRAME_OPTIONS = 'DENY'
@@ -287,7 +297,7 @@ LOGOUT_REDIRECT_URL = 'account_logout'
 ACCOUNT_SIGNUP_REDIRECT_URL= 'settings.LOGOUT_URL'
 
 # django hit count 
-HITCOUNT_KEEP_HIT_ACTIVE = {'seconds': 2}
+# HITCOUNT_KEEP_HIT_ACTIVE = {'seconds': 2}
 
 HITCOUNT_HITS_PER_IP_LIMIT = 0
 
@@ -320,34 +330,79 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
+# TINYMCE_DEFAULT_CONFIG = {
+#     "height": "320px",
+#     "width": "960px",
+#     'plugins': 'image',
+#     "menubar": "file edit view insert format tools table help",
+#     "plugins": "advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code "
+#     "fullscreen insertdatetime media table paste code help wordcount spellchecker",
+#     "toolbar": "undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft "
+#     "aligncenter alignright alignjustify | outdent indent |  numlist bullist checklist | forecolor "
+#     "backcolor casechange permanentpen formatpainter removeformat | pagebreak | charmap emoticons | "
+#     "fullscreen  preview save print | insertfile image media pageembed template link anchor codesample | "
+#     "a11ycheck ltr rtl | showcomments addcomment code",
+#     "custom_undo_redo_levels": 10,
+#     "language": "en_EN",  # To force a specific language instead of the Django current language.
+    
+# }
+
+# for TinyMCE 
+
 TINYMCE_DEFAULT_CONFIG = {
-    "height": "320px",
-    "width": "960px",
-    'plugins': 'image',
-    "menubar": "file edit view insert format tools table help",
-    "plugins": "advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code "
-    "fullscreen insertdatetime media table paste code help wordcount spellchecker",
-    "toolbar": "undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft "
-    "aligncenter alignright alignjustify | outdent indent |  numlist bullist checklist | forecolor "
-    "backcolor casechange permanentpen formatpainter removeformat | pagebreak | charmap emoticons | "
-    "fullscreen  preview save print | insertfile image media pageembed template link anchor codesample | "
-    "a11ycheck ltr rtl | showcomments addcomment code",
-    "custom_undo_redo_levels": 10,
-    "language": "en_EN",  # To force a specific language instead of the Django current language.
-    #  "spell_check":True
-    # 'a11y_advanced_options':True
+    'cleanup_on_startup': True,
+    'custom_undo_redo_levels': 20,
+    'selector': 'textarea',
+    # 'theme': 'silver',
+    'skin': 'oxide-dark',
+    # 'content_css':'/static/sms/prism.css',
+    "height": 600,
+    # "content_css":'/media/css/main.css',
+    'plugins': '''
+   
+           fullscreen codesample insertdatetime media table paste code help wordcount spellchecker
+            advlist autolink  link image charmap print preview anchor searchreplace visualblocks code
+            textcolor save  image media preview codesample contextmenu
+            table code lists fullscreen  insertdatetime  nonbreaking
+            contextmenu directionality searchreplace wordcount visualblocks
+            visualchars code fullscreen autolink lists  charmap print  hr
+            anchor pagebreak help paste
+            ''',
+
+    'toolbar1': '''
+            backcolor casechange permanentpen formatpainter removeformat | pagebreak | charmap emoticons |
+            undo redo |fullscreen | formatselect | bold italic underline | fontselect,
+            fontsizeselect  | forecolor backcolor | alignleft alignright |
+            aligncenter alignjustify | indent outdent | bullist numlist table |
+            | link image media | codesample | preview
+            ''',
+    'toolbar2': '''
+            visualblocks visualchars |
+            charmap hr pagebreak nonbreaking anchor |  code | help
+            ''',
+    'contextmenu': 'formats | link image',
+    'menubar': True,
+    'statusbar': True,
 }
 
 TINYMCE_SPELLCHECKER = True
 
-TINYMCE_EXTRA_MEDIA = {
-    'css': {
-        'all': [
+# TINYMCE_EXTRA_MEDIA = {
+#     'css': {
+#         'all': [
            
-        ],
-    },
-    'js': [
+#         ],
+#     },
+#     'js': [
      
-    ],
-}
+#     ],
+# }
 
+
+# problem of hosting to heroku and solution
+# error: failed to push some refs to 'https://git.heroku.com/codethinkers.git'
+# git checkout -b master
+# git add .
+# git commit -m "your commit message"
+# git push -u origin master
+# git push heroku master

@@ -5,7 +5,7 @@
 {% load cloudinary %}
 {% load embed_video_tags %}
 
-{% block title %}beginners{% endblock %}
+{% block title %}{{object.title|title}}{% endblock %}
 
 
 {% block body %} 
@@ -32,7 +32,7 @@ border: 1px dotted rgb(16, 2, 37);;
 
       <div class="card-body">
 
-  <h1><div class="text-center">{{object.title}}</div></h1><hr>
+  <h1><div class="text-center">{{object.title|safe}}</div></h1><hr>
  
   <div class="text-center">{{object.created}}, {{object.created|timesince}}</div><br><hr>
   {% if object.img_topic %}
@@ -45,7 +45,7 @@ border: 1px dotted rgb(16, 2, 37);;
   {% if object.video %}
   <div style="overflow-x: auto;" class="text-center">{% video object.video 'small' %}</div><hr>
  {% endif %}
-  <div><pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;"   class="container text-left" >{{object.desc}}</pre></div><br><hr>
+  <div><pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;"   class="container text-left" >{{object.desc|safe}}</pre></div><br><hr>
   <h3 class="">Activity </h3>
   {% if object.img_tutorial %}
   <div  class="text-center" ><img src="{{object.img_tutorial.url}}" width="90%" height="300px" alt="img_tutorial image"> </div><br>
