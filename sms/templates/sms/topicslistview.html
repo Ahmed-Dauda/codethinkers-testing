@@ -17,15 +17,6 @@
 </script>
 {% block body %}
 
-<script type="text/javascript">
-  tinyMCE.init({
-          mode: "textareas",
-          theme: "simple",
-          selector: 'textarea',
-          
-          skin: 'oxide-dark',
-  });
-</script> 
 <style>
     .courses{
   display: flex;
@@ -60,9 +51,9 @@ border: 1px dotted rgb(16, 2, 37);;
     {% for topic in topics %}
   
   <h1 class="text-white" style="background-color: rgb(16, 2, 37); color: wheat;">{{topic.title}}</h1><hr>
-  <div class="text-white">{% get_hit_count for topic %} <i class="fas fa-eye"></i></div><hr>
+  <div class="text-white">{% get_hit_count for topic %} <i class="fas fa-eye"></i></div>
   <div>created: {{topic.created}} | {{topic.created|timesince}} | last updated: {{topic.updated}} </div><br>
-  <p>Topic Number: {{forloop.counter}}</p><hr>
+  <p>Topic Number: {{ topics.number }}</p><hr>
   
   {% if topic.img_topic %}
   <div  class="text-left" ><img src="{{topic.img_topic.url}}" width="100%" height="400px" alt="topics image"> </div><br><hr>
@@ -70,10 +61,10 @@ border: 1px dotted rgb(16, 2, 37);;
   <div><img src="/static/sms/images/newlogo2.jpg" width="100%" height="500px" alt="topics image"></div><br>
   {% endif %}
   
-  
-  <div class = 'body-text text-left'>{{topic.objectives|safe|linebreaksbr}}</div>
+
   {% if topic.objectives %}
-  <h2>Learning Objectives</h2><hr>
+  <h2>Learning Objectives</h2>
+  <div class = 'body-text text-left'>{{topic.objectives|safe|linebreaksbr}}</div><hr>
   {% endif %}
   <button class="btn btn-primary" onclick="myFunction()">Start Learning</button>
   <div style="display: none;" id="myDIV">
