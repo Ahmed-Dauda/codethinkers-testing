@@ -84,14 +84,15 @@ border: 1px dotted rgb(16, 2, 37);;
   {% endif %}
  
   
-  <div class = 'body-text text-left'>{{topic.student_activity|safe|linebreaksbr}}</div><br>
+  
   {% if topic.student_activity %}
-  <h2>Activity</h2><hr>
+  <h2>Activity</h2>
+  <div class = 'body-text text-left'>{{topic.student_activity|safe|linebreaksbr}}</div><br><hr>
   {% endif %}
   
-  <div class = 'body-text text-left'>{{topic.evaluation|safe|linebreaksbr}}</div><br>
   {% if topic.evaluation %}
-  <h2>Evaluation</h2><hr>
+  <h2>Evaluation</h2>
+  <div class = 'body-text text-left'>{{topic.evaluation|safe|linebreaksbr}}</div><br><hr>
   {% endif %}
 
 <!-- pagination codes star -->
