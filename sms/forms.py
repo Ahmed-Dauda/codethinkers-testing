@@ -23,11 +23,10 @@ class feedbackform(ModelForm):
         
 
 class BlogcommentForm(forms.ModelForm):
-    
+    content =forms.CharField(widget=TinyMCE(attrs={'cols': 50, 'rows': 30}))
     class Meta:
         model = Blogcomment
-        fields = ('name','content')
-        widgets={
-            'content':TinyMCE
-        }
+        fields = ('name','content',)
+        
+       
        

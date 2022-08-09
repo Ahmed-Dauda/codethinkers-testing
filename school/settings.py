@@ -355,24 +355,22 @@ TINYMCE_DEFAULT_CONFIG = {
     'selector': 'textarea',
     # 'theme': 'silver',
     'skin': 'oxide-dark',
-    # 'content_css':'/static/sms/prism.css',
     "height": 600,
-    # "content_css":'/media/css/main.css',
     'plugins': '''
    
-           fullscreen codesample insertdatetime media table paste code help wordcount spellchecker
-            advlist autolink  link image charmap print preview anchor searchreplace visualblocks code
+            fullscreen codesample insertdatetime media table paste code help wordcount spellchecker
+            advlist  link image charmap print preview anchor searchreplace visualblocks code
             textcolor save  image media preview codesample contextmenu
-            table code lists fullscreen  insertdatetime  nonbreaking
+            table code  fullscreen  insertdatetime  nonbreaking
             contextmenu directionality searchreplace wordcount visualblocks
             visualchars code fullscreen autolink lists  charmap print  hr
             anchor pagebreak help paste
             ''',
 
     'toolbar1': '''
-            backcolor casechange permanentpen formatpainter removeformat | pagebreak | charmap emoticons |
+            forecolor backcolor permanentpen formatpainter removeformat | pagebreak | charmap emoticons |
             undo redo |fullscreen | formatselect | bold italic underline | fontselect,
-            fontsizeselect  | forecolor backcolor | alignleft alignright |
+            fontsizeselect  | alignleft alignright |
             aligncenter alignjustify | indent outdent | bullist numlist table |
             | link image media | codesample | preview
             ''',
