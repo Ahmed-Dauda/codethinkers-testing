@@ -45,7 +45,7 @@
 					<small class="card-text">By {{blog.poster}}</small><hr>
 				    {% endif %}
 					
-				  	<p class="card-text">{{blog.desc|safe|striptags|truncatewords:20}}</p>
+				  	<p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" class="card-text">{{blog.desc|safe|striptags|truncatewords:20}}</p>
 				  	<a href="{% url 'sms:blogdetaillistview' blog.slug %}" class="btn btn-warning">Read More....</a>
 			  	</div>
 			</div>

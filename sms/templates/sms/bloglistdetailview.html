@@ -3,13 +3,8 @@
 {% block title %} {{object.title|title}} {% endblock %}
 
   {% block content %}
+
   {% load static %}
-  <!-- <script src="prism.js" data-manual></script>
-<script src="tinymce.js"></script>
-
-<link rel="stylesheet" type="text/css" href="/static/sms/prism.css">
-<script src="/static/sms/prism.js"></script> -->
-
 
   <style>
      .share-icon{
@@ -61,7 +56,7 @@
       <small class="container text-center">Image source: {{object.img_source}}</small>
       <div class="card-body">
         
-        <p style="text-align: left;" class=" card-text">{{object.desc|safe}}</p><hr>
+        <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style='text-align:left' class=" card-text">{{object.desc|safe}}</p><hr>
        
        
         {% load social_share %}      
@@ -90,12 +85,12 @@
   
     <a style="width: 110px;" href="{% url 'sms:blogcommentform' object.slug %}" class="btn btn-primary">Add comment</a><br>  
   </div>
-    <div id="comment" style="display: none;">
+    <div id="comment" style="display: none;"><hr>
   {% for comment  in comments  %}
   
-  <h6 class=" btn-primary" style="color:white;">{{comment.author}} {{comment.created|timesince}}</h6>
+  <h6 class="" >{{comment.name}} {{comment.created|timesince}}</h6>
  
-  <p>{{comment.content}}</p>
+  <pre data-label="my-label-button" class="line-numbers copy-to-clipboard-button"><code>{{comment.content|safe}}</code> </pre>
  
   {% empty %}
   <h2>No comment Yet</h2>
