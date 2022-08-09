@@ -100,8 +100,11 @@ class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
 
         context = super().get_context_data(**kwargs)
         context['courses'] = Courses.objects.filter(categories__pk = self.object.id)
-        context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id)
-       
+        context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
+        course = Courses.objects.get(pk=self.kwargs["pk"])
+        
+        context['topics'] = Topics.objects.filter(courses_id= course.id)
+        # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
         return context
 
 class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
@@ -126,7 +129,7 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
         page_obj = paginator.get_page(page_number)
         context['topics'] = page_obj
         context['c'] = c
-        context['topics_count'] = Topics.objects.filter(courses__pk = self.object.id) 
+        # context['topics_count'] = Topics.objects.filter(courses__pk = self.object.id).count()
         return context
 
 class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
