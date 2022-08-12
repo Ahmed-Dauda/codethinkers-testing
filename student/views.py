@@ -3,6 +3,8 @@ from django.db.models.aggregates import Count
 from django.shortcuts import render,redirect,reverse
 from pytz import timezone
 import datetime
+
+from requests import delete
 from . import models
 from django.shortcuts import render, HttpResponse,redirect, get_list_or_404
 from django.db.models import Sum
@@ -80,13 +82,22 @@ def calculate_marks_view(request):
         student = Profile.objects.get(user_id=request.user.id)
         result = QMODEL.Result()
         
-        result.marks=total_marks
-        print('total marks',total_marks)
+        result.marks=total_marks 
         result.exam=course
         result.student=student
-        print('result',result)
-        if total_marks >= 2:
+        m = QMODEL.Result.objects.aggregate(Max('marks'))
+        max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
+        max_result = Result.objects.filter(id = Subquery(max_q[:1]), exam=course)
+        score = 0
+        for max_value in max_result:
+            score = score + max_value.marks
+            
+        if total_marks > score:
             result.save()
+        # if total_marks >= course.pass_mark:
+        #     result.save()   
+        # print('resulth', x)
+        
 
         return HttpResponseRedirect('view_result')
     else:
