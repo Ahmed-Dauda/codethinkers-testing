@@ -79,7 +79,7 @@ class Topics(models.Model):
     related_query_name='hit_count_generic_relation')
 
     def __str__(self):
-        return f'{self.title}'
+        return f'{self.title}-----{self.courses}'
 
 class Comment(models.Model):
     
