@@ -243,15 +243,17 @@ margin: 2px;
             <div class="navbar-collapse collapse" id="navbarResponsive" >
                 <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                   
-                    <li class="nav-item"><a class="nav-link" href="{% url 'sms:categorieslist' %}">Home</a></li><hr>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'sms:categorieslist' %}">Home</a></li>
 
+                    <hr>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'sms:bloglistview' %}">Article Page</a></li>
                     <hr>
                     <li class="nav-item"><a class="nav-link" href="#">Courses</a></li>
                     
                     <hr>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'sms:bloglistview' %}">Article Page</a></li>
                     
-                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li><hr>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                    <hr>
                     <li class="nav-item"><a class="nav-link" href="{% url 'account_logout' %}">Log out</a></li><hr>
                     
                 </ul>
