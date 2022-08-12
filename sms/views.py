@@ -222,8 +222,8 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
 def Certificates(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
     courses = QMODEL.Course.objects.all()
-    const = QMODEL.Course.objects.values_list('constant').first()[:1]
-    print('gtttt',const)
+    cert_note = QMODEL.Certificate_note.objects.all()
+    
     # student = Profile.objects.get(user_id=request.user.id)
     student = request.user.id  
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
@@ -243,7 +243,7 @@ def Certificates(request,pk):
         'st':request.user,
         'user_profile':user_profile,
         'courses':courses,
-        'const':const 
+        'cert_note':cert_note
     }
     return render(request,'sms/certificates.html', context)
 
