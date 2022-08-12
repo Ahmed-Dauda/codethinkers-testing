@@ -116,7 +116,7 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
     paginate_by = 1
 
     def get_queryset(self):
-        return Courses.objects.all()
+        return Courses.objects.get_queryset().order_by('id')
   
         
     def get_context_data(self, **kwargs):
