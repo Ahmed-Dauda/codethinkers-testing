@@ -35,7 +35,7 @@ from quiz.models import Result, Course
 from django.template import loader
 
 def take_exams_view(request):
-    course = QMODEL.Course.objects.all()
+    course = QMODEL.Course.objects.get_queryset().order_by('id')
     context = {
         'courses':course
     }
@@ -73,7 +73,7 @@ def calculate_marks_view(request):
         course=QMODEL.Course.objects.get(id=course_id)
         
         total_marks=0
-        questions=QMODEL.Question.objects.all().filter(course=course)
+        questions=QMODEL.Question.objects.get_queryset().filter(course=course).order_by('id')
         for i in range(len(questions)):
             
             selected_ans = request.COOKIES.get(str(i+1))
@@ -105,7 +105,7 @@ def calculate_marks_view(request):
         return HttpResponseRedirect('take-exam')
 
 def view_result_view(request):
-    courses=QMODEL.Course.objects.all()
+    courses=QMODEL.Course.objects.get_queryset().order_by('id')
     return render(request,'student/view_result.html',{'courses':courses})
 
 
@@ -113,7 +113,7 @@ from django.db.models import Count
 
 def check_marks_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
-    student = Profile.objects.all()
+    student = Profile.objects.get_queryset().order_by('id')
  
     context = {
         'results':student,

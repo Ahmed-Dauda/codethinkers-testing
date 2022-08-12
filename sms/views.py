@@ -68,7 +68,7 @@ class Categorieslistview(LoginRequiredMixin, ListView):
         context['students'] = User.objects.all().count()
         context['category'] = Categories.objects.count()
         context['courses'] = Courses.objects.all().count()
-        context['user'] = NewUser.objects.all()
+        context['user'] = NewUser.objects.get_queryset().order_by('id')
         
         # num_visit = self.request.session.get('num_visit', 0)
         # self.request.session['num_visit'] = num_visit + 1
@@ -325,7 +325,7 @@ class Blogdetaillistview(HitCountDetailView,DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        context['blogs'] =Blog.objects.all() 
+        context['blogs'] =Blog.objects.get_queryset().order_by('id')
         comments = Blogcomment.objects.filter(post__slug=self.object.slug).order_by('-created')
         context['blogs_count'] =Blog.objects.all().count()
         context['comments'] = comments 
