@@ -52,7 +52,7 @@ border: 1px dotted rgb(16, 2, 37);;
   
   <h1 class="text-white" style="background-color: rgb(16, 2, 37); color: wheat;">{{topic.title}}</h1><hr>
   <div class="text-white">{% get_hit_count for topic %} <i class="fas fa-eye"></i></div>
-  <div>created: {{topic.created}} | {{topic.created|timesince}} | last updated: {{topic.updated}} </div><br>
+  <div>created: {{topic.created|date}} | {{topic.created|timesince}} | last updated: {{topic.updated}} </div><br>
   <p>Topic Number: {{ topics.number }}</p><hr>
   
   {% if topic.img_topic %}

@@ -91,8 +91,11 @@ tr, td, th{
 {% endfor %}
 
 {% empty  %}
-<h4 style = 'color:green'>No Certificate Yet. You have to Score >= 70</h4>
-    {% endfor %}
+
+<h4 style = 'color:green'>No Certificate Yet. You have to Score >= {{course.constant}}</h4>
+
+
+{% endfor %}
       </tr>
      
     </tbody>
