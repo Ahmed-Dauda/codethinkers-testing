@@ -52,6 +52,8 @@ tr, td, th{
     <br><br>
 <div class="table-responsive container text-center card-body">
     <table class="table" id="">
+      <h4 style = 'color:green'>You have to Score >= 70 marks to get Certificate for this course</h4>
+      <p style = ''>Immediately if you fulfilled the above requirement, you can print your Certificate below</p>
       <div><a href="{% url 'student:take-exam' %}">Take Exam</a></div><br>
       <thead>
         <tr>
@@ -79,11 +81,12 @@ tr, td, th{
 
 {% for course in courses %}
 
-{% if course == t.exam and t.marks >= t.constant %}
+{% if course == t.exam and t.marks >= course.constant %}
 
 <a href="{% url 'student:pdf' course.id %}">Get Certificate {{course}}</a><br>
 
 {% else  %}
+
 
 {% endif  %}
 
@@ -91,9 +94,6 @@ tr, td, th{
 {% endfor %}
 
 {% empty  %}
-
-<h4 style = 'color:green'>No Certificate Yet. You have to Score >= {{course.constant}}</h4>
-
 
 {% endfor %}
       </tr>

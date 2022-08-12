@@ -1,3 +1,4 @@
+from asyncio import constants
 from tokenize import group
 from unittest import result
 from django.contrib.auth import forms
@@ -221,6 +222,8 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
 def Certificates(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
     courses = QMODEL.Course.objects.all()
+    const = QMODEL.Course.objects.values_list('constant').first()[:1]
+    print('gtttt',const)
     # student = Profile.objects.get(user_id=request.user.id)
     student = request.user.id  
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
@@ -239,7 +242,8 @@ def Certificates(request,pk):
         'course':course,
         'st':request.user,
         'user_profile':user_profile,
-        'courses':courses 
+        'courses':courses,
+        'const':const 
     }
     return render(request,'sms/certificates.html', context)
 
