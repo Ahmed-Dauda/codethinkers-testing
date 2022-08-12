@@ -129,7 +129,7 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
         page_obj = paginator.get_page(page_number)
         context['topics'] = page_obj
         context['c'] = c
-        # context['topics_count'] = Topics.objects.filter(courses__pk = self.object.id).count()
+
         return context
 
 class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
@@ -145,20 +145,6 @@ class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
 
 from sweetify.views import SweetifySuccessMixin
 
-# class signupview(SuccessMessageMixin,CreateView):
-    
-#     form_class =signupform
-#     template_name =  'sms/signup.html'
-#     success_url = reverse_lazy('sms:signupsuccess')
-#     success_message = 'TestModel successfully updated!'
-    
-# class Signupsuccess(ListView):
-#     models = ''
-#     template_name = 'sms/signupsuccess.html'
-#     success_url = reverse_lazy('sms:signupview')
-
-#     def get_queryset(self):
-#         return Topics.objects.all()
 
 class Commentlistview( ListView):
     models = Comment
