@@ -44,9 +44,10 @@ def take_exams_view(request):
 def start_exams_view(request, pk):
 
     course = QMODEL.Course.objects.get(id = pk)
-    # questions = QMODEL.Question.objects.all().filter(course = course).order_by('?')
-    questions = QMODEL.Question.objects.all().filter(course = course)
 
+    # questions = QMODEL.Question.objects.all().filter(course = course)
+
+    questions = QMODEL.Question.objects.get_queryset().filter(course = course).order_by('id')
     q_count = QMODEL.Question.objects.all().filter(course = course).count()
  
     paginator = Paginator(questions, 100) # Show 25 contacts per page.
