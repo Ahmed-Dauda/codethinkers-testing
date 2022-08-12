@@ -63,7 +63,7 @@ border: 1px dotted rgb(16, 2, 37);;
   
 
   {% if topic.objectives %}
-  <h2>Learning Objectives</h2>
+ 
   <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button body-text text-left" >{{topic.objectives|safe|linebreaksbr}}</div><hr>
   {% endif %}
   <button class="btn btn-primary" onclick="myFunction()">Start Learning</button>
@@ -77,12 +77,12 @@ border: 1px dotted rgb(16, 2, 37);;
   
   
   {% if topic.student_activity %}
-  <h2>Activity</h2>
+  
   <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button text-left" >{{topic.student_activity|safe}}</div><br><hr>
   {% endif %}
   
   {% if topic.evaluation %}
-  <h2>Evaluation</h2>
+
   <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button body-text text-left">{{topic.evaluation|safe}}</div><br><hr>
   {% endif %}
 
