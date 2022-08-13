@@ -80,7 +80,7 @@ def calculate_marks_view(request):
             actual_answer = questions[i].answer
             if selected_ans == actual_answer:
                 total_marks = total_marks + questions[i].marks
-        student = Profile.objects.filter(user_id=request.user.id)
+        student = Profile.objects.get(user_id=request.user.id)
         result = QMODEL.Result()
         
         result.marks=total_marks 
@@ -88,7 +88,7 @@ def calculate_marks_view(request):
         result.student=student
         m = QMODEL.Result.objects.aggregate(Max('marks'))
         max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-        max_result = Result.objects.filter(id = Subquery(max_q[:1]), exam=course)
+        max_result = Result.objects.filter(id__in = Subquery(max_q[:1]), exam=course, student=student)
         score = 0
         for max_value in max_result:
             score = score + max_value.marks
@@ -129,7 +129,7 @@ def check_marks_view(request,pk):
 def pdf_id_view(request, *args, **kwargs):
 
     course=QMODEL.Course.objects.all()
-    student = Profile.objects.filter(user_id=request.user.id)
+    student = Profile.objects.get(user_id=request.user.id)
     date = datetime.datetime.now()
     logo = Logo.objects.all() 
     sign = signature.objects.all()
