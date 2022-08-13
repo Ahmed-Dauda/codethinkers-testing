@@ -16,9 +16,11 @@ class ArticleAdminResource(resources.ModelResource):
         # fields = ('title',)
                
 class ArticleAdminAdmin(ImportExportModelAdmin):
+    
+    prepopulated_fields = {"slug": ("title",)}
     list_display = ['id', 'title', 'desc', 'created']
     list_filter =  ['title']
-    search_fields= ['title']
+    search_fields = ['author__user','title']
     ordering = ['id']
     
     resource_class = ArticleAdminResource
