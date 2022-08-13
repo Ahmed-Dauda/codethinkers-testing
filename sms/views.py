@@ -193,7 +193,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         course=QMODEL.Course.objects.all()
         context['courses']=QMODEL.Course.objects.all()
         # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
-        student = Profile.objects.get(user_id=self.request.user.id)
+        student = Profile.objects.filter(user_id=self.request.user.id)
         context['results']= QMODEL.Result.objects.order_by('-marks')
         return context
 
@@ -284,7 +284,7 @@ class Admin_result(LoginRequiredMixin, ListView):
 @login_required
 def Admin_detail_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
-    student = Profile.objects.get(user_id=request.user.id)
+    student = Profile.objects.filter(user_id=request.user.id)
 
     # m = QMODEL.Result.objects.aggregate(Max('marks'))   
     # max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id') ,).order_by('-marks').values('id')
