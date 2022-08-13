@@ -48,7 +48,7 @@ def calculate_marks_view(request):
             actual_answer = questions[i].answer
             if selected_ans == actual_answer:
                 total_marks = total_marks + questions[i].marks
-        student = Profile.objects.get(user_id=request.user.id)
+        student = Profile.objects.filter(user_id=request.user.id)
         result = QMODEL.Result()
         result.marks=total_marks
         result.exam=course
@@ -66,7 +66,7 @@ from django.db.models import Count
 
 def check_marks_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
-    student = Profile.objects.get(user_id=request.user.id)
+    student = Profile.objects.filter(user_id=request.user.id)
     res= QMODEL.Result.objects.values_list('marks', flat=True).order_by('-marks').distinct()
     stu= QMODEL.Result.objects.values('student','exam','marks').distinct()
     
