@@ -1,3 +1,4 @@
+from asyncio import constants
 from tokenize import group
 from unittest import result
 from django.contrib.auth import forms
@@ -67,7 +68,7 @@ class Categorieslistview(LoginRequiredMixin, ListView):
         context['students'] = User.objects.all().count()
         context['category'] = Categories.objects.count()
         context['courses'] = Courses.objects.all().count()
-        context['user'] = NewUser.objects.all()
+        context['user'] = NewUser.objects.get_queryset().order_by('id')
         
         # num_visit = self.request.session.get('num_visit', 0)
         # self.request.session['num_visit'] = num_visit + 1
@@ -103,7 +104,7 @@ class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
         course = Courses.objects.get(pk=self.kwargs["pk"])
         
-        context['topics'] = Topics.objects.filter(courses_id= course.id)
+        context['topics'] = Topics.objects.get_queryset().filter(courses_id= course.id).order_by('id')
         # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
         return context
 
@@ -115,21 +116,21 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
     paginate_by = 1
 
     def get_queryset(self):
-        return Courses.objects.all()
+        return Courses.objects.get_queryset().order_by('id')
   
         
     def get_context_data(self, **kwargs):
         
         context = super().get_context_data(**kwargs)
-        t = Topics.objects.filter(courses__pk = self.object.id)
+        topic = Topics.objects.get_queryset().filter(courses__pk = self.object.id).order_by('id')
         c = Topics.objects.filter(courses__pk = self.object.id).count()
-        paginator = Paginator(t, 1) # Show 25 contacts per page.
+        paginator = Paginator(topic, 1) # Show 25 contacts per page.
 
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         context['topics'] = page_obj
         context['c'] = c
-        # context['topics_count'] = Topics.objects.filter(courses__pk = self.object.id).count()
+
         return context
 
 class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
@@ -140,25 +141,11 @@ class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
     
     
     def get_queryset(self):
-        return Topics.objects.all()
+        return Topics.objects.get_queryset().order_by('id')
         
 
 from sweetify.views import SweetifySuccessMixin
 
-# class signupview(SuccessMessageMixin,CreateView):
-    
-#     form_class =signupform
-#     template_name =  'sms/signup.html'
-#     success_url = reverse_lazy('sms:signupsuccess')
-#     success_message = 'TestModel successfully updated!'
-    
-# class Signupsuccess(ListView):
-#     models = ''
-#     template_name = 'sms/signupsuccess.html'
-#     success_url = reverse_lazy('sms:signupview')
-
-#     def get_queryset(self):
-#         return Topics.objects.all()
 
 class Commentlistview( ListView):
     models = Comment
@@ -206,7 +193,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         course=QMODEL.Course.objects.all()
         context['courses']=QMODEL.Course.objects.all()
         # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
-        student = Profile.objects.get(user_id=self.request.user.id)
+        student = Profile.objects.filter(user_id=self.request.user.id)
         context['results']= QMODEL.Result.objects.order_by('-marks')
         return context
 
@@ -235,6 +222,8 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
 def Certificates(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
     courses = QMODEL.Course.objects.all()
+    cert_note = QMODEL.Certificate_note.objects.all()
+    
     # student = Profile.objects.get(user_id=request.user.id)
     student = request.user.id  
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
@@ -253,7 +242,8 @@ def Certificates(request,pk):
         'course':course,
         'st':request.user,
         'user_profile':user_profile,
-        'courses':courses 
+        'courses':courses,
+        'cert_note':cert_note
     }
     return render(request,'sms/certificates.html', context)
 
@@ -294,7 +284,7 @@ class Admin_result(LoginRequiredMixin, ListView):
 @login_required
 def Admin_detail_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
-    student = Profile.objects.get(user_id=request.user.id)
+    student = Profile.objects.filter(user_id=request.user.id)
 
     # m = QMODEL.Result.objects.aggregate(Max('marks'))   
     # max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id') ,).order_by('-marks').values('id')
@@ -335,7 +325,7 @@ class Blogdetaillistview(HitCountDetailView,DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        context['blogs'] =Blog.objects.all() 
+        context['blogs'] =Blog.objects.get_queryset().order_by('id')
         comments = Blogcomment.objects.filter(post__slug=self.object.slug).order_by('-created')
         context['blogs_count'] =Blog.objects.all().count()
         context['comments'] = comments 
