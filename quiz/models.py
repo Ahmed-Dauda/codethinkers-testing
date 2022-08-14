@@ -3,6 +3,10 @@ from django.db import models
 from users.models import Profile
 from cloudinary.models import CloudinaryField
 
+from tinymce.models import HTMLField
+from tinymce import models as tinymce_models
+from tinymce.widgets import TinyMCE
+
 class Course(models.Model):
    course_name = models.CharField(max_length=50, unique= True)
    question_number = models.PositiveIntegerField()
@@ -19,7 +23,7 @@ class Course(models.Model):
 class Question(models.Model):
     course=models.ForeignKey(Course,on_delete=models.CASCADE)
     marks=models.PositiveIntegerField()
-    question=models.TextField(blank=True, null = True)
+    question= tinymce_models.HTMLField( blank=True, null= True)
     img_quiz = CloudinaryField('image', blank=True, null= True)
     option1=models.CharField(max_length=200)
     option2=models.CharField(max_length=200)
