@@ -9,52 +9,108 @@ from sms.models import (
     Comment, Blog, Blogcomment
     )
 
+class ArticleAdminResource(resources.ModelResource):
+    
+    class Meta:
+        model = Blog
+        # fields = ('title',)
+               
+class ArticleAdminAdmin(ImportExportModelAdmin):
+    
+    prepopulated_fields = {"slug": ("title",)}
+    list_display = ['id', 'title', 'desc', 'created']
+    list_filter =  ['title']
+    search_fields = ['author__user','title']
+    ordering = ['id']
+    
+    resource_class = ArticleAdminResource
+
+admin.site.register(Blog, ArticleAdminAdmin)
 
 
-class ArticleAdmin(admin.ModelAdmin):
-    list_display = ("title", "desc",)
-    prepopulated_fields = {"slug": ("title",)}  # new
+class FeedbackcommentResource(resources.ModelResource):
+    
+    class Meta:
+        model = Comment
+        # fields = ('title',)
+               
+class FeedbackcommentResourceAdmin(ImportExportModelAdmin):
+    list_display = ['id', 'title', 'desc', 'created']
+    list_filter =  ['title']
+    search_fields= ['title']
+    ordering = ['id']
+    
+    resource_class = FeedbackcommentResource
 
-admin.site.register(Blog, ArticleAdmin)
-
-@admin.register(Comment)
-class commentadmin(admin.ModelAdmin):
-    # list_display = ['id', 'name', 'desc', 'created']
-    # list_filter = ordering = ['created']
-    ordering = ['created']
-
-@admin.register(Categories)
-class categoriesadmin(admin.ModelAdmin):
-    # list_display = ['id', 'name', 'desc', 'created']
-    ordering = ['created']
-
-@admin.register(Courses)
-class coursesadmin(admin.ModelAdmin):
-#     list_display = ['id', 'name', 'desc', 'created']
-    ordering = ['created']
-
-# @admin.register(Topics)
-# class topicsadmin(admin.ModelAdmin):
-# #     list_display = ['id', 'name', 'desc', 'created']
-#     prepopulated_fields = {"slug": ("title",)}
-#     ordering = ['created']
+admin.site.register(Comment, FeedbackcommentResourceAdmin)
 
 
-@admin.register(Blogcomment)
-class blogcommentadmin(admin.ModelAdmin):
+class CategoriesResource(resources.ModelResource):
+    
+    class Meta:
+        model = Categories
+        # fields = ('title',)
+               
+class CategoriesAdmin(ImportExportModelAdmin):
+    list_display = ['id', 'name', 'desc', 'created']
+    list_filter =  ['name']
+    search_fields= ['name']
+    ordering = ['id']
+    
+    resource_class = CategoriesResource
+
+admin.site.register(Categories, CategoriesAdmin)
+
+
+class CategoriesResource(resources.ModelResource):
+    
+    courses = fields.Field(
+        column_name= 'categories',
+        attribute='categories',
+        widget=ForeignKeyWidget(Categories,'name') )
+    
+    class Meta:
+        model = Courses
+        # fields = ('title',)
+               
+class CoursesAdmin(ImportExportModelAdmin):
+    list_display = ['id', 'categories','title', 'desc', 'created']
+    list_filter =  ['categories','title']
+    search_fields = ['categories__name','title']
+    ordering = ['id']
+    
+    resource_class = CategoriesResource
+
+admin.site.register(Courses, CoursesAdmin)
+
+
+# @admin.register(Blogcomment)
+# class blogcommentadmin(admin.ModelAdmin):
+#     list_display = ['id','post','name' ,'content']
+#     # prepopulated_fields = {"slug": ("title",)}
+#     list_filter =  ['post','created','name']
+#     search_fields= ['post','name']
+#     ordering = ['id']
+
+class blogcommentResource(resources.ModelResource):
+    
+    class Meta:
+        model = Blogcomment
+        # fields = ('title',)
+               
+class blogcommentAdmin(ImportExportModelAdmin):
     list_display = ['id','post','name' ,'content']
-    # prepopulated_fields = {"slug": ("title",)}
+     # prepopulated_fields = {"slug": ("title",)}
     list_filter =  ['post','created','name']
     search_fields= ['post','name']
-    ordering = ['created']
-
-
-# class BookResource(resources.ModelResource):
+    ordering = ['id']
     
-#     class Meta:
-#         model = Topics
+    resource_class = blogcommentResource
 
-class BookResource(resources.ModelResource):
+admin.site.register(Blogcomment, blogcommentAdmin)
+    
+
+class TopicsResource(resources.ModelResource):
     
     courses = fields.Field(
         column_name= 'courses',
@@ -65,7 +121,12 @@ class BookResource(resources.ModelResource):
         model = Topics
         # fields = ('title',)
                
-class BookAdmin(ImportExportModelAdmin):
-    resource_class = BookResource
+class TopicsAdmin(ImportExportModelAdmin):
+    list_display = ['id','categories','courses' ,'title','objectives','desc' ,'student_activity', 'img_topic', 'img_tutorial', 'video', 'topics_url', 'created','updated']
+    # prepopulated_fields = {"slug": ("title",)}
+    list_filter =  ['id','categories','courses' ,'title', 'topics_url', 'created']
+    search_fields= ['id','categories','courses' ,'title', 'created']
+    ordering = ['id']
+    resource_class = TopicsResource
 
-admin.site.register(Topics, BookAdmin)
+admin.site.register(Topics, TopicsAdmin)

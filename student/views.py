@@ -3,6 +3,8 @@ from django.db.models.aggregates import Count
 from django.shortcuts import render,redirect,reverse
 from pytz import timezone
 import datetime
+
+from requests import delete
 from . import models
 from django.shortcuts import render, HttpResponse,redirect, get_list_or_404
 from django.db.models import Sum
@@ -33,7 +35,7 @@ from quiz.models import Result, Course
 from django.template import loader
 
 def take_exams_view(request):
-    course = QMODEL.Course.objects.all()
+    course = QMODEL.Course.objects.get_queryset().order_by('id')
     context = {
         'courses':course
     }
@@ -42,9 +44,10 @@ def take_exams_view(request):
 def start_exams_view(request, pk):
 
     course = QMODEL.Course.objects.get(id = pk)
-    # questions = QMODEL.Question.objects.all().filter(course = course).order_by('?')
-    questions = QMODEL.Question.objects.all().filter(course = course)
 
+    # questions = QMODEL.Question.objects.all().filter(course = course)
+
+    questions = QMODEL.Question.objects.get_queryset().filter(course = course).order_by('id')
     q_count = QMODEL.Question.objects.all().filter(course = course).count()
  
     paginator = Paginator(questions, 100) # Show 25 contacts per page.
@@ -70,7 +73,7 @@ def calculate_marks_view(request):
         course=QMODEL.Course.objects.get(id=course_id)
         
         total_marks=0
-        questions=QMODEL.Question.objects.all().filter(course=course)
+        questions=QMODEL.Question.objects.get_queryset().filter(course=course).order_by('id')
         for i in range(len(questions)):
             
             selected_ans = request.COOKIES.get(str(i+1))
@@ -80,20 +83,29 @@ def calculate_marks_view(request):
         student = Profile.objects.get(user_id=request.user.id)
         result = QMODEL.Result()
         
-        result.marks=total_marks
-        print('total marks',total_marks)
+        result.marks=total_marks 
         result.exam=course
         result.student=student
-        print('result',result)
-        if total_marks >= 2:
+        m = QMODEL.Result.objects.aggregate(Max('marks'))
+        max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
+        max_result = Result.objects.filter(id__in = Subquery(max_q[:1]), exam=course, student=student)
+        score = 0
+        for max_value in max_result:
+            score = score + max_value.marks
+            
+        if total_marks > score:
             result.save()
+        # if total_marks >= course.pass_mark:
+        #     result.save()   
+        # print('resulth', x)
+        
 
         return HttpResponseRedirect('view_result')
     else:
         return HttpResponseRedirect('take-exam')
 
 def view_result_view(request):
-    courses=QMODEL.Course.objects.all()
+    courses=QMODEL.Course.objects.get_queryset().order_by('id')
     return render(request,'student/view_result.html',{'courses':courses})
 
 
@@ -101,7 +113,7 @@ from django.db.models import Count
 
 def check_marks_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
-    student = Profile.objects.all()
+    student = Profile.objects.get_queryset().order_by('id')
  
     context = {
         'results':student,

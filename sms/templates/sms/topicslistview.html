@@ -52,7 +52,7 @@ border: 1px dotted rgb(16, 2, 37);;
   
   <h1 class="text-white" style="background-color: rgb(16, 2, 37); color: wheat;">{{topic.title}}</h1><hr>
   <div class="text-white">{% get_hit_count for topic %} <i class="fas fa-eye"></i></div>
-  <div>created: {{topic.created}} | {{topic.created|timesince}} | last updated: {{topic.updated}} </div><br>
+  <div>created: {{topic.created|date}} | {{topic.created|timesince}} | last updated: {{topic.updated}} </div><br>
   <p>Topic Number: {{ topics.number }}</p><hr>
   
   {% if topic.img_topic %}
@@ -63,8 +63,8 @@ border: 1px dotted rgb(16, 2, 37);;
   
 
   {% if topic.objectives %}
-  <h2>Learning Objectives</h2>
-  <div class = 'body-text text-left'>{{topic.objectives|safe|linebreaksbr}}</div><hr>
+ 
+  <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button body-text text-left" >{{topic.objectives|safe|linebreaksbr}}</div><hr>
   {% endif %}
   <button class="btn btn-primary" onclick="myFunction()">Start Learning</button>
   <div style="display: none;" id="myDIV">
@@ -77,13 +77,13 @@ border: 1px dotted rgb(16, 2, 37);;
   
   
   {% if topic.student_activity %}
-  <h2>Activity</h2>
-  <div class = 'body-text text-left'>{{topic.student_activity|safe|linebreaksbr}}</div><br><hr>
+  
+  <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button text-left" >{{topic.student_activity|safe}}</div><br><hr>
   {% endif %}
   
   {% if topic.evaluation %}
-  <h2>Evaluation</h2>
-  <div class = 'body-text text-left'>{{topic.evaluation|safe|linebreaksbr}}</div><br><hr>
+
+  <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button body-text text-left">{{topic.evaluation|safe}}</div><br><hr>
   {% endif %}
 
 <!-- pagination codes star -->
