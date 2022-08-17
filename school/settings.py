@@ -172,13 +172,15 @@ cloudinary.config(
 # https://mail.zoho.com/UnblockMe
 
 EMAIL_BACKED = 'django_smtp_ssl.SSLEmailBackend'
-# EMAIL_HOST = 'smtppro.zoho.eu'
-EMAIL_HOST = 'smtppro.zoho.com'
+EMAIL_HOST = 'smtppro.zoho.eu'
+# EMAIL_HOST = 'smtppro.zoho.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False 
-EMAIL_HOST_USER = 'codethinkersa@gmail.com'
-EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
+EMAIL_HOST_USER = 'techsupport@esteemlearningcentre.com'
+# EMAIL_HOST_USER = 'codethinkersa@gmail.com'
+# EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
+EMAIL_HOST_PASSWORD = 'techSupport@01'
 DEFAULT_FROM_EMAIL = 'codethinkersa@gmail.com'
 
 # if DEBUG:
@@ -293,9 +295,9 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = 'account_login'
-LOGOUT_REDIRECT_URL = 'account_logout'
-ACCOUNT_SIGNUP_REDIRECT_URL= 'settings.LOGOUT_URL'
-
+LOGOUT_REDIRECT_URL = 'account_login'
+ACCOUNT_SIGNUP_REDIRECT_URL= 'account_login'
+# ACCOUNT_SIGNUP_REDIRECT_URL= 'settings.LOGOUT_URL'
 # django hit count 
 # HITCOUNT_KEEP_HIT_ACTIVE = {'seconds': 2}
 
