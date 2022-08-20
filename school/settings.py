@@ -181,7 +181,7 @@ EMAIL_HOST_USER = 'techsupport@esteemlearningcentre.com'
 # EMAIL_HOST_USER = 'codethinkersa@gmail.com'
 # EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
 EMAIL_HOST_PASSWORD = 'techSupport@01'
-DEFAULT_FROM_EMAIL = 'codethinkersa@gmail.com'
+DEFAULT_FROM_EMAIL = 'techsupport@esteemlearningcentre.com'
 
 # if DEBUG:
 #     EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
