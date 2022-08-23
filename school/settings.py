@@ -166,6 +166,8 @@ cloudinary.config(
 # email settings
 
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
+
+# the below email backed is for testing with local server
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # code to unblock zoho account
