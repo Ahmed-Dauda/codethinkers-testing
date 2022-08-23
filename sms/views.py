@@ -102,9 +102,9 @@ class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context = super().get_context_data(**kwargs)
         context['courses'] = Courses.objects.filter(categories__pk = self.object.id)
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
-        course = Courses.objects.get(pk=self.kwargs["pk"])
+        # course = Courses.objects.get(pk=self.kwargs["pk"])
         
-        context['topics'] = Topics.objects.get_queryset().filter(courses_id= course.id).order_by('id')
+        # context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
         # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
         return context
 
