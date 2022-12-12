@@ -42,7 +42,7 @@
   <br>
   <div class="container">
 
-<form action="/student/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
+<form id="post-form" action="/student/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
   {% csrf_token %}
   <input type="hidden" name="csrfmiddlewaretoken" value="C24rUotmdHawVQJL3KrqiWxvti8UffOFYUc8TRbZtLt36AVLdP3jbkzUVe3beRAa">
     <h1>{{course}} Quiz</h1><br>
@@ -158,14 +158,22 @@
     return false;
 }
 </script>
-<!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script> -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 
  <!-- prism js for systax highlighter  -->
  <script src="/static/sms/prism.js"></script>
 </body>
+
+<script type="text/javascript">
+  $(document).on('submit', '#post-form', function(e){
+    e.preventDefault();
+  })
+
+</script>
 </html>
 
  <script> 
+
     function saveAns(){  
 
         var ele = document.getElementsByTagName('input'); 
