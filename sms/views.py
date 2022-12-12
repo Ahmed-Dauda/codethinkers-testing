@@ -139,7 +139,6 @@ class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
     template_name = 'sms/topicsdetailview.html'
     count_hit = True
     
-    
     def get_queryset(self):
         return Topics.objects.get_queryset().order_by('id')
         
