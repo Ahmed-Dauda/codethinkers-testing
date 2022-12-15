@@ -54,6 +54,10 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+
+
 class Categorieslistview(LoginRequiredMixin, ListView):
     models = Categories
     template_name = 'sms/home.html'
@@ -107,6 +111,34 @@ class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
         # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
         return context
+
+
+def display_latestnews(request):
+    
+    newsdata = Topics.objects.all()
+    # articles per page
+    per_page = 1
+    # Paginator in a view function to paginate a queryset
+    # show 4 news per page
+    obj_paginator = Paginator(newsdata, per_page)
+    # list of objects on first page
+    first_page = obj_paginator.page(1).object_list
+    # range iterator of page numbers
+    page_range = obj_paginator.page_range
+
+    context = {
+    'obj_paginator':obj_paginator,
+    'first_page':first_page,
+    'page_range':page_range
+    }
+    #
+    if request.method == 'POST':
+        #getting page number
+        page_no = request.POST.get('page_no', None) 
+        results = list(obj_paginator.page(page_no).object_list.values('id', 'title','desc'))
+        return JsonResponse({"results":results})
+        
+    return render(request, 'sms/paginate.html',context)
 
 class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
     

@@ -79,6 +79,9 @@ class Topics(models.Model):
     HitCount, object_id_field='object_pk',
     related_query_name='hit_count_generic_relation')
 
+    # class Meta:
+    #     db_table = ""
+        
     def __str__(self):
         return f'{self.title}-----{self.courses}'
 
