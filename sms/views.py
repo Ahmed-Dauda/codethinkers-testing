@@ -113,7 +113,7 @@ class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         return context
 
 
-def display_latestnews(request):
+def Topic_list(request):
     
     newsdata = Topics.objects.all()
     # articles per page

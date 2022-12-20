@@ -42,7 +42,7 @@
   <br>
   <div class="container">
 
-<form id="post-form" action="/student/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
+<form id="" action="/student/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
   {% csrf_token %}
   <input type="hidden" name="csrfmiddlewaretoken" value="C24rUotmdHawVQJL3KrqiWxvti8UffOFYUc8TRbZtLt36AVLdP3jbkzUVe3beRAa">
     <h1>{{course}} Quiz</h1><br>
@@ -139,11 +139,7 @@
       }
     </script>
 
-<script>
-    function disp(){
-    alert('Note: You must answer all question before you will be able to submit')
-    } 
-</script>
+
 
 <script>
   function check(){
@@ -164,12 +160,6 @@
  <script src="/static/sms/prism.js"></script>
 </body>
 
-<script type="text/javascript">
-  $(document).on('submit', '#post-form', function(e){
-    e.preventDefault();
-  })
-
-</script>
 </html>
 
  <script> 
