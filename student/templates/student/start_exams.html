@@ -1,13 +1,9 @@
 <!DOCTYPE html>
-{% load static %}
-{% load cloudinary %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <!-- prism css for syntax highlighter  -->
-     <link rel="stylesheet" type="text/css" href="/static/sms/prism.css">
     <title>start exams view</title>
        <!-- sweetify -->
        <!-- <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
@@ -42,7 +38,7 @@
   <br>
   <div class="container">
 
-<form id="" action="/student/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
+<form action="/student/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
   {% csrf_token %}
   <input type="hidden" name="csrfmiddlewaretoken" value="C24rUotmdHawVQJL3KrqiWxvti8UffOFYUc8TRbZtLt36AVLdP3jbkzUVe3beRAa">
     <h1>{{course}} Quiz</h1><br>
@@ -56,7 +52,7 @@
 {% if q.img_quiz.url %}
 <div  class="text-center" ><img src="{{q.img_quiz.url}}" width="100%" height="300px" alt=""> </div><br>
 {% endif %}
-  <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" class="card-text"> {{q.question|safe}}</p> 
+  <pre style="white-space: pre-wrap; font-size: 20px;font-family: sans-serif;" > {{q.question}}</pre> 
 <h6 style="text-align: right;">[marks {{q.marks}}]</h6>
 <br>
   <div class="card-header">
@@ -139,7 +135,11 @@
       }
     </script>
 
-
+<script>
+    function disp(){
+    alert('Note: You must answer all question before you will be able to submit')
+    } 
+</script>
 
 <script>
   function check(){
@@ -154,16 +154,13 @@
     return false;
 }
 </script>
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script> -->
 
- <!-- prism js for systax highlighter  -->
- <script src="/static/sms/prism.js"></script>
+</script>
 </body>
-
 </html>
 
  <script> 
-
     function saveAns(){  
 
         var ele = document.getElementsByTagName('input'); 
