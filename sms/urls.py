@@ -5,7 +5,7 @@ from sms.views import(
     Categorieslistview,
      Courseslistview,
      Topicslistview,
-      Topic_list,
+    #   Topic_list,
       Topicsdetailview,
       Feedbackformview,
       Commentlistview,
