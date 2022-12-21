@@ -113,32 +113,6 @@ class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         return context
 
 
-# def Topic_list(request):
-    
-#     newsdata = Topics.objects.all()
-#     # articles per page
-#     per_page = 1
-#     # Paginator in a view function to paginate a queryset
-#     # show 4 news per page
-#     obj_paginator = Paginator(newsdata, per_page)
-#     # list of objects on first page
-#     first_page = obj_paginator.page(1).object_list
-#     # range iterator of page numbers
-#     page_range = obj_paginator.page_range
-
-#     context = {
-#     'obj_paginator':obj_paginator,
-#     'first_page':first_page,
-#     'page_range':page_range
-#     }
-#     #
-#     if request.method == 'POST':
-#         #getting page number
-#         page_no = request.POST.get('page_no', None) 
-#         results = list(obj_paginator.page(page_no).object_list.values('id', 'title','desc'))
-#         return JsonResponse({"results":results})
-        
-#     return render(request, 'sms/paginate.html',context)
 
 class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
     
