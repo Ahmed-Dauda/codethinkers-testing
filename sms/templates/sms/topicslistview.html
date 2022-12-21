@@ -163,36 +163,6 @@ border: 1px dotted rgb(16, 2, 37);;
   }
 </script>
 
-	<script>
-	$('a').click(function(event){
-		// preventing default actions
-		event.preventDefault();
-		var page_no = $(this).attr('href');
-    var pk = $(this).data('pk');
-		// ajax call
-			$.ajax({
-					type: "POST",
-					// define url name
-          
-					url: "{% url 'sms:topicslistview' pk=pk %}", 
-					data : {    
-					page_no : page_no, 
-					csrfmiddlewaretoken: '{{ csrf_token }}',
-				},
-				// handle a successful response
-				success: function (response) {
-					$('#articles').html('')
-					$.each(response.results, function(i, val) {
-					 //append to post
-					$('#articles').append('<h2>' + val.title + '</h2><p>'+ val.desc +'</p>')
-				   });
-				},
-				error: function () {
-					alert('Error Occured');
-				}
-			}); 
-	});    
-	</script>
 
 
 {% endblock %}
