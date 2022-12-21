@@ -74,14 +74,12 @@ class Topics(models.Model):
     topics_url = models.CharField(max_length=500, blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
-    # pk = models.BigAutoField(primary_key=True)
+    id = models.BigAutoField(primary_key=True)
     hit_count_generic = GenericRelation(
     HitCount, object_id_field='object_pk',
     related_query_name='hit_count_generic_relation')
 
-    # class Meta:
-    #     db_table = ""
-        
+
     def __str__(self):
         return f'{self.title}-----{self.courses}'
 
