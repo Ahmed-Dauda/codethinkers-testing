@@ -54,6 +54,10 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+
+
 class Categorieslistview(LoginRequiredMixin, ListView):
     models = Categories
     template_name = 'sms/home.html'
@@ -108,6 +112,8 @@ class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
         return context
 
+
+
 class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
     
     models = Courses
@@ -138,7 +144,6 @@ class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
     models = Topics
     template_name = 'sms/topicsdetailview.html'
     count_hit = True
-    
     
     def get_queryset(self):
         return Topics.objects.get_queryset().order_by('id')

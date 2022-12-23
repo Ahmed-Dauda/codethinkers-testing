@@ -37,20 +37,16 @@ border: 1px dotted rgb(16, 2, 37);;
     <div>{{course.created}}, {{course.created|timesince}}</div><br>
     <!-- <div class="text-left">{{course.course_link|urlize}}</div><hr> -->
   <div class="text-left">{{course.desc|safe}}</div><hr>
-  <div>
-    <h4>Track overview</h4>
-    
-    <ul>
-      <li>Community to ask questions, interact and learn together with others</li>
-      <li>Quiz exam at the end of the track</li>
-      <li>Certificate of completion is Available on this track</li>
-    </ul>
-  </div>
-  <hr>
+  <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button text-left" class="">{{course.course_desc|safe}}</div><hr>
+  
   {% empty %}
   <h1 class="card text-center text-danger">No Courses Available Yet. CHECK LATER</h1>
   {% endfor %}
 </div>
+
+
+
+
 
 </div>
 </section>
