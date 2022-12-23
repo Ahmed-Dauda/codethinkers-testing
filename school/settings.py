@@ -357,6 +357,7 @@ TINYMCE_DEFAULT_CONFIG = {
     'cleanup_on_startup': True,
     'custom_undo_redo_levels': 20,
     'selector': 'textarea',
+    
     # 'theme': 'silver',
     'skin': 'oxide-dark',
     "height": 600,
@@ -408,3 +409,6 @@ TINYMCE_SPELLCHECKER = True
 # git commit -m "your commit message"
 # git push -u origin master
 # git push heroku master
+
+# # solution to django.db.utils.OperationalError: no such table: auth_user
+# python manage.py migrate --run-syncdb

@@ -37,6 +37,7 @@ class Courses(models.Model):
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     title = models.CharField(max_length=225, default='')
     desc = tinymce_models.HTMLField(default='')
+    course_desc = tinymce_models.HTMLField(default='')
     course_link = models.URLField(max_length=225, blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
@@ -61,22 +62,23 @@ class Topics(models.Model):
     img_tutorial = CloudinaryField('image', blank=True, null= True)
     video = EmbedVideoField(blank=True, null= True)  # same like models.URLField()
     # img_topic = models.ImageField(blank = True, null = True)
-    top_urls = [
-        ('https://t.me/joinchat/4F9VVjDPLzAwM2Q0', 'Beginners python_url'),
-        ('https://t.me/joinchat/5CBRm0mlq5VlZmE0', 'Beginners html_url'),
-        ('https://t.me/joinchat/8qkzp31B9EE1YjY0', 'Beginners statistic_url'),
-        ('https://t.me/joinchat/xRjZ9vXkUx43NmY0', 'Beginners django_url'),
-        ('https://t.me/joinchat/hgBXeiRmfDA1M2M0', 'Beginners sql_url'),
-        ('https://t.me/joinchat/NF7h8BKK_vFjOTk8', 'Beginners javascripts_url'),
+    # top_urls = [
+    #     ('https://t.me/joinchat/4F9VVjDPLzAwM2Q0', 'Beginners python_url'),
+    #     ('https://t.me/joinchat/5CBRm0mlq5VlZmE0', 'Beginners html_url'),
+    #     ('https://t.me/joinchat/8qkzp31B9EE1YjY0', 'Beginners statistic_url'),
+    #     ('https://t.me/joinchat/xRjZ9vXkUx43NmY0', 'Beginners django_url'),
+    #     ('https://t.me/joinchat/hgBXeiRmfDA1M2M0', 'Beginners sql_url'),
+    #     ('https://t.me/joinchat/NF7h8BKK_vFjOTk8', 'Beginners javascripts_url'),
         
-    ]
-    topics_url = models.CharField(max_length=500, choices= top_urls, blank=True, null= True)
+    # ]
+    topics_url = models.CharField(max_length=500, blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
-    # pk = models.BigAutoField(primary_key=True)
+    id = models.BigAutoField(primary_key=True)
     hit_count_generic = GenericRelation(
     HitCount, object_id_field='object_pk',
     related_query_name='hit_count_generic_relation')
+
 
     def __str__(self):
         return f'{self.title}-----{self.courses}'
