@@ -70,6 +70,7 @@ border: 1px dotted rgb(16, 2, 37);;
 <hr>
 <div class="prog container">
 <label for="file"><button class="text-white btn btn-primary" >{{ topics.number }} / {{c}}</button></label><br>
+<p>Overall Process {{ topics.number }}%</p>
 <progress style="width: 100%;" value="{{ topics.number }}" max="{{c}}">70 %</progress>
 {% if topics.number == c %}
 <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4>
