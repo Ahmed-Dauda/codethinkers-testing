@@ -46,6 +46,11 @@ border: 1px dotted rgb(16, 2, 37);;
   width: 100%;
   height: 80%;
 }
+.exam-cert{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
 </style>
 
 <!-- <div class="container">
@@ -70,7 +75,7 @@ border: 1px dotted rgb(16, 2, 37);;
 <hr>
 <div class="prog container">
 <label for="file"><button class="text-white btn btn-primary" >{{ topics.number }} / {{c}}</button></label><br>
-<p>Overall Process %</p>
+<p>Overall Process </p>
 <progress style="width: 100%;" value="{{ topics.number }}" max="{{c}}">70 %</progress>
 {% if topics.number == c %}
 <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4>
@@ -160,7 +165,12 @@ border: 1px dotted rgb(16, 2, 37);;
   {% if topics.number == c %}
   <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4>
   <!-- <h3>After completion of the Topics, take Exam</h3> -->
-  <h1 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h1>
+<br><hr>
+  <div class = "exam-cert" >
+    <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
+    <h3 class="card text-center text-danger"><a href="{% url 'student:view_result' %}">View Certificate (s)</a></h3>
+  </div>
+  
   
    {% endif %}
 </div>
