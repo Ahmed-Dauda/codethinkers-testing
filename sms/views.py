@@ -85,7 +85,40 @@ class Categorieslistview(LoginRequiredMixin, ListView):
         sweetify.success(self.request, 'You successfully changed your password')
         return context
 
+class Category(LoginRequiredMixin, ListView):
+    models = Categories
+    template_name = 'sms/index.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+   
+    def get_queryset(self):
+        return Categories.objects.all()
 
+class Table(LoginRequiredMixin, ListView):
+    models = Categories
+    template_name = 'sms/tables.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+   
+    def get_queryset(self):
+        return Categories.objects.all()
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context['students'] = User.objects.all().count()
+    #     context['category'] = Categories.objects.count()
+    #     context['courses'] = Courses.objects.all().count()
+    #     context['user'] = NewUser.objects.get_queryset().order_by('id')
+        
+    #     # num_visit = self.request.session.get('num_visit', 0)
+        # self.request.session['num_visit'] = num_visit + 1
+        # context['num_visit'] = num_visit
+        # context['user_name'] = self.request.user
+        # context['current_users'] = get_current_users()
+        # context['current_users_count'] = get_current_users().count()
+        # context['comment_count'] = Comment.objects.all().count() 
+    
+        # sweetify.success(self.request, 'You successfully changed your password')
+        # return context
 
 from django.contrib.auth import logout
 
@@ -181,7 +214,8 @@ class Feedbackformview(CreateView):
     form_class = feedbackform
     template_name =  'sms/feedbackformview.html'
     success_url = reverse_lazy('sms:feedbackformview')
-    success_message = 'TestModel successfully updated!'
+   
+
 
 class UserProfilelistview(LoginRequiredMixin, ListView):
     models = Profile
