@@ -49,26 +49,13 @@ border: 1px dotted rgb(16, 2, 37);;
 .exam-cert{
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: center;
+}
+.exam-cert>*{
+flex: 1 1 auto;
+ margin: 2px;
 }
 </style>
-
-<!-- <div class="container">
-		
-  <div id="articles">
-    {% for i in first_page %}
-    <h2>{{i.title}}</h2>
-    <p>{{i.desc}}</p>
-    {% endfor %}	
-  </div>
-  
-  <div class="pagination">
-  {% for i in page_range %}
-  <a style="margin-left: 5px; " href="{{i}}">{{i}}</a>
-  {% endfor %}
-  </div>
-  
-</div> -->
 
 <h1 class="text-center">{{c}} Topics <br>
   {{ hitcount.total_hits }}  <i class="fas fa-eye"></i></h1>
@@ -88,6 +75,32 @@ border: 1px dotted rgb(16, 2, 37);;
   
   <h1 class="text-white" style="background-color: rgb(16, 2, 37); color: wheat;">{{topic.title}}</h1><hr>
   <div class="text-white">{% get_hit_count for topic %} <i class="fas fa-eye"></i></div>
+  
+<!-- pagination codes star -->
+	
+{% if topics.has_other_pages %}
+<div class="container" id = ''>
+<nav class="d-flex" aria-label="Page navigation example">
+
+  <ul class="pagination  pagination-sm flex-wrap justify-content-center">
+    {% if topics.has_previous %}
+      <li class=" page-item"><a  class="continue page-link badge bg-primary rounded-pill" href="?page={{ topics.previous_page_number }}">previous &laquo;</a></li>
+    {% else %}
+      <li class="page-item disabled"><span>&laquo;</span></li>
+    {% endif %}
+    
+    
+    {% if topics.has_next %}
+      <li class="page-item"><a class="page-link badge bg-primary rounded-pill" href="?page={{ topics.next_page_number }}"> next &raquo;</a></li>
+    {% else %}
+      <li class="page-item disabled"><span>last &raquo; </span></li>
+    {% endif %}
+  </ul>
+</nav>
+</div> 
+{% endif %}
+<!-- end of pagination -->
+
   <div>created: {{topic.created|date}} | {{topic.created|timesince}} | last updated: {{topic.updated}} </div><br>
   <p>Topic Number: {{ topics.number }}</p><hr>
   
@@ -128,6 +141,7 @@ border: 1px dotted rgb(16, 2, 37);;
   {% for topic in topics %}
   <a href="#" class="topic-link" data-pk="{{ topic.pk }}">{{ topic.name }}</a>
 {% endfor %}
+
 <!-- pagination codes star -->
 	
 {% if topics.has_other_pages %}

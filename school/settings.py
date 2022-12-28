@@ -275,20 +275,20 @@ USE_TZ = True
 
 # ADDITIONAL SITE SECURITY
 
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
 
-# SECURE_BROWSER_XSS_FILTER = True
-# X_FRAME_OPTIONS = 'DENY'
-# SECURE_SSL_REDIDERECT = True
-# SECURE_HSTS_SECONDS = 3600
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# SESSION_COOKIES_SECURE = True
-# SECURE_FRAME_DENY = True
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIES_HTTPONLY = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_SSL_REDIDERECT = True
+SECURE_HSTS_SECONDS = 3600
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SESSION_COOKIES_SECURE = True
+SECURE_FRAME_DENY = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIES_HTTPONLY = True
 
 SWEETIFY_SWEETALERT_LIBRARY = 'sweetalert2'
 
@@ -333,23 +333,6 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # https://warehouse.python.org/project/whitenoise/
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-
-# TINYMCE_DEFAULT_CONFIG = {
-#     "height": "320px",
-#     "width": "960px",
-#     'plugins': 'image',
-#     "menubar": "file edit view insert format tools table help",
-#     "plugins": "advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code "
-#     "fullscreen insertdatetime media table paste code help wordcount spellchecker",
-#     "toolbar": "undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft "
-#     "aligncenter alignright alignjustify | outdent indent |  numlist bullist checklist | forecolor "
-#     "backcolor casechange permanentpen formatpainter removeformat | pagebreak | charmap emoticons | "
-#     "fullscreen  preview save print | insertfile image media pageembed template link anchor codesample | "
-#     "a11ycheck ltr rtl | showcomments addcomment code",
-#     "custom_undo_redo_levels": 10,
-#     "language": "en_EN",  # To force a specific language instead of the Django current language.
-    
-# }
 
 # for TinyMCE 
 

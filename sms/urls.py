@@ -6,6 +6,8 @@ from sms.views import(
      Courseslistview,
      Topicslistview,
     #   Topic_list,
+       Category,
+       Table,
       Topicsdetailview,
       Feedbackformview,
       Commentlistview,
@@ -29,6 +31,8 @@ app_name = 'sms'
 urlpatterns = [
   
     path('', Categorieslistview.as_view(), name='categorieslist'),
+    path('category', Category.as_view(), name='category'),
+    path('table', Table.as_view(), name='table'),
     path('courseslist/<pk>/', Courseslistview.as_view(), name='courseslist'),
     path('topicslistview/<pk>/', Topicslistview.as_view(), name='topicslistview'),
     path('topicsdetailview/<slug:slug>/', Topicsdetailview.as_view(), name='topicsdetailview'),
