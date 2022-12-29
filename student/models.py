@@ -18,4 +18,9 @@ class signature(models.Model):
    def __str__(self):
         return f"{self.sign}"  
 
-
+class Designcert(models.Model):
+       
+   design = CloudinaryField('image', blank=True, null= True)
+   
+   def __str__(self):
+        return f"{self.design}"  

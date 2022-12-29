@@ -15,7 +15,7 @@ from django.conf import settings
 from datetime import date, timedelta
 from quiz import models as QMODEL
 from teacher import models as TMODEL
-from student.models import Logo, signature
+from student.models import Logo, signature, Designcert
 # from student.models import  Student
 from users.models import NewUser
 from users.models import Profile
@@ -133,6 +133,7 @@ def pdf_id_view(request, *args, **kwargs):
     date = datetime.datetime.now()
     logo = Logo.objects.all() 
     sign = signature.objects.all()
+    design = Designcert.objects.all()
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
     # max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     # results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course, student = student)
@@ -149,7 +150,8 @@ def pdf_id_view(request, *args, **kwargs):
         'date':date,
         'course':posts,
         'logo':logo,
-        'sign':sign
+        'sign':sign,
+        'design':design,
         
         }
     

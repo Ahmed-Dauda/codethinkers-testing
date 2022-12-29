@@ -7,18 +7,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Certificate</title>
     <link href="https://fonts.googleapis.com/css?family=Satisfy" rel="stylesheet">
-
+    <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Tangerine">
     <style>
       body{
         margin: 0;
         padding: 0;
-        font-family: 'Courier New', Courier, monospace;
+        font-family: 'Tangerine, serif';
         font-size: 40px;
+
+        
       }
+      @font-face {
+        font-family: 'Tangerine, serif';
+        src: url("https://fonts.googleapis.com/css?family=Tangerine");
+    }
+    .t{
+      font-family: 'Tangerine', serif;
+    }
+
       @page {
+        background-image: url('https://i.ibb.co/3rRhxt7/logo-design.jpg');
+        background-object-position:0px 0px;
+        background-width: 100%;
+        background-height: 100%;
         size: a4 portrait;
         @frame header_frame {           /* Static Frame */
             -pdf-frame-content: header_content;
+            
             left: 0pt; width: 512pt; top: 0pt; height: 0pt;margin: 0pt;
         }
         @frame content_frame {          /* Content Frame */
@@ -37,11 +53,7 @@
         
        } 
       
-       @page page {
-        
-        size: a4;
-        background-image: url('https://www.davidbenrimon.com/img/press/big/2021/bigpress-15.jpg');
- }
+ 
     </style>
 </head>
 <body>
@@ -62,7 +74,7 @@
          {% endfor %}
          <br>
        
-        <span style="font-size:52px;color:rgb(17, 18, 18);font-style: sans serif Avant Garde;"> Codethinker's Software Application Academy</span> <br><br><br><br>
+        <span class="t" style="font-size:52px;color:rgb(17, 18, 18);font-style: sans serif Avant Garde;"> Codethinker's Software Application Academy</span> <br><br><br><br>
            <span style="font-size:70px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
            <br><br>
            <span style="font-size:40px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span>
