@@ -50,7 +50,7 @@ border: 1px dotted rgb(16, 2, 37);;
             <p class="card-text"><a style="background-color: rgb(16, 2, 37); width: 100%; color: wheat;" href="{% url 'sms:topicslistview' course.pk %}">{{course.title}}</a></p><hr>
             <small class="card-text">{% get_hit_count for course %}  <i class="fas fa-eye"></i></small><hr>
             <!-- <small class="card-text">{{course.created}}, {{course.created|timesince}}</small><hr> -->
-            <small class="card-text">{{course.desc|safe}}</small><hr>
+            <p class="card-text">{{course.desc|safe}}</p><hr>
             <!-- <small class="card-text"><button class="btn btn-primary" onclick="myFunction()">Read More</button></small><hr>
             <small class="card-text"> <button class="btn btn-primary" onclick="myLess()">Read Less</button></small><hr>
             <small class="card-text"><div style="display: none;" id="myDIV"></small><hr> -->
