@@ -145,7 +145,24 @@ class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
         return context
 
+class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
+    models = Categories
+    template_name = 'sms/courselistdesc.html'
+    count_hit = True
+    queryset = Categories.objects.all()
+    def get_queryset(self):
+        return Categories.objects.all()
+   
+    def get_context_data(self, **kwargs):
 
+        context = super().get_context_data(**kwargs)
+        context['courses'] = Courses.objects.filter(categories__pk = self.object.id)
+        context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
+        # course = Courses.objects.get(pk=self.kwargs["pk"])
+        
+        # context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
+        # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
+        return context
 
 class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
     
@@ -180,7 +197,21 @@ class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
     
     def get_queryset(self):
         return Topics.objects.get_queryset().order_by('id')
+    
+    def get_context_data(self, **kwargs):
         
+        context = super().get_context_data(**kwargs)
+        topic = Topics.objects.get_queryset().filter(courses__pk = self.object.id).order_by('id')
+        c = Topics.objects.filter(courses__pk = self.object.id).count()
+        paginator = Paginator(topic, 1) # Show 25 contacts per page.
+
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        context['topics'] = page_obj
+        context['c'] = c
+
+        return context
+
 
 from sweetify.views import SweetifySuccessMixin
 
