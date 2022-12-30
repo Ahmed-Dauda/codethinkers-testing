@@ -19,6 +19,7 @@ from tinymce.widgets import TinyMCE
 
 class Categories(models.Model, HitCountMixin):
    
+    
     name = models.CharField(max_length=225, blank=True, null= True, unique=True)
     desc = models.TextField( blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True, blank=True, null= True)
@@ -33,7 +34,7 @@ class Categories(models.Model, HitCountMixin):
         return f'{self.name}'
 
 class Courses(models.Model):
-    
+    img_course = CloudinaryField('image', blank=True, null= True)
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     title = models.CharField(max_length=225, default='')
     desc = tinymce_models.HTMLField(default='')
