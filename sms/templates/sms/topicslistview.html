@@ -57,7 +57,7 @@ flex: 1 1 auto;
 }
 </style>
 
-<h1 class="text-center">{{c}} Topics <br>
+<h1 class="text-center">{{c}} Modules <br>
   {{ hitcount.total_hits }}  <i class="fas fa-eye"></i></h1>
 <hr>
 <div class="prog container">
@@ -72,8 +72,9 @@ flex: 1 1 auto;
 <div  class="card ">
   <div class="card-header">
     {% for topic in topics %}
-  
-  <h1 class="text-white" style="background-color: rgb(16, 2, 37); color: wheat;">{{topic.title}}</h1><hr>
+    <h3>{{topic.title|safe}}</h3><hr>
+
+  <!-- <h1 class="text-white" style="background-color: rgb(16, 2, 37); color: wheat;">{{topic.title}}</h1><hr> -->
   <div class="text-white">{% get_hit_count for topic %} <i class="fas fa-eye"></i></div>
   
 <!-- pagination codes star -->
@@ -102,7 +103,7 @@ flex: 1 1 auto;
 <!-- end of pagination -->
 
   <div>created: {{topic.created|date}} | {{topic.created|timesince}} | last updated: {{topic.updated}} </div><br>
-  <p>Topic Number: {{ topics.number }}</p><hr>
+  <p>Module: {{ topics.number }}</p><hr>
   
   {% if topic.img_topic %}
   <div  class="text-left" ><img src="{{topic.img_topic.url}}" width="100%" height="400px" alt="topics image"> </div><br><hr>
@@ -123,9 +124,12 @@ flex: 1 1 auto;
     <iframe  src={% video topic.video|safe %}{% video topic.video|safe %}</iframe>
   </div>
 
-  {% endif %}<br>
+  {% endif %}
+  {% if topic.desc %}
   <div><p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.desc|safe}}</p></div><br><hr>
-  
+  {% else %}
+  <div><p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p></div><br><hr>
+  {% endif %}<br>
   
  
   {% if topic.student_activity %}
@@ -174,8 +178,7 @@ flex: 1 1 auto;
 
 <hr>
   <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
-  <!-- <h3><a href="{% url 'sms:topicsdetailview' topic.slug %}">Enroll {{topic.title}}</a></h3><hr> -->
-  <div style="text-align: center;" class="container">
+    <div style="text-align: center;" class="container">
   {% if topics.number == c %}
   <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4>
   <!-- <h3>After completion of the Topics, take Exam</h3> -->
