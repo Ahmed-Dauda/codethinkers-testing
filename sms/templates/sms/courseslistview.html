@@ -7,71 +7,45 @@
 
 {% block body %} 
 <style>
-    .courses{
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  text-align: center;
-}
-.courses>*{
-flex: 1 1 auto;
-margin: 5px;
-border: 1px dotted rgb(16, 2, 37);;
-}
-.car{
-  display: flex;
-  flex-wrap: nowrap;
- justify-items: flex-start;
-
+.card{
   overflow: auto;
 }
-.car>*{
-  
-  margin: 2px;
-}
-
 </style>
 
 
   <!--Products-->
-  <div  class=" ">
-    <h2 class="text-center">My Courses</h2>
-    <small style="text-align: center;" class="text-center">{{courses_count}}  Courses</small><hr>
 
-    <div  class=" car">
-    
-      {% for course in courses %}
-      <div class="">
-        <div class="card " style="border:none">
-          
-            <div class="card-body">
-              
-            <img src="{{course.img_course.url}}" width="100%" height="300px" alt="courses image"> <hr>
-            <p class="card-text"><a style="background-color: rgb(16, 2, 37); width: 100%; color: wheat;" href="{% url 'sms:topicslistview' course.pk %}">{{course.title}}</a></p><hr>
-            <small class="card-text">{% get_hit_count for course %}  <i class="fas fa-eye"></i></small><hr>
-            <!-- <small class="card-text">{{course.created}}, {{course.created|timesince}}</small><hr> -->
-            <p class="card-text">{{course.desc|safe}}</p><hr>
-            <!-- <small class="card-text"><button class="btn btn-primary" onclick="myFunction()">Read More</button></small><hr>
-            <small class="card-text"> <button class="btn btn-primary" onclick="myLess()">Read Less</button></small><hr>
-            <small class="card-text"><div style="display: none;" id="myDIV"></small><hr> -->
-            <!-- <small class="card-text">{{course.course_desc|safe}}</small><hr>   -->
-            <!-- <small class="card-text">By </small><hr> -->
+  
+new <hr>
 
-           
-              <!-- </div> -->
+<div style="display: flex; flex-direction: row; flex-wrap: nowrap;">
 
-            </div>
-        </div>
+  {% for card in courses%}
+  {#  Single Card Template:#}
+  <div class="card" style="width: 18rem; margin: 5px">
+    <img src="{{card.img_course.url}}" class="card-img-top" >
+    <div class="card-body">
+      <div style="display: flex; flex-direction: row">
+        <p class="card-title">{{ card.title|safe }}</p>
+        {#  Colored cirlce:#}
+        <div style="
+          background: {{ card.color }};
+          width: 100%;
+          height: 20px;
+          margin-left: 10px;
+          border-radius: 50%;
+        "></div>
       </div>
-
-      {% empty %}
-      <small class="card-text">No Courses Available Yet. CHECK LATER</small>
-
-      {% endfor %}
+      <p class="card-text">{{ card.desc|safe }}</p>
+      
     </div>
   </div>
 
-
+  {% empty %}
+  <small class="card-text">No Courses Available Yet. CHECK LATER</small>
+  {% endfor %}
+ 
+</div>
 <!--   
 <section >
   <div class="row">
