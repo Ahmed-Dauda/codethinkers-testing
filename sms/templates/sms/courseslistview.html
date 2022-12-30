@@ -19,12 +19,85 @@ margin: 5px;
 border: 1px dotted rgb(16, 2, 37);;
 }
 
-
 </style>
 
 
-<section >
+  <!--Products-->
+  <div  class=" py-3">
+    <h2>Courses</h2>
+    <hr>
+  
+    <div  class="shadow-lg m-auto row">
+      <small >{{courses_count}}  Courses |  {{ hitcount.total_hits}} <i class="fas fa-eye"></i></small><hr>
+      {% for course in courses %}
+      <div class="col-sm-12 col-md-6 col-lg-3 pb-4">
+        <div class="card h-100" style="border:none">
+          
+            <div class="card-body">
+           
+            <small class="card-text"><a style="background-color: rgb(16, 2, 37); width: 100%; color: wheat;" href="{% url 'sms:topicslistview' course.pk %}">{{course.title}}</a></small><hr>
+            <small class="card-text">{% get_hit_count for course %}  <i class="fas fa-eye"></i></small><hr>
+            <small class="card-text">{{course.created}}, {{course.created|timesince}}</small><hr>
+            <small class="card-text">{{course.desc|safe}}</small><hr>
+            <!-- <small class="card-text"><button class="btn btn-primary" onclick="myFunction()">Read More</button></small><hr>
+            <small class="card-text"> <button class="btn btn-primary" onclick="myLess()">Read Less</button></small><hr>
+            <small class="card-text"><div style="display: none;" id="myDIV"></small><hr> -->
+            <small class="card-text">{{course.course_desc|safe}}</small><hr>  
+            <!-- <small class="card-text">By </small><hr> -->
 
+           
+              <!-- </div> -->
+
+            </div>
+        </div>
+      </div>
+
+      {% empty %}
+      <small class="card-text">No Courses Available Yet. CHECK LATER</small>
+
+      {% endfor %}
+    </div>
+  </div>
+
+
+  
+<section >
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="card">
+        <div class="card-body">
+          <p class="card-text"><h3  class="text-center">{{courses_count}}  Courses |  {{ hitcount.total_hits}} <i class="fas fa-eye"></i> </h3></p>
+          {% for course in courses %}
+          <h5 class="card-title"><h1><a style="background-color: rgb(16, 2, 37); width: 100%; color: wheat;" href="{% url 'sms:topicslistview' course.pk %}">{{course.title}}</a></h1><hr></h5>
+          <p class="card-text"><div class="">{% get_hit_count for course %}  <i class="fas fa-eye"></i></div><hr></p>
+          <p class="card-text"><div>{{course.created}}, {{course.created|timesince}}</div><br></p>
+          <p class="card-text"><div class="text-left">{{course.desc|safe}}</div><hr> </p>
+          <button class="btn btn-primary" onclick="myFunction()">Read More</button>
+          <button class="btn btn-primary" onclick="myLess()">Read Less</button>
+          <div style="display: none;" id="myDIV">
+
+          <p class="card-text"><div data-label="my-label-button" class="line-numbers copy-to-clipboard-button text-left" class="">{{course.course_desc|safe}}</div><hr></p>
+          <p class="card-text">With supporting text below as a </p>
+          {% empty %}
+          <a href="#" class="btn btn-primary">Go somewhere</a>
+  <h1 class="card text-center text-danger">No Courses Available Yet. CHECK LATER</h1>
+          {% endfor %}
+        
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="col-sm-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Special title treatment</h5>
+        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+        <a href="#" class="btn btn-primary">Go somewhere</a>
+      </div>
+    </div>
+  </div>
+<!-- 
 <h3  class="text-center">{{courses_count}}  Courses |  {{ hitcount.total_hits}} <i class="fas fa-eye"></i> </h3>
 
 <div  class="card text-center">
@@ -32,23 +105,35 @@ border: 1px dotted rgb(16, 2, 37);;
   <div class="card-header">
     {% for course in courses %}
     <h1><a style="background-color: rgb(16, 2, 37); width: 100%; color: wheat;" href="{% url 'sms:topicslistview' course.pk %}">{{course.title}}</a></h1><hr>
-    <!-- <div>{{topics}} topics</div> -->
+   
     <div class="">{% get_hit_count for course %}  <i class="fas fa-eye"></i></div><hr>
     <div>{{course.created}}, {{course.created|timesince}}</div><br>
-    <!-- <div class="text-left">{{course.course_link|urlize}}</div><hr> -->
-  <div class="text-left">{{course.desc|safe}}</div><hr>
-  <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button text-left" class="">{{course.course_desc|safe}}</div><hr>
   
+  <div class="text-left">{{course.desc|safe}}</div><hr>
+  <button class="btn btn-primary" onclick="myFunction()">Read More</button>
+  <button class="btn btn-primary" onclick="myLess()">Read Less</button>
+  <div style="display: none;" id="myDIV">
+  <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button text-left" class="">{{course.course_desc|safe}}</div><hr>
+  <</div>
   {% empty %}
   <h1 class="card text-center text-danger">No Courses Available Yet. CHECK LATER</h1>
   {% endfor %}
 </div>
 
 
-
-
-
-</div>
+</div> -->
 </section>
+
+<script>
+  function myFunction() {
+    var x = document.getElementById("myDIV");
+      x.style.display = "block";
+  }
+
+  function myLess() {
+    var x = document.getElementById("myDIV");
+      x.style.display = "none";
+  }
+</script>
 
 {% endblock %} 
