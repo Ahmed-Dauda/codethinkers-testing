@@ -7,22 +7,89 @@
 
 {% block body %} 
 <style>
-.card{
-  overflow: auto;
+.scrolling-wrapper{
+	overflow-x: auto;
 }
+
+
+
+
+
+.subtitle{
+	font-size: 1.25em;
+	opacity: 0.65;
+}
+
+.card-block{
+	height: 300px;
+	background-color: #fff;
+	border: none;
+	background-position: center;
+	background-size: cover;
+	transition: all 0.2s ease-in-out !important;
+	border-radius: 24px;
+	&:hover{
+		transform: translateY(-5px);
+		box-shadow: none;
+		opacity: 0.9;
+	}
+}
+
+.card-1{
+	background-color: #4158D0;
+background-image: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+}
+
+.card-2{
+	background-color: #0093E9;
+background-image: linear-gradient(160deg, #0093E9 0%, #80D0C7 100%);
+}
+
+.card-3{
+	background-color: #00DBDE;
+background-image: linear-gradient(90deg, #00DBDE 0%, #FC00FF 100%);
+}
+
+.card-4{
+	background-color: #FBAB7E;
+background-image: linear-gradient(62deg, #FBAB7E 0%, #F7CE68 100%);
+}
+
+
 </style>
 
 
   <!--Products-->
+  <div class="container-fluid">
+   
+    
+    <div class="scrolling-wrapper row flex-row flex-nowrap mt-4 pb-4 pt-2">
+			
+			<div class="col-5">
+				<div class="card card-block card-1"></div>
+			</div>
+			<div class="col-5">
+				<div class="card card-block card-2"></div>
+			</div>
+			<div class="col-5">
+				<div class="card card-block card-3"></div>
+			</div>
+			<div class="col-5">
+				<div class="card card-block card-4"></div>
+			</div>
+	
 
+      
+    </div>
+</div>
   
 new <hr>
 
-<div style="width: 100%; display: flex; flex-direction: row; flex-wrap: nowrap;">
+<div class="scrolling-wrapper row flex-row flex-nowrap mt-4 pb-4 pt-2 scrolling-wrapper" stle="width: 100%; display: flex; flex-direction: row; flex-wrap: nowrap;">
 
   {% for card in courses%}
   {#  Single Card Template:#}
-  <div class="card h-100" style="width: 100%; margin: 5px">
+  <div class="card card-block " style="width: 100%; margin: 5px">
     <img class="" src="{{card.img_course.url}}" style="width: 100%;" class="card-img-top" >
     <div class="card-body">
       <div style="display: flex; flex-direction: row">
