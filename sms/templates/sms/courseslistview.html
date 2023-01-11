@@ -64,7 +64,7 @@ background-image: linear-gradient(90deg, #00DBDE 0%, #FC00FF 100%);
 			{% for card in courses%}
 			<div class="col-5">
 				<div class="card card-block card-1">
-          <img class="card-img" src="{{card.img_course.url}}" style="max-width: 100%;; height:auto" class="card-img-top" >
+          <img class="img-fluid" src="{{card.img_course.url}}" style="max-width: 100%;; height:auto" class="img-fluid" >
           <div class="card  card-2 ">
          <a href="{% url 'sms:topicslistview' card.id %}">{{ card.title|safe }}</a>  
           </div>
