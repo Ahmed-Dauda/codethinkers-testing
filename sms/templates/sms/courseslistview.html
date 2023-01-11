@@ -48,7 +48,7 @@ background-image: linear-gradient(90deg, #00DBDE 0%, #FC00FF 100%);
 
 .card-img {
 
-  min-height: 100px;
+  min-height: 50px;
 
   float: left;
 
@@ -76,7 +76,7 @@ background-image: linear-gradient(90deg, #00DBDE 0%, #FC00FF 100%);
           <div class="centered card  card-2 ">
          <a style="background-color: white;" class="centered" href="{% url 'sms:topicslistview' card.id %}">{{ card.title|safe }}</a>  
           </div>
-          <div class="centered card card-block card-3 ">
+          <div style="background-color: white;" class="centered card card-block card-3 ">
             {{ card.desc|safe }}
           </div>
         </div>
