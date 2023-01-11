@@ -106,9 +106,9 @@ flex: 1 1 auto;
   <p>Module: {{ topics.number }}</p><hr>
   
   {% if topic.img_topic %}
-  <div   class="text-left " ><img  src="{{topic.img_topic.url}}"  class="img-fluid" alt="topics image"> </div><br><hr>
+  <div   class="text-left " ><img  src="{{topic.img_topic.url}}"  class="img-fluid" width="100%" height="auto" alt="topics image"> </div><br><hr>
   {% else %}
-  <div><img  src="/static/sms/images/newlogo3.jpg" class="img-fluid"  alt="topics image"></div><br>
+  <div><img  src="/static/sms/images/newlogo3.jpg" class="img-fluid" width="100%" height="auto"  alt="topics image"></div><br>
   {% endif %}
   
 
