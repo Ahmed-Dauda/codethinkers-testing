@@ -53,7 +53,12 @@ background-image: linear-gradient(90deg, #00DBDE 0%, #FC00FF 100%);
   float: left;
 
 }
-
+.centered {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+  }
 
 </style>
 
@@ -67,6 +72,7 @@ background-image: linear-gradient(90deg, #00DBDE 0%, #FC00FF 100%);
 			<div class="col-5">
 				<div class="card card-block card-1">
           <img  src="{{card.img_course.url}}" style="max-width: 100%; "  >
+		  <div class="centered">Centered</div>
           <div class="card  card-2 ">
          <a href="{% url 'sms:topicslistview' card.id %}">{{ card.title|safe }}</a>  
           </div>
