@@ -73,12 +73,13 @@ background-image: linear-gradient(90deg, #00DBDE 0%, #FC00FF 100%);
 				<div class="card card-block card-1 container">
           <img  src="{{card.img_course.url}}" style="max-width: 100%; "  >
 		  
-          <div class="centered card  card-2 ">
-         <a style="background-color: white;" class="centered" href="{% url 'sms:topicslistview' card.id %}">{{ card.title|safe }}</a>  
+          <div class=" card  card-2 ">
+         <a style="background-color: white;" class="centered" href="{% url 'sms:topicslistview' card.id %}">{{ card.title|safe }}</a> 
+		 {{ card.desc|safe }} 
           </div>
-          <div style="background-color: white;" class="centered card card-block card-3 ">
+          <!-- <div style="background-color: white;" class="centered card card-block card-3 ">
             {{ card.desc|safe }}
-          </div>
+          </div> -->
         </div>
 			</div>
 
