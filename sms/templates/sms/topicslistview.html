@@ -6,15 +6,7 @@
 
 {% block title %}beginners List {% endblock %}
 
-<script type="text/javascript">
-  tinyMCE.init({
-          mode: "textareas",
-          theme: "simple",
-          selector: 'textarea',
-          
-          skin: 'oxide-dark',
-  });
-</script>
+
 {% block body %}
 
 <style>
@@ -56,14 +48,16 @@ flex: 1 1 auto;
  margin: 2px;
 }
 
-@media screen and (min-width: 768px) {
-  .img-container img {
-      min-width: 100%;
-      height: auto;
-  }
+
+
+.img-box{
+  width: 100%;
+  height: auto;
+  border: 4px solid #333;
 }
-
-
+.img-box img{
+  display: block;
+}
 </style>
 
 <h1 class="text-center">{{c}} Modules <br>
@@ -115,9 +109,9 @@ flex: 1 1 auto;
   <p>Module: {{ topics.number }}</p><hr>
   
   {% if topic.img_topic %}
-  <div   class="text-left img-container" ><img src="{{topic.img_topic.url}}"  alt="topics image"> </div><br><hr>
+  <div   ><img  class="img-box" src="{{topic.img_topic.url}}"  alt="topics image"> </div><br><hr>
   {% else %}
-  <div class="text-left img-container"><img  src="/static/sms/images/newlogo3.jpg"    alt="topics image"></div><br>
+  <div ><img  class="img-box" src="/static/sms/images/newlogo3.jpg"    alt="topics image"></div><br>
   {% endif %}
   
 
