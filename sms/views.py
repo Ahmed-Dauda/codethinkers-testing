@@ -56,7 +56,7 @@ import cloudinary.api
 
 from django.http import JsonResponse
 from django.core.paginator import Paginator
-
+from django.views.decorators.csrf import csrf_exempt
 
 class Categorieslistview(LoginRequiredMixin, ListView):
     models = Categories
