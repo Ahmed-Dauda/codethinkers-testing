@@ -41,7 +41,7 @@
 			<div class="left-column">
 				<img class="card-img" src="{{item.img_course.url}}" >
 				<a class="bg-white" href="{% url 'sms:topicslistview' item.id %}">{{ item.title|safe }}</a> 
-				<p class="text-left">{{ forloop.counter }} - {{ item.desc|safe }}</p>
+				<p class="text-left">{{ item.desc|safe }}</p>
 			</div>
 			{% empty %}
 			<small class="card-text">No Courses Available Yet. CHECK LATER</small>
