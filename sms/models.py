@@ -19,6 +19,7 @@ from tinymce.widgets import TinyMCE
 
 class Categories(models.Model, HitCountMixin):
    
+    
     name = models.CharField(max_length=225, blank=True, null= True, unique=True)
     desc = models.TextField( blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True, blank=True, null= True)
@@ -33,7 +34,7 @@ class Categories(models.Model, HitCountMixin):
         return f'{self.name}'
 
 class Courses(models.Model):
-    
+    img_course = CloudinaryField('image', blank=True, null= True)
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     title = models.CharField(max_length=225, default='')
     desc = tinymce_models.HTMLField(default='')
@@ -52,10 +53,11 @@ class Topics(models.Model):
     
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     courses=models.ForeignKey(Courses, on_delete= models.CASCADE) 
-    title = models.CharField(max_length=225, blank=True, null= True, unique=True)
-    slug = models.SlugField(unique=True)
+    title = models.CharField(max_length=225, blank=True, null= True)
+    slug = models.SlugField()
     objectives = tinymce_models.HTMLField(null= True,blank=True,)
     desc = tinymce_models.HTMLField( blank=True, null= True)
+    coursedesc = tinymce_models.HTMLField( blank=True, null= True)
     student_activity = tinymce_models.HTMLField(null= True,blank=True,)
     evaluation = models.TextField(blank=True, null= True)
     img_topic = CloudinaryField('image', blank=True, null= True)

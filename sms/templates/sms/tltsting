@@ -72,9 +72,8 @@ flex: 1 1 auto;
 <div  class="card ">
   <div class="card-header">
     {% for topic in topics %}
-    <h3>{{topic.title|safe}}</h3><hr>
-
-  <!-- <h1 class="text-white" style="background-color: rgb(16, 2, 37); color: wheat;">{{topic.title}}</h1><hr> -->
+  
+  <h1 class="text-white" style="background-color: rgb(16, 2, 37); color: wheat;">{{topic.title}}</h1><hr>
   <div class="text-white">{% get_hit_count for topic %} <i class="fas fa-eye"></i></div>
   
 <!-- pagination codes star -->
@@ -175,7 +174,8 @@ flex: 1 1 auto;
 
 <hr>
   <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
-    <div style="text-align: center;" class="container">
+  <!-- <h3><a href="{% url 'sms:topicsdetailview' topic.slug %}">Enroll {{topic.title}}</a></h3><hr> -->
+  <div style="text-align: center;" class="container">
   {% if topics.number == c %}
   <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4>
   <!-- <h3>After completion of the Topics, take Exam</h3> -->
