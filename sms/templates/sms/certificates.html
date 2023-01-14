@@ -52,6 +52,9 @@ tr, td, th{
     <br><br>
 <div class="table-responsive container text-center card-body">
     <table class="table" id="">
+
+     
+      
       {% for note in cert_note %}
     <div class="card-header bg-primary text-white">{{note|linebreaksbr}}</div>
        {% endfor %}
@@ -83,11 +86,11 @@ tr, td, th{
 {% for course in courses %}
 
 {% if course == t.exam and t.marks >= course.constant %}
-
-<a href="{% url 'student:pdf' course.id %}">Get Certificate {{course}}</a><br>
+<p style="color:green">Congratulations, {{t.student.first_name}} {{t.student.last_name}}, you made it!</p>
+<a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>
 
 {% else  %}
-
+<p style="color:red">Sorry, you didn't pass this course. Please try again. You are almost there</p>
 
 {% endif  %}
 
