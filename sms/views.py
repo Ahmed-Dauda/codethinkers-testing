@@ -42,7 +42,7 @@ from users.models import NewUser
 from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
-import sweetify
+
 from sms.forms import feedbackform
 
 from django.utils import timezone
@@ -54,9 +54,12 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 
+from django.views.generic import ListView
+from django.http import JsonResponse
+
 from django.http import JsonResponse
 from django.core.paginator import Paginator
-from django.views.decorators.csrf import csrf_exempt
+
 
 class Categorieslistview(LoginRequiredMixin, ListView):
     models = Categories
@@ -74,15 +77,7 @@ class Categorieslistview(LoginRequiredMixin, ListView):
         context['courses'] = Courses.objects.all().count()
         context['user'] = NewUser.objects.get_queryset().order_by('id')
         
-        # num_visit = self.request.session.get('num_visit', 0)
-        # self.request.session['num_visit'] = num_visit + 1
-        # context['num_visit'] = num_visit
-        # context['user_name'] = self.request.user
-        # context['current_users'] = get_current_users()
-        # context['current_users_count'] = get_current_users().count()
-        # context['comment_count'] = Comment.objects.all().count() 
-    
-        sweetify.success(self.request, 'You successfully changed your password')
+        
         return context
 
 class Category(LoginRequiredMixin, ListView):
@@ -163,6 +158,70 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
         # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
         return context
+
+
+# new pagination
+
+class AllKeywordsView(ListView):
+    paginate_by = 1
+    model = Courses
+    ordering = ['created']
+    template_name = "sms/blog_post_list.html"
+
+class KeywordListView(ListView):
+    paginate_by = 1
+    model = Courses
+    ordering = ['created']
+    template_name = 'sms/blog_post_list.html'
+
+from django.core.paginator import Paginator
+from django.shortcuts import render
+# ...
+def listing(request, page):
+    keywords = Courses.objects.all().order_by("created")
+    paginator = Paginator(keywords, per_page=2)
+    page_object = paginator.get_page(page)
+    page_object.adjusted_elided_pages = paginator.get_elided_page_range(page)
+    
+    context = {"page_obj": page_object}
+    return render(request, "sms/blog_post_list.html", context)
+
+
+def listing_api(request):
+    page_number = request.GET.get("page", 1)
+    per_page = request.GET.get("per_page", 2)
+    startswith = request.GET.get("startswith", "")
+    keywords = Courses.objects.filter(
+        title__startswith=startswith
+    )
+    paginator = Paginator(keywords, per_page)
+    page_obj = paginator.get_page(page_number)
+    data = [
+        {
+         'title':kw.title,
+         'desc':kw.desc,
+         'course_desc':kw.course_desc,
+         'course_link':kw.course_link,
+         'created':kw.created,
+         'updated':kw.updated,
+        #  'hit_count_generic':kw.hit_count_generic,
+        
+         
+         } for kw in page_obj.object_list]
+    
+
+    payload = {
+        "page": {
+            "current": page_obj.number,
+            "has_next": page_obj.has_next(),
+            "has_previous": page_obj.has_previous(),
+        },
+        "data": data
+    
+    }
+    return JsonResponse(payload)
+
+# end
 
 class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
     
@@ -266,27 +325,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         student = Profile.objects.filter(user_id=self.request.user.id)
         context['results']= QMODEL.Result.objects.order_by('-marks')
         return context
-
-
-# class Certificates(LoginRequiredMixin, ListView):
-#     models = Profile
-#     template_name = 'sms/pdf_all.html'
-#     count_hit = True
-   
-#     def get_queryset(self):
-#         return Profile.objects.all()
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         user_pro = self.request.user
-#         context['user_profile'] = Profile.objects.filter(user = self.request.user)
-#         course=QMODEL.Course.objects.all()
-#         context['courses']=QMODEL.Course.objects.all()
-#         # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
-#         student = Profile.objects.get(user_id=self.request.user.id)
-#         context['results']= QMODEL.Result.objects.all().order_by('-marks')
-#         return context
-    
+  
 
 @login_required
 def Certificates(request,pk):
