@@ -81,7 +81,7 @@ tr, td, th{
         <td> {{t.marks}}</td>
         <!-- <td>Attemp {{ forloop.counter }}</td> -->
         {% if course == t.exam and t.marks <= course.constant  %}
-        <td> Sorry, {{t.student.first_name}}, You are almost there.Please try again</td>
+        <td style='color:red'> Sorry, {{t.student.first_name}}, You are almost there.Please try again</td>
         {% endif %}
 
 {% for course in courses %}
