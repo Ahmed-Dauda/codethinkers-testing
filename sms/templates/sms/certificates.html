@@ -65,8 +65,8 @@ tr, td, th{
           <th>email</th>
           <th>Exam Name</th>
           <th>Max Score</th>
-          <th>Attempt</th>
-          <th>Exam Date</th>
+          <!-- <th>Attempt</th> -->
+          <th>Exam Status</th>
          
         </tr>
       </thead>
@@ -79,9 +79,10 @@ tr, td, th{
         <td> {{t.student.user}}</td>
         <td> {{t.exam}}</td>
         <td> {{t.marks}}</td>
-        <td>Attemp {{ forloop.counter }}</td>
-        <td> {{t.date}}</td>
-
+        <!-- <td>Attemp {{ forloop.counter }}</td> -->
+        {% if course == t.exam and t.marks <= course.constant  %}
+        <td> Sorry, {{t.student.first_name}}, You are almost there.Please try again</td>
+        {% endif %}
 
 {% for course in courses %}
 
@@ -89,8 +90,6 @@ tr, td, th{
 <p style="color:green">Congratulations, {{t.student.first_name}} {{t.student.last_name}}, you made it!</p>
 <a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>
 
-{% else  %}
-<p style="color:green">Sorry, {{t.student.first_name}} {{t.student.last_name}}, please try again</p>
 {% endif  %}
 
 
