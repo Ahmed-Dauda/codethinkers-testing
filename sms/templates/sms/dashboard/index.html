@@ -60,7 +60,7 @@
             <a class="category-head" style="color: rgb(16, 2, 37);" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a><hr>
            <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
             <div>{{category.created}}</div> <hr>
-            <div>{{category.desc}}</div>
+            <div class="text-left ">{{category.desc}}</div>
         </p>
      
     </div>
