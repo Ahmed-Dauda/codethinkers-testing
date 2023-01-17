@@ -8,6 +8,7 @@ from sms.views import(
     #   Topic_list,
        Category,
        Table,
+       Homepage,
       Courseslistdescview,
       Topicsdetailview,
       Feedbackformview,
@@ -31,9 +32,14 @@ app_name = 'sms'
 
 urlpatterns = [
   
-    path('', Categorieslistview.as_view(), name='categorieslist'),
-    path('category', Category.as_view(), name='category'),
+    # path('', Categorieslistview.as_view(), name='categorieslist'),
+    
+    # new dashboard urls
+    path('home', Category.as_view(), name='home'),
     path('table', Table.as_view(), name='table'),
+    path('', Homepage.as_view(), name='homepage'),
+    # end
+    
     path('courseslist/<pk>/', Courseslistview.as_view(), name='courseslist'),
     path('courseslistdesc/<pk>/', Courseslistdescview.as_view(), name='courseslistdesc'),
     path('topicslistview/<pk>/', Topicslistview.as_view(), name='topicslistview'),

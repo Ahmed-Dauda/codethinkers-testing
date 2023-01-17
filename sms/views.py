@@ -82,7 +82,7 @@ class Categorieslistview(LoginRequiredMixin, ListView):
 
 class Category(LoginRequiredMixin, ListView):
     models = Categories
-    template_name = 'sms/index.html'
+    template_name = 'sms/dashboard/index.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
    
@@ -91,7 +91,7 @@ class Category(LoginRequiredMixin, ListView):
 
 class Table(LoginRequiredMixin, ListView):
     models = Categories
-    template_name = 'sms/tables.html'
+    template_name = 'sms/dashboard/tables.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
    
@@ -104,16 +104,52 @@ class Table(LoginRequiredMixin, ListView):
     #     context['courses'] = Courses.objects.all().count()
     #     context['user'] = NewUser.objects.get_queryset().order_by('id')
         
-    #     # num_visit = self.request.session.get('num_visit', 0)
+    #   # num_visit = self.request.session.get('num_visit', 0)
         # self.request.session['num_visit'] = num_visit + 1
         # context['num_visit'] = num_visit
         # context['user_name'] = self.request.user
         # context['current_users'] = get_current_users()
         # context['current_users_count'] = get_current_users().count()
         # context['comment_count'] = Comment.objects.all().count() 
-    
         # sweetify.success(self.request, 'You successfully changed your password')
         # return context
+
+
+class Homepage(LoginRequiredMixin, ListView):
+    models = Categories
+    template_name = 'sms/dashboard/index.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+   
+    def get_queryset(self):
+        return Categories.objects.all()
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['students'] = User.objects.all().count()
+        context['category'] = Categories.objects.count()
+        context['courses'] = Courses.objects.all().count()
+        context['user'] = NewUser.objects.get_queryset().order_by('id')
+        
+        return context
+
+class Courseslistdashboardview(LoginRequiredMixin, HitCountDetailView, DetailView):
+    models = Categories
+    template_name = 'sms/dashboard/courselistview.html'
+    count_hit = True
+    queryset = Categories.objects.all()
+    def get_queryset(self):
+        return Categories.objects.all()
+   
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+        context['courses'] = Courses.objects.filter(categories__pk = self.object.id)
+        context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
+
+        return context
+
+# end of new dashboard view
 
 from django.contrib.auth import logout
 
@@ -134,10 +170,7 @@ class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context = super().get_context_data(**kwargs)
         context['courses'] = Courses.objects.filter(categories__pk = self.object.id)
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
-        # course = Courses.objects.get(pk=self.kwargs["pk"])
-        
-        # context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
-        # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
+
         return context
 
 class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
