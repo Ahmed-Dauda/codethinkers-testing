@@ -1,9 +1,10 @@
 {% extends 'sms/baseblog.html' %}
 
+
 {% block title %} {{object.title|title}} {% endblock %}
 
   {% block content %}
-
+  {% load hitcount_tags %}
   {% load static %}
 
   <style>
@@ -25,13 +26,11 @@
     .comments-section>*{
       flex: 1px 1px auto;
       margin: 7px;
-
-
-      
+     
   </style> 
   <br><br>
   
-  {% load hitcount_tags %}
+
 <section >
 
     

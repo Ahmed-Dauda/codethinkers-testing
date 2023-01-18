@@ -34,12 +34,16 @@ from django.contrib.staticfiles import finders
 from quiz.models import Result, Course
 from django.template import loader
 
+# dashboard view
+
 def take_exams_view(request):
     course = QMODEL.Course.objects.get_queryset().order_by('id')
     context = {
         'courses':course
     }
-    return render(request, 'student/take_exams.html', context=context)
+    return render(request, 'student/dashboard/take_exams.html', context=context)
+
+# end of dashboard view
 
 def start_exams_view(request, pk):
 
