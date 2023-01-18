@@ -25,7 +25,6 @@
     margin: 5px;
     background-color: #4158D0;
     color: black;
-    border: 10 solid black;
     background-image: linear-gradient(#ffff 100%, #ffff 46%, white 100%);
 
 }
@@ -53,14 +52,14 @@
   <!--CATEGORIES OF COURSES-->
 <br>
   <h3 class="text-center">CATEGORIES OF COURSES</h3>
-  <div class="container text-center bg-dark ">
+  <div class="container text-center">
     {% for category in object_list %}
     <div class="left-column-cat ">
         <p class="card-body text-center category">
-            <a class="category-head" style="color: rgb(16, 2, 37);" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a><hr>
+            <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a><hr>
            <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
             <div>{{category.created}}</div> <hr>
-            <div>{{category.desc}}</div>
+            <div class="text-left container">{{category.desc}}</div>
         </p>
      
     </div>
