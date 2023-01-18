@@ -36,13 +36,17 @@
 
     <h3 class="text-center">Learning path</h3>
     <div class="container text-center">
-        <div class="left-column">
+        <div class="left-column  ">
+            <i class="fas fa-book fa-lg "></i><i class="fas fa-book fa-lg"></i>
             <p class="card-body text-center ">{{category}} Levels</p>
         </div>
         <div class="left-column">
+            <i class="fas fa-user  fa-lg "></i><i class="fas fa-user  fa-lg "></i>
             <p class="card-body ">{{students}} students</p>
         </div>
+       
         <div class="left-column">
+            <i class="fas fa-book fa-lg fa-fw"></i>
             <p class="card-body ">{{courses}} courses</p>
         </div>
 
@@ -50,7 +54,8 @@
  <!--end-->
 
   <!--CATEGORIES OF COURSES-->
-<br>
+<br><br><br>
+
   <h3 class="text-center">CATEGORIES OF COURSES</h3>
   <div class="container text-center">
     {% for category in object_list %}
