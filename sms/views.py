@@ -7,7 +7,7 @@ from django.db.models import fields
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from sms.models import (Categories, Courses, Topics, 
-                        Comment, Blog, Blogcomment
+                        Comment, Blog, Blogcomment,Alert
                         )
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from users.models import Profile
@@ -80,6 +80,8 @@ class Categorieslistview(LoginRequiredMixin, ListView):
         
         return context
 
+# dashboard view
+
 class Category(LoginRequiredMixin, ListView):
     models = Categories
     template_name = 'sms/dashboard/index.html'
@@ -97,22 +99,11 @@ class Table(LoginRequiredMixin, ListView):
    
     def get_queryset(self):
         return Categories.objects.all()
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     context['students'] = User.objects.all().count()
-    #     context['category'] = Categories.objects.count()
-    #     context['courses'] = Courses.objects.all().count()
-    #     context['user'] = NewUser.objects.get_queryset().order_by('id')
-        
-    #   # num_visit = self.request.session.get('num_visit', 0)
-        # self.request.session['num_visit'] = num_visit + 1
-        # context['num_visit'] = num_visit
-        # context['user_name'] = self.request.user
-        # context['current_users'] = get_current_users()
-        # context['current_users_count'] = get_current_users().count()
-        # context['comment_count'] = Comment.objects.all().count() 
-        # sweetify.success(self.request, 'You successfully changed your password')
-        # return context
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['students'] = User.objects.all().count()
+
+        return context
 
 
 class Homepage(LoginRequiredMixin, ListView):
@@ -129,27 +120,11 @@ class Homepage(LoginRequiredMixin, ListView):
         context['students'] = User.objects.all().count()
         context['category'] = Categories.objects.count()
         context['courses'] = Courses.objects.all().count()
+        context['alerts'] = Alert.objects.order_by('-created')
+        context['alert_count'] = Alert.objects.all().count()
         context['user'] = NewUser.objects.get_queryset().order_by('id')
         
         return context
-
-class Courseslistdashboardview(LoginRequiredMixin, HitCountDetailView, DetailView):
-    models = Categories
-    template_name = 'sms/dashboard/courselistview.html'
-    count_hit = True
-    queryset = Categories.objects.all()
-    def get_queryset(self):
-        return Categories.objects.all()
-   
-    def get_context_data(self, **kwargs):
-
-        context = super().get_context_data(**kwargs)
-        context['courses'] = Courses.objects.filter(categories__pk = self.object.id)
-        context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
-
-        return context
-
-# end of new dashboard view
 
 from django.contrib.auth import logout
 
@@ -159,7 +134,7 @@ def logout_view(request):
     
 class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
     models = Categories
-    template_name = 'sms/courseslistview.html'
+    template_name = 'sms/dashboard/courseslistview.html'
     count_hit = True
     queryset = Categories.objects.all()
     def get_queryset(self):
@@ -172,6 +147,33 @@ class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
 
         return context
+
+class Bloglistview(ListView):
+    models = Blog
+    template_name = 'sms/dashboard/bloglistview.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+    queryset = Blog.objects.order_by('-created')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['blogs_count'] =Blog.objects.all().count() 
+        return context
+
+# admin result view
+
+class Admin_result(LoginRequiredMixin, ListView):
+    models = QMODEL.Course
+    template_name = 'sms/dashboard/admin_result.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+   
+    def get_queryset(self):
+        return QMODEL.Course.objects.all()
+    
+# end dashboard view
+
+
 
 class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
     models = Categories
@@ -254,12 +256,10 @@ def listing_api(request):
     }
     return JsonResponse(payload)
 
-# end
-
 class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
     
     models = Courses
-    template_name = 'sms/topicslistview.html'
+    template_name = 'sms/dashboard/topicslistview.html'
     count_hit = True
     paginate_by = 1
 
@@ -280,6 +280,28 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
         context['c'] = c
 
         return context
+    
+class UserProfilelistview(LoginRequiredMixin, ListView):
+    models = Profile
+    template_name = 'sms/dashboard/myprofile.html'
+    count_hit = True
+   
+    def get_queryset(self):
+        return Profile.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_pro = self.request.user
+        context['user_profile'] = Profile.objects.filter(user = self.request.user)
+        course=QMODEL.Course.objects.all()
+        context['courses']=QMODEL.Course.objects.all()
+        # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
+        student = Profile.objects.filter(user_id=self.request.user.id)
+        context['results']= QMODEL.Result.objects.order_by('-marks')
+        return context
+# end
+
+
 
 class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
     
@@ -339,27 +361,6 @@ class Feedbackformview(CreateView):
     success_url = reverse_lazy('sms:feedbackformview')
    
 
-
-class UserProfilelistview(LoginRequiredMixin, ListView):
-    models = Profile
-    template_name = 'sms/myprofile.html'
-    count_hit = True
-   
-    def get_queryset(self):
-        return Profile.objects.all()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user_pro = self.request.user
-        context['user_profile'] = Profile.objects.filter(user = self.request.user)
-        course=QMODEL.Course.objects.all()
-        context['courses']=QMODEL.Course.objects.all()
-        # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
-        student = Profile.objects.filter(user_id=self.request.user.id)
-        context['results']= QMODEL.Result.objects.order_by('-marks')
-        return context
-  
-
 @login_required
 def Certificates(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
@@ -411,17 +412,6 @@ class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
     def get_queryset(self):
         return Profile.objects.all()
 
-# admin result view
-
-class Admin_result(LoginRequiredMixin, ListView):
-    models = QMODEL.Course
-    template_name = 'sms/admin_result.html'
-    success_message = 'TestModel successfully updated!'
-    count_hit = True
-   
-    def get_queryset(self):
-        return QMODEL.Course.objects.all()
-
 
 @login_required
 def Admin_detail_view(request,pk):
@@ -442,17 +432,7 @@ def Admin_detail_view(request,pk):
     }
     return render(request,'sms/Admin_result_detail_view.html', context)
 
-class Bloglistview(ListView):
-    models = Blog
-    template_name = 'sms/bloglistview.html'
-    success_message = 'TestModel successfully updated!'
-    count_hit = True
-    queryset = Blog.objects.order_by('-created')
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['blogs_count'] =Blog.objects.all().count() 
-        return context
     
 from sms.forms import BlogcommentForm
 class Blogdetaillistview(HitCountDetailView,DetailView):
@@ -524,5 +504,20 @@ class Baseblogview(HitCountDetailView,DetailView):
         context['blogs_count'] =Blog.objects.all().count() 
        
         return context
-    
+
+# alert view
+class AlertView(ListView):
+    models = Alert
+    template_name = 'sms/dashboard/base.html'
+ 
+    def get_queryset(self):
+        return Alert.objects.order_by('-created')
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+        context['alerts'] = Alert.objects.order_by('-created')
+        context['alert_count'] = Alert.objects.all().count() 
+       
+        return context 
 
