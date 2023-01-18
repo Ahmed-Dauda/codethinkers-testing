@@ -3,12 +3,19 @@ from . import views
 
 from sms.views import(
     Categorieslistview,
-     Courseslistview,
+     
      Topicslistview,
     #   Topic_list,
+    
+    # dashboard url
        Category,
        Table,
        Homepage,
+       AlertView,
+       Courseslistview,
+
+    #    end
+    
       Courseslistdescview,
       Topicsdetailview,
       Feedbackformview,
@@ -38,9 +45,12 @@ urlpatterns = [
     path('home', Category.as_view(), name='home'),
     path('table', Table.as_view(), name='table'),
     path('', Homepage.as_view(), name='homepage'),
+    path('alert', AlertView.as_view(), name='alert'),
+    path('courseslist/<pk>/', Courseslistview.as_view(), name='courseslist'),
+  
     # end
     
-    path('courseslist/<pk>/', Courseslistview.as_view(), name='courseslist'),
+   
     path('courseslistdesc/<pk>/', Courseslistdescview.as_view(), name='courseslistdesc'),
     path('topicslistview/<pk>/', Topicslistview.as_view(), name='topicslistview'),
     path('topicsdetailview/<slug:slug>/', Topicsdetailview.as_view(), name='topicsdetailview'),
