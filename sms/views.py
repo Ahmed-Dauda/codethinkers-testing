@@ -200,7 +200,26 @@ def Certificates(request,pk):
     }
     return render(request,'sms/dashboard/certificates.html', context)
 
-  
+from sms.forms import BlogcommentForm
+class Blogdetaillistview(HitCountDetailView,DetailView):
+    models = Blog
+    template_name = 'sms/dashboard/bloglistdetailview.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+     
+    def get_queryset(self):
+        return Blog.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        context['blogs'] =Blog.objects.get_queryset().order_by('id')
+        comments = Blogcomment.objects.filter(post__slug=self.object.slug).order_by('-created')
+        context['blogs_count'] =Blog.objects.all().count()
+        context['comments'] = comments 
+        context['comments_count'] = comments.count() 
+       
+        return context 
 # end dashboard view
 
 
@@ -435,26 +454,7 @@ def Admin_detail_view(request,pk):
 
 
     
-from sms.forms import BlogcommentForm
-class Blogdetaillistview(HitCountDetailView,DetailView):
-    models = Blog
-    template_name = 'sms/bloglistdetailview.html'
-    success_message = 'TestModel successfully updated!'
-    count_hit = True
-     
-    def get_queryset(self):
-        return Blog.objects.all()
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        context['blogs'] =Blog.objects.get_queryset().order_by('id')
-        comments = Blogcomment.objects.filter(post__slug=self.object.slug).order_by('-created')
-        context['blogs_count'] =Blog.objects.all().count()
-        context['comments'] = comments 
-        context['comments_count'] = comments.count() 
-       
-        return context
     
 class BlogcommentCreateView( CreateView):
     model = Blogcomment
