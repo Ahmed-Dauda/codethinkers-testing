@@ -48,8 +48,6 @@ flex: 1 1 auto;
  margin: 2px;
 }
 
-
-
 .img-box{
   width: 100%;
   height: auto;
@@ -64,7 +62,8 @@ flex: 1 1 auto;
 <h1 class="text-center">{{c}} Modules <br>
   {{ hitcount.total_hits }}  <i class="fas fa-eye"></i></h1>
 <hr>
-<div class="prog container">
+<div class="prog ">
+
 <label for="file"><button class="text-white btn btn-primary" >{{ topics.number }} / {{c}}</button></label><br>
 <p>Overall Process </p>
 <progress style="width: 100%;" value="{{ topics.number }}" max="{{c}}">70 %</progress>
@@ -74,7 +73,8 @@ flex: 1 1 auto;
 </div>
 
 <div  class="card ">
-  <div class="card-header">
+  <div class="card-body">
+
     {% for topic in topics %}
     <h3>{{topic.title|safe}}</h3><hr>
 
@@ -84,7 +84,7 @@ flex: 1 1 auto;
 <!-- pagination codes star -->
 	
 {% if topics.has_other_pages %}
-<div class="container" id = ''>
+<div class="" id = ''>
 <nav class="d-flex" aria-label="Page navigation example">
 
   <ul class="pagination  pagination-sm flex-wrap justify-content-center">
@@ -127,33 +127,30 @@ flex: 1 1 auto;
   <div   class="videoWrapper ratio ratio-16x9">
     <iframe  src={% video topic.video|safe %}{% video topic.video|safe %}</iframe>
   </div>
-
   {% endif %}
+
   {% if topic.desc %}
   <div><p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.desc|safe}}</p></div><br><hr>
   {% else %}
   <div><p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p></div><br><hr>
   {% endif %}<br>
   
- 
   {% if topic.student_activity %}
-  
   <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button text-left" >{{topic.student_activity|safe}}</div><br><hr>
   {% endif %}
   
   {% if topic.evaluation %}
-
   <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button body-text text-left">{{topic.evaluation|safe}}</div><br><hr>
   {% endif %}
 
-  {% for topic in topics %}
+{% for topic in topics %}
   <a href="#" class="topic-link" data-pk="{{ topic.pk }}">{{ topic.name }}</a>
 {% endfor %}
 
 <!-- pagination codes star -->
 	
 {% if topics.has_other_pages %}
-<div class="container" id = ''>
+<div class="" id = ''>
 <nav class="d-flex" aria-label="Page navigation example">
 
   <ul class="pagination  pagination-sm flex-wrap justify-content-center">
@@ -184,7 +181,7 @@ flex: 1 1 auto;
 
 <hr>
   <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
-    <div style="text-align: center;" class="container">
+    <div style="text-align: center;" class="">
   {% if topics.number == c %}
   <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4>
   <!-- <h3>After completion of the Topics, take Exam</h3> -->

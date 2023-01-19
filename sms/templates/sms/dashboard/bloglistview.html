@@ -29,7 +29,7 @@
 		{% for item in object_list %}
 		<div class="left-column-cat card-body text-center category">
 
-			<h1  class="text-left container">{{item.title|title}}</h1><hr>
+			<h1  class="card-title">{{item.title|title}}</h1><hr>
 			<img class="text-left container" src="{{item.img_blog.url}}" class="card-img-top" style="width: auto; height: 250px; object-fit: scale-down;" alt="{{ p.product_name}}">
 			<small class="text-left container" class="container">Image source: {{item.img_source}}</small>
 			<small class="text-left container">{{item.created}}, {{item.created|timesince}}</small>
@@ -39,12 +39,9 @@
 			<small class="card-text">By {{item.poster}}</small><hr>
 			{% endif %}	
 			<p data-label="my-label-button" class="line-numbers copy-to-clipboard-button text-left container" >{{blog.desc|safe|striptags|truncatewords:20}}</p>
-			<p class="text-left container">{{ item.desc|safe }}</p><hr>
+			<!-- <p class="text-left container">{{ item.desc|safe }}</p><hr> -->
 			<a href="{% url 'sms:blogdetaillistview' item.slug %}" class="btn btn-warning">Read More....</a><hr>
-	
-			
-			
-			
+
 			<p class="card-text text-muted" style="font-size:12px">{{ p.product_type }}</p>
 		</div>
 		{% empty %}
