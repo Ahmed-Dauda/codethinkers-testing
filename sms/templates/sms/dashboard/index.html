@@ -6,9 +6,14 @@
   {% block content %} 
 <style>
 
-.container {
+.container1 {
     display: flex;
     flex-wrap: nowrap;
+    justify-content: center;
+}
+.container {
+    display: flex;
+    flex-wrap: wrap;
     justify-content: center;
 }
 .left-column {
@@ -30,12 +35,13 @@
 }
 
 
-    </style>
+</style>
     
     <!--learning path-->
-
+<br><br>
     <h3 class="text-center">Learning path</h3>
-    <div class="container text-center">
+    <br>
+    <div class="container1 text-center">
         <div class="left-column  ">
             <i class="fas fa-book fa-lg "></i><i class="fas fa-book fa-lg"></i>
             <p class="card-body text-center ">{{category}} Levels</p>
@@ -57,7 +63,8 @@
 <br><br><br>
 
   <h3 class="text-center">CATEGORIES OF COURSES</h3>
-  <div class="container text-center">
+  <br>
+  <div class=" text-center">
     {% for category in object_list %}
     <div class="left-column-cat ">
         <p class="card-body text-center category">
