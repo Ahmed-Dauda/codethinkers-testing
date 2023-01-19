@@ -43,10 +43,8 @@ def take_exams_view(request):
     }
     return render(request, 'student/dashboard/take_exams.html', context=context)
 
-# end of dashboard view
-
 def start_exams_view(request, pk):
-
+    
     course = QMODEL.Course.objects.get(id = pk)
 
     # questions = QMODEL.Question.objects.all().filter(course = course)
@@ -69,6 +67,10 @@ def start_exams_view(request, pk):
     response = render(request, 'student/start_exams.html', context=context)
     response.set_cookie('course_id', course.id)
     return response
+
+# end of dashboard view
+
+
 
 @login_required
 def calculate_marks_view(request):
@@ -110,7 +112,7 @@ def calculate_marks_view(request):
 
 def view_result_view(request):
     courses=QMODEL.Course.objects.get_queryset().order_by('id')
-    return render(request,'student/view_result.html',{'courses':courses})
+    return render(request,'student/dashboard/view_result.html',{'courses':courses})
 
 
 from django.db.models import Count
