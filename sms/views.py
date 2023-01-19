@@ -430,7 +430,7 @@ def Admin_detail_view(request,pk):
         'st':request.user,
      
     }
-    return render(request,'sms/Admin_result_detail_view.html', context)
+    return render(request,'sms/dashboard/Admin_result_detail_view.html', context)
 
 
     

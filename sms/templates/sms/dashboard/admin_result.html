@@ -29,7 +29,7 @@
         {% for item in object_list %}
         <div class="left-column-cat card-body text-center category">
             <!-- <img class="card-img" src="{{item.img_course.url}}" > -->
-            <a class="bg-white container" href="{% url 'student:start-exam' item.id %}">{{item}}</a> <hr>
+            <a class="bg-white container" href="{% url 'sms:admin_result_detail_view' item.id %}">{{item}}</a> <hr>
         </div>
         {% empty %}
         <small class="card-text">No Exams Available Yet. CHECK LATER</small>
