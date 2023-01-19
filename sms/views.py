@@ -170,7 +170,37 @@ class Admin_result(LoginRequiredMixin, ListView):
    
     def get_queryset(self):
         return QMODEL.Course.objects.all()
+
+@login_required
+def Certificates(request,pk):
+    course=QMODEL.Course.objects.get(id=pk)
+    courses = QMODEL.Course.objects.all()
+    cert_note = QMODEL.Certificate_note.objects.all()
     
+    # student = Profile.objects.get(user_id=request.user.id)
+    student = request.user.id  
+    # m = QMODEL.Result.objects.aggregate(Max('marks'))  
+    max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
+    results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
+    # Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
+      
+    
+    # QMODEL.Result.objects.exclude(id = m).delete()
+    user_profile =  Profile.objects.filter(user_id = request.user)
+
+    # results=QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
+              
+    context = {
+        'results':results,
+        'course':course,
+        'st':request.user,
+        'user_profile':user_profile,
+        'courses':courses,
+        'cert_note':cert_note
+    }
+    return render(request,'sms/dashboard/certificates.html', context)
+
+  
 # end dashboard view
 
 
@@ -360,35 +390,6 @@ class Feedbackformview(CreateView):
     template_name =  'sms/feedbackformview.html'
     success_url = reverse_lazy('sms:feedbackformview')
    
-
-@login_required
-def Certificates(request,pk):
-    course=QMODEL.Course.objects.get(id=pk)
-    courses = QMODEL.Course.objects.all()
-    cert_note = QMODEL.Certificate_note.objects.all()
-    
-    # student = Profile.objects.get(user_id=request.user.id)
-    student = request.user.id  
-    # m = QMODEL.Result.objects.aggregate(Max('marks'))  
-    max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-    results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
-    # Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
-      
-    
-    # QMODEL.Result.objects.exclude(id = m).delete()
-    user_profile =  Profile.objects.filter(user_id = request.user)
-
-    # results=QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
-              
-    context = {
-        'results':results,
-        'course':course,
-        'st':request.user,
-        'user_profile':user_profile,
-        'courses':courses,
-        'cert_note':cert_note
-    }
-    return render(request,'sms/certificates.html', context)
 
 
 class UserProfileForm(LoginRequiredMixin, CreateView):

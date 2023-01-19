@@ -3,24 +3,7 @@
 {% block title %} Course Overall Scores Detail View {% endblock %}
 
   {% block content %} 
-  <style>
-    .container {
-        display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    
-    .left-column-cat {
-        flex: 1;
-        margin: 5px;
-        background-color: #4158D0;
-        color: black;
-        background-image: linear-gradient(#ffff 100%, #ffff 46%, white 100%);
-    
-    }
-    
-    </style>
-         
+   
 <!-- Content Row -->
 <div class="table-responsive container text-center card-body">
   <table class="table" id="">
@@ -46,7 +29,9 @@
         <!-- <td> {{t.student.user}}</td> -->
         <td> {{t.exam}}</td>
         <td> {{t.marks}} / {{course.total_marks}}</td>
-        <td>positon {{ forloop.counter }}</td>
+        {% if t.marks == t.marks %}
+        <td>positon {{ forloop.counter}}</td>
+        {% endif %}
         <td> {{t.date}}</td>
        
       </tr>
