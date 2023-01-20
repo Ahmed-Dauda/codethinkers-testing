@@ -47,10 +47,16 @@ urlpatterns = [
     path('', Homepage.as_view(), name='homepage'),
     path('alert', AlertView.as_view(), name='alert'),
     path('courseslist/<pk>/', Courseslistview.as_view(), name='courseslist'),
-  
-    # end
+    path('admin_result', Admin_result.as_view(), name ='admin_result'),
+    path('admin_result_detail_view/<pk>/', Admin_detail_view, name ='admin_result_detail_view'),
+    path('userprofileform', UserProfileForm.as_view(), name ='userprofileform'),
+    path('myprofile', UserProfilelistview.as_view(), name ='myprofile'),
+    path('certificates/<pk>/', views.Certificates, name ='certificates'),
+    path('bloglistview', Bloglistview.as_view(), name ='bloglistview'),
+    path('blog/<slug:slug>/', Blogdetaillistview.as_view(), name='blogdetaillistview'),
     
-   
+    # end
+
     path('courseslistdesc/<pk>/', Courseslistdescview.as_view(), name='courseslistdesc'),
     path('topicslistview/<pk>/', Topicslistview.as_view(), name='topicslistview'),
     path('topicsdetailview/<slug:slug>/', Topicsdetailview.as_view(), name='topicsdetailview'),
@@ -58,17 +64,12 @@ urlpatterns = [
     path('feedbackformview', Feedbackformview.as_view(), name ='feedbackformview'),
     path('commentlistview', Commentlistview.as_view(), name ='commentlistview'),
     path('commentlistviewsuccess', Commentlistviewsuccess.as_view(), name ='commentlistviewsuccess'),
-    path('myprofile', UserProfilelistview.as_view(), name ='myprofile'),
-
-    path('certificates/<pk>/', views.Certificates, name ='certificates'),
+    
     # path('topic', views.Topic_list, name="topic"),
 
-    path('admin_result', Admin_result.as_view(), name ='admin_result'),
-    path('admin_result_detail_view/<pk>/', Admin_detail_view, name ='admin_result_detail_view'),
-    path('userprofileform', UserProfileForm.as_view(), name ='userprofileform'),
+   
     path('userprofileupdateform/<pk>/', UserProfileUpdateForm.as_view(), name ='userprofileupdateform'),
-    path('bloglistview', Bloglistview.as_view(), name ='bloglistview'),
-    path('blog/<slug:slug>/', Blogdetaillistview.as_view(), name='blogdetaillistview'),
+    
     path('baseview/<pk>/',  Baseblogview.as_view(), name='baseview'),
     path('blog/<slug:slug>/blogcommentform/', BlogcommentCreateView.as_view(), name ='blogcommentform'),
     
