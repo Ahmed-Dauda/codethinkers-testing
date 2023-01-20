@@ -78,9 +78,8 @@ flex: 1 1 auto;
     {% for topic in topics %}
     <h3>{{topic.title|safe}}</h3><hr>
 
-  <!-- <h1 class="text-white" style="background-color: rgb(16, 2, 37); color: wheat;">{{topic.title}}</h1><hr> -->
   <div class="text-white">{% get_hit_count for topic %} <i class="fas fa-eye"></i></div>
-  
+
 <!-- pagination codes star -->
 	
 {% if topics.has_other_pages %}
@@ -110,9 +109,9 @@ flex: 1 1 auto;
   <p>Module: {{ topics.number }}</p><hr>
   
   {% if topic.img_topic %}
-  <div   ><img  class="img-box" src="{{topic.img_topic.url}}"  alt="topics image"> </div><br><hr>
+  <img  class="img-box" src="{{topic.img_topic.url}}"  alt="topics image"><br><hr>
   {% else %}
-  <div ><img  class="img-box" src="/static/sms/images/newlogo3.jpg"    alt="topics image"></div><br>
+  <img  class="img-box" src="/static/sms/images/newlogo3.jpg"    alt="topics image"><br>
   {% endif %}
   
 

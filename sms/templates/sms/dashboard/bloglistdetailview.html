@@ -10,13 +10,12 @@
   <style>
      .share-icon{
       display: flex;
-
       justify-content: flex-start;
       flex-wrap: wrap;
     }
     .share-icon>*{
       flex: 1px 1px auto;
-      margin: 7px;
+      margin: 5px;
     }
     .comments-section{
       display: flex;
@@ -25,7 +24,7 @@
     }
     .comments-section>*{
       flex: 1px 1px auto;
-      margin: 7px;
+      margin: 5px;
      
   </style> 
   <br><br>
@@ -36,15 +35,15 @@
     
   <div  class="  shadow-lg p-3 mb-5 bg-body rounded">
   
-      <div class=" card d-flex">
+      <div class="card d-flex">
       
-      <h1 class="card-title">{{object.title|title}}</h1>
+      <h1 class="">{{object.title|title}}</h1>
 
-      <small class="card-text">{{object.created}}, {{object.created|timesince}}</small>
+      <small class="">{{object.created}}, {{object.created|timesince}}</small>
       {% if blog.author %}
-        <small class="card-text">By {{blog.author}}</small><hr>
+        <small >By {{blog.author}}</small><hr>
         {% else %}
-        <small class="card-text">By {{blog.poster}}</small><hr>
+        <small class="">By {{blog.poster}}</small><hr>
       {% endif %}
       <div class="col-lg-4 my-3 my-lg-0">
    
