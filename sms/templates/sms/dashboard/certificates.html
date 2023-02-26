@@ -33,9 +33,9 @@
       <td> {{t.exam}}</td>
       <td> {{t.marks}}</td>
       <!-- <td>Attemp {{ forloop.counter }}</td> -->
-      {% if course == t.exam and t.marks <= course.constant  %}
-      <td style='color:red'> Sorry, {{t.student.first_name}}, You are almost there.Please try again</td>
-      {% endif %}
+      <!-- {% if course == t.exam and t.marks <= course.constant  %} -->
+      <td style='color:red'> {{t.student.first_name}}</td>
+      <!-- {% endif %} -->
 
 {% for course in courses %}
 
@@ -48,7 +48,6 @@
 
 {% endfor %}
 
-{% empty  %}
 
 {% endfor %}
     </tr>
