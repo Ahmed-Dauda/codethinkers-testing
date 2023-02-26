@@ -1,0 +1,82 @@
+
+
+{% extends 'sms/dashboard/base.html' %}
+
+{% load hitcount_tags %}
+{% block title %} My Profile {% endblock %}
+
+
+{% block content %} 
+
+ 
+<div class="portlet light bordered">
+  <div class="row list-separated profile-stat">
+      
+  <div class="col-md-4 col-sm-4 col-xs-6">
+      {% for profile in user_profile %}
+      {% if profile.pro_img %}
+      <img src="{{ profile.pro_img.url}}" width="100px" height="100px"  class="rounded-circle" alt=""><hr>
+      {% else %}
+  <img src="/static/sms/images/newlogo3.jpg" width="100px" height="100px" class="rounded-circle" alt=""><hr>
+      {% endif %}
+      
+      <div class="uppercase profile-stat-text">Names : {{ profile.first_name}} | {{ profile.last_name}}</div>
+      <div class="uppercase profile-stat-title"> <p>Last Profile Update : {{ profile.updated|timesince }}</p></div>
+      <div class="uppercase profile-stat-title"> <p>Sex : {{ profile.gender}}</p></div>
+      <div class="uppercase profile-stat-title"> <p>username : {{ profile.username}}</p></div>
+      
+      
+     
+  </div>
+  
+  <div class="col-md-4 col-sm-4 col-xs-6">
+      <div class="uppercase profile-stat-title"><p>Email : {{ profile.user}}</p></div>
+      <div class="uppercase profile-stat-text">  <p>Country : {{ profile.countries}}</p></div>
+     
+    
+  </div>
+  
+  <div class="col-md-4 col-sm-4 col-xs-6">
+      <div class="uppercase profile-stat-title"><p>Date Created :{{ profile.created }} | {{ profile.created|timesince }}</p></div>
+      <div class=""><p>BIOGRAPHY : {{ profile.bio }}</p></div><hr style="color: rgb(16, 2, 37);">
+  </div>
+  
+  <div class="col-md-4 col-sm-4 col-xs-6"><hr>
+    <div class="uppercase profile-stat-text"> <a href="{% url 'sms:feedbackformview' %}">Feedback Form</a> </div>
+  </div> 
+  
+  <div class="col-md-4 col-sm-4 col-xs-6">
+      <div class="uppercase profile-stat-title"> <p>Last Profile Update : {{ profile.updated|timesince }}</p></div>
+      <div class="uppercase profile-stat-title"> <p>Sex : {{ profile.gender}}</p></div>
+      <div class="uppercase profile-stat-text"> <a href="{{ profile.get_absolute_url }}"> Edit Profile</a></div>
+  </div>
+ 
+  {% endfor %}
+  </div>
+  </div>
+  <br><br><br>
+<table class="table table-resposive">
+  <thead style="background-color: black; color:white">
+    <tr>
+      <th scope="col">Id</th>
+      <th scope="col">Title</th>
+      <th scope="col">Course</th>
+      <th scope="col">Pass Mark</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for course in courses %}
+    {% if course  and course.pass_mark >= course.constant %}
+    <tr>
+      <th scope="row">{{course.id}}</th>
+      <td>Check Course Progress</td>
+      <td><a href="{% url 'sms:certificates' course.id %}">{{course.course_name}} </a></td>
+      <td>{{course.constant}}</td>
+    </tr>
+    {% endif  %}
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %} 
+
