@@ -198,7 +198,7 @@ def Certificates(request,pk):
         'courses':courses,
         'cert_note':cert_note
     }
-    return render(request,'sms/certificates.html', context)
+    return render(request,"sms/dashboard/certificates.html", context)
 
 from sms.forms import BlogcommentForm
 class Blogdetaillistview(HitCountDetailView,DetailView):
