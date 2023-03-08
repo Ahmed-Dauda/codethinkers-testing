@@ -12,6 +12,7 @@
   <div class="card-header bg-primary text-white">{{note|linebreaksbr}}</div>
      {% endfor %}
     <div><a href="{% url 'student:take-exam' %}">Take Exam</a></div><br>
+    
     <thead>
       <tr>
         <th>Names ttt</th>
@@ -39,11 +40,7 @@
 
 {% for course in courses %}
 
-<!-- {% if course == t.exam and t.marks >= t.constant %}
-<p style="color:green">Congratulations, {{t.student.first_name}} {{t.student.last_name}}, you made it!</p>
-<a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>
 
-{% endif  %} -->
 <a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>
 
 {% endfor %}
