@@ -178,7 +178,7 @@ def Certificates(request,pk):
     cert_note = QMODEL.Certificate_note.objects.all()
     
     student = Profile.objects.get(user_id=request.user.id)
-    student = request.user.id  
+    # student = request.user.id  
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
