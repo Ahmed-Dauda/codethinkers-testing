@@ -60,7 +60,7 @@
 
 {% for course in courses %}
 
-{% if course == t.exam and t.marks >= t.constant %}
+{% if course == t.exam and t.marks >= course.constant %}
 <p style="color:green">Congratulations, {{t.student.first_name}} {{t.student.last_name}}, you made it!</p>
 <a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>
 
