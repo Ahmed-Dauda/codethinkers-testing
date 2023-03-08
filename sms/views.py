@@ -177,15 +177,15 @@ def Certificates(request,pk):
     courses = QMODEL.Course.objects.all()
     cert_note = QMODEL.Certificate_note.objects.all()
     
-    # student = Profile.objects.get(user_id=request.user.id)
+    student = Profile.objects.get(user_id=request.user.id)
     student = request.user.id  
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
     # Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
-    for r in results:
+    for r in courses:
 
-        print('scoressssss: ',r.exam)
+        print('scoressssss: ',r)
     
     # QMODEL.Result.objects.exclude(id = m).delete()
     user_profile =  Profile.objects.filter(user_id = request.user)
@@ -445,7 +445,7 @@ def Admin_detail_view(request,pk):
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course).order_by('-marks')
     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course, marks = 1).delete() 
-    # print('testing', results)  
+    
  
     context = { 
         'results':results,

@@ -6,7 +6,7 @@
 
    
 <div class="table-responsive container text-center card-body">
-  <!-- <table class="table" id="">
+  <table class="table" id="">
 
     {% for note in cert_note %}
   <div class="card-header bg-primary text-white">{{note|linebreaksbr}}</div>
@@ -18,7 +18,7 @@
         <th>email</th>
         <th>Exam Name</th>
         <th>Max Score</th>
-       <th>Attempt</th> 
+        <!-- <th>Attempt</th> -->
         <th>Exam Status</th>
        
       </tr>
@@ -32,7 +32,7 @@
       <td> {{t.student.user}}</td>
       <td> {{t.exam}}</td>
       <td> {{t.marks}}</td>
-    <td>Attemp {{ forloop.counter }}</td> 
+      <!-- <td>Attemp {{ forloop.counter }}</td> -->
     
       <td style='color:red'> {{t.student.first_name}}</td>
 
@@ -55,22 +55,9 @@
    
   </tbody>
   <hr>
-</table> -->
-{% for t in results %}
-
-{% for course in courses %}
-
-{% if course == t.exam and t.marks >= course.constant %}
-<p style="color:green">Congratulations, {{t.student.first_name}} {{t.student.last_name}}, you made it!</p>
-<a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>
-
-{% endif  %}
+</table>
 
 
-{% endfor %}
-
-
-{% endfor %}
 </div>
 
 <!-- End of Main Content -->
