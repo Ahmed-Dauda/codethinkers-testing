@@ -56,6 +56,7 @@
   </tbody>
   <hr>
 </table> -->
+{% for t in results %}
 
 {% for course in courses %}
 
@@ -64,6 +65,9 @@
 <a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>
 
 {% endif  %}
+
+
+{% endfor %}
 
 
 {% endfor %}

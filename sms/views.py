@@ -183,7 +183,9 @@ def Certificates(request,pk):
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
     # Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
-      
+    for r in results:
+
+        print('scoressssss: ',r.exam)
     
     # QMODEL.Result.objects.exclude(id = m).delete()
     user_profile =  Profile.objects.filter(user_id = request.user)
@@ -442,7 +444,8 @@ def Admin_detail_view(request,pk):
     # max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id') ,).order_by('-marks').values('id')
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course).order_by('-marks')
-    Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course, marks = 1).delete()   
+    Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course, marks = 1).delete() 
+    # print('testing', results)  
  
     context = { 
         'results':results,
