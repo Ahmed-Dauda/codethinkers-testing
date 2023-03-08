@@ -51,9 +51,9 @@
 <a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>
 
 {% else  %}
-<h4 style="color:red">You are close to get your Certificate. Please try again</h4>
-{% endif  %}
 
+{% endif  %}
+<h4 style="color:red">You are close to get your Certificate. Please try again</h4>
 
 {% endfor %}
 
