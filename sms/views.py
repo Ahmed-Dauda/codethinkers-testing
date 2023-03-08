@@ -436,7 +436,7 @@ class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
 @login_required
 def Admin_detail_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
-    student = Profile.objects.filter(user_id=request.user.id)
+    student = Profile.objects.get(user_id=request.user.id)
 
     # m = QMODEL.Result.objects.aggregate(Max('marks'))   
     # max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id') ,).order_by('-marks').values('id')
