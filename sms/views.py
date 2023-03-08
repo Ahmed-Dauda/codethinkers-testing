@@ -182,7 +182,7 @@ def Certificates(request,pk):
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
-    # Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
+    Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
     for r in courses:
 
         print('scoressssss: ',r)
