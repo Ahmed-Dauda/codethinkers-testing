@@ -33,22 +33,22 @@
       <td> {{t.exam}}</td>
       <td> {{t.marks}}</td>
       <!-- <td>Attemp {{ forloop.counter }}</td> -->
-      {% if course == t.exam and t.marks <= course.constant  %}
-      <td style='color:red'> Sorry, {{t.student.first_name}}, You are almost there.Please try again</td>
-      {% endif %}
+    
+      <td style='color:red'> {{t.student.first_name}}</td>
+
 
 {% for course in courses %}
 
-{% if course == t.exam and t.marks >= t.constant %}
+<!-- {% if course == t.exam and t.marks >= t.constant %}
 <p style="color:green">Congratulations, {{t.student.first_name}} {{t.student.last_name}}, you made it!</p>
 <a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>
 
-{% endif  %}
-
+{% endif  %} -->
+<a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>
 
 {% endfor %}
 
-{% empty  %}
+
 
 {% endfor %}
     </tr>
