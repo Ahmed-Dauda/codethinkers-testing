@@ -177,13 +177,15 @@ def Certificates(request,pk):
     courses = QMODEL.Course.objects.all()
     cert_note = QMODEL.Certificate_note.objects.all()
     
-    # student = Profile.objects.get(user_id=request.user.id)
-    student = request.user.id  
+    student = Profile.objects.get(user_id=request.user.id)
+    # student = request.user.id  
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
-    # Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
-      
+    Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
+    for r in courses:
+
+        print('scoressssss: ',r)
     
     # QMODEL.Result.objects.exclude(id = m).delete()
     user_profile =  Profile.objects.filter(user_id = request.user)
@@ -198,7 +200,7 @@ def Certificates(request,pk):
         'courses':courses,
         'cert_note':cert_note
     }
-    return render(request,'sms/dashboard/certificates.html', context)
+    return render(request,"sms/dashboard/certificates.html", context)
 
 from sms.forms import BlogcommentForm
 class Blogdetaillistview(HitCountDetailView,DetailView):
@@ -436,13 +438,14 @@ class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
 @login_required
 def Admin_detail_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
-    student = Profile.objects.filter(user_id=request.user.id)
+    student = Profile.objects.get(user_id=request.user.id)
 
     # m = QMODEL.Result.objects.aggregate(Max('marks'))   
     # max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id') ,).order_by('-marks').values('id')
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course).order_by('-marks')
-    Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course, marks = 1).delete()   
+    Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course, marks = 1).delete() 
+    
  
     context = { 
         'results':results,
