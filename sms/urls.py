@@ -10,6 +10,7 @@ from sms.views import(
     # dashboard url
        Category,
        Table,
+      #  Homepage1,
        Homepage,
        AlertView,
        Courseslistview,
@@ -44,6 +45,7 @@ urlpatterns = [
     # new dashboard urls
     path('home', Category.as_view(), name='home'),
     path('table', Table.as_view(), name='table'),
+    # path('', Homepage1.as_view(), name='homepage'),
     path('', Homepage.as_view(), name='homepage'),
     path('alert', AlertView.as_view(), name='alert'),
     path('courseslist/<pk>/', Courseslistview.as_view(), name='courseslist'),

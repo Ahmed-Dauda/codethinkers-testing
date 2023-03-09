@@ -35,7 +35,7 @@ from quiz.models import Result, Course
 from django.template import loader
 
 # dashboard view
-
+@login_required
 def take_exams_view(request):
     course = QMODEL.Course.objects.get_queryset().order_by('id')
     context = {
@@ -43,6 +43,7 @@ def take_exams_view(request):
     }
     return render(request, 'student/dashboard/take_exams.html', context=context)
 
+@login_required
 def start_exams_view(request, pk):
     
     course = QMODEL.Course.objects.get(id = pk)
@@ -110,6 +111,7 @@ def calculate_marks_view(request):
     else:
         return HttpResponseRedirect('take-exam')
 
+@login_required
 def view_result_view(request):
     courses=QMODEL.Course.objects.get_queryset().order_by('id')
     return render(request,'student/dashboard/view_result.html',{'courses':courses})
@@ -117,6 +119,7 @@ def view_result_view(request):
 
 from django.db.models import Count
 
+@login_required
 def check_marks_view(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
     student = Profile.objects.get_queryset().order_by('id')
@@ -132,6 +135,7 @@ def check_marks_view(request,pk):
 #
 
 # download pdf id view
+@login_required
 def pdf_id_view(request, *args, **kwargs):
 
     course=QMODEL.Course.objects.all()

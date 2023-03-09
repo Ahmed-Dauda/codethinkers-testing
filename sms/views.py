@@ -106,7 +106,27 @@ class Table(LoginRequiredMixin, ListView):
         return context
 
 
-class Homepage(LoginRequiredMixin, ListView):
+# class Homepage1(ListView):
+#     models = Categories
+#     template_name = 'sms/dashboard/homepage1.html'
+#     success_message = 'TestModel successfully updated!'
+#     count_hit = True
+   
+#     def get_queryset(self):
+#         return Categories.objects.all()
+    
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['students'] = User.objects.all().count()
+#         context['category'] = Categories.objects.count()
+#         context['courses'] = Courses.objects.all().count()
+#         context['alerts'] = Alert.objects.order_by('-created')
+#         context['alert_count'] = Alert.objects.all().count()
+#         context['user'] = NewUser.objects.get_queryset().order_by('id')
+        
+#         return context
+
+class Homepage(ListView):
     models = Categories
     template_name = 'sms/dashboard/index.html'
     success_message = 'TestModel successfully updated!'
@@ -183,7 +203,7 @@ def Certificates(request,pk):
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
-    for r in courses:
+    for r in results:
 
         print('scoressssss: ',r)
     
@@ -381,7 +401,7 @@ class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
 from sweetify.views import SweetifySuccessMixin
 
 
-class Commentlistview( ListView):
+class Commentlistview(ListView):
     models = Comment
     template_name = 'sms/commentlistview.html'
 
@@ -405,7 +425,7 @@ class Commentlistviewsuccess( ListView):
         return Comment.objects.all()
    
         
-class Feedbackformview(CreateView):
+class Feedbackformview(LoginRequiredMixin,CreateView):
     
     form_class = feedbackform
     template_name =  'sms/feedbackformview.html'
