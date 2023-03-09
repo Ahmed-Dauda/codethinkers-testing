@@ -19,7 +19,7 @@
         <th>Exam Name</th>
         <th>Max Score</th>
         <!-- <th>Attempt</th> -->
-        <th>Exam Status</th>
+        <!-- <th>Exam Status</th> -->
        
       </tr>
     </thead>
@@ -33,22 +33,21 @@
       <td> {{t.exam}}</td>
       <td> {{t.marks}}</td>
       <!-- <td>Attemp {{ forloop.counter }}</td> -->
-      {% if course == t.exam and t.marks <= course.constant  %}
-      <td style='color:red'> Sorry, {{t.student.first_name}}, You are almost there.Please try again</td>
-      {% endif %}
 
 {% for course in courses %}
 
-{% if course == t.exam and t.marks >= course.constant %}
+{% if course == t.exam and t.marks >= t.constant %}
 <p style="color:green">Congratulations, {{t.student.first_name}} {{t.student.last_name}}, you made it!</p>
 <a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>
 
 {% endif  %}
-
+{% if course == t.exam and t.marks < t.constant or course == t.exam and t.marks == 0 %}
+<h4 style="color:red">You are close to get your Certificate. Please try again</h4>
+{% endif  %}
 
 {% endfor %}
 
-{% empty  %}
+
 
 {% endfor %}
     </tr>
@@ -56,6 +55,8 @@
   </tbody>
   <hr>
 </table>
+
+
 </div>
 
 <!-- End of Main Content -->
