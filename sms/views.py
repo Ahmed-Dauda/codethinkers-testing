@@ -106,27 +106,27 @@ class Table(LoginRequiredMixin, ListView):
         return context
 
 
-# class Homepage1(ListView):
-#     models = Categories
-#     template_name = 'sms/dashboard/homepage1.html'
-#     success_message = 'TestModel successfully updated!'
-#     count_hit = True
+class Homepage1(ListView):
+    models = Categories
+    template_name = 'sms/dashboard/homepage1.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
    
-#     def get_queryset(self):
-#         return Categories.objects.all()
+    def get_queryset(self):
+        return Categories.objects.all()
     
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['students'] = User.objects.all().count()
-#         context['category'] = Categories.objects.count()
-#         context['courses'] = Courses.objects.all().count()
-#         context['alerts'] = Alert.objects.order_by('-created')
-#         context['alert_count'] = Alert.objects.all().count()
-#         context['user'] = NewUser.objects.get_queryset().order_by('id')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['students'] = User.objects.all().count()
+        context['category'] = Categories.objects.count()
+        context['courses'] = Courses.objects.all().count()
+        context['alerts'] = Alert.objects.order_by('-created')
+        context['alert_count'] = Alert.objects.all().count()
+        context['user'] = NewUser.objects.get_queryset().order_by('id')
         
-#         return context
+        return context
 
-class Homepage(ListView):
+class Homepage(LoginRequiredMixin,ListView):
     models = Categories
     template_name = 'sms/dashboard/index.html'
     success_message = 'TestModel successfully updated!'
