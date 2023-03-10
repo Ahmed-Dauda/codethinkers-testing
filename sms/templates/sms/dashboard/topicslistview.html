@@ -158,7 +158,7 @@ flex: 1 1 auto;
     {% else %}
       <li class="page-item disabled"><span>&laquo;</span></li>
     {% endif %}
-    {% for i in topics.paginator.page_range %}
+    {% for i in topics.paginator.object_list %}
       {% if topics.number == i %}
         <li class="page-item active" aria-current="page"><span><a class="page-link" href="">{{ i }}</a></span></li>
       {% else %}
