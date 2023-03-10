@@ -17,12 +17,14 @@ body {
     overflow-x: auto;
     
 }
+
 .container1 img {
   margin-right: 15px;
 }
-.container1::-webkit-scrollbar {
+
+/* .container1::-webkit-scrollbar {
   display: none;
-}
+} */
 
 /* div.scrollmenu {
   background-color: #333;
@@ -100,9 +102,9 @@ body {
             {% endif %}
 
             <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a><hr>
-           <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
+           <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
             <div>{{category.created}}</div> <hr>
-            <div class="text-left container">{{category.desc}}</div>
+            <div class="text-left container">{{category.desc}}</div> -->
         </p>
      
     </div>
@@ -131,9 +133,9 @@ body {
             {% endif %}
 
             <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a><hr>
-           <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
+           <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
             <div>{{category.created}}</div> <hr>
-            <div class="text-left container">{{category.desc|safe }}</div>
+            <div class="text-left container">{{category.desc|safe }}</div> -->
         </p>
      
     </div>
