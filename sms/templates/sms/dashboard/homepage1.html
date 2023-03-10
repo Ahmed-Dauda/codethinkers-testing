@@ -15,6 +15,7 @@ body {
 .container1 {
     display: flex;
     overflow-x: auto;
+    
   
     
 }
@@ -59,6 +60,7 @@ img{
     border: 2px solid blue;
     background-color: #4158D0;
     color: black;
+    
     background-image: linear-gradient(#ffff 100%, #ffff 46%, white 100%);
 
 }
@@ -135,9 +137,9 @@ img{
             {% endif %}
 
             <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a><hr>
-           <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
-            <div>{{category.created}}</div> <hr>
-            <div class="text-left container">{{category.desc|safe }}</div> -->
+           <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
+            <!-- <div>{{category.created}}</div> <hr> --> <hr>
+            <div class="text-left container">{{category.desc|safe }}</div>
         </p>
      
     </div>
