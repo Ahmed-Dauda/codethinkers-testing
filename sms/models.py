@@ -24,6 +24,7 @@ class Categories(models.Model, HitCountMixin):
     desc = models.TextField( blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True, blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+    img_cat = CloudinaryField('image', blank=True, null= True)
     # object_pk = models.PositiveIntegerField(default=True)
     hit_count_generic = GenericRelation(
     HitCount, object_id_field='object_pk',
