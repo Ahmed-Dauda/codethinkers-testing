@@ -21,6 +21,7 @@ body {
 
 img{
     max-width: 200px;
+    min-height: 200px;
 }
 /* .container1::-webkit-scrollbar {
   display: none;
@@ -95,7 +96,7 @@ img{
   <div class="container1 text-center">
     {% for category in object_list %}
     <div class="left-column-cat  ">
-        <p class="card-body  text-center category">
+        <p class="  text-center category">
             {% if category.img_cat %}
             <div  class="text-center  "><img src="{{category.img_cat.url}}"  alt="cetagory image"> </div><hr>
             {% else %}
@@ -126,7 +127,7 @@ img{
   <div class="container1 text-center">
     {% for category in coursess %}
     <div class="left-column-cat  ">
-        <p class="card-body  text-center category">
+        <p class="  text-center category">
             {% if category.img_course %}
             <div  class="text-center  "><img src="{{category.img_course.url}}" alt="cetagory image"> </div><hr>
             {% else %}
