@@ -51,6 +51,7 @@ class Courses(models.Model):
     def __str__(self):
         return f'{self.title}'
 
+
 class Topics(models.Model):
     
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)

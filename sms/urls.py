@@ -12,6 +12,7 @@ from sms.views import(
        Table,
        Homepage1,
        Homepage,
+     
        AlertView,
        Courseslistview,
 
