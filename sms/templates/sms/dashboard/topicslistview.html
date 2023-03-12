@@ -160,7 +160,7 @@ flex: 1 1 auto;
     {% endif %}
     {% for i in topics.paginator.page_range %}
       {% if topics.number == i %}
-        <li class="page-item active" aria-current="page"><span><a class="page-link" href="">{{ i }}</a></span></li>
+        <li class="page-item active" aria-current="page"><span><a class="page-link" href="">Module {{ i }}</a></span></li>
       {% else %}
         <li class="page-item"><a class="continue page-link" href="?page={{ i }}">{{ i }}</a></li>
       {% endif %}
