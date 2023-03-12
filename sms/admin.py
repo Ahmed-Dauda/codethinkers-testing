@@ -9,6 +9,8 @@ from sms.models import (
     Comment, Blog, Blogcomment,Alert
     )
 
+
+
 class ArticleAdminResource(resources.ModelResource):
     
     class Meta:

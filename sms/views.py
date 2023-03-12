@@ -121,6 +121,7 @@ class Homepage1(ListView):
         context['students'] = User.objects.all().count()
         context['category'] = Categories.objects.count()
         context['courses'] = Courses.objects.all().count()
+        context['courses_desc'] = CoursesDesc.objects.all()
         context['coursess'] = Courses.objects.all()
         context['alerts'] = Alert.objects.order_by('-created')
         context['alert_count'] = Alert.objects.all().count()

@@ -22,7 +22,7 @@ body {
 
 img{
     max-width: 200px;
-    min-height: 200px;
+    max-height: 100px;
 }
 /* .container1::-webkit-scrollbar {
   display: none;
@@ -95,7 +95,7 @@ img{
   <!--CATEGORIES OF COURSES-->
 <br><br>
 
-  <h3 class="text-center">Categories of Courses</h3>
+  <h3 class="text-center">Level of Courses</h3>
   <br>
   <div class="container1 text-center">
     {% for category in object_list %}
@@ -103,8 +103,7 @@ img{
         <p class="  text-center category">
             {% if category.img_cat %}
             <div  class="text-center  "><img src="{{category.img_cat.url}}"  alt="cetagory image"> </div>
-            {% else %}
-           
+
             {% endif %}
 
             <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a>
@@ -127,23 +126,23 @@ img{
   
   <br><br>
 
-  <h3 class="text-center">My Courses</h3>
+  <h5 class="text-center">My Courses</h5>
   <br>
   <div class="container1 text-center">
     {% for category in coursess %}
+
     <div class="left-column-cat  ">
         <p class="  text-center category">
             {% if category.img_course %}
-            <div  class="text-center  "><img src="{{category.img_course.url}}" alt="cetagory image"> </div><hr>
-            {% else %}
-           
+            <div  class="text-center  "><img src="{{category.img_course.url}}" alt="cetagory image"> </div>
+
             {% endif %}
 
-            <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a><hr>
-           <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
+            <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a>
+           <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
            
             <hr>
-            <div class="text-left container">{{category.desc_home|safe }}</div>
+            <div class="text-left container">{{category.desc_home|safe }}</div> -->
         </p>
      
     </div>
