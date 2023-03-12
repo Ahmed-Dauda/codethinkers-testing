@@ -8,9 +8,8 @@
 
 body {
 
-  /* align-items: center; */
+  align-items: center;
   height: 100vh;
-  width: 100%;
 }
 
 .container1 {
@@ -21,7 +20,7 @@ body {
     
 }
 
-.img-cat{
+img{
     max-width: 200px;
     max-height: 100px;
 }
@@ -68,91 +67,7 @@ body {
 
 
 </style>
-
-<!--Carousel Wrapper-->
-<div  id="carousel-example-2" class="carousel slide carousel-fade" data-ride="carousel" data-interval="false">
-  <!--Indicators-->
-  <ol class="carousel-indicators">
-    <li data-target="#carousel-example-2" data-slide-to="0" class="active"></li>
-    <li data-target="#carousel-example-2" data-slide-to="1"></li>
-    <li data-target="#carousel-example-2" data-slide-to="2"></li>
-  </ol>
-  <!--/.Indicators-->
-
-  <!--Slides-->
-  <div class="carousel-inner" role="listbox" data-interval="false">
-    <div class="carousel-item active">
-      <div class="view">
-        
-        <img class="d-block w-100" src="https://mdbootstrap.com/img/Photos/Slides/img%20(68).webp"
-          alt="First slide">
-        <div class="mask rgba-black-light"></div>
-      </div>
-      <div class="carousel-caption">
-        <h3 class="h3-responsive">
-
-  <!--CATEGORIES OF COURSES-->
-  <br><br>
-
-  <h3 class="text-center">Level of Courses</h3>
-  <br>
-  <div class="container1 text-center">
-    {% for category in object_list %}
-    <div class="left-column-cat  ">
-        <p class="  text-center category">
-            {% if category.img_cat %}
-            <div  class="text-center  "><img class="img-cat" src="{{category.img_cat.url}}"  alt="cetagory image"> </div>
-
-            {% endif %}
-
-            <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a>
-           <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
-            <div>{{category.created}}</div> <hr>
-            <div class="text-left container">{{category.desc}}</div> -->
-        </p>
-     
-    </div>
-
-    {% empty %}
-      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-    {% endfor %}
-  </div>
-<!--end-->
-
-        </h3>
-   
-      </div>
-    </div>
-
-    <div class="carousel-item">
-      <!--Mask color-->
-      <div class="view">
-        <img class="d-block w-100" src="https://mdbootstrap.com/img/Photos/Slides/img%20(6).webp"
-          alt="Second slide">
-        <div class="mask rgba-black-strong"></div>
-      </div>
-      <div class="carousel-caption">
-        <h3 class="h3-responsive">Strong mask</h3>
-        <p>Secondary text</p>
-      </div>
-    </div>
- 
-  <!--/.Slides-->
-  
-  <!--Controls-->
-  <a class="carousel-control-prev" href="#carousel-example-2" role="button" data-slide="prev">
-    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-    <span class="sr-only">Previous</span>
-  </a>
-  <a class="carousel-control-next" href="#carousel-example-2" role="button" data-slide="next">
-    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-    <span class="sr-only">Next</span>
-  </a>
-  <!--/.Controls-->
-</div>
-<!--/.Carousel Wrapper-->
-
-
+    
     <!--learning path-->
 <br><br>
     <h3 class="text-center">Statistics</h3>
@@ -176,8 +91,9 @@ body {
  <!--end-->
 
 
+ 
+
   <!--CATEGORIES OF COURSES-->
-<!--   
 <br><br>
 
   <h3 class="text-center">Level of Courses</h3>
@@ -187,22 +103,22 @@ body {
     <div class="left-column-cat  ">
         <p class="  text-center category">
             {% if category.img_cat %}
-            <div  class="text-center  "><img class="img-cat" src="{{category.img_cat.url}}"  alt="cetagory image"> </div>
+            <div  class="text-center  "><img src="{{category.img_cat.url}}"  alt="cetagory image"> </div>
 
             {% endif %}
 
-            <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a> -->
+            <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a>
            <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
             <div>{{category.created}}</div> <hr>
             <div class="text-left container">{{category.desc}}</div> -->
-        <!-- </p>
+        </p>
      
     </div>
 
     {% empty %}
       <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
     {% endfor %}
-  </div> -->
+  </div>
 <!--end-->
 
 
@@ -219,7 +135,7 @@ body {
     <div class="left-column-cat  ">
         <p class="  text-center category">
             {% if category.img_course %}
-            <div  class="text-center  "><img class="img-cat" src="{{category.img_course.url}}" alt="cetagory image"> </div>
+            <div  class="text-center  "><img src="{{category.img_course.url}}" alt="cetagory image"> </div>
 
             {% endif %}
 
