@@ -72,8 +72,8 @@ flex: 1 1 auto;
 {% endif %}
 </div>
 
-<div  class="card ">
-  <div class="card-body">
+<div  class="">
+  <div class="">
 
     {% for topic in topics %}
     <h3>{{topic.title|safe}}</h3><hr>
@@ -158,7 +158,7 @@ flex: 1 1 auto;
     {% else %}
       <li class="page-item disabled"><span>&laquo;</span></li>
     {% endif %}
-    {% for i in topics.paginator.object_list %}
+    {% for i in topics.paginator.page_range %}
       {% if topics.number == i %}
         <li class="page-item active" aria-current="page"><span><a class="page-link" href="">{{ i }}</a></span></li>
       {% else %}

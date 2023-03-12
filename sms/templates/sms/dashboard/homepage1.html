@@ -70,7 +70,7 @@ img{
     
     <!--learning path-->
 <br><br>
-    <h3 class="text-center">Learning path</h3>
+    <h3 class="text-center">Statistics</h3>
     <br>
     <div class="container1 text-center bg-primary">
         <div class="left-column  ">
@@ -90,6 +90,8 @@ img{
     </div>
  <!--end-->
 
+
+
   <!--CATEGORIES OF COURSES-->
 <br><br>
 
@@ -100,12 +102,12 @@ img{
     <div class="left-column-cat  ">
         <p class="  text-center category">
             {% if category.img_cat %}
-            <div  class="text-center  "><img src="{{category.img_cat.url}}"  alt="cetagory image"> </div><hr>
+            <div  class="text-center  "><img src="{{category.img_cat.url}}"  alt="cetagory image"> </div>
             {% else %}
            
             {% endif %}
 
-            <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a><hr>
+            <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a>
            <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
             <div>{{category.created}}</div> <hr>
             <div class="text-left container">{{category.desc}}</div> -->
@@ -122,6 +124,7 @@ img{
 
 
   <!--MY COURSES-->
+  
   <br><br>
 
   <h3 class="text-center">My Courses</h3>
@@ -138,7 +141,8 @@ img{
 
             <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a><hr>
            <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
-            <!-- <div>{{category.created}}</div> <hr> --> <hr>
+           
+            <hr>
             <div class="text-left container">{{category.desc_home|safe }}</div>
         </p>
      
@@ -148,7 +152,10 @@ img{
       <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
     {% endfor %}
   </div>
+  
 <!--end-->
+
+
 
 {% endblock %} 
  
