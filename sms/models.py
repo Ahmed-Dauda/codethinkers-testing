@@ -59,7 +59,7 @@ class Topics(models.Model):
     slug = models.SlugField()
     objectives = tinymce_models.HTMLField(null= True,blank=True,)
     desc = tinymce_models.HTMLField( blank=True, null= True)
-    desc_home = tinymce_models.HTMLField( blank=True, null= True)
+    # desc_home = tinymce_models.HTMLField( blank=True, null= True)
     coursedesc = tinymce_models.HTMLField( blank=True, null= True)
     student_activity = tinymce_models.HTMLField(null= True,blank=True,)
     evaluation = models.TextField(blank=True, null= True)
