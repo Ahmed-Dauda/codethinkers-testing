@@ -38,6 +38,7 @@ class Courses(models.Model):
     img_course = CloudinaryField('image', blank=True, null= True)
     categories =models.ForeignKey(Categories, on_delete= models.CASCADE)
     title = models.CharField(max_length=225, default='')
+    desc_heading = tinymce_models.HTMLField(default='')
     desc = tinymce_models.HTMLField(default='')
     desc_home = tinymce_models.HTMLField( blank=True, null= True)
     course_desc = tinymce_models.HTMLField(default='')
