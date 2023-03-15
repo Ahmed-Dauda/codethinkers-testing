@@ -197,7 +197,7 @@ img {
 
 
 <br><br>
-<h3 class="text-center">Statistics</h3> <hr>
+<h1 class="text-center">Statistics</h1> <hr>
 <div class="row">
   <div class="card col-lg-4 col-6">
     <img class="card-img-top" src="/static/sms/images/levels.jpg" />
@@ -344,7 +344,7 @@ img {
      
         <div class="card container text-center " >
           <h2 data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="text-align: left;">{{obj.desc_heading|safe}}</h2>
-          <img   src="{{ obj.img_course.url }}" width="100%"  height="100px" alt="{{obj.desc}}">
+          <img class="card-img-top"  src="{{ obj.img_course.url }}" width="100%"  height="200px" alt="{{obj.desc}}">
         <a class="" href="{% url 'sms:courseslist' obj.pk %}">{{obj}} </a>
          <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button text-center" >{{obj.desc|safe}}</p>
         
