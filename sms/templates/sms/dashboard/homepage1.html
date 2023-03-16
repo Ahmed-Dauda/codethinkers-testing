@@ -195,9 +195,9 @@ img {
 
 
 .carousel-inner .carousel-item {
-  transition: -webkit-transform 0.3s ease;
-  transition: transform 0.3s ease;
-  transition: transform 0.3s ease, -webkit-transform 0.3s ease;
+  transition: -webkit-transform 0.2s ease;
+  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, -webkit-transform 0.2s ease;
 }
 
 /* .carousel-inner > .item {
@@ -424,9 +424,9 @@ img {
             <p>Explore job opportunities available to you upon program completion and learn about your areas of interest.</p>
           </div>
 
-        <div  class="bg-white" >
+        <div style="padding-left: 10px;" class="bg-white " >
          
-        <img  class="d-block w-100" src="{{ obj.img_course.url }}" width="100%"  height="200px" alt="{{obj.desc}}">
+        <img  class="d-block w-100" src="{{ obj.img_course.url }}" width="100%"  height="150px" alt="{{obj.desc}}">
         <a  href="{% url 'sms:courseslist' obj.pk %}">{{obj}} </a>
         <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button text-center" >{{obj.desc|safe}}</p>
         <br> <br><br>
