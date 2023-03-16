@@ -37,8 +37,8 @@ body {
 
 .left-column-cat {
     flex: 1;
-    margin: 5px;
-    border: 2px solid blue;
+    margin: 2px;
+    
     background-color: #4158D0;
     color: black;
     
@@ -169,8 +169,8 @@ img {
 }
 
 .carousel-indicators li {
-        width: 1rem;
-        height: 1rem;
+        width: 0.8rem;
+        height: 0.8rem;
         border: 1px solid;
         border-radius: 50%;
         background-color: #E0E0E0;
@@ -232,7 +232,7 @@ img {
 
 </style>
 
-
+<!-- welcome note -->
       <div class="text bg-white" style="margin-top: 50px;">
         <div class="flex-internal">
           <div class="d-flex">
@@ -251,55 +251,66 @@ img {
   </div>
     </div>
       </div>
+<!-- end welcome note -->
 
+
+<!-- page Statistics -->
+       <br>
+      <h1 class="text-center ">Site Statistics</h1> <hr>
+      <div class="d-flex container bg-white text-primary">
+        <div class="p-2  flex-fill">{{category}} Learners' Categories</div>
+        <div class="p-2 flex-fill">{{students}} Students</div>
+        <div class="p-2  flex-fill">{{courses}} Courses</div>
+      </div>
+<!-- end page Statistics -->  
+
+
+
+  <!--CATEGORIES OF COURSES-->
+  <br><br>
+
+  <h3 class="text bg-white">We offer {{category}} learners' categories to suit your curiosity</h3><hr>
+  
+  <div class="container1 text-center">
+    {% for category in object_list %}
+    <div class="left-column-cat  ">
+        <p class="  text-center category">
+            {% if category.img_cat %}
+            <img class="rounded-4" src="{{category.img_cat.url}}" width="100px" height="70px" alt="cetagory image">
+            {% endif %}
+
+            <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a>
+           <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
+            <div>{{category.created}}</div> <hr>
+            <div class="text-left container">{{category.desc}}</div> -->
+        </p>
+     
+    </div>
+
+    {% empty %}
+      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+    {% endfor %}
+  </div>
+<!-- END CATEGORIES OF COURSES-->
+
+
+<!-- benefits -->
       <div class="text bg-white" style="margin-top: 50px;">
         <div class="flex-internal">
           <div class="d-flex">
         
             <div class="flex-grow-1  ">
-              <h1><span> Some benefit associated with course:</span></h1>
+              <h3><span> Some benefit associated with course:</span></h3>
               100% online, Flexible deadlines, Collaborators, Jobs opportunities, Certificate of completion, Language: English
             </div>
           </div>
-          
-    <!-- <div class="header">
-    
-      <a class="btn" id="btn1" href="{% url 'account_login' %}"> Log In</a>
-      <button class="btn" id="btn2">Sign Up</button>
-   
-  </div> -->
     </div>
       </div>
 
-
-<br><br>
-<h1 class="text-center">Statistics</h1> <hr>
-<div class="row">
-  <div class="card col-lg-4 col-6">
-    <img class="card-img-top" src="/static/sms/images/levels.jpg" />
-    <div class="card-body">
-      <h6 class="card-title">{{category}} Levels</h6>
-    </div>
-  </div>
-
-
-
-  <div class="card col-lg-4 col-6">
-    <img class="card-img-top" src="/static/sms/images/student.jpg" />
-    <div class="card-body">
-      <h6 class="card-title">{{students}} students</h6>
-    </div>
-  </div>
-  <div class="card col-lg-4 col-6">
-    <img class="card-img-top" src="/static/sms/images/courses.jpg" />
-    <div class="card-body">
-      <h6 class="card-title">{{courses}} Courses</h6>
-    </div>
-  </div>
-  
-
-</div>
 <div > 
+
+<!-- end benefits -->
+
 
     <!--learning path-->
 <!--     
@@ -326,34 +337,6 @@ img {
 
 
  
-
-  <!--CATEGORIES OF COURSES-->
-<br><br>
-
-  <h3 class="text-center">Level of Courses</h3>
-  <br>
-  <div class="container1 text-center">
-    {% for category in object_list %}
-    <div class="left-column-cat  ">
-        <p class="  text-center category">
-            {% if category.img_cat %}
-            <div  class="text-center  "><img src="{{category.img_cat.url}}"  alt="cetagory image"> </div>
-
-            {% endif %}
-
-            <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a>
-           <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
-            <div>{{category.created}}</div> <hr>
-            <div class="text-left container">{{category.desc}}</div> -->
-        </p>
-     
-    </div>
-
-    {% empty %}
-      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-    {% endfor %}
-  </div>
-<!--end-->
 
 
 
@@ -394,7 +377,7 @@ img {
 
 
 
-  <!--my OF COURSES-->
+  <!--DIFFERENT  COURSES-->
 
 
 <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel" data-interval="false">
@@ -409,7 +392,7 @@ img {
           {% endif %}
       {% endfor %} 
 
-</ol>
+  </ol>
 
   <div class="carousel-inner" >
       {% for obj in coursess %}
@@ -420,22 +403,22 @@ img {
               <div class="carousel-item  ">  
           {% endif %}
           <div >
-          <h1>Find a top course that fits your life</h1>
+          <h3>Find a top  {{courses}} Courses that fits your life</h3><hr>
             <p>Explore job opportunities available to you upon program completion and learn about your areas of interest.</p>
           </div>
 
         <div style="padding-left: 10px;" class="bg-white " >
          
         <img  class="d-block w-100" src="{{ obj.img_course.url }}" width="100%"  height="150px" alt="{{obj.desc}}">
-        <a  href="{% url 'sms:courseslist' obj.pk %}">{{obj}} </a>
+        <a  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
         <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button text-center" >{{obj.desc|safe}}</p>
-        <br> <br><br>
+        <br> <br>
         <hr>
         </div>
-       
-
+      
        </div>
-
+       {% empty %}
+       <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
       {% endfor %}
       <br><br>
   </div>
@@ -451,8 +434,10 @@ img {
   </div>
 </div>
 
-<!--end my courses-->
+  <!--END DIFFERENT  COURSES-->
 
+
+  
 
 {% endblock %} 
  
