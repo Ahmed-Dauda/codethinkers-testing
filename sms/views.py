@@ -7,7 +7,7 @@ from django.db.models import fields
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from sms.models import (Categories, Courses, Topics, 
-                        Comment, Blog, Blogcomment,Alert
+                        Comment, Blog, Blogcomment,Alert, Gallery
                         )
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from users.models import Profile
@@ -121,7 +121,8 @@ class Homepage1(ListView):
         context['students'] = User.objects.all().count()
         context['category'] = Categories.objects.count()
         context['courses'] = Courses.objects.all().count()
-       
+        context['gallery'] = Gallery.objects.all()
+        # context['courses_count'] = Courses.objects.filter(categories__pk = self.kwargs['pk']).count()
         context['coursess'] = Courses.objects.all()
         context['alerts'] = Alert.objects.order_by('-created')
         context['alert_count'] = Alert.objects.all().count()
@@ -129,28 +130,28 @@ class Homepage1(ListView):
         
         return context
 
-# class CoursePage(ListView):
-#     models = Categories
-#     template_name = 'sms/dashboard/homepage1.html'
-#     success_message = 'TestModel successfully updated!'
-#     count_hit = True
+class PhotoGallery(ListView):
+    models = Categories
+    template_name = 'sms/dashboard/homepage1.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
    
-#     def get_queryset(self):
-#         return Categories.objects.all()
+    def get_queryset(self):
+        return Categories.objects.all()
     
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         # context['c1'] = Courses.objects.filter(categories__pk = 1)
-#         context['students'] = User.objects.all().count()
-#         context['category'] = Categories.objects.count()
-#         context['courses'] = Courses.objects.all().count()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # context['c1'] = Courses.objects.filter(categories__pk = 1)
+        context['students'] = User.objects.all().count()
+        context['category'] = Categories.objects.count()
+        context['courses'] = Courses.objects.all().count()
        
-#         context['coursess'] = Courses.objects.all()
-#         context['alerts'] = Alert.objects.order_by('-created')
-#         context['alert_count'] = Alert.objects.all().count()
-#         context['user'] = NewUser.objects.get_queryset().order_by('id')
+        context['coursess'] = Courses.objects.all()
+        context['alerts'] = Alert.objects.order_by('-created')
+        context['alert_count'] = Alert.objects.all().count()
+        context['user'] = NewUser.objects.get_queryset().order_by('id')
         
-#         return context
+        return context
 
 class Homepage(LoginRequiredMixin,ListView):
     models = Categories
