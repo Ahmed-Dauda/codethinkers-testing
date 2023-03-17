@@ -246,7 +246,7 @@ img {
 
 <!-- page Statistics -->
        <br>
-      <h1 class="text-center ">Site Statistics</h1> <hr>
+      <h1 class="text-center "> <span>Site Statistics</span> </h1> <hr>
       <div class="d-flex container bg-white text-primary">
         <div class="p-2  flex-fill">{{category}} Learners' Categories</div>
         <div class="p-2 flex-fill">{{students}} Students</div>
@@ -259,7 +259,7 @@ img {
   <!--CATEGORIES OF COURSES-->
   <br><br>
 
-  <h1 class="text">We offer {{category}} learners' categories to suit your curiosity</h1><hr>
+  <h1 class="text"> <span> We offer {{category}} learners' categories to suit your curiosity</span></h1><hr>
   
   <div class="container1 text-center">
     {% for category in object_list %}
@@ -291,7 +291,7 @@ img {
           <div class="d-flex">
         
             <div class="flex-grow-1  ">
-              <h3><span> Some benefit associated with course:</span></h3><hr>
+              <h1><span> Some benefit associated with course:</span></h1><hr>
               100% online, Flexible deadlines, Collaborators, Jobs opportunities, Certificate of completion, Language: English
             </div>
           </div>
@@ -302,32 +302,6 @@ img {
 
 <!-- end benefits -->
 
-
-    <!--learning path-->
-<!--     
-<br><br>
-    <h3 class="text-center">Statistics</h3>
-    <br>
-    <div class="container1 text-center bg-primary">
-        <div class="left-column  ">
-            <i class="fas fa-book fa-lg "></i><i class="fas fa-book fa-lg"></i>
-            <p class="card-body text-center ">{{category}} Levels</p>
-        </div>
-        <div class="left-column">
-            <i class="fas fa-user  fa-lg "></i><i class="fas fa-user  fa-lg "></i>
-            <p class="card-body ">{{students}} students</p>
-        </div>
-       
-        <div class="left-column">
-            <i class="fas fa-book fa-lg fa-fw"></i>
-            <p class="card-body ">{{courses}} courses</p>
-        </div>
-
-    </div> -->
- <!--end-->
-
-
- 
 
 
 
@@ -394,7 +368,7 @@ img {
               <div class="carousel-item  ">  
           {% endif %}
           <div >
-          <h3>Find  top  {{courses}} courses that fits your life</h3><hr>
+          <h1><span>Find  top  {{courses}} courses that fits your life</span> </h1><hr>
             <p class="bg-white" style="padding-left: 3px; padding-right: 3px;">Explore job opportunities available to you upon program completion and learn about your areas of interest.</p>
           </div>
 
@@ -485,7 +459,38 @@ img {
 
   <!--END   GALLERY-->
 
+ 
   
+  <!--GALLERY-->
+  <br><br>
+
+  <h1 class="text"> <span> Our Gallery</span></h1><hr>
+  
+  <div class="container1 text-center">
+    {% for category in gallery %}
+    <div class="left-column-cat  ">
+        <p class="  text-center category">
+      
+            {% if category.gallery %}
+            <img class="rounded-4" src="{{category.gallery.url}}" width="100px" height="80px" alt="cetagory image">
+            {% endif %}
+            {% if category.title %}
+            <div class="text-left container">{{category.title}}</div>
+            {% endif %}
+            <!-- <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a> -->
+           <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
+            <div>{{category.created}}</div> <hr>-->
+           
+        </p>
+     
+    </div>
+
+    {% empty %}
+      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+    {% endfor %}
+  </div>
+<!-- END GALLERY-->
+
 
 {% endblock %} 
  
