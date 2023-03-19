@@ -466,10 +466,10 @@ img {
 
   <h1 class="text"> <span> Our Gallery</span></h1><hr>
   
-  <div class="container1 text-center">
+  <div class="container1 rounded-4 text-center">
     {% for category in gallery %}
     <div class="left-column-cat  ">
-        <p class="  text-center category">
+        <p class=" text-center category">
       
             {% if category.gallery %}
             <img class="rounded-4" src="{{category.gallery.url}}" width="100px" height="80px" alt="cetagory image">

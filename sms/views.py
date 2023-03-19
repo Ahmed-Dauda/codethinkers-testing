@@ -9,6 +9,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from sms.models import (Categories, Courses, Topics, 
                         Comment, Blog, Blogcomment,Alert, Gallery
                         )
+
+from hitcount.utils import  get_hitcount_model
+from hitcount.views import HitCountMixin
+
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from users.models import Profile
 from quiz import models as QMODEL
@@ -93,7 +97,7 @@ class Category(LoginRequiredMixin, ListView):
 
 class Table(LoginRequiredMixin, ListView):
     models = Categories
-    template_name = 'sms/dashboard/tables.html'
+    template_name = 'sms/dashboard/tables sample.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
    
@@ -153,25 +157,25 @@ class PhotoGallery(ListView):
         
         return context
 
-class Homepage(LoginRequiredMixin,ListView):
-    models = Categories
-    template_name = 'sms/dashboard/index.html'
-    success_message = 'TestModel successfully updated!'
-    count_hit = True
+# class Homepage(LoginRequiredMixin,ListView):
+#     models = Categories
+#     template_name = 'sms/dashboard/index.html'
+#     success_message = 'TestModel successfully updated!'
+#     count_hit = True
    
-    def get_queryset(self):
-        return Categories.objects.all()
+#     def get_queryset(self):
+#         return Categories.objects.all()
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['students'] = User.objects.all().count()
-        context['category'] = Categories.objects.count()
-        context['courses'] = Courses.objects.all().count()
-        context['alerts'] = Alert.objects.order_by('-created')
-        context['alert_count'] = Alert.objects.all().count()
-        context['user'] = NewUser.objects.get_queryset().order_by('id')
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['students'] = User.objects.all().count()
+#         context['category'] = Categories.objects.count()
+#         context['courses'] = Courses.objects.all().count()
+#         context['alerts'] = Alert.objects.order_by('-created')
+#         context['alert_count'] = Alert.objects.all().count()
+#         context['user'] = NewUser.objects.get_queryset().order_by('id')
         
-        return context
+#         return context
 
 from django.contrib.auth import logout
 
@@ -219,6 +223,7 @@ class Admin_result(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return QMODEL.Course.objects.all()
 
+
 @login_required
 def Certificates(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
@@ -231,15 +236,12 @@ def Certificates(request,pk):
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
-    for r in results:
 
-        print('scoressssss: ',r)
-    
     # QMODEL.Result.objects.exclude(id = m).delete()
     user_profile =  Profile.objects.filter(user_id = request.user)
 
     # results=QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
-              
+    
     context = {
         'results':results,
         'course':course,
@@ -248,9 +250,50 @@ def Certificates(request,pk):
         'courses':courses,
         'cert_note':cert_note
     }
+
+    
     return render(request,"sms/dashboard/certificates.html", context)
 
+
+class Certdetaillistview(HitCountDetailView,DetailView):
+    models = QMODEL.Course
+    template_name = 'sms/dashboard/certificates.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+     
+    def get_queryset(self):
+        return QMODEL.Course.objects.all()
+
+    def get_context_data(self,*args , **kwargs ):
+        context = super().get_context_data(**kwargs)
+        course = get_object_or_404(QMODEL.Course, pk=self.kwargs['pk'])
+        # course=QMODEL.Course.objects.get(id=pk)
+        courses = QMODEL.Course.objects.all()
+        cert_note = QMODEL.Certificate_note.objects.all()
+        
+        student = Profile.objects.get(user_id=self.request.user.id)
+        # student = request.user.id  
+        # m = QMODEL.Result.objects.aggregate(Max('marks'))  
+        max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
+        results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
+        Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
+
+      
+        user_profile =  Profile.objects.filter(user_id = self.request.user)
+
+        context['results'] = results
+        context['course'] = course
+        context['st'] = self.request.user
+        context['user_profile'] = user_profile
+        context['courses'] = courses
+        context['cert_note'] = cert_note
+        
+
+        return context
+
+
 from sms.forms import BlogcommentForm
+
 class Blogdetaillistview(HitCountDetailView,DetailView):
     models = Blog
     template_name = 'sms/dashboard/bloglistdetailview.html'
@@ -501,7 +544,7 @@ def Admin_detail_view(request,pk):
         'st':request.user,
      
     }
-    return render(request,'sms/dashboard/Admin_result_detail_view.html', context)
+    return render(request,'sms/dashboard/tables.html', context)
 
 
     
