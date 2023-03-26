@@ -171,8 +171,8 @@ img {
 
 /* bootsrap carousel setting */
 .carousel-indicators li {
-        width: 0.8rem;
-        height: 0.8rem;
+        width: 0.5rem;
+        height: 0.5rem;
         border: 1px solid;
         border-radius: 50%;
         background-color: #E0E0E0;
@@ -267,10 +267,10 @@ img {
         <p class="  text-center category">
       
             {% if category.img_cat %}
-            <img class="rounded-4" src="{{category.img_cat.url}}" width="100px" height="70px" alt="cetagory image">
+            <img class="rounded-4" src="{{category.img_cat.url}}" width="100px" height="100px" alt="cetagory image">
             {% endif %}
 
-            <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a>
+            <a class="" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a>
            <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
             <div>{{category.created}}</div> <hr>-->
             <div class="text-left container">{{courses_count}}</div> 
@@ -472,7 +472,7 @@ img {
         <p class=" text-center category">
       
             {% if category.gallery %}
-            <img class="rounded-4" src="{{category.gallery.url}}" width="100px" height="80px" alt="cetagory image">
+            <img class="rounded-4" src="{{category.gallery.url}}" width="100px" height="150px" alt="cetagory image">
             {% endif %}
             {% if category.title %}
             <div class="text-left container">{{category.title}}</div>

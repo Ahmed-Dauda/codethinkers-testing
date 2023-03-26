@@ -398,10 +398,11 @@ def listing_api(request):
     }
     return JsonResponse(payload)
 
+
 class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
     
     models = Courses
-    template_name = 'sms/dashboard/topicslistview.html'
+    template_name = 'sms/dashboard/topicslistviewtest.html'
     count_hit = True
     paginate_by = 1
 
@@ -418,11 +419,13 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
 
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
-        context['topics'] = page_obj
+        context['page_obj'] = page_obj
+        context['topics'] = topic
         context['c'] = c
 
         return context
-    
+
+
 class UserProfilelistview(LoginRequiredMixin, ListView):
     models = Profile
     template_name = 'sms/dashboard/myprofile.html'
@@ -445,28 +448,28 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
 
 
 
-class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
+# class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
     
-    models = Topics
-    template_name = 'sms/topicsdetailview.html'
-    count_hit = True
+#     models = Topics
+#     template_name = 'sms/topicsdetailviewtest.html'
+#     count_hit = True
     
-    def get_queryset(self):
-        return Topics.objects.get_queryset().order_by('id')
+#     def get_queryset(self):
+#         return Topics.objects.get_queryset().order_by('id')
     
-    def get_context_data(self, **kwargs):
+#     def get_context_data(self, **kwargs):
         
-        context = super().get_context_data(**kwargs)
-        topic = Topics.objects.get_queryset().filter(courses__pk = self.object.id).order_by('id')
-        c = Topics.objects.filter(courses__pk = self.object.id).count()
-        paginator = Paginator(topic, 1) # Show 25 contacts per page.
+#         context = super().get_context_data(**kwargs)
+#         topic = Topics.objects.get_queryset().filter(courses__pk = self.object.id).order_by('id')
+#         c = Topics.objects.filter(courses__pk = self.object.id).count()
+#         paginator = Paginator(topic, 1) # Show 25 contacts per page.
 
-        page_number = self.request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        context['topics'] = page_obj
-        context['c'] = c
+#         page_number = self.request.GET.get('page')
+#         page_obj = paginator.get_page(page_number)
+#         context['topics'] = page_obj
+#         context['c'] = c
 
-        return context
+#         return context
 
 
 from sweetify.views import SweetifySuccessMixin

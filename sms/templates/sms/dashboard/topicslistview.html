@@ -1,3 +1,4 @@
+
 {% extends 'sms/dashboard/base.html' %}
 
 {% load hitcount_tags %}
@@ -105,18 +106,16 @@ flex: 1 1 auto;
 {% endif %}
 <!-- end of pagination -->
 
+
   <div>created: {{topic.created|date}} | {{topic.created|timesince}} | last updated: {{topic.updated}} </div><br>
   <p>Module: {{ topics.number }}</p><hr>
   
   {% if topic.img_topic %}
-  <img  class="img-box" src="{{topic.img_topic.url}}"  alt="topics image"><br><hr>
-  {% else %}
-  <img  class="img-box" src="/static/sms/images/newlogo3.jpg"    alt="topics image"><br>
+  <img  class="img-box" src="{{topic.img_topic.url}}"  alt="topics image">
   {% endif %}
   
 
   {% if topic.objectives %}
- 
   <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button body-text text-left" >{{topic.objectives|safe|linebreaksbr}}</div><hr>
   {% endif %}
   <button class="btn btn-primary" onclick="myFunction()">Start Learning</button>
@@ -173,6 +172,7 @@ flex: 1 1 auto;
     {% endif %}
   </ul>
 </nav>
+
 </div> 
 {% endif %}
 
@@ -180,7 +180,9 @@ flex: 1 1 auto;
 
 <hr>
   <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
+
     <div style="text-align: center;" class="">
+
   {% if topics.number == c %}
   <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4>
   <!-- <h3>After completion of the Topics, take Exam</h3> -->
@@ -190,9 +192,9 @@ flex: 1 1 auto;
     <!-- <h3 class="card text-center text-danger"><a href="{% url 'student:view_result' %}">View Certificate (s)</a></h3> -->
   </div>
   
-  
    {% endif %}
 </div>
+
 <hr>
   {% empty %}
   <h1 class="card text-center text-danger">No Courses Available Yet. CHECK LATER</h1>
@@ -203,6 +205,7 @@ flex: 1 1 auto;
 </div>
 </div>
 <!-- iframe videos -->
+
 <script>
   $('.play-btn').on('click', function () {
     // Fetch the video iframe
