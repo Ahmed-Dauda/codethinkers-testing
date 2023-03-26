@@ -4,7 +4,7 @@ from . import views
 from sms.views import(
     Categorieslistview,
      
-     Topicslistview,
+    Topicslistview,
     #   Topic_list,
     
     # dashboard url
@@ -19,7 +19,7 @@ from sms.views import(
     #    end
     
       Courseslistdescview,
-      Topicsdetailview,
+      # Topicsdetailview,
       Feedbackformview,
       Commentlistview,
       Commentlistviewsuccess,
@@ -66,7 +66,7 @@ urlpatterns = [
 
     path('courseslistdesc/<pk>/', Courseslistdescview.as_view(), name='courseslistdesc'),
     path('topicslistview/<pk>/', Topicslistview.as_view(), name='topicslistview'),
-    path('topicsdetailview/<slug:slug>/', Topicsdetailview.as_view(), name='topicsdetailview'),
+    # path('topicsdetailview/<slug:slug>/', Topicsdetailview.as_view(), name='topicsdetailview'),
     # path('signupview', signupview.as_view(), name ='signupview'),
     path('feedbackformview', Feedbackformview.as_view(), name ='feedbackformview'),
     path('commentlistview', Commentlistview.as_view(), name ='commentlistview'),
