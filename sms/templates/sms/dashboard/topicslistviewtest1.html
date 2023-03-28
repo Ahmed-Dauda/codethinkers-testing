@@ -20,15 +20,16 @@
     }
 
 
-
     th, td{
         display: block;
-   
+        
     }
     .table-responsive {
-min-height: .01%;
-overflow-x: hidden;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
 }
+
+
 </style>
 
  
@@ -122,7 +123,7 @@ overflow-x: hidden;
  
 </div>  -->
 
-<table id="example" class=" table-responsive" data-page-length='1' style="width:100%">
+<table  id="example" class="" data-page-length='1' style="width:100%;">
     <thead style="display: none;">
         <tr>
             <th></th>
@@ -158,7 +159,8 @@ overflow-x: hidden;
             </td>  
             <td>
                 {% if topic.desc %}
-                <div><p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.desc|safe}}</p></div>
+                
+                <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.desc|safe}}</p>
                 {% else %}
                 <div><p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p></div>
                 {% endif %}<br>  
@@ -176,14 +178,16 @@ overflow-x: hidden;
 $('#example').DataTable({
     pagingType: 'simple',
     dom: 'Qfrtip',
-    "ordering": false
+    "ordering": false,
+    // "sScrollY": "200px",
+   
     
  
 });
 });
 </script>
-<!-- <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script> -->
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
   {% endblock %} 
  
