@@ -402,7 +402,7 @@ def listing_api(request):
 class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
     
     models = Courses
-    template_name = 'sms/dashboard/topicslistviewtest.html'
+    template_name = 'sms/dashboard/topicslistviewtest1.html'
     count_hit = True
     paginate_by = 1
 
