@@ -6,42 +6,34 @@
 
 {% block title %} Course Overall Scores Detail View {% endblock %}
 
-  {% block content %}  
+  {% block content %} 
   
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
   <style>
-    .dataTables_filter, .dataTables_info { display: none; }
+
+    .dataTables_filter { 
+        display: none; 
+    }
     .dataTables_length {
         display: none;
     }
 
-    table{
-   
-        line-height: 25px;
-        text-align: left;
-    }
 
-    tr{
-        display: block;
-        float: left;
-        width: 290px;
-    }
+
     th, td{
         display: block;
+   
     }
-
     .table-responsive {
 min-height: .01%;
 overflow-x: hidden;
 }
-
-
 </style>
 
+ 
 
-  <!-- Begin Page Content -->
-
-  
-                    <!-- DataTales Example -->
+<!--   
                     <div class="">
                         <div style="width: 100%;"  class="text-center">
                             <h6 class="m-0 font-weight-bold text-primary">
@@ -73,6 +65,7 @@ overflow-x: hidden;
                                       <td>
                                       <h1>{{topic.title|safe}}</h1>  
                                      </td>
+
                                      <td>
                                         <div>created: {{topic.created|timesince}} <br> last updated: {{topic.updated}} </div>
                                       
@@ -99,11 +92,11 @@ overflow-x: hidden;
                                     <td>
                                         {% if topics.number == c %}
                                         <h4 style="color: green;">Congratulations! You have completed this course</h4>
-                                        <!-- <h3>After completion of the Topics, take Exam</h3> -->
+                                       
                                       <br><hr>
                                         <div class = "exam-cert" >
                                           <h3 class=" text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
-                                          <!-- <h3 class="card text-center text-danger"><a href="{% url 'student:view_result' %}">View Certificate (s)</a></h3> -->
+                                        
                                         </div>
                                         
                                          {% endif %}    
@@ -123,19 +116,74 @@ overflow-x: hidden;
                     </div>
 
                 </div> 
-                <!-- /.container-fluid -->
 
-            <!-- </div>  -->
-            <!-- End of Main Content -->
+
 
  
-</div> 
+</div>  -->
+
+<table id="example" class=" table-responsive" data-page-length='1' style="width:100%">
+    <thead style="display: none;">
+        <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+       
+        </tr>
+    </thead>
+    <tbody>
+        {% for topic in topics %}
+        <tr>
+            <td>
+                <h1>{{topic.title|safe}}</h1>  
+            </td>
+            
+            <td>
+                <div>created: {{topic.created|timesince}} <br> last updated: {{topic.updated}} </div>
+              
+             </td>
+             <td>
+                {% if topic.img_topic %}
+                <img  class="img-box" src="{{topic.img_topic.url}}"  alt="topics image">
+                {% endif %}
+             </td>
+            <td>
+                {% if topic.video %}
+                <div   class="videoWrapper ratio ratio-16x9">
+                  <iframe  src={% video topic.video|safe %}{% video topic.video|safe %}</iframe>
+                </div>
+                {% endif %}
+            </td>  
+            <td>
+                {% if topic.desc %}
+                <div><p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.desc|safe}}</p></div>
+                {% else %}
+                <div><p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p></div>
+                {% endif %}<br>  
+            </td>
+
+        </tr>
+  
+        {% endfor %}
+    </tbody>
+ 
+</table>
 
 <script>
-    $('#dataTable').dataTable({
-  pagingType: "simple"
+    $(document).ready(function () {
+$('#example').DataTable({
+    pagingType: 'simple',
+    dom: 'Qfrtip',
+    "ordering": false
+    
+ 
+});
 });
 </script>
-  
+<!-- <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script> -->
+
   {% endblock %} 
  
