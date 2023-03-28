@@ -22,14 +22,21 @@
 
     th, td{
         display: block;
-        
+          
     }
     .table-responsive {
         overflow-x: hidden !important;
         overflow-y: auto !important;
+    
 }
-
-
+body{
+    margin: 0;
+    padding: 0;
+}
+.datatable-wide {
+    padding-left: 0;
+    padding-right: 0;
+}
 </style>
 
  
@@ -123,8 +130,9 @@
  
 </div>  -->
 
-<table  id="example" class="" data-page-length='1' style="width:100%;">
-    <thead style="display: none;">
+
+<table  id="example" class="datatable-wide" data-page-length='1' style="width:100%">
+    <thead style="display: none;" style="margin-right: 100px; padding-right: 0px;padding-left: 0px;">
         <tr>
             <th></th>
             <th></th>
@@ -134,7 +142,7 @@
        
         </tr>
     </thead>
-    <tbody>
+    <tbody style="margin-right: 100px; padding-right: 100px;">
         {% for topic in topics %}
         <tr>
             <td>
@@ -173,13 +181,14 @@
  
 </table>
 
+
 <script>
     $(document).ready(function () {
 $('#example').DataTable({
     pagingType: 'simple',
     dom: 'Qfrtip',
     "ordering": false,
-    // "sScrollY": "200px",
+    
    
     
  
