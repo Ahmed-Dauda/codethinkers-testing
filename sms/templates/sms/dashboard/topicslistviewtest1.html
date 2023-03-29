@@ -171,16 +171,12 @@ width: 100%;
             </td>  
             <td>
                 {% if topic.desc %}
-                <div class="flex-internal container">
-                    <div class="d-flex">
-                    
-                      <div class="flex-grow-1 ">
-                <p   data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px;"> {{topic.desc|safe}}</p>
+            
+                <p  data-label="my-label-button" class="container line-numbers copy-to-clipboard-button" > {{topic.desc|safe}}</p>
                 {% else %}
-                <div><p data-label="my-label-button" class="wrap line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p></div>
+                <div><p data-label="my-label-button" class="wrap line-numbers copy-to-clipboard-button" >{{topic.coursedesc|safe}}</p></div>
                 {% endif %}<br>  
-                </div>
-            </div></div>
+         
             </td>
 
         </tr>
@@ -204,8 +200,8 @@ $('#example').DataTable({
 });
 });
 </script>
-<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<!-- <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script> -->
 
   {% endblock %} 
  
