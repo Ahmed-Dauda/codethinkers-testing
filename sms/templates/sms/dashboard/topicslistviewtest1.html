@@ -22,20 +22,21 @@
 
     th, td{
         display: block;
+        width: 100%;
+        
           
     }
     .table-responsive {
         overflow-x: hidden !important;
         overflow-y: auto !important;
+        word-wrap: break-word;
     
 }
-body{
-    margin: 0;
-    padding: 0;
+img, .videoWrapper{
+width: 100%;
 }
-.datatable-wide {
-    padding-left: 0;
-    padding-right: 0;
+p.b {
+  word-wrap: break-word;
 }
 </style>
 
@@ -131,8 +132,8 @@ body{
 </div>  -->
 
 
-<table  id="example" class="datatable-wide" data-page-length='1' style="width:100%">
-    <thead style="display: none;" style="margin-right: 100px; padding-right: 0px;padding-left: 0px;">
+<table  id="example" class="datatable-wide " data-page-length='1' style="width:100%; ;">
+    <thead style="display: none;" >
         <tr>
             <th></th>
             <th></th>
@@ -142,7 +143,7 @@ body{
        
         </tr>
     </thead>
-    <tbody style="margin-right: 100px; padding-right: 100px;">
+    <tbody >
         {% for topic in topics %}
         <tr>
             <td>
@@ -168,7 +169,7 @@ body{
             <td>
                 {% if topic.desc %}
                 
-                <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.desc|safe}}</p>
+                <p  data-label="my-label-button" class="b line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.desc|safe}}</p>
                 {% else %}
                 <div><p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p></div>
                 {% endif %}<br>  
