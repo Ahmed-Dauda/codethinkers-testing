@@ -20,18 +20,10 @@
     }
 
 
-    th, td{
-        display: block;
-        width: 100%;
-       
-              
-    }
-    .table-responsive td{
+    .table{
         overflow-x: hidden !important;
+        
        
-  text-overflow: ellipsis; /* not supported in all browsers, but I accepted the tradeoff */
-  white-space: nowrap;
-
     
 }
 
@@ -133,52 +125,53 @@ width: 100%;
 
  
 </div>  -->
-<div style="width: 100%;">
 
-<table  id="example" class="datatable-wide " data-page-length='1' style="width:100%; ;">
-    <thead style="display: none;" >
+
+<table  id="example" class="datatable-wide " data-page-length='1' style="width:100%;">
+    <thead style="display: none;" style="width:100%;">
         <tr>
             <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-       
+         
         </tr>
     </thead>
     <tbody >
         {% for topic in topics %}
         <tr>
             <td>
-                <h1>{{topic.title|safe}}</h1>  
-            </td>
-            
-            <td>
-                <div>created: {{topic.created|timesince}} <br> last updated: {{topic.updated}} </div>
-              
-             </td>
-             <td>
-                {% if topic.img_topic %}
-                <img  class="img-box" src="{{topic.img_topic.url}}"  alt="topics image">
-                {% endif %}
-             </td>
-            <td>
-                {% if topic.video %}
-                <div   class="videoWrapper ratio ratio-16x9">
-                  <iframe  src={% video topic.video|safe %}{% video topic.video|safe %}</iframe>
-                </div>
-                {% endif %}
-            </td>  
-            <td>
-                {% if topic.desc %}
-            
-                <p  data-label="my-label-button" class="container line-numbers copy-to-clipboard-button" > {{topic.desc|safe}}</p>
-                {% else %}
-                <div><p data-label="my-label-button" class="wrap line-numbers copy-to-clipboard-button" >{{topic.coursedesc|safe}}</p></div>
-                {% endif %}<br>  
-         
-            </td>
+                <div class="card-body bg-white">
 
+                <h1>{{topic.title|safe}}</h1>  
+              <small>
+                created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
+              </small>
+
+                    {% if topic.img_topic %}
+                    <img  class="img-box" src="{{topic.img_topic.url}}"  alt="topics image">
+                    {% else %}
+
+                    {% endif %}
+             
+                    {% if topic.video %}
+                    <div   class="videoWrapper ratio ratio-16x9">
+                        <iframe  src={% video topic.video|safe %}{% video topic.video|safe %}</iframe>
+                    </div>
+                    {% else %}
+                    
+                    {% endif %}
+             
+          
+                    {% if topic.desc %}
+                    <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.desc|safe}}</p>
+                    {% else %}
+                    <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p>
+                    {% endif %}
+              
+          
+
+                </div>
+            </td>
+            
+        
         </tr>
   
         {% endfor %}
@@ -186,7 +179,7 @@ width: 100%;
  
 </table>
 
-</div>
+
 <script>
     $(document).ready(function () {
 $('#example').DataTable({
