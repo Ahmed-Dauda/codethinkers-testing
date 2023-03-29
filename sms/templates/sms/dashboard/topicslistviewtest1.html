@@ -22,9 +22,7 @@
 
     .table{
         overflow-x: hidden !important;
-        
-       
-    
+           
 }
 
 
@@ -32,6 +30,16 @@ img, .videoWrapper{
 width: 100%;
 }
 
+.d-flex{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.d-flex >*{
+    flex: 1 1 auto;
+    margin: 2px;
+}
 
 </style>
 
@@ -139,11 +147,17 @@ width: 100%;
         <tr>
             <td>
                 <div class="card-body bg-white">
-
+                <h3 class="d-flex">
+                    <a href="{% url 'student:take-exam' %}">Take Exam</a>
+                    <p class="">{{c}} Modules 
+                    </p> 
+                    <p>
+                        {{ hitcount.total_hits }}  <i class="fas fa-eye"></i></p>
+                </h3> <hr>
                 <h1>{{topic.title|safe}}</h1>  
               <small>
                 created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
-              </small>
+              </small> <br>
 
                     {% if topic.img_topic %}
                     <img  class="img-box" src="{{topic.img_topic.url}}"  alt="topics image">
@@ -156,7 +170,7 @@ width: 100%;
                         <iframe  src={% video topic.video|safe %}{% video topic.video|safe %}</iframe>
                     </div>
                     {% else %}
-                    
+
                     {% endif %}
              
           
