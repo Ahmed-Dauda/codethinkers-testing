@@ -129,12 +129,10 @@ width: 100%;
 
                 </div> 
 
-
-
- 
 </div>  -->
 
 
+      
 <table  id="example" class="datatable-wide " data-page-length='1' style="width:100%;">
     <thead style="display: none;" style="width:100%;">
         <tr>
@@ -201,7 +199,9 @@ $('#example').DataTable({
     dom: 'Qfrtip',
     "ordering": false,
     
-   
+    dom: "<'row'<'col-sm-3'l><'col-sm-3'f><'col-sm-6'p>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-5'i><'col-sm-7'p>>",
     
  
 });
