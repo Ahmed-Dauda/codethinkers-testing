@@ -41,9 +41,7 @@ width: 100%;
     margin: 2px;
 }
 
-.card-text{
-    word-wrap: break-word;
-}
+
 
 </style>
 
@@ -177,11 +175,11 @@ width: 100%;
              
           
                     {% if topic.desc %}
-                    <div class="card-text">
+                 
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.desc|safe}}</p>
                     {% else %}
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p>
-                </div>
+                
                     {% endif %}
               
                 </div>
@@ -202,14 +200,16 @@ $('#example').DataTable({
     pagingType: 'simple',
     dom: 'Qfrtip',
     "ordering": false,
+    "bPaginate":true,
     
-    dom: "<'row'<'col-sm-3'l><'col-sm-3'f><'col-sm-6'p>>" +
-         "<'row'<'col-sm-12'tr>>" +
-         "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+    "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
     
  
 });
 });
+
+
+
 </script>
 <!-- <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script> -->
