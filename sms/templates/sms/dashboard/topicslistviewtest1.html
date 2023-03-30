@@ -41,6 +41,10 @@ width: 100%;
     margin: 2px;
 }
 
+.card-text{
+    word-wrap: break-word;
+}
+
 </style>
 
  
@@ -134,7 +138,7 @@ width: 100%;
 
       
 <table  id="example" class="datatable-wide " data-page-length='1' style="width:100%;">
-    <thead style="display: none;" style="width:100%;">
+    <thead style="display: none;">
         <tr>
             <th></th>
          
@@ -173,13 +177,13 @@ width: 100%;
              
           
                     {% if topic.desc %}
+                    <div class="card-text">
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.desc|safe}}</p>
                     {% else %}
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p>
+                </div>
                     {% endif %}
               
-          
-
                 </div>
             </td>
             
