@@ -129,7 +129,7 @@ width: 100%;
 
 
       
-<table  id="example" class="datatable-wide " data-page-length='1' style="width:100%;">
+<table  id="example" class="datatable-wide display " data-page-length='1' style="width:100;">
     <thead style="display: none;">
         <tr>
             <th></th>
@@ -196,6 +196,8 @@ $('#example').DataTable({
     "ordering": false,
     "bPaginate":true,
     scrollX: true,
+    scrollY: "500px",
+    // "AutoWidth": true,
     "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
     
 });
