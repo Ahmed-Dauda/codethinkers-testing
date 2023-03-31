@@ -137,7 +137,7 @@ table-layout: fixed; // ***********add this
 
 
       
-<table  id="example" class="datatable-wide display " data-page-length='1' style="width:100;">
+<table  id="example" class="datatable-wide display "  style="width:100;">
     <thead style="display: none;">
         <tr>
             <th></th>
@@ -200,12 +200,13 @@ table-layout: fixed; // ***********add this
 <script>
     $(document).ready(function () {
 $('#example').DataTable({
-    pagingType: 'full',
+    pagingType: 'simple',
     dom: 'Qfrtip',
     "ordering": false,
     "bPaginate":true,
     scrollY:'500px',
     scrollCollapse:true,
+    "pageLength": 1,
     "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
     
 });
