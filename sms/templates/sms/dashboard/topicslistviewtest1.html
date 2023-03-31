@@ -17,21 +17,15 @@
     }
     .dataTables_length {
         display: none;
-    }
+    } 
 
-
-    .table{
-        overflow-x: hidden !important;
-      
-           
-}
 
 
 img, .videoWrapper{
 width: 100%;
 }
 
-.d-flex{
+/* .d-flex{
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
@@ -40,7 +34,7 @@ width: 100%;
 .d-flex >*{
     flex: 1 1 auto;
     margin: 2px;
-}
+} */
 
 
 </style>
@@ -146,7 +140,7 @@ width: 100%;
         {% for topic in topics %}
         <tr>
             <td >
-                <div style="text-align: justify;"  class="card-body bg-white">
+                <div style="text-align: justify;max-width: 100%;"  class="card-body bg-white">
                 <h3 class="d-flex">
                     <a href="{% url 'student:take-exam' %}">Take Exam</a>
                     <p class="">{{c}} Modules 
@@ -176,7 +170,7 @@ width: 100%;
           
                     {% if topic.desc %}
               
-                    <p style="display: flex;flex-wrap: wrap;" data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px;">  {{topic.desc|safe}} </p>
+                    <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px;">  {{topic.desc|safe}} </p>
                     {% else %}
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p>
                
@@ -201,7 +195,7 @@ $('#example').DataTable({
     dom: 'Qfrtip',
     "ordering": false,
     "bPaginate":true,
-    "scrollX": true,
+    scrollX: true,
     "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
     
 });
