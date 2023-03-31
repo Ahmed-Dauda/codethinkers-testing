@@ -547,7 +547,7 @@ def Admin_detail_view(request,pk):
         'st':request.user,
      
     }
-    return render(request,'sms/dashboard/tables.html', context)
+    return render(request,'sms/dashboard/admin_details.html', context)
 
 
     
