@@ -148,7 +148,7 @@ table-layout: fixed; // ***********add this
         {% for topic in topics %}
         <tr>
             <td >
-                <div style="text-align: justify;max-width: 100%;"  class="card-body bg-white">
+                <div  class="card-body bg-white">
                 <h3 class="d-flex">
                     <a href="{% url 'student:take-exam' %}">Take Exam</a>
                     <p class="">{{c}} Modules 
@@ -175,7 +175,7 @@ table-layout: fixed; // ***********add this
 
                     {% endif %}
              
-          
+
                     {% if topic.desc %}
               
                     <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px;">  {{topic.desc|safe}} </p>
@@ -183,13 +183,14 @@ table-layout: fixed; // ***********add this
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p>
                
                     {% endif %}
-              
+
+        
                 </div>
             </td>
             
         
         </tr>
-  
+    
         {% endfor %}
     </tbody>
  
@@ -199,15 +200,12 @@ table-layout: fixed; // ***********add this
 <script>
     $(document).ready(function () {
 $('#example').DataTable({
-    pagingType: 'simple',
+    pagingType: 'full',
     dom: 'Qfrtip',
     "ordering": false,
     "bPaginate":true,
-     
     scrollY:'500px',
     scrollCollapse:true,
-   
-    // "AutoWidth": true,
     "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
     
 });
@@ -217,9 +215,9 @@ $('#example').DataTable({
 
 </script>
 
-
+<!-- 
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script> 
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>  -->
 
 
   {% endblock %} 
