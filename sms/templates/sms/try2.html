@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <script class="jsbin" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script src="http://dl.dropbox.com/u/3878397/jquery.dataTables.nightly.min.js"></script>
+  
+    <script>
+        $(document).ready(function () {
+    $('#example').DataTable({
+        pagingType: 'simple',
+        dom: 'Qfrtip',
+        "ordering": false,
+        "bPaginate":true,
+        // scrollX: true,
+        // scrollY: "800px",
+        scrollY:'500px',
+        scrollCollapse:true,
+       
+        // "AutoWidth": true,
+        "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
+        
+    });
+    });
+    
+    
+    
+    </script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script> 
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">    
+<meta charset=utf-8 />
+<title>JS Bin</title>
+<!--[if IE]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<style>
+  article, aside, figure, footer, header, hgroup, 
+  menu, nav, section { display: block; }
+  
+  /* our debug styles */
+  #example1 { width: 100%; }
+  
+  /* end our debug styles */
+
+.dataTables_wrapper {
+  position: relative;
+  min-height: 302px;
+  clear: both;
+  _height: 302px;
+  zoom: 1; /* Feeling sorry for IE */
+}
+
+.dataTables_processing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 250px;
+  height: 30px;
+  margin-left: -125px;
+  margin-top: -15px;
+  padding: 14px 0 2px 0;
+  border: 1px solid #ddd;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  background-color: white;
+}
+
+.dataTables_length {
+  width: 40%;
+  float: left;
+}
+
+.dataTables_filter {
+  width: 50%;
+  float: right;
+  text-align: right;
+}
+
+.dataTables_info {
+  width: 60%;
+  float: left;
+}
+
+.dataTables_paginate {
+  width: 44px;
+  * width: 50px;
+  float: right;
+  text-align: right;
+}
+
+/* Pagination nested */
+.paginate_disabled_previous, .paginate_enabled_previous, .paginate_disabled_next, .paginate_enabled_next {
+  height: 19px;
+  width: 19px;
+  margin-left: 3px;
+  float: left;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables display
+ */
+table.display {
+  margin: 0 auto;
+  clear: both;
+  width: 100%;
+  
+  /* Note Firefox 3.5 and before have a bug with border-collapse
+   * ( https://bugzilla.mozilla.org/show%5Fbug.cgi?id=155955 ) 
+   * border-spacing: 0; is one possible option. Conditional-css.com is
+   * useful for this kind of thing
+   *
+   * Further note IE 6/7 has problems when calculating widths with border width.
+   * It subtracts one px relative to the other browsers from the first column, and
+   * adds one to the end...
+   *
+   * If you want that effect I'd suggest setting a border-top/left on th/td's and 
+   * then filling in the gaps with other borders.
+   */
+}
+
+table.display thead th {
+  padding: 3px 18px 3px 10px;
+  border-bottom: 1px solid black;
+  font-weight: bold;
+  cursor: pointer;
+  * cursor: hand;
+}
+
+table.display tfoot th {
+  padding: 3px 18px 3px 10px;
+  border-top: 1px solid black;
+  font-weight: bold;
+}
+
+table.display tr.heading2 td {
+  border-bottom: 1px solid #aaa;
+}
+
+table.display td {
+    padding: 3px 10px; text-align: center;
+}
+
+table.display td.center {
+  text-align: center;
+}
+
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Misc
+ */
+.dataTables_scroll {
+  clear: both;
+}
+
+.dataTables_scrollBody {
+  *margin-top: -1px;
+}
+
+.top, .bottom {
+  padding: 15px;
+  background-color: #F5F5F5;
+  border: 1px solid #CCCCCC;
+}
+
+.top .dataTables_info {
+  float: none;
+}
+
+.clear {
+  clear: both;
+}
+
+.dataTables_empty {
+  text-align: center;
+}
+
+tfoot input {
+  margin: 0.5em 0;
+  width: 100%;
+  color: #444;
+}
+
+tfoot input.search_init {
+  color: #999;
+}
+
+td.group {
+  background-color: #d1cfd0;
+  border-bottom: 2px solid #A19B9E;
+  border-top: 2px solid #A19B9E;
+}
+
+td.details {
+  background-color: #d1cfd0;
+  border: 2px solid #A19B9E;
+}
+
+
+.example_alt_pagination div.dataTables_info {
+  width: 40%;
+}
+
+.paging_full_numbers {
+  width: 400px;
+  height: 22px;
+  line-height: 22px;
+}
+
+.paging_full_numbers span.paginate_button,
+   .paging_full_numbers span.paginate_active {
+  border: 1px solid #aaa;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  padding: 2px 5px;
+  margin: 0 3px;
+  cursor: pointer;
+  *cursor: hand;
+}
+
+.paging_full_numbers span.paginate_button {
+  background-color: #ddd;
+}
+
+.paging_full_numbers span.paginate_button:hover {
+  background-color: #ccc;
+}
+
+.paging_full_numbers span.paginate_active {
+  background-color: #99B3FF;
+}
+
+table.display tr.even.row_selected td {
+  background-color: #B0BED9;
+}
+
+table.display tr.odd.row_selected td {
+  background-color: #9FAFD1;
+}
+
+
+/*
+ * Sorting classes for columns
+ */
+/* For the standard odd/even */
+
+
+
+ 
+
+
+/*
+ * KeyTable
+ */
+table.KeyTable td {
+  border: 3px solid transparent;
+}
+
+table.KeyTable td.focus {
+  border: 3px solid #3366FF;
+}
+
+table.display tr.gradeA {
+  background-color: #eeffee;
+}
+
+table.display tr.gradeC {
+  background-color: #ddddff;
+}
+
+table.display tr.gradeX {
+  background-color: #ffdddd;
+}
+
+table.display tr.gradeU {
+  background-color: #ddd;
+}
+
+div.box {
+  height: 100px;
+  padding: 10px;
+  overflow: auto;
+  border: 1px solid #8080FF;
+  background-color: #E5E5FF;
+}
+
+</style>
+</head>
+<body>
+  <table width="100%" cellpadding="0" cellspacing="0"  class="display" id="example1">
+  <thead>
+
+    <tr>
+      <th>Rendering engine</th>
+    </tr>
+  </thead>
+  
+  <tbody>
+   
+   
+    <tr class="odd gradeA">
+      <td>Trident</td>
+
+   
+   
+    </tr>
+    <tr class="odd gradeA">
+      <td>Trident</td>
+    </tr>
+  <tbody>
+</table>
+
+
+</body>
+ 

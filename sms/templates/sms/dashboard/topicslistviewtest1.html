@@ -14,9 +14,11 @@
 
     .dataTables_filter { 
         display: none; 
+        float: left;
     }
     .dataTables_length {
         display: none;
+        float: left;
     } 
 
 
@@ -25,7 +27,7 @@ img, .videoWrapper{
 width: 100%;
 }
 
-/* .d-flex{
+.d-flex{
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
@@ -34,9 +36,15 @@ width: 100%;
 .d-flex >*{
     flex: 1 1 auto;
     margin: 2px;
-} */
+} 
 
-
+table.display {
+margin: 0 auto;
+width: 100%;
+clear: both;
+border-collapse: collapse;
+table-layout: fixed; // ***********add this
+}
 </style>
 
  
@@ -195,8 +203,10 @@ $('#example').DataTable({
     dom: 'Qfrtip',
     "ordering": false,
     "bPaginate":true,
-    scrollX: true,
-    scrollY: "500px",
+     
+    scrollY:'500px',
+    scrollCollapse:true,
+   
     // "AutoWidth": true,
     "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
     
@@ -206,8 +216,10 @@ $('#example').DataTable({
 
 
 </script>
-<!-- <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script> -->
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script> 
 
 
   {% endblock %} 
