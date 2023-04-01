@@ -137,7 +137,7 @@ table-layout: fixed; // ***********add this
 
 
       
-<table  id="example" class="datatable-wide display "  style="width:100;">
+<table  id="example" class="datatable-wide display "  style="width:100%; margin-top: -100px;">
     <thead style="display: none;">
         <tr>
             <th></th>
@@ -178,7 +178,7 @@ table-layout: fixed; // ***********add this
 
                     {% if topic.desc %}
               
-                    <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px;">  {{topic.desc|safe}} </p>
+                    <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px; font-weight: bold;">  {{topic.desc|safe}} </p>
                     {% else %}
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p>
                
@@ -204,7 +204,7 @@ $('#example').DataTable({
     dom: 'Qfrtip',
     "ordering": false,
     "bPaginate":true,
-    scrollY:'500px',
+    scrollY:'400px',
     scrollCollapse:true,
     "pageLength": 1,
     "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
