@@ -35,7 +35,7 @@ width: 100%;
 
 .d-flex >*{
     flex: 1 1 auto;
-    margin: 2px;
+    margin: 0px;
 } 
 
 table.display {
@@ -135,12 +135,17 @@ table-layout: fixed; // ***********add this
 
 </div>  -->
 
-
-      
-<table  id="example" class="datatable-wide display "  style="width:100%; margin-top: -100px;">
-    <thead style="display: none;">
+     
+<table  id="example" class="datatable-wide display "  style="width:100%;">
+    <thead style="display: noe;">
         <tr>
-            <th></th>
+            <th>
+                <h6 class="d-flex">
+                    <a href="{% url 'student:take-exam' %}">Take Exam</a>
+                    <p class="">{{c}} Modules </p> 
+                    <p>{{ hitcount.total_hits }}  <i class="fas fa-eye"></i></p>
+                </h6>
+            </th>
          
         </tr>
     </thead>
@@ -148,18 +153,11 @@ table-layout: fixed; // ***********add this
         {% for topic in topics %}
         <tr>
             <td >
+          
                 <div  class="card-body bg-white">
-                <h3 class="d-flex">
-                    <a href="{% url 'student:take-exam' %}">Take Exam</a>
-                    <p class="">{{c}} Modules 
-                    </p> 
-                    <p>
-                        {{ hitcount.total_hits }}  <i class="fas fa-eye"></i></p>
-                </h3> <hr>
+            
                 <h1>{{topic.title|safe}}</h1>  
-              <small>
-                created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
-              </small> <br>
+         
 
                     {% if topic.img_topic %}
                     <img  class="img-box" src="{{topic.img_topic.url}}"  alt="topics image">
@@ -174,7 +172,9 @@ table-layout: fixed; // ***********add this
                     {% else %}
 
                     {% endif %}
-             
+                    <small>
+                        created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
+                      </small> <br>
 
                     {% if topic.desc %}
               
