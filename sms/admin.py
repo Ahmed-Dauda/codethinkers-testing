@@ -6,8 +6,16 @@ from import_export.widgets import ForeignKeyWidget
 
 from sms.models import (
     Categories, Courses, Topics, 
-    Comment, Blog, Blogcomment,Alert
+    Comment, Blog, Blogcomment,Alert, Gallery
     )
+
+
+admin.site.register(Gallery)
+# class ArticleAdminResource(resources.ModelResource):
+    
+#     class Meta:
+#         model = Gallery
+        # fields = ('title',)
 
 class ArticleAdminResource(resources.ModelResource):
     
@@ -26,6 +34,7 @@ class ArticleAdminAdmin(ImportExportModelAdmin):
     resource_class = ArticleAdminResource
 
 admin.site.register(Blog, ArticleAdminAdmin)
+
 
 
 class FeedbackcommentResource(resources.ModelResource):
@@ -122,7 +131,7 @@ class TopicsResource(resources.ModelResource):
         # fields = ('title',)
                
 class TopicsAdmin(ImportExportModelAdmin):
-    list_display = ['id','categories','courses' ,'title','objectives','desc' ,'student_activity', 'img_topic', 'img_tutorial', 'video', 'topics_url', 'created','updated']
+    list_display = ['id','categories','courses' ,'title','desc' , 'img_topic', 'img_tutorial', 'video', 'topics_url', 'created','updated']
     # prepopulated_fields = {"slug": ("title",)}
     list_filter =  ['id','categories','courses' ,'title', 'topics_url', 'created']
     search_fields= ['id','categories','courses' ,'title', 'created']

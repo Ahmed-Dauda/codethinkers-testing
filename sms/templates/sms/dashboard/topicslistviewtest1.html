@@ -1,0 +1,225 @@
+{% extends 'sms/dashboard/base.html' %}
+
+{% load hitcount_tags %}
+{% load cloudinary %}
+{% load embed_video_tags %}
+
+{% block title %} Course Overall Scores Detail View {% endblock %}
+
+  {% block content %} 
+  
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+  <style>
+
+    .dataTables_filter { 
+        display: none; 
+        float: left;
+    }
+    .dataTables_length {
+        display: none;
+        float: left;
+    } 
+
+
+
+img, .videoWrapper{
+width: 100%;
+}
+
+.d-flex{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.d-flex >*{
+    flex: 1 1 auto;
+    margin: 0px;
+} 
+
+table.display {
+margin: 0 auto;
+width: 100%;
+clear: both;
+border-collapse: collapse;
+table-layout: fixed; // ***********add this
+}
+</style>
+
+ 
+
+<!--   
+                    <div class="">
+                        <div style="width: 100%;"  class="text-center">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <h3 class="text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
+                                <p class="">{{c}} Modules <br>
+                                    {{ hitcount.total_hits }}  <i class="fas fa-eye"></i></p>        
+                            </h6>
+                        </div>
+                       
+                        <div >
+                            <div   class="table-responsive dataTables_scrollBody"> 
+                                <table style="width: 100%;" class="" data-page-length='1' id="dataTable" width="100%" cellspacing="0">
+                                     <thead style="display: none;">
+                                        <tr>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                             
+                                    <tbody class="">
+                                        {% for topic in topics %}
+                                        <tr >
+                                            
+                                      <td>
+                                      <h1>{{topic.title|safe}}</h1>  
+                                     </td>
+
+                                     <td>
+                                        <div>created: {{topic.created|timesince}} <br> last updated: {{topic.updated}} </div>
+                                      
+                                     </td>
+                                     <td>
+                                        {% if topic.img_topic %}
+                                        <img  class="img-box" src="{{topic.img_topic.url}}"  alt="topics image">
+                                        {% endif %}
+                                     </td>
+                                    <td>
+                                        {% if topic.video %}
+                                        <div   class="videoWrapper ratio ratio-16x9">
+                                          <iframe  src={% video topic.video|safe %}{% video topic.video|safe %}</iframe>
+                                        </div>
+                                        {% endif %}
+                                    </td>  
+                                    <td>
+                                        {% if topic.desc %}
+                                        <div><p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.desc|safe}}</p></div>
+                                        {% else %}
+                                        <div><p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p></div>
+                                        {% endif %}<br>  
+                                    </td>
+                                    <td>
+                                        {% if topics.number == c %}
+                                        <h4 style="color: green;">Congratulations! You have completed this course</h4>
+                                       
+                                      <br><hr>
+                                        <div class = "exam-cert" >
+                                          <h3 class=" text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
+                                        
+                                        </div>
+                                        
+                                         {% endif %}    
+                                    </td>
+                                    <td>
+                                   <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p>
+                                    </td>
+
+                                        </tr>
+                                        {% endfor %}
+                                 
+                                      
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div> 
+
+</div>  -->
+
+     
+<table  id="example" class="datatable-wide display "  style="width:100%;">
+    <thead style="display: noe;">
+        <tr>
+            <th>
+                <h6 class="d-flex">
+                    <a href="{% url 'student:take-exam' %}">Take Exam</a>
+                    <p class="">{{c}} Modules </p> 
+                    <p>{{ hitcount.total_hits }}  <i class="fas fa-eye"></i></p>
+                </h6>
+            </th>
+         
+        </tr>
+    </thead>
+    <tbody >
+        {% for topic in topics %}
+        <tr>
+            <td >
+          
+                <div  class="card-body bg-white">
+            
+                <h1>{{topic.title|safe}}</h1>  
+         
+
+                    {% if topic.img_topic %}
+                    <img  class="img-box" src="{{topic.img_topic.url}}"  alt="topics image">
+                    {% else %}
+
+                    {% endif %}
+             
+                    {% if topic.video %}
+                    <div   class="videoWrapper ratio ratio-16x9">
+                        <iframe  src={% video topic.video|safe %}{% video topic.video|safe %}</iframe>
+                    </div>
+                    {% else %}
+
+                    {% endif %}
+                    <small>
+                        created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
+                      </small> <br>
+
+                    {% if topic.desc %}
+              
+                    <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px; font-weight: bold;">  {{topic.desc|safe}} </p>
+                    {% else %}
+                    <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p>
+               
+                    {% endif %}
+
+        
+                </div>
+            </td>
+            
+        
+        </tr>
+    
+        {% endfor %}
+    </tbody>
+ 
+</table>
+
+
+<script>
+    $(document).ready(function () {
+$('#example').DataTable({
+    pagingType: 'simple',
+    dom: 'Qfrtip',
+    "ordering": false,
+    "bPaginate":true,
+    scrollY:'400px',
+    scrollCollapse:true,
+    "pageLength": 1,
+    "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
+    
+});
+});
+
+
+
+</script>
+
+<!-- 
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>  -->
+
+
+  {% endblock %} 
+ 
