@@ -131,7 +131,7 @@ class TopicsResource(resources.ModelResource):
         # fields = ('title',)
                
 class TopicsAdmin(ImportExportModelAdmin):
-    list_display = ['id','categories','courses' ,'title','objectives','desc' ,'student_activity', 'img_topic', 'img_tutorial', 'video', 'topics_url', 'created','updated']
+    list_display = ['id','categories','courses' ,'title','desc' , 'img_topic', 'img_tutorial', 'video', 'topics_url', 'created','updated']
     # prepopulated_fields = {"slug": ("title",)}
     list_filter =  ['id','categories','courses' ,'title', 'topics_url', 'created']
     search_fields= ['id','categories','courses' ,'title', 'created']
