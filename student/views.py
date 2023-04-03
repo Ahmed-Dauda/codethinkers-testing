@@ -65,7 +65,7 @@ def start_exams_view(request, pk):
     }
     if request.method == 'POST':
         pass
-    response = render(request, 'student/start_exams.html', context=context)
+    response = render(request, 'student/dashboard/start_exams.html', context=context)
     response.set_cookie('course_id', course.id)
     return response
 

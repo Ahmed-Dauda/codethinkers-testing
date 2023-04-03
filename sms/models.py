@@ -37,9 +37,11 @@ class Categories(models.Model, HitCountMixin):
 class Courses(models.Model):
     img_course = CloudinaryField('image', blank=True, null= True)
     categories =models.ForeignKey(Categories, on_delete= models.CASCADE)
-    title = models.CharField(max_length=225, default='')
+    title = models.CharField(max_length=225, blank=True, null= True)
+    # desc_heading = tinymce_models.HTMLField(blank=True, null= True)
     desc = tinymce_models.HTMLField(default='')
-    course_desc = tinymce_models.HTMLField(default='')
+    desc_home = tinymce_models.HTMLField( blank=True, null= True)
+    course_desc = tinymce_models.HTMLField(blank=True, null= True)
     course_link = models.URLField(max_length=225, blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
@@ -50,17 +52,19 @@ class Courses(models.Model):
     def __str__(self):
         return f'{self.title}'
 
+
 class Topics(models.Model):
     
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     courses=models.ForeignKey(Courses, on_delete= models.CASCADE) 
-    title = models.CharField(max_length=225, blank=True, null= True)
+    title = models.CharField(max_length=500, blank=True, null= True)
     slug = models.SlugField()
-    objectives = tinymce_models.HTMLField(null= True,blank=True,)
+    # objectives = tinymce_models.HTMLField(null= True,blank=True,)
     desc = tinymce_models.HTMLField( blank=True, null= True)
+    # desc_home = tinymce_models.HTMLField( blank=True, null= True)
     coursedesc = tinymce_models.HTMLField( blank=True, null= True)
-    student_activity = tinymce_models.HTMLField(null= True,blank=True,)
-    evaluation = models.TextField(blank=True, null= True)
+    # student_activity = tinymce_models.HTMLField(null= True,blank=True,)
+    # evaluation = models.TextField(blank=True, null= True)
     img_topic = CloudinaryField('image', blank=True, null= True)
     img_tutorial = CloudinaryField('image', blank=True, null= True)
     video = EmbedVideoField(blank=True, null= True)  # same like models.URLField()
@@ -75,6 +79,19 @@ class Topics(models.Model):
 
     def __str__(self):
         return f'{self.title}-----{self.courses}'
+
+
+# class PhotoGallery(models.Model):
+   
+#     name = models.CharField(max_length=225, blank=True, null= True, unique=True)
+#     created = models.DateTimeField(auto_now_add=True, blank=True, null= True)
+#     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+#     img_cat = CloudinaryField('image', blank=True, null= True)
+#     # object_pk = models.PositiveIntegerField(default=True)
+
+#     def __str__(self):
+#         return f'{self.name}'
+
 
 class Comment(models.Model):
     
@@ -129,6 +146,14 @@ class Alert(models.Model):
     title = models.CharField(max_length=100, null=True)
     content = models.TextField()
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+ 
+    def __str__(self):
+        return f'{self.title}'
+    
+class Gallery(models.Model):
+
+    title = models.CharField(max_length=100, null=True)
+    gallery = CloudinaryField('image', blank=True, null= True)
  
     def __str__(self):
         return f'{self.title}'
