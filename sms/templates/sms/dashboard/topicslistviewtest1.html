@@ -137,9 +137,9 @@ table-layout: fixed; // ***********add this
 
      
 <table  id="example" class="datatable-wide display "  style="width:100%;">
-    <thead style="display: noe;">
+    <thead >
         <tr>
-            <th>
+            <th >
                 <h6 class="d-flex">
                     <a href="{% url 'student:take-exam' %}">Take Exam</a>
                     <p class="">{{c}} Modules </p> 
@@ -204,7 +204,8 @@ $('#example').DataTable({
     dom: 'Qfrtip',
     "ordering": false,
     "bPaginate":true,
-    scrollY:'400px',
+    // scrollY:'400px',
+    scrollY: false,
     scrollCollapse:true,
     "pageLength": 1,
     "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
