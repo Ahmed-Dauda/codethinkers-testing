@@ -1,3 +1,5 @@
-age = int(input("Enter your age: "))
 
-print(age)
+
+fruits = ["apple", "banana", "cherry"]
+for fruit in fruits:
+    print(fruit)

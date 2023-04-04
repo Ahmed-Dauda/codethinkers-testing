@@ -250,31 +250,57 @@ img {
 <!-- page Statistics -->
        <br>
       <h1 class="text-center "> <span>Site Statistics</span> </h1> <hr>
-      <div class="d-flex container bg-white text-primary">
-        <div class="p-2  flex-fill">{{category}} Learners' Categories</div>
-        <div class="p-2 flex-fill">{{students}} Students</div>
-        <div class="p-2  flex-fill">{{courses}} Courses</div>
+
+      <div class="col-lg-6">
+
+        <div class="card mb-4 py-3 border-bottom-primary">
+            <div class="card-body">
+              {{category}} Learners' Categories
+            </div>
+        </div>
+
+        <div class="card mb-4 py-3 border-bottom-primary">
+          <div class="card-body">
+            {{students}} Students
+          </div>
       </div>
+
+      <div class="card mb-4 py-3 border-bottom-primary">
+        <div class="card-body">
+          {{courses}} Courses
+        </div>
+    </div>
+
+  </div>
+
+ 
 <!-- end page Statistics -->  
 
 
 
   <!--CATEGORIES OF COURSES-->
   <br><br>
-<div class="card-body">
-  <h2 class="text"> We offer {{category}} learners' categories to suit your curiosity</h2>
+  <div class="col-lg-6">
+
+    <div class="card mb-4 py-3 border-left-primary">
+        <div class="card-body">
+        We offer {{category}} learners' categories to suit your curiosity
+        </div>
+    </div>
+  </div>  
+ 
   
-</div>
+
  
   <div class="container1 text-center">
     {% for category in object_list %}
-    <div class="left-column-cat  ">
+    <div class="left-column-cat  card-body">
         <p class="  text-center category">
       
             {% if category.img_cat %}
-            <img class="rounded-4" src="{{category.img_cat.url}}" width="100px" height="100px" alt="cetagory image">
+            <img class="rounded-4" src="{{category.img_cat.url}}" width="150px" height="100px" alt="cetagory image">
             {% endif %}
-
+<hr>
             <a class="" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a>
            <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
             <div>{{category.created}}</div> <hr>-->
