@@ -137,13 +137,14 @@ table-layout: fixed; // ***********add this
 
      
 <table  id="example" class="datatable-wide display "  style="width:100%;">
-    <thead >
+    <thead class="">
         <tr>
             <th >
                 <h6 class="d-flex">
                     <a href="{% url 'student:take-exam' %}">Take Exam</a>
                     <p class="">{{c}} Modules </p> 
                     <p>{{ hitcount.total_hits }}  <i class="fas fa-eye"></i></p>
+             
                 </h6>
             </th>
          
@@ -174,16 +175,24 @@ table-layout: fixed; // ***********add this
                     {% endif %}
                     <small>
                         created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
-                      </small> <br>
+                    </small> <br>
 
                     {% if topic.desc %}
               
-                    <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px; font-weight: bold;">  {{topic.desc|safe}} </p>
+                    <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px; font-weight: bold;">  {{topic.desc|safe}} </p> <br>
+                    <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
                     {% else %}
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p>
                
                     {% endif %}
-
+                     
+                    {% if forloop.last %}
+                    <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4> <br>
+                    <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
+                    {% else %}
+                    <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;"></p>
+               
+                    {% endif %}
         
                 </div>
             </td>
