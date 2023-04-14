@@ -31,8 +31,8 @@
         /* background-height: 500px;
         background-width: 400px; */
         size: letter landscape;
-        /* zoom: 100%;
-        background-image: url('https://i.ibb.co/Xyg82PN/IMG-20230413-WA0022.jpg'); */
+        zoom: 100%;
+        background-image: url('https://i.ibb.co/Xyg82PN/IMG-20230413-WA0022.jpg');
         opacity: 0.2;
         margin: 2cm;
         @frame content_frame {
@@ -82,59 +82,8 @@
 
 <body>
 
-  <div style="width:800px; height:600px; padding:10px; border: 10px solid #042b66">
-    <div style="width:750px; height:550px; padding:10px;padding-left: 70px;padding-right: 70px ;text-align:left; border: 5px solid #040338">
-           <span style="font-size:30px; font-weight:bold; text-align: center;">Codethinkers Software Application Academy</span>
-           <br> <br>
-           <div class="flex-container">
-
-            <div class="flex-item">
-              {% for c in course %}
-              {% if c.img_partdesc1 %}
-            <img style="width: 100px;height:100px;" src="{{c.img_partdesc1.url}}" alt="">
-            <p  class="flex-item">{{c.partdesc1}}</p>
-            {% endif %}
-            {% endfor %}
-            </div>
-           
-            <div class="flex-item">
-              {% for c in course %} 
-              {% if c.img_partdesc2 %}
-              <img style="width: 150px;height:100px;" src="{{c.img_partdesc2.url}}" alt="">
-              <p  class="flex-item"> {{c.partdesc2}}  </p>
-              {% endif %}
-              {% endfor %}
-
-            </div>
-            
-
-          </div>
-           <br><br>
-           
-           <span ><i>{{date}}</i></span>
-           <br><br>
-           <span style="font-size:30px"><b>{{student.first_name|upper }} {{student.last_name|upper}} </b></span><br/><br/>
-           <span style="font-size:25px"><i>has successfully completed </i></span> <br/><br/>
-           <span style="font-size:30px">
-            {% for name in course %}
-            {{name|upper}}
-            {% endfor %}
-            {% for name in course %} <br> <br>
-            {{name.partdesc3|safe}}
-            {% endfor %}
-          </span> <br/><br/>
-       
-           <span  style="font-size:12px; color:rgb(17, 18, 18); "><u> <i> Signed by Codethinker's Academy</i></u></span><br>
-           {% for image in sign %}
-           {% if image.sign %}
-          <img style="width:200px;height:100px;" src="{{image.sign.url}}" alt="">
-           {% endif %}
-           {% endfor %}
-        <br><br>
-    </div>
-    </div>
   
-  <!-- <h4 style="text-align: center;font-size: 25pt;font-style: italic, Times;">Codethinkers Software Application Academy</h4>
+  <h4 style="text-align: center;font-size: 25pt;font-style: italic, Times;">Codethinkers Software Application Academy</h4>
   <table >
       <thead>
         <tr>
@@ -201,7 +150,7 @@
       </tbody>
  
   
-  </table> -->
+  </table>
 
 </body>
 </html>
