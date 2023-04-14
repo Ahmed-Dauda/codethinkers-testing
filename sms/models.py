@@ -41,7 +41,7 @@ class Courses(models.Model):
     # desc_heading = tinymce_models.HTMLField(blank=True, null= True)
     desc = tinymce_models.HTMLField(blank=True, null= True)
     
-    partdesc1 = models.CharField(max_length=225, blank=True, null= True)
+    partdesc1 = models.CharField(max_length=300, blank=True, null= True)
     img_partdesc1 = CloudinaryField('image', blank=True, null= True)
     partdesc2 = models.CharField(max_length=225, blank=True, null= True)
     img_partdesc2 = CloudinaryField('image', blank=True, null= True)
