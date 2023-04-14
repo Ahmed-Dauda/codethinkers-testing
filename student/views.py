@@ -15,13 +15,16 @@ from django.conf import settings
 from datetime import date, timedelta
 from quiz import models as QMODEL
 from teacher import models as TMODEL
-from student.models import Logo, signature, Designcert
+from student.models import Logo, signature, Designcert, PartLogo
 # from student.models import  Student
 from users.models import NewUser
 from users.models import Profile
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max, Subquery, OuterRef
+
+from sms.models import (Categories, Courses)
+
 #  xhtml2 pdf
 
 import os
@@ -138,10 +141,12 @@ def check_marks_view(request,pk):
 @login_required
 def pdf_id_view(request, *args, **kwargs):
 
-    course=QMODEL.Course.objects.all()
+    course= Courses.objects.all()
     student = Profile.objects.get(user_id=request.user.id)
     date = datetime.datetime.now()
     logo = Logo.objects.all() 
+    partlogo = PartLogo.objects.all()
+    
     sign = signature.objects.all()
     design = Designcert.objects.all()
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
@@ -160,8 +165,10 @@ def pdf_id_view(request, *args, **kwargs):
         'date':date,
         'course':posts,
         'logo':logo,
+        'partlogo':partlogo,
         'sign':sign,
         'design':design,
+        'courses':Courses,
         
         }
     
