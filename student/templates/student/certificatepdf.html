@@ -27,8 +27,10 @@
 
     @page {
         
-        /* background-height: 500px;
-        background-width: 400px; */
+        /* background-image: url('https://i.ibb.co/3rRhxt7/logo-design.jpg');
+        background-object-position:0px 0px;
+        background-width: 100%;
+        background-height: 100%; */
         size: letter landscape;
         /* zoom: 100%;
         background-image: url('https://i.ibb.co/Xyg82PN/IMG-20230413-WA0022.jpg'); */
@@ -50,18 +52,39 @@
             padding-top: 5pt; 
             padding-bottom: 5pt;
         }
+       
             
         }
 
        table{
        background-color:white; 
-        color: white;
+        /* color: white; */
         max-height: 512px;
         font-family: 'Times New Roman', Times, serif;
         
        } 
       
  
+.flex-container {
+  -webkit-display: -webkit-box;
+  -webkit-display: -webkit-flex;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+
+
+}
+.flex-item {
+  /* border: 1px solid #4a4a4a; */
+  display: inline-block;
+  width: 20%;
+  margin: 5px;
+  font-size: 15px;
+  margin: 0 auto;
+  
+}
+
     </style>
 </head>
 <body>
@@ -76,27 +99,58 @@
          
          {% for image in logo %}
          {% if image.logo %}
-         <div style="display: flex;">
+         <div style="display: flex; text-align: center;">
          <img style="width: 150px;height:150px;border-radius:100px; margin-top:-400px" src="{{image.logo.url}}" alt=""> 
-         <span class="font-effect-shadow-multiple" style="font-size:30px;color:rgb(17, 18, 18);font-style: sans serif Avant Garde;"> Codethinker's Software Application Academy</span>
+         <span class="font-effect-shadow-multiple" style="font-size:30px;color:rgb(17, 18, 18);font-style: sans serif Avant Garde;"> Codethinker's Software Application Academy</span> 
         </div>
          {% endif %}
          {% endfor %}
      
          <br><br/><br/>
        
-          <!-- <span style="font-size:70px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
-           <br><br>
-           <span style="font-size:40px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span> -->
+         <div  class="flex-container">
+
+          <div class="flex-item">
+          {% for c in  partdesc %}
+          {% if c.img_partdesc2 %}
+          <img style="width: 100px;height:100px;" src="{{c.img_partdesc1.url}}" alt="">
+          <p  class="flex-item">{{c.partdesc1 }}</p>
+          {% endif %}
+          {% endfor %}
+          </div>
+         
+          <div class="flex-item">
+            {% for c in  partdesc %} 
+            {% if c.img_partdesc2 %}
+            <img style="width: 150px;height:100px;" src="{{c.img_partdesc2.url}}" alt="">
+            <p  class="flex-item"> {{c.partdesc2 }}  </p>
+            {% endif %}
+            {% endfor %}
+
+          </div>
+          
+
+        </div>
+         <br><br>
            <span style="font-size:16px; color:rgb(86, 15, 218);"><i> {{date|date:"D d M Y"}}</i></span> <br>
            <br>
            <span style="font-size:30px;color:rgb(42, 39, 239)"><b>{{student.first_name|capfirst }} {{student.last_name|capfirst}}</b></span><br/> <br>
            <span style="font-size:35px;color:rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/>
            {% for name in course %}
 
-           <span style="font-size:40px;color:rgb(17, 18, 18);">{{name|upper}}</span> <br/><br/>
+           <span style="font-size:40px;color:rgb(17, 18, 18);">{{name|upper}}</span> <br/> <br/>
+
+           {% for part in partdesc %} 
+           {% if part.partdesc3 %}
+            {{part.partdesc3}}
+           {% endif %}
+           {% endfor %}
+
            {% endfor %}
            
+
+         
+
            <br><br><br>  <br>
            <span class="font-effect-shadow-multiple" style="font-size:20px; color:rgb(17, 18, 18);"><u> <i> Signed by Codethinker's Academy</i></u></span><br>
            {% for image in sign %}
@@ -113,7 +167,9 @@
          
            
       
-          
+     
+            <!-- <img  id="footer_content" src="https://i.ibb.co/3rRhxt7/logo-design.jpg" width="600pt"> -->
+       
 
       
           
