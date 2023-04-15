@@ -111,7 +111,7 @@
          <div  class="flex-container">
 
           <div class="flex-item">
-          {% for c in  partdesc %}
+          {% for c in  course %}
           {% if c.img_partdesc2 %}
           <img style="width: 100px;height:100px;" src="{{c.img_partdesc1.url}}" alt="">
           <p  class="flex-item">{{c.partdesc1 }}</p>
@@ -120,7 +120,7 @@
           </div>
          
           <div class="flex-item">
-            {% for c in  partdesc %} 
+            {% for c in course %} 
             {% if c.img_partdesc2 %}
             <img style="width: 150px;height:100px;" src="{{c.img_partdesc2.url}}" alt="">
             <p  class="flex-item"> {{c.partdesc2 }}  </p>
@@ -134,13 +134,13 @@
          <br><br>
            <span style="font-size:16px; color:rgb(86, 15, 218);"><i> {{date|date:"D d M Y"}}</i></span> <br>
            <br>
-           <span style="font-size:30px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/> <br>
+           <span style="font-size:30px;color:rgb(42, 39, 239)"><b>{{student.first_name|capfirst }} {{student.last_name|capfirst}}</b></span><br/> <br>
            <span style="font-size:35px;color:rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/>
            {% for name in course %}
 
            <span style="font-size:40px;color:rgb(17, 18, 18);">{{name|upper}}</span> <br/> <br/>
 
-           {% for part in partdesc %} 
+           {% for part in course %} 
            {% if part.partdesc3 %}
             {{part.partdesc3}}
            {% endif %}
