@@ -168,7 +168,7 @@ def pdf_id_view(request, *args, **kwargs):
         'partlogo':partlogo,
         'sign':sign,
         'design':design,
-        'courses':Courses,
+        # 'courses':Courses,
         
         }
     
