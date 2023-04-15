@@ -101,20 +101,15 @@
          {% if image.logo %}
          <div style="display: flex; text-align: center;">
          <img style="width: 150px;height:150px;border-radius:100px; margin-top:-400px" src="{{image.logo.url}}" alt=""> 
-         <span class="font-effect-shadow-multiple" style="font-size:30px;color:rgb(17, 18, 18);font-style: sans serif Avant Garde;"> Codethinker's Software Application Academy</span> 
-        </div>
-         {% endif %}
-         {% endfor %}
-     
-         <br><br/><br/>
-       
+         <span class="font-effect-shadow-multiple" style="font-size:30px;color: rgb(42, 39, 239);font-style: sans serif Avant Garde;"> Codethinker's Software Application Academy</span> 
+  
          <div  class="flex-container">
 
           <div class="flex-item">
           {% for c in  course %}
-          {% if c.img_partdesc2 %}
-          <img style="width: 100px;height:100px;" src="{{c.img_partdesc1.url}}" alt="">
-          <p  class="flex-item">{{c.partdesc1 }}</p>
+          {% if c.img_partdesc1 %}
+          <img style="width: 150px;height:100px;" src="{{c.img_partdesc1.url}}" alt="">
+          <span style="color: rgb(42, 39, 239);font-size:30px;" class="flex-item">{{c.partdesc1 }}</span>
           {% endif %}
           {% endfor %}
           </div>
@@ -123,7 +118,7 @@
             {% for c in course %} 
             {% if c.img_partdesc2 %}
             <img style="width: 150px;height:100px;" src="{{c.img_partdesc2.url}}" alt="">
-            <p  class="flex-item"> {{c.partdesc2 }}  </p>
+            <span style="color: rgb(42, 39, 239); font-size:30px;" class="flex-item"> {{c.partdesc2 }}  </span>
             {% endif %}
             {% endfor %}
 
@@ -132,7 +127,15 @@
 
         </div>
          <br><br>
-           <span style="font-size:16px; color:rgb(86, 15, 218);"><i> {{date|date:"D d M Y"}}</i></span> <br>
+    
+        </div>
+         {% endif %}
+         {% endfor %}
+     
+         <br><br/><br/>
+       
+       
+           <span style="font-size:20px; color:rgb(86, 15, 218);"><i> {{date|date:"D d M Y"}}</i></span> <br>
            <br>
            <span style="font-size:30px;color:rgb(42, 39, 239)"><b>{{student.first_name|capfirst }} {{student.last_name|capfirst}}</b></span><br/> <br>
            <span style="font-size:35px;color:rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/>
@@ -142,7 +145,7 @@
 
            {% for part in course %} 
            {% if part.partdesc3 %}
-            {{part.partdesc3}}
+            {{part.partdesc3}}   
            {% endif %}
            {% endfor %}
 
@@ -160,7 +163,7 @@
          
            {% endif %}
            {% endfor %}
-           <br> <br>  <br> <br>  <br> <br> <br> <br> <br> <br>
+           <br> <br>  <br> <br>  <br> <br> <br> <br> <br> <br> <br> <br> <br> <br>
            
 
           
