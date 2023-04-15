@@ -140,7 +140,7 @@ def check_marks_view(request,pk):
 @login_required
 def pdf_id_view(request, *args, **kwargs):
 
-    course = Courses.objects.all()
+    course=QMODEL.Course.objects.all()
     student = Profile.objects.get(user_id=request.user.id)
     date = datetime.datetime.now()
     logo = Logo.objects.all() 
