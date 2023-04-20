@@ -6,24 +6,23 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Certificate</title>
-    <link href="https://fonts.googleapis.com/css?family=Satisfy" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
     <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Tangerine&effect=shadow-multiple"> -->
     <style>
+
+
+
       body{
         margin: 0;
         padding: 0;
         font-family: 'Tangerine, serif';
+        background-color: #ccc;
+        font-style: inherit;
        
 
         
       }
-      @font-face {
-        font-family: 'Tangerine, serif';
-        src: url("https://fonts.googleapis.com/css?family=Tangerine");
-    }
-    .t{
-      font-family: 'Tangerine', serif;
-    }
+
 
     @page {
         
@@ -41,9 +40,10 @@
      
             left: 10pt;
             width: 771pt;
-            top: 10pt;
-            height: 591pt;
-            -pdf-frame-border: 2;    /* for debugging the layout */
+            top: 0pt;
+            height: 599pt;
+      
+            /* -pdf-frame-border: 2;    for debugging the layout */
          
             
             padding-left: 10pt;
@@ -51,17 +51,19 @@
             font-family: Georgia, 'Times New Roman', Times, serif;
             padding-top: 10pt; 
             padding-bottom: 10pt;
+         
         }
        
             
         }
 
        table{
-       background-color:white; 
+        background-color: white;
         /* color: white; */
         max-height: 512px;
-        font-family: 'Times New Roman', Times, serif;
-        
+        font-family: Arial, Helvetica, sans-serif;
+  
+
        } 
       
  
@@ -85,31 +87,43 @@
   
 }
 
+.border{
+
+    border-top-color: #16DB93;
+    border-bottom-color: #A4036F;
+    border-left-color: #EFEA5A;
+    border-right-color: #FE5E41;
+
+}
     </style>
 </head>
 <body>
     
 <table class="cert">
 
-  <tr style="font-size: 20px;max-height: 612px;">
+  <tr style="max-height: 652px;">
     <td>
         
-      <div style="width:800px; height:600px; padding:10px; border: 10px solid #787878;">
-        <div style="width:750px; height:550px; padding:10px;padding-left: 70px;padding-right: 70px ;text-align:left; border: 5px dashed rgb(42, 39, 239)">
+      <div style="width:800px; height:700px; padding:5px; border: 10px solid #787878;">
+        <div style="width:750px; height:650px; padding:5px;padding-left: 70px;text-align:left; border: 30px double rgb(42, 39, 239); ">
          
          {% for image in logo %}
          {% if image.logo %}
          <div style="display: flex; text-align: center;">
          <img style="width: 150px;height:150px;border-radius:100px; margin-top:-400px" src="{{image.logo.url}}" alt=""> 
-         <span class="font-effect-shadow-multiple" style="font-size:30px;color: rgb(42, 39, 239);font-style: sans serif Avant Garde;"> Codethinker's Software Application Academy</span> 
+         <span class="font-effect-shadow-multiple" style="font-size:30px;color: rgb(42, 39, 239);font-style: sans serif Avant Garde;"> Codethinkers</span> 
   
          <div  class="flex-container">
 
           <div class="flex-item">
           {% for c in  course %}
           {% if c.img_partdesc1 %}
-          <img style="width: 150px;height:100px;" src="{{c.img_partdesc1.url}}" alt="">
+          <img style="width: 150px;height:150px;" src="{{c.img_partdesc1.url}}" alt="">
+          {% if c.partdesc1 %}
           <span style="color: rgb(42, 39, 239);font-size:30px;" class="flex-item">{{c.partdesc1 }}</span>
+           {% endif %}
+
+
           {% endif %}
           {% endfor %}
           </div>
@@ -117,8 +131,11 @@
           <div class="flex-item">
             {% for c in course %} 
             {% if c.img_partdesc2 %}
-            <img style="width: 150px;height:100px;" src="{{c.img_partdesc2.url}}" alt="">
+            <img style="width: 150px;height:150px;" src="{{c.img_partdesc2.url}}" alt=""> 
+            {% if c.partdesc2 %}
             <span style="color: rgb(42, 39, 239); font-size:30px;" class="flex-item"> {{c.partdesc2 }}  </span>
+            {% endif %}
+
             {% endif %}
             {% endfor %}
 
@@ -132,53 +149,63 @@
          {% endif %}
          {% endfor %}
      
-         <br><br/><br/>
+         <br><br/><br/>  <br><br/><br/>  <br><br/><br/>  <br><br/><br/>
        
        
            <span style="font-size:20px; color:rgb(86, 15, 218);"><i> {{date|date:"D d M Y"}}</i></span> <br>
-           <br>
-           <span style="font-size:30px;color:rgb(42, 39, 239)"><b>{{student.first_name|capfirst }} {{student.last_name|capfirst}}</b></span><br/> <br>
-           <span style="font-size:35px;color:rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/>
+           <br> <br> <br>
+           <span style="font-size:45px;color:rgb(42, 39, 239)"><b>{{student.first_name|capfirst }} {{student.last_name|capfirst}}</b></span><br/> <br> <br>
+           <span style="font-size:30px;color:rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/> <br> <br>
            {% for name in course %}
 
-           <span style="font-size:40px;color:rgb(17, 18, 18);">{{name|upper}}</span> <br/> <br/>
-
-           {% for part in course %} 
+           <span style="font-size:45px;color:rgb(17, 18, 18);">
+            {{name|upper}}
+        
+          </span> <br/> <br/> <br> <br/> <br>
+          <span style="font-size:25px;color:rgb(17, 18, 18);">
+          <i>
+            {% for part in course %} 
            {% if part.partdesc3 %}
-            {{part.partdesc3}}   
+          {{part.partdesc3}}   
            {% endif %}
            {% endfor %}
+          </i>
+          
+          </span> <br/> <br/>
+
+         
 
            {% endfor %}
            
 
          
 
-           <br><br><br>  <br>
+           <br><br><br>  <br> <br> <br> <br> <br> <br> <br> <br>  
            <span class="font-effect-shadow-multiple" style="font-size:20px; color:rgb(17, 18, 18);"><u> <i> Signed by Codethinker's Academy</i></u></span><br>
            {% for image in sign %}
            {% if image.sign %}
            
           <img style="width:200px;height:100px;" src="{{image.sign.url}}" alt="">
-         
+          <br><br><br>  <br> <br> <br> <br> <br> <br> <br> <br>  
            {% endif %}
            {% endfor %}
-           <br> <br>  <br> <br>  <br> <br> <br> <br> <br> <br> <br> <br> <br> <br>
+   
            
 
           
          
            
-      
+          
+          
      
             <!-- <img  id="footer_content" src="https://i.ibb.co/3rRhxt7/logo-design.jpg" width="600pt"> -->
        
 
-      
-          
     </div>
+  
     </div>
     </td>
+    
   </tr>
  
 </table>
