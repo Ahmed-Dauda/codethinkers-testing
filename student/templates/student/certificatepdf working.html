@@ -2,34 +2,34 @@
 {% load static %}
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>certificate</title>
-  <link href="https://fonts.googleapis.com/css?family=Markazi+Text" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
+    <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Tangerine&effect=shadow-multiple"> -->
+    <style>
 
-    <!-- reference your installed Font Awesome Pro package's files here -->
-    <script src="{% static 'fontawesomepro/js/all.min.js' %}"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
-  <!-- <link rel="stylesheet"
-  href="https://fonts.googleapis.com/css?family=Tangerine&effect=shadow-multiple"> -->
-      <!-- bootstrap link -->
 
-      <!--font awesome-->
-      <script src="https://use.fontawesome.com/894e6d2186.js"></script>
-</head>
-
-<style>
-
-@page  {
-  size:  portrait;
+      body{
+        margin: 0;
+        padding: 0;
+        font-family: 'Tangerine, serif';
+        background-color: #ccc;
+        font-style: inherit;
        
-}
-@page {
+
         
-        /* background-height: 500px;
-        background-width: 400px; */
+      }
+
+
+    @page {
+        
+        /* background-image: url('https://i.ibb.co/3rRhxt7/logo-design.jpg');
+        background-object-position:0px 0px;
+        background-width: 100%;
+        background-height: 100%; */
         size: letter landscape;
         /* zoom: 100%;
         background-image: url('https://i.ibb.co/Xyg82PN/IMG-20230413-WA0022.jpg'); */
@@ -40,27 +40,33 @@
      
             left: 10pt;
             width: 771pt;
-            top: 15pt;
-            height: 581pt;
-            -pdf-frame-border: 2;    /* for debugging the layout */
+            top: 0pt;
+            height: 599pt;
+      
+            /* -pdf-frame-border: 2;    for debugging the layout */
          
             
-            padding-left: 25pt;
-            padding-right: 25pt;
+            padding-left: 10pt;
+            padding-right: 10pt;
             font-family: Georgia, 'Times New Roman', Times, serif;
-            padding-top: 20pt;
-      
+            padding-top: 10pt; 
+            padding-bottom: 10pt;
+         
+        }
+       
             
         }
 
-        
-    }
-    body { 
-      font-family: Arial, Helvetica, sans-serif ;
-      font-size: 16pt;
-    }
+       table{
+        background-color: white;
+        /* color: white; */
+        max-height: 512px;
+        font-family: Arial, Helvetica, sans-serif;
+  
 
-
+       } 
+      
+ 
 .flex-container {
   -webkit-display: -webkit-box;
   -webkit-display: -webkit-flex;
@@ -68,144 +74,143 @@
   display: -ms-flexbox;
   display: flex;
   -webkit-flex-wrap: wrap;
+
+
 }
 .flex-item {
-  border: 1px solid #4a4a4a;
+  /* border: 1px solid #4a4a4a; */
   display: inline-block;
   width: 20%;
   margin: 5px;
   font-size: 15px;
-  text-align: center;
+  margin: 0 auto;
+  
 }
 
-</style>
+.border{
 
+    border-top-color: #16DB93;
+    border-bottom-color: #A4036F;
+    border-left-color: #EFEA5A;
+    border-right-color: #FE5E41;
+
+}
+    </style>
+</head>
 <body>
+    
+<table class="cert">
 
-  <div style="width:800px; height:600px; padding:10px; border: 10px solid #787878">
-    <div style="width:750px; height:550px; padding:10px;padding-left: 70px;padding-right: 70px ;text-align:left; border: 5px solid #040338">
-           <span style="font-size:30px; font-weight:bold; text-align: center;">Codethinkers Software Application Academy</span>
-           <br> <br>
-           <div class="flex-container">
+  <tr style="max-height: 652px;">
+    <td>
+        
+      <div style="width:800px; height:700px; padding:5px; border: 10px solid #787878;">
+        <div style="width:750px; height:650px; padding:5px;padding-left: 70px;text-align:left; border: 30px double rgb(42, 39, 239); ">
+         
+         {% for image in logo %}
+         {% if image.logo %}
+         <div style="display: flex; text-align: center;">
+         <img style="width: 150px;height:150px;border-radius:100px; margin-top:-400px" src="{{image.logo.url}}" alt=""> 
+         <span class="font-effect-shadow-multiple" style="font-size:30px;color: rgb(42, 39, 239);font-style: sans serif Avant Garde;"> Codethinkers</span> 
+  
+         <div  class="flex-container">
 
-            <div class="flex-item">
-              {% for c in course %}
-              {% if c.img_partdesc1 %}
-            <img style="width: 100px;height:100px;" src="{{c.img_partdesc1.url}}" alt="">
-            <p  class="flex-item">{{c.partdesc1}}</p>
+          <div class="flex-item">
+          {% for c in  course %}
+          {% if c.img_partdesc1 %}
+          <img style="width: 150px;height:150px;" src="{{c.img_partdesc1.url}}" alt="">
+          {% if c.partdesc1 %}
+          <span style="color: rgb(42, 39, 239);font-size:30px;" class="flex-item">{{c.partdesc1 }}</span>
+           {% endif %}
+
+
+          {% endif %}
+          {% endfor %}
+          </div>
+         
+          <div class="flex-item">
+            {% for c in course %} 
+            {% if c.img_partdesc2 %}
+            <img style="width: 150px;height:150px;" src="{{c.img_partdesc2.url}}" alt=""> 
+            {% if c.partdesc2 %}
+            <span style="color: rgb(42, 39, 239); font-size:30px;" class="flex-item"> {{c.partdesc2 }}  </span>
+            {% endif %}
+
             {% endif %}
             {% endfor %}
-            </div>
-           
-            <div class="flex-item">
-              {% for c in course %} 
-              {% if c.img_partdesc2 %}
-              <img style="width: 150px;height:100px;" src="{{c.img_partdesc2.url}}" alt="">
-              <p  class="flex-item"> {{c.partdesc2}}  </p>
-              {% endif %}
-              {% endfor %}
-
-            </div>
-            
 
           </div>
-           <br><br>
-           
-           <span ><i>{{date}}</i></span>
-           <br><br>
-           <span style="font-size:30px"><b>{{student.first_name|upper }} {{student.last_name|upper}} </b></span><br/><br/>
-           <span style="font-size:25px"><i>has successfully completed </i></span> <br/><br/>
-           <span style="font-size:30px">
-            {% for name in course %}
-            {{name|upper}}
-            {% endfor %}
-            
-            {% for name in course %} <br> <br>
-            {{name.partdesc3|safe}}
-            {% endfor %}
-          </span> <br/><br/>
-       
-           <span  style="font-size:12px; color:rgb(17, 18, 18); "><u> <i> Signed by Codethinker's Academy</i></u></span><br>
-           {% for image in sign %}
-           {% if image.sign %}
-          <img style="width:200px;height:100px;" src="{{image.sign.url}}" alt="">
-           {% endif %}
-           {% endfor %}
-        <br><br>
-    </div>
-    </div>
-  
-  <!-- <h4 style="text-align: center;font-size: 25pt;font-style: italic, Times;">Codethinkers Software Application Academy</h4>
-  <table >
-      <thead>
-        <tr>
-          <th >
-            <div class="flex-container">
-
-              <div class="flex-item">
-                {% for c in course %}
-                {% if c.img_partdesc1 %}
-              <img style="width: 100px;height:150px;border-radius:100px;" src="{{c.img_partdesc1.url}}" alt="">
-              <p  class="flex-item">{{c.partdesc1}}</p>
-              {% endif %}
-              {% endfor %}
-              </div>
-             
-              <div class="flex-item">
-                {% for c in course %} 
-                {% if c.img_partdesc2 %}
-                <img style="width: 150px;height:150px;border-radius:100px;" src="{{c.img_partdesc2.url}}" alt="">
-                <p  class="flex-item"> {{c.partdesc2}}  </p>
-                {% endif %}
-                {% endfor %}
-
-              </div>
-              
-
-            </div>
           
 
+        </div>
+         <br><br>
+    
+        </div>
+         {% endif %}
+         {% endfor %}
+     
+         <br><br/><br/>  <br><br/><br/>  <br><br/><br/>  <br><br/><br/>
+       
+       
+           <span style="font-size:20px; color:rgb(86, 15, 218);"><i> {{date|date:"D d M Y"}}</i></span> <br>
+           <br> <br> <br>
+           <span style="font-size:45px;color:rgb(42, 39, 239)"><b>{{student.first_name|capfirst }} {{student.last_name|capfirst}}</b></span><br/> <br> <br>
+           <span style="font-size:30px;color:rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/> <br> <br>
+           {% for name in course %}
+
+           <span style="font-size:45px;color:rgb(17, 18, 18);">
+            {{name|upper}}
+        
+          </span> <br/> <br/> <br> <br/> <br>
+          
+          <span style="font-size:25px;color:rgb(17, 18, 18);">
+          <i>
+          {% for part in course %} 
+           {% if part.partdesc3 %}
+          {{part.partdesc3}}   
+           {% endif %}
+           {% endfor %}
+          </i>
+          
+          </span> 
+          <br/> <br/>
+
          
-          </th>
-        </tr>
-      </thead>
-      
-      <tbody >
-        <tr >
-          <td >
-<br> <br> <br> <br> <br>
-           
-            <small >{{date}}</small>
-            <h2 >{{student.first_name|upper }} {{student.last_name|upper}} </h2>
-            <p>has successfully completed</p> 
-            {% for name in course %}
-            <span style="font-size:40px;color:rgb(17, 18, 18);">{{name|upper}}</span>
-            {% endfor %}
-            {% for name in course %}
-            <p>{{name.partdesc3|safe}} </p> 
-            {% endfor %}
+
+           {% endfor %}
            
 
-            <br><br>
-            <span  style="font-size:12px; color:rgb(17, 18, 18);"><u> <i> Signed by Codethinker's Academy</i></u></span><br><br>
-              {% for image in sign %}
-              {% if image.sign %}
-              
-             <img style="width:200px;height:100px;" src="{{image.sign.url}}" alt="">
-            
-              {% endif %}
-              {% endfor %}
-    
+         
+
+           <br><br><br>  <br> <br> <br> <br> <br> <br> <br> <br>  
+           <span class="font-effect-shadow-multiple" style="font-size:20px; color:rgb(17, 18, 18);"><u> <i> Signed by Codethinker's Academy</i></u></span><br>
+           {% for image in sign %}
+           {% if image.sign %}
            
-          </td>
-        </tr>
-      </tbody>
- 
+          <img style="width:200px;height:100px;" src="{{image.sign.url}}" alt="">
+          <br><br><br>  <br> <br> <br> <br> <br> <br> <br> <br>  
+           {% endif %}
+           {% endfor %}
+   
+           
+
+          
+         
+           
+          
+          
+     
+            <!-- <img  id="footer_content" src="https://i.ibb.co/3rRhxt7/logo-design.jpg" width="600pt"> -->
+       
+
+    </div>
   
-  </table> -->
+    </div>
+    </td>
+    
+  </tr>
+ 
+</table>
 
 </body>
 </html>
-
-
-
