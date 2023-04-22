@@ -25,11 +25,11 @@
     .t{
       font-family: 'Tangerine', serif;
     }
-    <a href="https://ibb.co/C6MrWGF"><img src="
+    
       @page {
-        background-image: url('https://i.ibb.co/3rRhxt7/logo-design.jpg');
+        background-image: url('https://i.ibb.co/dbtKZm7/Blue-Orange-Elegant-Company-Certificate-Landscape-10.png');
         background-object-position:0px 0px;
-        background-width: 1000pt;
+        background-width: 100%;
         background-height: 100%;
         size: a4 landscape;
         @frame header_frame {           /* Static Frame */
@@ -38,7 +38,7 @@
             left: 0pt; width: 512pt; top: 0pt; height: 0pt;margin: 0pt;
         }
         @frame content_frame {          /* Content Frame */
-            left: 15pt; width: 800pt; top: 10pt; height: 550pt;margin: 10pt;
+            left: 10pt; width: 820pt; top: 0pt; height: 650pt;margin: 10pt;
         }
         @frame footer_frame {           /* Another static Frame */
             -pdf-frame-content: footer_content;
@@ -46,14 +46,34 @@
         }
     }  
        table{
-       background-color:white; 
-        color: white;
+       /* background-color:white; 
+        color: white; */
         max-height: 512px;
         font-family: Arial, Helvetica, sans-serif
    
        } 
       
  
+       .flex-container {
+  -webkit-display: -webkit-box;
+  -webkit-display: -webkit-flex;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+
+
+}
+.flex-item {
+  /* border: 1px solid #4a4a4a; */
+  display: inline-block;
+  width: 20%;
+  margin: 5px;
+  font-size: 15px;
+  margin: 0 auto;
+  
+}
+
     </style>
 </head>
 <body>
@@ -64,26 +84,52 @@
     <td>
         
 <div style="width:800px; height:700px; padding:0px; text-align:center;">
-    <div style="width:750px; height:550px; padding:0px; text-align:center; border: 5px dashed rgb(42, 39, 239)">
-         
-         {% for image in logo %}
-         {% if image.logo %}
-         
-         <img style="width: 250px;height:250px;border-radius:100px; margin-top:-400px" src="{{image.logo.url}}" alt="">  <br>
-         {% endif %}
-         {% endfor %}
+    <div style="width:750px; height:550px; padding:100px 300px; text-align:right; border: 5px dashed rgb(18, 18, 19)">
+
+ <div  class="flex-container">
+
+<div class="flex-item">
+{% for c in  course %}
+{% if c.img_partdesc1 %}
+<img style="width: 300px;height:300px;" src="{{c.img_partdesc1.url}}" alt="">
+{% if c.partdesc1 %}
+<span style="color: rgb(42, 39, 239);font-size:60px;" class="flex-item">{{c.partdesc1 }}</span>
+ {% endif %}
+
+
+{% endif %}
+{% endfor %}
+</div>
+
+<div class="flex-item">
+  {% for c in course %} 
+  {% if c.img_partdesc2 %}
+  <img style="width: 300px;height:300px;" src="{{c.img_partdesc2.url}}" alt=""> 
+  {% if c.partdesc2 %}
+  <span style="color: rgb(42, 39, 239); font-size:60px;" class="flex-item"> {{c.partdesc2 }}  </span>
+  {% endif %}
+
+  {% endif %}
+  {% endfor %}
+
+</div>
+
+
+</div>
+<br><br>
+
          <br>
        
-        <span class="font-effect-shadow-multiple" style="font-size:75px;color:rgb(17, 18, 18);font-style: sans serif Avant Garde;"> Codethinker's Software Application Academy</span> <br><br><br><br>
-           <span style="font-size:80px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
+      
+           <span style="font-size:90px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
            <br><br>
-           <span style="font-size:40px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span>
+           <span style="font-size:70px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span>
            <br><br><br>
-           <span style="font-size:70px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/>
-           <span style="font-size:60px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br>
+           <span style="font-size:80px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/>
+           <span style="font-size:70px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br>
            {% for name in course %}
 
-           <span style="font-size:70px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br/><br/>
+           <span style="font-size:80px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br/><br/>
            {% endfor %}
            
            <span style="font-size:40px;color:rgb(17, 18, 18);">
