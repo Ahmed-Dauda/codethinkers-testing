@@ -27,7 +27,7 @@
     }
     
       @page {
-        background-image: url('https://i.ibb.co/dbtKZm7/Blue-Orange-Elegant-Company-Certificate-Landscape-10.png');
+        background-image: url('https://i.ibb.co/Pmr5djp/Blue-Orange-Elegant-Company-Certificate-Landscape-13.png');
         background-object-position:0px 0px;
         background-width: 100%;
         background-height: 100%;
@@ -38,7 +38,7 @@
             left: 0pt; width: 512pt; top: 0pt; height: 0pt;margin: 0pt;
         }
         @frame content_frame {          /* Content Frame */
-            left: 10pt; width: 820pt; top: 0pt; height: 650pt;margin: 10pt;
+            left: 10pt; width: 820pt; top: 0pt; height: 645pt;margin: 10pt;
         }
         @frame footer_frame {           /* Another static Frame */
             -pdf-frame-content: footer_content;
@@ -84,7 +84,7 @@
     <td>
         
 <div style="width:800px; height:700px; padding:0px; text-align:center;">
-    <div style="width:750px; height:550px; padding:100px 300px; text-align:right; border: 5px dashed rgb(18, 18, 19)">
+    <div style="width:750px; height:550px; padding:100px 300px; text-align:right; border: 50px dashed rgb(18, 18, 19)">
 
  <div  class="flex-container">
 
@@ -116,23 +116,24 @@
 
 
 </div>
-<br><br>
+<br><br>  <br>  <br>
 
-         <br>
+        
        
       
            <span style="font-size:90px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
-           <br><br>
+           <br><br> <br> <br>
            <span style="font-size:70px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span>
            <br><br><br>
+           <span style="font-size:40px; color:rgb(86, 15, 218);"><i>{{date|date:"D d M Y"}}</i></span><br> <br> <br> <br>
            <span style="font-size:80px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/>
            <span style="font-size:70px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br>
            {% for name in course %}
 
            <span style="font-size:80px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br/><br/>
            {% endfor %}
-           
-           <span style="font-size:40px;color:rgb(17, 18, 18);">
+           <br><br>
+           <span style="font-size:45px;color:rgb(17, 18, 18);">
           <i>
           {% for part in course %} 
            {% if part.partdesc3 %}
@@ -144,19 +145,12 @@
           </span> 
 
            <br><br><br> <br><br><br>
-           <span class="font-effect-shadow-multiple" style="font-size:50px; color:rgb(17, 18, 18);"><u> <i> Signed by Codethinker's Academy</i></u></span><br><br>
-           {% for image in sign %}
-           {% if image.sign %}
-           
-          <img style="width:300px;height:150px;" src="{{image.sign.url}}" alt="">
-         
-           {% endif %}
-           {% endfor %}
+          
            <br>
            
 
            <br/><br/><br/><br/><br><br><br>
-           <span style="font-size:40px; color:rgb(86, 15, 218);"><i>{{date|date:"D d M Y"}}</i></span><br>
+          
            
           <br><br><br><br><br><br><br><br><br><br><br>
           
