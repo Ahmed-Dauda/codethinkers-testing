@@ -157,7 +157,7 @@ table-layout: fixed; // ***********add this
           
                 <div  class="card-body bg-white">
             
-                <h1>{{topic.title|safe}}</h1>  
+                
          
 
                     {% if topic.img_topic %}
@@ -173,6 +173,8 @@ table-layout: fixed; // ***********add this
                     {% else %}
 
                     {% endif %}
+                    <hr>
+                    <h1>{{topic.title|safe}}</h1> 
                     <small>
                         created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
                     </small> <br>
