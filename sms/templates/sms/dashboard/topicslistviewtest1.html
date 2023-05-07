@@ -45,6 +45,10 @@ clear: both;
 border-collapse: collapse;
 table-layout: fixed; // ***********add this
 }
+
+.video {
+height: 400px;
+}
 </style>
 
  
@@ -167,12 +171,13 @@ table-layout: fixed; // ***********add this
                     {% endif %}
              
                      {% if topic.video %}
-                    <div style="height: 400px;" class="ratio ratio-16x9">
-                        <iframe style="height: 400px;" src={% video topic.video|safe %}{% video topic.video|safe %}</iframe>
-                    </div>
-                    {% else %}
-
-                    {% endif %}
+                     <div class="video">
+                        {% video topic.video  "100% x 100%" %}
+                        {% else %}
+    
+                        {% endif %}
+                     </div>
+                     
                     
                       <!-- {% if topic.video %}
                    
