@@ -155,7 +155,7 @@ table-layout: fixed; // ***********add this
         <tr>
             <td >
           
-                <div  class="card-body bg-white">
+                <div  class="bg-white">
             
                 
          
@@ -166,14 +166,22 @@ table-layout: fixed; // ***********add this
 
                     {% endif %}
              
-                    {% if topic.video %}
-                    <div   class="videoWrapper ratio ratio-16x9">
-                        <iframe  src={% video topic.video|safe %}{% video topic.video|safe %}</iframe>
+                     {% if topic.video %}
+                    <div style="height: 400px;" class="ratio ratio-61x9">
+                        <iframe style="height: 400px;" src={% video topic.video|safe %}{% video topic.video|safe %}</iframe>
                     </div>
                     {% else %}
 
                     {% endif %}
-                    <hr>
+                    
+                      <!-- {% if topic.video %}
+                   
+                       {% video topic.video|safe class="ratio ratio-16x9" %}
+                    </div>
+                    {% else %}
+
+                    {% endif %} -->
+
                     <h1>{{topic.title|safe}}</h1> 
                     <small>
                         created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
@@ -216,7 +224,7 @@ $('#example').DataTable({
     "ordering": false,
     "bPaginate":true,
     // scrollY:'400px',
-    scrollY:'400px',
+    scrollY:'100%',
     scrollCollapse:true,
     "pageLength": 1,
     "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
