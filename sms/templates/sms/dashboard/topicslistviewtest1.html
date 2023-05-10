@@ -49,6 +49,7 @@ table-layout: fixed; // ***********add this
 .video {
 height: 450px;
 }
+
 </style>
 
  
@@ -159,7 +160,7 @@ height: 450px;
         <tr>
             <td >
           
-                <div  class="card-body bg-white">
+                <div  class=" bg-white">
             
 
                     {% if topic.img_topic %}
@@ -184,7 +185,7 @@ height: 450px;
                     {% else %}
 
                     {% endif %} -->
-
+<div class="card-body">
                     <h1>{{topic.title|safe}}</h1> 
                     <small>
                         created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
@@ -198,7 +199,7 @@ height: 450px;
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p>
                
                     {% endif %}
-                     
+                     </div>
                     {% if forloop.last %}
                     <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4> <br>
                     <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
