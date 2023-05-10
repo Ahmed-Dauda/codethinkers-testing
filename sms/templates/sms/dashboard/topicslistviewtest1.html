@@ -170,8 +170,9 @@ height: 450px;
                     {% endif %}
              
                      {% if topic.video %}
-                     <div class="video">
-                        {% video topic.video  "100% x 100%" %}
+                     <div class="text-center video">
+                        {% video topic.video|safe '100% x400'%}
+                        <!-- {% video topic.video  "100% x 100%" %} -->
                         {% else %}
     
                         {% endif %}
@@ -185,7 +186,7 @@ height: 450px;
                     {% else %}
 
                     {% endif %} -->
-<div style="padding-left: 0px;" class="card-body">
+<div style="padding-left: 2px;" class="card-body">
                     <h1>{{topic.title|safe}}</h1> 
                     <small>
                         created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
