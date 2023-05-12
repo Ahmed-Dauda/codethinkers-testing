@@ -423,6 +423,9 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
         context['topics'] = topic
         context['c'] = c
 
+        context['alerts'] = Alert.objects.order_by('-created')
+        context['alert_count'] = Alert.objects.all().count()
+
         return context
 
 
