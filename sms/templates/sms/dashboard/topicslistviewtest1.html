@@ -139,16 +139,27 @@ height: 450px;
                 </div> 
 
 </div>  -->
+               <!-- alert -->
 
-     
+                     
+               <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button> 
 <table  id="example" class="datatable-wide display "  style="width:100%;">
+    
     <thead class="">
         <tr>
             <th >
-                <h6 class="d-flex">
+
+                <h6 style="flex-wrap: wrap;" class="d-flex">
+                   
                     <a href="{% url 'student:take-exam' %}">Take Exam</a>
                     <p class="">{{c}} Modules </p> 
                     <p>{{ hitcount.total_hits }}  <i class="fas fa-eye"></i></p>
+                    <a class="nav-link" href="{% url 'sms:feedbackformview' %}">
+                      
+                        <i class="fas fa-bell fa-fw"></i>
+
+                        <span>Feedback</span></a>
+                       
              
                 </h6>
             </th>
