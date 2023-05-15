@@ -1,0 +1,22 @@
+{% regroup object_list by categories as post_list %}
+
+  <div class="d-flex container1 rounded-4 ">
+    {% for post_category in post_list %}
+    <div class="left-column-cat  ">
+        <p class="  category">
+    
+            <div class="text-left container"> {{ post_category.grouper }}</div>
+                {% for post in post_category.list %}
+              
+                <a class="text-left container " href="{% url 'sms:topicslistview' post.pk %}">{{ post.title|safe }}</a>
+           
+                {% endfor %}
+
+        </p> 
+    </div>
+    {% endfor %}
+
+  </div>
+<!-- END GALLERY-->
+
+    
