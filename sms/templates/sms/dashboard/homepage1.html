@@ -240,13 +240,8 @@ body {
   margin: 10px;
 }
 
-.header {
-  display: flex;
-  width: 50%;
-  margin: 0 auto;
-  padding: 0;
-  justify-content: space-between;
-  list-style: none;
+h3{
+  font-weight: bold;
 }
 /* end bootsrap carousel setting */
 
@@ -296,7 +291,7 @@ body {
 <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>
 <!-- page Statistics -->
        <br> <br> <br>
-      <h1 class="text-center "> <span>Site Statistics</span> </h1> <hr>
+      <h3 class="text-center "> <span>Site Statistics</span> </h3> <hr>
 
       <div  class=" sta">
 
@@ -368,7 +363,7 @@ body {
 
 <br>
 <!-- benefits -->
- <div class="" style="padding-left: 20px;">
+ <div class="bg-white card-body" style="padding-left: 20px;">
             <h3>Some benefit associated with course:</h3>
              <p> 100% online, Flexible deadlines, Collaborators, Jobs opportunities, Certificate of completion, Language: English</p>
 </div>       
@@ -445,7 +440,7 @@ body {
 
          
         <div style="padding-left: 20px;padding-right: 20px;" class="bg-white " >
-          <h3><span>Find  top  {{courses}} courses that fits your life</span> </h3><hr>
+          <h3 ><span>Find  top  {{courses}} courses that fits your life</span> </h3><hr>
           <p class="bg-white" >Explore job opportunities available to you upon program completion and learn about your areas of interest.</p>
           <a  href="{% url 'sms:topicslistview' obj.pk %}">
         <img  class="d-block w-100" src="{{ obj.img_course.url }}" width="100%"  height="200px" alt="{{obj.desc}}"> <br>
@@ -458,11 +453,19 @@ body {
             <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
           {% endif %}
   
-            <small class="">{{obj.course_owner|safe}}</small>
+          {% if obj.course_owner %}
+          <small class="">{{obj.course_owner|safe}}</small>
+          {% else %}
+          <small>Codethinkers Academy</small>
+          {% endif %}
+         
+         
           </div>
         </div>
         <a  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
-        <br> <br>
+        <br>
+        <small style="background-color: green; color: white;" class="">{{obj.status_type|safe}}</small>
+        <br> <br><br>
         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
         
         <hr>
@@ -552,10 +555,14 @@ body {
           <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
         {% endif %}
 
+        {% if obj.course_owner %}
           <small class="">{{obj.course_owner|safe}}</small>
+          {% else %}
+          <small>Codethinkers Academy</small>
+          {% endif %}
         </div>
         <a  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
-        <br> <br>
+        <br> <br> <br>
         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
         
         <hr>
