@@ -111,23 +111,27 @@ class Table(LoginRequiredMixin, ListView):
 
 
 class Homepage1(ListView):
-    models = Categories
+
     template_name = 'sms/dashboard/homepage1.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
    
     def get_queryset(self):
-        return Categories.objects.all()
+       
+        return  Courses.objects.all().select_related('categories').distinct()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # context['c1'] = Courses.objects.filter(categories__pk = 1)
         context['students'] = User.objects.all().count()
         context['category'] = Categories.objects.count()
+        context['coursecategory'] = Categories.objects.all()
         context['courses'] = Courses.objects.all().count()
         context['gallery'] = Gallery.objects.all()
         # context['courses_count'] = Courses.objects.filter(categories__pk = self.kwargs['pk']).count()
         context['coursess'] = Courses.objects.all()
+        context['latest_course'] =   Courses.objects.all().order_by('-created')[:5]
+        context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:5].count()
         context['alerts'] = Alert.objects.order_by('-created')
         context['alert_count'] = Alert.objects.all().count()
         context['user'] = NewUser.objects.get_queryset().order_by('id')

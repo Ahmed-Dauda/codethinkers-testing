@@ -59,7 +59,7 @@ body {
     position: relative; */
 }
 
-img {
+.images {
   max-height: 100%;
   min-width: 100%;
   object-fit: cover;
@@ -232,7 +232,22 @@ img {
   width: 10px;
 }
 
+.owner{
+  display: flex;
+}
+.owner > small{
+  flex: 1 1 auto;
+  margin: 10px;
+}
 
+.header {
+  display: flex;
+  width: 50%;
+  margin: 0 auto;
+  padding: 0;
+  justify-content: space-between;
+  list-style: none;
+}
 /* end bootsrap carousel setting */
 
 </style>
@@ -312,35 +327,38 @@ img {
 
   <!--CATEGORIES OF COURSES-->
   <br><br>
-  <div class="text-center">
+  <div class="">
 
     <div class="card mb-4 py-3 ">
-        <h2 class="card-body">
+        <h3 class="card-body">
            We offer {{category}} learners' categories to suit your curiosity
-        </h2>
+        </h3>
     </div>
   </div>  
  
   
 
  
-  <div class="container1 text-center">
-    {% for category in object_list %}
+  <div class="container1">
+    {% for category in coursecategory %}
+    <a class="" href="{% url 'sms:courseslist' category.pk %}">
     <div class="left-column-cat  card-body">
-        <p class="  text-center category">
-      
+        <p class=" text-center category">
+        
             {% if category.img_cat %}
-            <img class="rounded-4" src="{{category.img_cat.url}}" width="150px" height="100px" alt="cetagory image">
+            <img class="rounded-4 images" src="{{category.img_cat.url}}" width="150px" height="100px" alt="cetagory image">
             {% endif %}
               <hr>
-            <a class="" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a>
+            <a class="" href="{% url 'sms:courseslist' category.pk %}">{{category|safe}}</a>
+         
            <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
             <div>{{category.created}}</div> <hr>-->
             <div class="text-left container">{{courses_count}}</div> 
+      
         </p>
      
     </div>
-
+  </a>
     {% empty %}
       <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
     {% endfor %}
@@ -348,9 +366,10 @@ img {
 <!-- END CATEGORIES OF COURSES-->
 
 
+<br>
 <!-- benefits -->
  <div class="" style="padding-left: 20px;">
-            <h2>Some benefit associated with course:</h2>
+            <h3>Some benefit associated with course:</h3>
              <p> 100% online, Flexible deadlines, Collaborators, Jobs opportunities, Certificate of completion, Language: English</p>
 </div>       
 
@@ -414,7 +433,8 @@ img {
 
   </ol>
 
-  <div class="carousel-inner card-body" >
+
+  <div class="carousel-inner card-body shadow-sm p-3 mb-5 bg-body rounded" >
       {% for obj in coursess %}
     
           {% if forloop.first %}
@@ -422,20 +442,32 @@ img {
           {% else %}
               <div class="carousel-item  ">  
           {% endif %}
-          <div >
-          <h1><span>Find  top  {{courses}} courses that fits your life</span> </h1><hr>
-            <p class="bg-white" >Explore job opportunities available to you upon program completion and learn about your areas of interest.</p>
-          </div>
 
-        <div style="padding-left: 20px;padding-right: 20px;" class="bg-white " >
          
-        <img  class="d-block w-100" src="{{ obj.img_course.url }}" width="100%"  height="150px" alt="{{obj.desc}}"> <br>
+        <div style="padding-left: 20px;padding-right: 20px;" class="bg-white " >
+          <h3><span>Find  top  {{courses}} courses that fits your life</span> </h3><hr>
+          <p class="bg-white" >Explore job opportunities available to you upon program completion and learn about your areas of interest.</p>
+          <a  href="{% url 'sms:topicslistview' obj.pk %}">
+        <img  class="d-block w-100" src="{{ obj.img_course.url }}" width="100%"  height="200px" alt="{{obj.desc}}"> <br>
+      </a>
+        <div class="d-flex rounded owner">
+          <div class="d-flex rounded owner">
+            {% if obj.course_logo.url %}
+            <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
+            {% else %}
+            <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
+          {% endif %}
+  
+            <small class="">{{obj.course_owner|safe}}</small>
+          </div>
+        </div>
         <a  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
-        <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button text-center" >{{obj.desc|safe}}</p>
         <br> <br>
+        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+        
         <hr>
         </div>
-      
+   
        </div>
        {% empty %}
        <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -453,10 +485,101 @@ img {
   </a>
   
 </div>
+
   <!--END DIFFERENT  COURSES-->
 
+  <!-- {% for obj in coursess %}
 
-    <!--GALLERY-->
+  <div class="bg-drk">
+    
+    {% if obj.categories.name == "BEGINNER" %}
+
+    {% if forloop.first %}
+
+  <h2>{{obj.categories.name}}</h2>
+  
+  {% endif %}
+
+  <h2>{{obj.title}}</h2>
+  {% endif %}
+
+</div>
+  {% endfor %} -->
+
+
+ 
+  <!--DIFFERENT  COURSES-->
+
+
+<div id="carouselExampleIndicator" class="carousel slide" data-ride="carousel" data-interval="false">
+  <ol class="carousel-indicators">
+      {% for obj in latest_course %}
+
+          {% if forloop.first %}
+              <li  data-target="#carouselExampleIndicator" data-slide-to="{{ forloop.counter0 }}" class="active "> </li>
+          {% else %}
+              <li  data-target="#carouselExampleIndicator" data-slide-to="{{forloop.counter0}}" ></li>
+
+          {% endif %}
+      {% endfor %} 
+
+  </ol>
+
+
+  <div class="carousel-inner card-body shadow-sm p-3 mb-5 bg-body rounded" >
+      {% for obj in latest_course %}
+    
+          {% if forloop.first %}
+              <div  class="carousel-item active  ">
+          {% else %}
+              <div class="carousel-item  ">  
+          {% endif %}
+
+         
+        <div style="padding-left: 20px;padding-right: 20px;" class="bg-white " >
+          <h3><span>{{latest_course_count}} New Courses on Codethinkers Academy</span> </h3><hr>
+          <p class="bg-white" >Explore our newest programs, focused on delivering in-demand skills.</p>
+          <a  href="{% url 'sms:topicslistview' obj.pk %}">
+      
+        <img  class="d-block w-100" src="{{ obj.img_course.url }}" width="100%"  height="200px" alt="{{obj.desc}}"> <br>
+ 
+       
+      </a>
+        <div class="d-flex rounded owner">
+          {% if obj.course_logo.url %}
+          <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
+          {% else %}
+          <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
+        {% endif %}
+
+          <small class="">{{obj.course_owner|safe}}</small>
+        </div>
+        <a  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+        <br> <br>
+        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+        
+        <hr>
+        </div>
+   
+       </div>
+       {% empty %}
+       <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+      {% endfor %}
+      <br><br>
+  </div>
+
+  <a class="carousel-control-prev" href="#carouselExampleIndicator" role="button" data-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="carousel-control-next bottom" href="#carouselExampleIndicator" role="button" data-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
+  
+</div>
+
+ 
 
 <!-- <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel" data-interval="false">
   <ol class="carousel-indicators">
@@ -513,6 +636,27 @@ img {
 
   <!--END   GALLERY-->
 
+  <!-- regroup -->
+
+
+{% regroup object_list by categories as post_list %}
+
+<div class="card-body ">
+    {% for post_category in post_list %}
+       {{ post_category.grouper }}
+            <ul >
+            {% for post in post_category.list %}
+           
+                <li> <a  href="{% url 'sms:topicslistview' post.pk %}">{{ post.title|safe }}</a> </li>
+            {% endfor %}
+            </ul>
+    
+    {% endfor %}
+</div>
+
+
+
+  <!--endregroup -->
  
   
   <!--GALLERY-->
@@ -526,7 +670,7 @@ img {
         <p class=" text-center category">
       
             {% if category.gallery %}
-            <img class="rounded-4" src="{{category.gallery.url}}" width="100px" height="150px" alt="cetagory image">
+            <img class="rounded-4 images" src="{{category.gallery.url}}" width="100px" height="150px" alt="cetagory image">
             {% endif %}
             {% if category.title %}
             <div class="text-left container">{{category.title}}</div>
@@ -545,6 +689,24 @@ img {
   </div>
 <!-- END GALLERY-->
 
+<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+  <ol class="carousel-indicators">
+    <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+    <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+    <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+  </ol>
+  <div class="carousel-inner">
+      {% for obj in projects %}
+          {% if forloop.first %}
+              <div class="carousel-item active  ">
+          {% else %}
+              <div class="carousel-item  ">
+          {% endif %}
+          <img class="d-block w-100 h-50" class="h-50 d-inline-block" src="{{ obj.thumbnail.url}}" alt="{{obj.title}}">
+          </div>
+
+      {% endfor %}
+  </div>
 
 {% endblock %} 
  

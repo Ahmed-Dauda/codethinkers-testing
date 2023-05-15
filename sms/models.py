@@ -36,9 +36,11 @@ class Categories(models.Model, HitCountMixin):
 
 class Courses(models.Model):
     img_course = CloudinaryField('image', blank=True, null= True)
-    categories =models.ForeignKey(Categories, on_delete= models.CASCADE)
+    categories =models.ForeignKey(Categories, on_delete= models.CASCADE, related_name='categories')
     title = models.CharField(max_length=225, blank=True, null= True)
-    # desc_heading = tinymce_models.HTMLField(blank=True, null= True)
+    course_logo = CloudinaryField('course_logo', blank=True, null= True)
+    course_owner = models.CharField(max_length=225, blank=True, null= True)
+    course_type = models.CharField(max_length=225, blank=True, null= True)
     desc = tinymce_models.HTMLField(blank=True, null= True)
 
     # partdesc1 = models.CharField(max_length=300, blank=True, null= True)
