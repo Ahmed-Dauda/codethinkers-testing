@@ -34,13 +34,28 @@ class Categories(models.Model, HitCountMixin):
     def __str__(self):
         return f'{self.name}'
 
+PAYMENT_CHOICES = (
+    ('premium','PREMIUM'),
+    ('free', 'FREE'),
+  
+)
+
+COURSE_TYPE = (
+    ('course','COURSE'),
+    ('Professional Certificate', 'PROFESSIONAL CERTIFICATE'),
+    ('Specialization', 'SPECIALIZATION'),
+    ('Degree', 'DEGREE'),
+     ('Diploma', 'DIPLOMA'),
+  
+)
 class Courses(models.Model):
     img_course = CloudinaryField('image', blank=True, null= True)
     categories =models.ForeignKey(Categories, on_delete= models.CASCADE, related_name='categories')
     title = models.CharField(max_length=225, blank=True, null= True)
     course_logo = CloudinaryField('course_logo', blank=True, null= True)
     course_owner = models.CharField(max_length=225, blank=True, null= True)
-    course_type = models.CharField(max_length=225, blank=True, null= True)
+    course_type = models.CharField(choices = COURSE_TYPE, default='course' , max_length=225, blank=True, null= True)
+    status_type = models.CharField(choices = PAYMENT_CHOICES, default='premium' ,max_length=225, blank=True, null= True)
     desc = tinymce_models.HTMLField(blank=True, null= True)
 
     # partdesc1 = models.CharField(max_length=300, blank=True, null= True)
