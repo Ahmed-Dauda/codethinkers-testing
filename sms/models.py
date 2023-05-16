@@ -34,21 +34,24 @@ class Categories(models.Model, HitCountMixin):
     def __str__(self):
         return f'{self.name}'
 
-PAYMENT_CHOICES = (
-    ('premium','PREMIUM'),
-    ('free', 'FREE'),
-  
-)
+ 
 
-COURSE_TYPE = (
+class Courses(models.Model):
+    
+    COURSE_TYPE = [
     ('course','COURSE'),
     ('Professional Certificate', 'PROFESSIONAL CERTIFICATE'),
     ('Specialization', 'SPECIALIZATION'),
     ('Degree', 'DEGREE'),
      ('Diploma', 'DIPLOMA'),
+    ]
+
+    PAYMENT_CHOICES = [
+    ('premium','PREMIUM'),
+    ('free', 'FREE'),
+    ('Sponsored', 'SPONSORED'),
   
-)
-class Courses(models.Model):
+    ]
     img_course = CloudinaryField('image', blank=True, null= True)
     categories =models.ForeignKey(Categories, on_delete= models.CASCADE, related_name='categories')
     title = models.CharField(max_length=225, blank=True, null= True)
