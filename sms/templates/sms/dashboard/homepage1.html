@@ -18,6 +18,8 @@ body {
 .container1 {
     display: flex;
     overflow-x: auto;
+    height: 350px;
+    overflow-y: hidden;
     
      
 }
@@ -383,7 +385,7 @@ h3{
   <div  class="container1 ">
   
     {% for category in coursecategory %}
-    <a class="" href="{% url 'sms:courseslist' category.pk %}">
+    <a style="height: 10px;" class="" href="{% url 'sms:courseslist' category.pk %}">
     <div  class="left-column-cat border ">
         <!-- <p class=" card rounded-4 category"> -->
         
@@ -396,7 +398,6 @@ h3{
             <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' category.pk %}">{{category|safe}}</a>
             <p class="pl-3">{% get_hit_count for category %} <i class="fas fa-eye"></i> </p>
        
-          
             <p class="pl-3">{{category.desc}}</p>
         
             <div class="text-left container">{{courses_count}}</div> 
