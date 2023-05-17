@@ -488,9 +488,8 @@ h3{
             {% else %}
                 <div class="carousel-item  ">  
             {% endif %}
-  
-           
-        <div style="padding-left: 10px;padding-right: 10px; height: 360px;" class="card rounded-4" >
+
+        <div style="padding-left: 10px;padding-right: 10px; height: 400px;" class="card rounded-4" >
   
         <a  href="{% url 'sms:topicslistview' obj.pk %}">
          
@@ -517,7 +516,7 @@ h3{
           <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
          
           <p style="color: green; font-size: 12px;" class="">{{obj.status_type|safe}}</p>
-          <br>
+          <br> <br> 
           <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
           
            <br>
