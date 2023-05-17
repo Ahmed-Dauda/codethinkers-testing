@@ -494,7 +494,7 @@ h3{
         <a  href="{% url 'sms:topicslistview' obj.pk %}">
          
           <img  class="h-20 w-100 " src="{{ obj.img_course.url }}"   alt="{{obj.desc}}"> <br> 
-   
+          <br>
         </a>
           <div class="d-flex rounded owner">
             <div class="d-flex rounded owner">
@@ -516,7 +516,7 @@ h3{
           <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
          
           <p style="color: green; font-size: 12px;" class="">{{obj.status_type|safe}}</p>
-          <br> <br> 
+          <br>  
           <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
           
            <br>
