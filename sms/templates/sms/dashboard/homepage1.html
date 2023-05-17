@@ -380,25 +380,25 @@ h3{
     <h3 class="">We offer {{category}} course's categories to suit your curiosity</h3>  
    </div>
     
-  <div class="container1">
+  <div  class="container1 ">
   
     {% for category in coursecategory %}
     <a class="" href="{% url 'sms:courseslist' category.pk %}">
-    <div class="left-column-cat border ">
+    <div  class="left-column-cat border ">
         <!-- <p class=" card rounded-4 category"> -->
         
             {% if category.img_cat %}
-            <img class="rounded images" src="{{category.img_cat.url}}" width="300px" height="200px" alt="cetagory image">
+            <img class="rounded images" src="{{category.img_cat.url}}" width="250px" height="200px" alt="cetagory image">
             <br>
             
             {% endif %}
             <br>
             <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' category.pk %}">{{category|safe}}</a>
             <p class="pl-3">{% get_hit_count for category %} <i class="fas fa-eye"></i> </p>
-            <br> <br>
+       
           
             <p class="pl-3">{{category.desc}}</p>
-            <br> <br>
+        
             <div class="text-left container">{{courses_count}}</div> 
       
         <!-- </p> -->
@@ -557,6 +557,7 @@ h3{
     <h3 >{{latest_course_count}} latest courses on Codethinkers Academy </h3>
     <p class="" >Explore our newest programs, focused on delivering in-demand skills.</p> 
   </div>
+  
   <div id="carouselExampleIndicators" class="carousel slide cardnew " data-ride="carousel" data-interval="false">
   
     <ol class="carousel-indicators ">
@@ -701,7 +702,7 @@ items.forEach((el) => {
     const minPerSlide = 4
     let next = el.nextElementSibling
     for (var i=1; i<minPerSlide; i++) {
-        if (!next) {
+        if (next) {
             // wrap carousel by using first child
             next = items[0]
         }
@@ -710,6 +711,8 @@ items.forEach((el) => {
         next = next.nextElementSibling
     }
 })
+
+
 
 </script>
 
