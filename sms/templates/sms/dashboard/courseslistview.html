@@ -9,22 +9,9 @@
 
 
 {% block content %} 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+
 <style>
-/* .container {
-    display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-}
 
-.left-column-cat {
-    flex: 1;
-    margin: 5px;
-    background-color: #4158D0;
-    color: black;
-    background-image: linear-gradient(#ffff 100%, #ffff 46%, white 100%);
-
-} */
 
 /* bootsrap carousel setting */
 .carousel-indicators li {
@@ -76,7 +63,7 @@
 } 
 
 table.display {
-margin: 0 auto;
+margin: 20 auto;
 width: 100%;
 clear: both;
 border-collapse: collapse;
@@ -105,7 +92,7 @@ table-layout: fixed; // ***********add this
 
 
   <!--Products-->
-
+<br> <br> 
 
 <table  id="example" class="datatable-wide display"  style="width:100%;">
     
@@ -115,7 +102,13 @@ table-layout: fixed; // ***********add this
 
                 <h6 style="flex-wrap: wrap;" class="d-flex">
                    
-					<h3>Find  top  {{courses_count}} courses that fits your life</h3><hr>
+        {% for obj in courses  %}
+		{% if forloop.last %}
+		<h3>Find  the  {{courses_count}} courses in this {{obj.categories.name}}'s category</h3><hr>
+
+		{% endif %}
+        {% endfor %}
+				
 					<!-- <p class="bg-white" style="padding-left: 2px; padding-right: 2px;">Explore job opportunities available to you upon program completion and learn about your areas of interest.</p> -->
 				  </div>
                     <a class="" href="{% url 'sms:feedbackformview' %}">
