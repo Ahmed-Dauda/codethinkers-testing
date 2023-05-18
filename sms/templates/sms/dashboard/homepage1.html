@@ -18,7 +18,7 @@ body {
 .container1 {
     display: flex;
     overflow-x: auto;
-    height: 400px;
+    height: 420px;
     overflow-y: hidden;
     
      
@@ -297,8 +297,6 @@ h3{
 }
 
 
-
-
 </style>
 
 <div class="card bg-dark text-white" style="width: 100%;">
@@ -416,35 +414,6 @@ h3{
   <!--MY COURSES-->
   
 
-  <!-- <h5 class="text-center">My Courses</h5>
-  <br>
-  <div class="container1 text-center">
-    {% for category in coursess %}
-
-    <div class="left-column-cat  ">
-        <p class="  text-center category">
-            {% if category.img_course %}
-            <div  class="text-center  "><img src="{{category.img_course.url}}" alt="cetagory image"> </div>
-
-            {% endif %}
-
-            <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a> -->
-           <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
-           
-            <hr>
-            <div class="text-left container">{{category.desc_home|safe }}</div> -->
-        <!-- </p>
-     
-    </div>
-
-    {% empty %}
-      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-    {% endfor %}
-  </div> -->
-  
-<!--end-->
-
-
   <!--DIFFERENT  COURSES-->
   
   <div style="margin-bottom: -50px;" class="card-body">
@@ -528,7 +497,7 @@ h3{
   
   </div>
   <div  class="card-body ">
-  <a style="margin-top: -70px; padding-left: 90px;" class="card" href="">Explore All Courses</a>  
+  <!-- <a style="margin-top: -70px; padding-left: 90px;" class="card" href="">Explore All Courses</a>   -->
 </div>  
     <!--END DIFFERENT  COURSES-->
   
