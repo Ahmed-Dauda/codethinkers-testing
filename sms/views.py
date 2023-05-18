@@ -129,7 +129,7 @@ class Homepage1(ListView):
         context['courses'] = Courses.objects.all().count()
         context['gallery'] = Gallery.objects.all()
         # context['courses_count'] = Courses.objects.filter(categories__pk = self.kwargs['pk']).count()
-        context['coursess'] = Courses.objects.all()
+        context['coursess'] = Courses.objects.all().order_by('created')[:10]
         context['latest_course'] =   Courses.objects.all().order_by('-created')[:5]
         context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:5].count()
         context['alerts'] = Alert.objects.order_by('-created')

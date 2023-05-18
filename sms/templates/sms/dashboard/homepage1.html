@@ -18,7 +18,7 @@ body {
 .container1 {
     display: flex;
     overflow-x: auto;
-    height: 390px;
+    height: 400px;
     overflow-y: hidden;
     
      
@@ -320,26 +320,7 @@ h3{
   </div>
 </div>
 
-<!-- welcome note -->
-      <!-- <div class="text bg-white">
-        <div class="flex-internal">
-          <div class="d-flex">
-          
-            <div class="flex-grow-1 ">
-              <h1><span>Learn without limits</span></h1>
-              Our  academy provides practical training for different programming languages, suited for both beginners and experienced coders, with real-world projects and portfolio-building opportunities. The academy emphasizes interactive and collaborative teaching approaches and encourages enrollment for career advancement in the tech industry
-            </div>
-          </div>
-          
-    <div class="header">
-    
-      <a class="btn" id="btn1" href="{% url 'account_login' %}"> Log In</a>
-      <button class="btn" id="btn2">Sign Up</button>
-   
-  </div>
-    </div>
-      </div> -->
-<!-- end welcome note -->
+
 
 <br>
 <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>
@@ -523,7 +504,7 @@ h3{
           <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
          
           <p style="color: green; font-size: 12px;" class="">{{obj.status_type|safe}}</p>
-          <br>  
+          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe}}</small> <br>
           <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
           
            <br>
@@ -544,9 +525,11 @@ h3{
       <span class="carousel-control-next-icon" aria-hidden="true"></span>
       <!-- <span class="sr-only">Next</span> -->
     </a>
-    
-  </div>
   
+  </div>
+  <div  class="card-body ">
+  <a style="margin-top: -70px; padding-left: 90px;" class="card" href="">Explore All Courses</a>  
+</div>  
     <!--END DIFFERENT  COURSES-->
   
 
