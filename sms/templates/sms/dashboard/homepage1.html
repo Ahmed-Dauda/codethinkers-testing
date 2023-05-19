@@ -18,10 +18,15 @@ body {
 .container1 {
     display: flex;
     overflow-x: auto;
-    height: 420px;
-    overflow-y: hidden;
-    
-     
+    height: 425px;
+    overflow-y: hidden;     
+}
+
+.beginner {
+    display: flex;
+    overflow-x: auto;
+    height: 380px;
+    overflow-y: hidden;     
 }
 
 .container {
@@ -328,19 +333,19 @@ h3{
 
       <div  class=" sta">
 
-        <div class="card mb-4 py-3 border-bottom-primary">
+        <div class="card mb-4 py-3 border-bottom-primary rounded-circle text-center">
             <div class="card-body">
-              {{category}} Learners' Categories
+              {{category}} Categories
             </div>
         </div>
 
-        <div class="card mb-4 py-3 border-bottom-primary">
+        <div class="card mb-4 py-3 border-bottom-primary rounded-circle text-center">
           <div class="card-body">
             {{students}} Students
           </div>
       </div>
 
-      <div class="card mb-4 py-3 border-bottom-primary">
+      <div class="card mb-4 py-3 border-bottom-primary  rounded-circle text-center">
         <div class="card-body">
           {{courses}} Courses
         </div>
@@ -408,51 +413,29 @@ h3{
 </div>
 <!-- end benefits -->
 
-
-
-
-  <!--MY COURSES-->
+{% for obj in beginner %}
+{% if forloop.last %}
+<div class="card-body">
+  <div class="">
+<h3>Find the {{beginner_count}} courses in this {{obj.categories.name}}'s category available for you</h3>
+</div>
+</div>
+{% endif %}
+    {% endfor %}
   
+<div  class="beginner ">
 
-  <!--DIFFERENT  COURSES-->
-  
-  <div style="margin-bottom: -50px;" class="card-body">
-    <h3 >Find  top  {{courses}} courses that fits your life </h3>
-    <p class="" >Explore job opportunities available to you upon program completion and learn about your areas of interest.</p> 
-  </div>
-  <div id="carouselExampleIndicator" class="carousel slide cardnew" data-ride="carousel" data-interval="false">
-  
-    <ol class="carousel-indicators ">
+  {% for obj in beginner %}
+  <a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.pk %}">
+  <div  class="left-column-cat border ">
+      <!-- <p class=" card rounded-4 category"> -->
       
-        {% for obj in coursess %}
-  
-            {% if forloop.first %}
-                <li  data-target="#carouselExampleIndicator" data-slide-to="{{ forloop.counter0 }}" class="active "> </li>
-            {% else %}
-                <li  data-target="#carouselExampleIndicator" data-slide-to="{{forloop.counter0}}" ></li>
-  
-            {% endif %}
-        {% endfor %} 
-  
-    </ol>
-  
-  
-    <div class="carousel-inner p-5 mb-5">
-        {% for obj in coursess %}
-      
-            {% if forloop.first %}
-                <div  class="carousel-item active  ">
-            {% else %}
-                <div class="carousel-item  ">  
-            {% endif %}
-
-        <div style="padding-left: 10px;padding-right: 10px; height: 410px;" class="card rounded-4" >
-  
-        <a  href="{% url 'sms:topicslistview' obj.pk %}">
-         
-          <img  class="h-20 w-100" src="{{ obj.img_course.url }}"   alt="{{obj.desc}}"> <br> 
-        
-        </a>
+          {% if obj.img_course %}
+          <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="200px" alt="cetagory image">
+          <br>
+          
+          {% endif %}
+          <div class="pl-2">
           <div class="d-flex rounded owner">
             <div class="d-flex rounded owner">
               {% if obj.course_logo.url %}
@@ -466,130 +449,122 @@ h3{
             {% else %}
             <small>Codethinkers Academy</small>
             {% endif %}
-           
-           
+
             </div>
           </div>
-          <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
-         
-          <p style="color: green; font-size: 12px;" class="">{{obj.status_type|safe}}</p>
-          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe}}</small> <br>
-          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-          
-           <br>
-          </div>
+        <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+        <p style="color: green; font-size: 12px;" class="">{{obj.status_type|safe}}</p>
+        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe}}</small> <br>
+        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+      </div>
+          <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
+          <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p>
      
-         </div>
-         {% empty %}
-         <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-        {% endfor %}
-        <br><br>
-    </div>
-  
-    <a class="carousel-control-prev" href="#carouselExampleIndicator" role="button" data-slide="prev">
-      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-      <!-- <span class="sr-only">Previous</span> -->
-    </a>
-    <a class="carousel-control-next bottom" href="#carouselExampleIndicator" role="button" data-slide="next">
-      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-      <!-- <span class="sr-only">Next</span> -->
-    </a>
-  
+          <p class="pl-3">{{obj.desc}}</p> -->
+      
+          <!-- <div class="text-left container">{{beginner_count}}</div>  -->
+    
+      <!-- </p> -->
+   
   </div>
-  <div  class="card-body ">
-  <!-- <a style="margin-top: -70px; padding-left: 90px;" class="card" href="">Explore All Courses</a>   -->
-</div>  
-    <!--END DIFFERENT  COURSES-->
+</a>
+  {% empty %}
+    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+  {% endfor %}
+</div>
+<!-- END CATEGORIES OF COURSES-->
+
+
+ <!--DIFFERENT  COURSES-->
   
-
-
-
-  <!--DIFFERENT  COURSES-->
-  
+ <div style="margin-bottom: -50px;" class="card-body">
   <div style="margin-bottom: -50px;" class="card-body">
     <h3 >{{latest_course_count}} latest courses on Codethinkers Academy </h3>
     <p class="" >Explore our newest programs, focused on delivering in-demand skills.</p> 
   </div>
-  
-  <div id="carouselExampleIndicators" class="carousel slide cardnew " data-ride="carousel" data-interval="false">
-  
-    <ol class="carousel-indicators ">
-      
-        {% for obj in latest_course %}
-  
-            {% if forloop.first %}
-                <li  data-target="#carouselExampleIndicators" data-slide-to="{{ forloop.counter0 }}" class="active "> </li>
-            {% else %}
-                <li  data-target="#carouselExampleIndicators" data-slide-to="{{forloop.counter0}}" ></li>
-  
-            {% endif %}
-        {% endfor %} 
-  
-    </ol>
-  
-  
-    <div class="carousel-inner p-5 mb-5">
-        {% for obj in latest_course %}
-      
-            {% if forloop.first %}
-                <div  class="carousel-item active  ">
-            {% else %}
-                <div class="carousel-item  ">  
-            {% endif %}
+<div id="carouselExampleIndicator" class="carousel slide cardnew" data-ride="carousel" data-interval="false">
 
-        <div style="padding-left: 10px;padding-right: 10px; height: 410px;" class="card rounded-4" >
-  
-        <a  href="{% url 'sms:topicslistview' obj.pk %}">
-         
-          <img  class="h-20 w-100" src="{{ obj.img_course.url }}"   alt="{{obj.desc}}"> <br> 
-        
-        </a>
+  <ol class="carousel-indicators ">
+    
+      {% for obj in latest_course %}
+
+          {% if forloop.first %}
+              <li  data-target="#carouselExampleIndicator" data-slide-to="{{ forloop.counter0 }}" class="active "> </li>
+          {% else %}
+              <li  data-target="#carouselExampleIndicator" data-slide-to="{{forloop.counter0}}" ></li>
+
+          {% endif %}
+      {% endfor %} 
+
+  </ol>
+
+  <div class="carousel-inner p-5 mb-5">
+      {% for obj in latest_course %}
+    
+          {% if forloop.first %}
+              <div  class="carousel-item active  ">
+          {% else %}
+              <div class="carousel-item  ">  
+          {% endif %}
+
+      <div style="padding-left: 10px;padding-right: 10px; height: 410px;" class="card rounded-4" >
+
+      <a  href="{% url 'sms:topicslistview' obj.pk %}">
+       
+        <img  class="h-20 w-100" src="{{ obj.img_course.url }}"   alt="{{obj.desc}}"> <br> 
+      
+      </a>
+        <div class="d-flex rounded owner">
           <div class="d-flex rounded owner">
-            <div class="d-flex rounded owner">
-              {% if obj.course_logo.url %}
-              <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-              {% else %}
-              <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-            {% endif %}
-    
-            {% if obj.course_owner %}
-            <small class="">{{obj.course_owner|safe}}</small>
+            {% if obj.course_logo.url %}
+            <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
             {% else %}
-            <small>Codethinkers Academy</small>
-            {% endif %}
-           
-           
-            </div>
-          </div>
-          <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+            <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
+          {% endif %}
+  
+          {% if obj.course_owner %}
+          <small class="">{{obj.course_owner|safe}}</small>
+          {% else %}
+          <small>Codethinkers Academy</small>
+          {% endif %}
          
-          <p style="color: green; font-size: 12px;" class="">{{obj.status_type|safe}}</p>
-          <br>  
-          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-          
-           <br>
+         
           </div>
-     
-         </div>
-         {% empty %}
-         <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-        {% endfor %}
-        <br><br>
-    </div>
-  
-    <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
-      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-      <!-- <span class="sr-only">Previous</span> -->
-    </a>
-    <a class="carousel-control-next bottom" href="#carouselExampleIndicators" role="button" data-slide="next">
-      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-      <!-- <span class="sr-only">Next</span> -->
-    </a>
-    
+        </div>
+        <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+       
+        <p style="color: green; font-size: 12px;" class="">{{obj.status_type|safe}}</p>
+        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe}}</small> <br>
+        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+        
+         <br>
+        </div>
+   
+       </div>
+       {% empty %}
+       <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+      {% endfor %}
+      <br><br>
   </div>
-  
-    <!--END DIFFERENT  COURSES-->
-  
+
+  <a class="carousel-control-prev" href="#carouselExampleIndicator" role="button" data-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <!-- <span class="sr-only">Previous</span> -->
+  </a>
+  <a class="carousel-control-next bottom" href="#carouselExampleIndicator" role="button" data-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <!-- <span class="sr-only">Next</span> -->
+  </a>
+
+</div>
+<div  class="card-body ">
+<!-- <a style="margin-top: -70px; padding-left: 90px;" class="card" href="">Explore All Courses</a>   -->
+</div>  
+  <!--END DIFFERENT  COURSES-->
+
+
+
+   
 
   <!-- regroup -->
 
@@ -647,6 +622,7 @@ h3{
 <hr>
 
 
+
 <script>
 
 let items = document.querySelectorAll('.carousel .carousel-item')
@@ -657,6 +633,9 @@ items.forEach((el) => {
     for (var i=1; i<minPerSlide; i++) {
         if (next) {
             // wrap carousel by using first child
+            next = items[0]
+        }
+        else{
             next = items[0]
         }
         let cloneChild = next.cloneNode(true)
