@@ -130,8 +130,19 @@ class Homepage1(ListView):
         context['gallery'] = Gallery.objects.all()
         # context['courses_count'] = Courses.objects.filter(categories__pk = self.kwargs['pk']).count()
         context['coursess'] = Courses.objects.all().order_by('created')[:10]
-        context['latest_course'] =   Courses.objects.all().order_by('-created')[:5]
-        context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:5].count()
+        
+        context['beginner'] = Courses.objects.filter(categories__name = "BEGINNER")
+        context['beginner_count'] = Courses.objects.filter(categories__name = "BEGINNER").count()
+
+        context['intermediate'] = Courses.objects.filter(categories__name = "INTERMEDIATE")
+        context['intermediate_count'] = Courses.objects.filter(categories__name = "INTERMEDIATE").count()
+
+        context['advanced'] = Courses.objects.filter(categories__name = "ADVANCED")
+        context['advanced_count'] = Courses.objects.filter(categories__name = "ADVANCED").count()
+
+        context['latest_course'] =   Courses.objects.all().order_by('-created')[:8] 
+        context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:8].count()
+
         context['alerts'] = Alert.objects.order_by('-created')
         context['alert_count'] = Alert.objects.all().count()
         context['user'] = NewUser.objects.get_queryset().order_by('id')
