@@ -18,7 +18,7 @@ body {
 .container1 {
     display: flex;
     overflow-x: auto;
-    height: 425px;
+    height: 435px;
     overflow-y: hidden;     
 }
 
@@ -413,11 +413,13 @@ h3{
 </div>
 <!-- end benefits -->
 
+
+ <!--DIFFERENT  COURSES-->
 {% for obj in beginner %}
 {% if forloop.last %}
 <div class="card-body">
   <div class="">
-<h3>Find the {{beginner_count}} courses in this {{obj.categories.name}}'s category available for you</h3>
+<h3>{{beginner_count}} courses for {{obj.categories.name}}'s  available for you</h3>
 </div>
 </div>
 {% endif %}
@@ -475,9 +477,72 @@ h3{
 <!-- END CATEGORIES OF COURSES-->
 
 
+
  <!--DIFFERENT  COURSES-->
-  
- <div style="margin-bottom: -50px;" class="card-body">
+ {% for obj in intermediate %}
+ {% if forloop.last %}
+ <div class="card-body">
+   <div class="">
+ <h3>{{intermediate_count}} courses for {{obj.categories.name}}'s  available for you</h3>
+ </div>
+ </div>
+ {% endif %}
+     {% endfor %}
+   
+ <div  class="beginner ">
+ 
+   {% for obj in intermediate %}
+   <a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.pk %}">
+   <div  class="left-column-cat border ">
+       <!-- <p class=" card rounded-4 category"> -->
+       
+           {% if obj.img_course %}
+           <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="200px" alt="cetagory image">
+           <br>
+           
+           {% endif %}
+           <div class="pl-2">
+           <div class="d-flex rounded owner">
+             <div class="d-flex rounded owner">
+               {% if obj.course_logo.url %}
+               <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
+               {% else %}
+               <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
+             {% endif %}
+     
+             {% if obj.course_owner %}
+             <small class="">{{obj.course_owner|safe}}</small>
+             {% else %}
+             <small>Codethinkers Academy</small>
+             {% endif %}
+ 
+             </div>
+           </div>
+         <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+         <p style="color: green; font-size: 12px;" class="">{{obj.status_type|safe}}</p>
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe}}</small> <br>
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+       </div>
+           <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
+           <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p>
+      
+           <p class="pl-3">{{obj.desc}}</p> -->
+       
+           <!-- <div class="text-left container">{{beginner_count}}</div>  -->
+     
+       <!-- </p> -->
+    
+   </div>
+ </a>
+   {% empty %}
+     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+   {% endfor %}
+ </div>
+ <!-- END CATEGORIES OF COURSES-->
+ 
+
+ <!--DIFFERENT  COURSES-->
+
   <div style="margin-bottom: -50px;" class="card-body">
     <h3 >{{latest_course_count}} latest courses on Codethinkers Academy </h3>
     <p class="" >Explore our newest programs, focused on delivering in-demand skills.</p> 
