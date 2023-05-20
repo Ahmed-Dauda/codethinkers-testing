@@ -143,6 +143,13 @@ class Homepage1(ListView):
         context['latest_course'] =   Courses.objects.all().order_by('-created')[:8] 
         context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:8].count()
 
+        beginner_count = Courses.objects.filter(categories__name = "BEGINNER").count()
+        intermediate_count = Courses.objects.filter(categories__name = "INTERMEDIATE").count()
+        advanced_count = Courses.objects.filter(categories__name = "ADVANCED").count()
+       
+
+        context['all'] = [beginner_count, intermediate_count, advanced_count]
+
         context['alerts'] = Alert.objects.order_by('-created')
         context['alert_count'] = Alert.objects.all().count()
         context['user'] = NewUser.objects.get_queryset().order_by('id')
