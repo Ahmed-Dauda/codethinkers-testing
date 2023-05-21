@@ -31,6 +31,7 @@
                                             
                                             <th>Total Marks</th>
                                             <!-- <th>position</th> -->
+                                            <th>passed</th>
                                             <th>Exam Date</th>
                                         </tr>
                                     </thead>
@@ -43,6 +44,11 @@
                                             <td>{{t.exam}}</td>
                                             <td>{{t.marks}} / {{course.total_marks}}</td>
                                             <!-- <td>positon {{ forloop.counter}}</td> -->
+                                            {% if course == t.exam and t.marks > t.constant or t.marks != None %}
+                                            <h4 > <td style="color:green"> Passed</td> </h4>
+                                            {% endif  %}
+                                            
+                                         
                                             <td> {{t.date}}</td>
                                              
                                         </tr>

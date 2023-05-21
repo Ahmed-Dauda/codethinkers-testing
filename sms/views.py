@@ -120,9 +120,9 @@ class Homepage1(ListView):
        
         return  Courses.objects.all().select_related('categories').distinct()
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # context['c1'] = Courses.objects.filter(categories__pk = 1)
+    def get_context_data(self, **kwargs): 
+        context = super(Homepage1, self).get_context_data(**kwargs)
+        
         context['students'] = User.objects.all().count()
         context['category'] = Categories.objects.count()
         context['coursecategory'] = Categories.objects.all()
@@ -142,13 +142,13 @@ class Homepage1(ListView):
 
         context['latest_course'] =   Courses.objects.all().order_by('-created')[:8] 
         context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:8].count()
-
-        beginner_count = Courses.objects.filter(categories__name = "BEGINNER").count()
-        intermediate_count = Courses.objects.filter(categories__name = "INTERMEDIATE").count()
-        advanced_count = Courses.objects.filter(categories__name = "ADVANCED").count()
+        context['popular_course'] =   Courses.objects.all().order_by('-hit_count_generic__hits')[:3] 
+        # beginner_count = Courses.objects.filter(categories__name = "BEGINNER").count()
+        # intermediate_count = Courses.objects.filter(categories__name = "INTERMEDIATE").count()
+        # advanced_count = Courses.objects.filter(categories__name = "ADVANCED").count()
        
 
-        context['all'] = [beginner_count, intermediate_count, advanced_count]
+        # context['all'] = [beginner_count, intermediate_count, advanced_count]
 
         context['alerts'] = Alert.objects.order_by('-created')
         context['alert_count'] = Alert.objects.all().count()
