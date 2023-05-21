@@ -1,6 +1,8 @@
 {% extends 'sms/dashboard/base.html' %}
 {% load hitcount_tags %}
 {% load static %}
+{% load l10n %}
+
 {% block title %} Codethinkers Academy home-page {% endblock %}
 
   {% block content %} 
@@ -325,7 +327,7 @@ h3{
 
 
 
-<br> <br> <br>
+<br> <br> 
 <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>
 <!-- page Statistics -->
 
@@ -362,7 +364,7 @@ h3{
 
 <br> <br> <br>
    <div class="card-body">
-    <h3 class="">We offer {{category}} course's categories to suit your curiosity</h3>  
+    <h3 class="">We Offer {{category}} Course's Categories to Cuit Your Curiosity</h3>  
    </div>
     
   <div  class="container1 ">
@@ -401,10 +403,10 @@ h3{
 <!-- END CATEGORIES OF COURSES-->
 
 
-<br> <br> <br>
+<br> <br> 
 <!-- benefits -->
 <div  class="card-body">
-<h3>Some benefit associated with the courses:</h3>
+<h3>Some Benefit Associated with the Courses:</h3>
 <ul>
   <li>100% online</li>
   <li>Flexible deadlines</li>
@@ -423,7 +425,7 @@ h3{
 {% if forloop.last %}
 <div class="card-body">
   <div class="">
-<h3>{{beginner_count}} courses for {{obj.categories.name}}'s  available for you</h3>
+<h3>{{beginner_count}} Courses for {{obj.categories.name}}'s  Available for You</h3>
 </div>
 </div>
 {% endif %}
@@ -451,16 +453,20 @@ h3{
             {% endif %}
     
             {% if obj.course_owner %}
-            <small class="">{{obj.course_owner|safe}}</small>
+            <small class="text-dark">{{obj.course_owner|safe}}</small>
             {% else %}
-            <small>Codethinkers Academy</small>
+            <small class="text-dark">Codethinkers Academy</small>
             {% endif %}
 
             </div>
           </div>
         <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
-        <p style="color: green; font-size: 12px;" class="">{{obj.status_type|safe}}</p>
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe}}</small> <br>
+        {% if obj.price %}
+        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+        {% else %}
+        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
+        {% endif %}
+        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
       </div>
           <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
@@ -487,7 +493,7 @@ h3{
  {% if forloop.last %}
  <div class="card-body">
    <div class="">
- <h3>{{intermediate_count}} courses for {{obj.categories.name}}'s  available for you</h3>
+ <h3>{{intermediate_count}} Courses for {{obj.categories.name}}'s  Available for You</h3>
  </div>
  </div>
  {% endif %}
@@ -515,16 +521,20 @@ h3{
              {% endif %}
      
              {% if obj.course_owner %}
-             <small class="">{{obj.course_owner|safe}}</small>
+             <small class="text-dark">{{obj.course_owner|safe}}</small>
              {% else %}
-             <small>Codethinkers Academy</small>
+             <small class="text-dark">Codethinkers Academy</small>
              {% endif %}
  
              </div>
            </div>
          <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
-         <p style="color: green; font-size: 12px;" class="">{{obj.status_type|safe}}</p>
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe}}</small> <br>
+         {% if obj.price %}
+         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+         {% else %}
+         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
+         {% endif %}
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
        </div>
            <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
@@ -551,7 +561,7 @@ h3{
  {% if forloop.last %}
  <div class="card-body">
    <div class="">
- <h3>{{advanced_count}} courses for {{obj.categories.name}}'s  available for you</h3>
+ <h3>{{advanced_count}} Courses for {{obj.categories.name}}'s  Available for You</h3>
  </div>
  </div>
  {% endif %}
@@ -579,16 +589,20 @@ h3{
              {% endif %}
      
              {% if obj.course_owner %}
-             <small class="">{{obj.course_owner|safe}}</small>
+             <small class="text-dark">{{obj.course_owner|safe}}</small>
              {% else %}
-             <small>Codethinkers Academy</small>
+             <small class="text-dark">Codethinkers Academy</small>
              {% endif %}
  
              </div>
            </div>
          <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
-         <p style="color: green; font-size: 12px;" class="">{{obj.status_type|safe}}</p>
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe}}</small> <br>
+         {% if obj.price %}
+         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+         {% else %}
+         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
+         {% endif %}
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
        </div>
            <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
@@ -614,7 +628,7 @@ h3{
  <!--DIFFERENT  COURSES-->
 
   <div style="margin-bottom: -50px;" class="card-body">
-    <h3 >{{latest_course_count}} latest courses on Codethinkers Academy </h3>
+    <h3 >{{latest_course_count}} Latest Courses on Codethinkers Academy </h3>
     <p class="" >Explore our newest programs, focused on delivering in-demand skills.</p> 
   </div>
 <div id="carouselExampleIndicator" class="carousel slide cardnew" data-ride="carousel" data-interval="false">
@@ -658,18 +672,20 @@ h3{
           {% endif %}
   
           {% if obj.course_owner %}
-          <small class="">{{obj.course_owner|safe}}</small>
+          <small class="text-dark">{{obj.course_owner|safe}}</small>
           {% else %}
-          <small>Codethinkers Academy</small>
+          <small class="text-dark">Codethinkers Academy</small>
           {% endif %}
-         
-         
+
           </div>
         </div>
-        <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
-       
-        <p style="color: green; font-size: 12px;" class="">{{obj.status_type|safe}}</p>
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe}}</small> <br>
+      <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+      {% if obj.price %}
+      <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+      {% else %}
+      <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
+      {% endif %}
+      <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
         
          <br>
@@ -699,7 +715,201 @@ h3{
 
 
 
-   
+ <!--DIFFERENT  COURSES-->
+ <br> <br> <br>
+
+ <div class="card-body">
+   <div class="">
+ <h3>Popular Courses</h3>
+ </div>
+ </div>
+
+ <div  class="beginner ">
+ 
+   {% for obj in popular_course %}
+   <a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.pk %}">
+   <div  class="left-column-cat border ">
+       <!-- <p class=" card rounded-4 category"> -->
+       
+           {% if obj.img_course %}
+           <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="200px" alt="cetagory image">
+           <br>
+           
+           {% endif %}
+           <div class="pl-2">
+           <div class="d-flex rounded owner">
+             <div class="d-flex rounded owner">
+               {% if obj.course_logo.url %}
+               <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
+               {% else %}
+               <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
+             {% endif %}
+     
+             {% if obj.course_owner %}
+             <small class="text-dark">{{obj.course_owner|safe}}</small>
+             {% else %}
+             <small class="text-dark">Codethinkers Academy</small>
+             {% endif %}
+ 
+             </div>
+           </div>
+         <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+         {% if obj.price %}
+         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+         {% else %}
+         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
+         {% endif %}
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+       </div>
+           <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
+           <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p>
+      
+           <p class="pl-3">{{obj.desc}}</p> -->
+       
+           <!-- <div class="text-left container">{{beginner_count}}</div>  -->
+     
+       <!-- </p> -->
+    
+   </div>
+ </a>
+   {% empty %}
+     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+   {% endfor %}
+ </div>
+ <!-- END CATEGORIES OF COURSES-->
+
+
+  <!--DIFFERENT  COURSES-->
+  <br> <br> <br>
+
+  <div class="card-body">
+    <div class="">
+  <h3>Free Courses</h3>
+  </div>
+  </div>
+ 
+  <div  class="beginner ">
+  
+    {% for obj in coursess %}
+    {% if obj.status_type == 'Free' %}
+    <a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.pk %}">
+    <div  class="left-column-cat border ">
+        <!-- <p class=" card rounded-4 category"> -->
+        
+            {% if obj.img_course %}
+            <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="200px" alt="cetagory image">
+            <br>
+            
+            {% endif %}
+            <div class="pl-2">
+            <div class="d-flex rounded owner">
+              <div class="d-flex rounded owner">
+                {% if obj.course_logo.url %}
+                <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
+                {% else %}
+                <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
+              {% endif %}
+      
+              {% if obj.course_owner %}
+              <small class="text-dark">{{obj.course_owner|safe}}</small>
+              {% else %}
+              <small class="text-dark">Codethinkers Academy</small>
+              {% endif %}
+  
+              </div>
+            </div>
+          <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+          {% if obj.price %}
+          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+          {% else %}
+          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
+          {% endif %}
+          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
+          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+        </div>
+            <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
+            <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p>
+       
+            <p class="pl-3">{{obj.desc}}</p> -->
+        
+            <!-- <div class="text-left container">{{beginner_count}}</div>  -->
+      
+        <!-- </p> -->
+       
+    </div>
+  </a>
+  {% endif %}
+    {% empty %}
+      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+    {% endfor %}
+  </div>
+  <!-- END CATEGORIES OF COURSES-->
+  
+
+
+<br> <br> <br>
+<section>
+  <div class="row d-flex justify-content-center">
+    <div class="col-md-10 col-xl-8 text-center">
+      <h3 class="mb-4">Testimonials</h3>
+      <p class="mb-4 pb-2 mb-md-5 pb-md-0">
+
+      </p>
+    </div>
+  </div>
+
+  <div class="row text-center d-flex align-items-stretch">
+    <div class="col-md-4 mb-5 mb-md-0 d-flex align-items-stretch">
+      <div class="card testimonial-card">
+        <div class="card-up" style="background-color: #9d789b;"></div>
+        <div class="avatar mx-auto bg-white">
+          <img src=" /static/sms/images/avater3.webp" width="100px" class="rounded-circle img-fluid" />
+        </div>
+        <div class="card-body">
+          <h4 class="mb-4">Maria Smantha</h4>
+          <hr />
+          <p class="dark-grey-text mt-4">
+            <i class="fas fa-quote-left pe-2"></i>
+            "Codethinkers Academy offers a top-notch programming education with knowledgeable instructors, comprehensive curriculum, and practical projects that prepare students for real-world challenges."
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-5 mb-md-0 d-flex align-items-stretch">
+      <div class="card testimonial-card">
+        <div class="card-up" style="background-color: #7a81a8;"></div>
+        <div class="avatar mx-auto bg-white">
+          <img src=" /static/sms/images/avater11.png" width="100px" class="rounded-circle img-fluid" />
+        </div>
+        <div class="card-body">
+          <h4 class="mb-4">Andrew Cudrow</h4>
+          <hr />
+          <p class="dark-grey-text mt-4">
+            <i class="fas fa-quote-left pe-2"></i>
+            "The academy creates a supportive learning environment, where instructors and mentors are readily available, fostering collaboration and individual attention."
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-0 d-flex align-items-stretch">
+      <div class="card testimonial-card">
+        <div class="card-up" style="background-color: #6d5b98;"></div>
+        <div class="avatar mx-auto bg-white">
+          <img src=" /static/sms/images/avater2.webp" width="100px" class="rounded-circle img-fluid" />
+        </div>
+        <div class="card-body">
+          <h4 class="mb-4">Muhammad  Abubakar</h4>
+          <hr />
+          <p class="dark-grey-text mt-4">
+            <i class="fas fa-quote-left pe-2"></i>
+            "With a focus on real-world projects and career preparation, Codethinkers Academy equips students with practical skills and offers valuable resources for successful entry into the programming industry."
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 
   <!-- regroup -->
 
@@ -727,8 +937,9 @@ h3{
   <!--GALLERY-->
   <br> <br> <br>
 
-  <h1 class="text"> <span> Our Gallery</span></h1><hr>
-  
+  <div  class="card-body">
+    <h3 >Our Gallery </h3>
+  </div>
   <div class="container1 rounded-4 text-center">
     {% for category in gallery %}
     <div class="left-column-cat  ">

@@ -39,7 +39,7 @@ class Categories(models.Model, HitCountMixin):
 class Courses(models.Model):
     
     COURSE_TYPE = [
-    ('course','COURSE'),
+    ('Course','COURSE'),
     ('Professional Certificate', 'PROFESSIONAL CERTIFICATE'),
     ('Specialization', 'SPECIALIZATION'),
     ('Degree', 'DEGREE'),
@@ -47,8 +47,8 @@ class Courses(models.Model):
     ]
 
     PAYMENT_CHOICES = [
-    ('premium','PREMIUM'),
-    ('free', 'FREE'),
+    ('Premium','PREMIUM'),
+    ('Free', 'FREE'),
     ('Sponsored', 'SPONSORED'),
   
     ]
@@ -58,7 +58,8 @@ class Courses(models.Model):
     course_logo = CloudinaryField('course_logo', blank=True, null= True)
     course_owner = models.CharField(max_length=225, blank=True, null= True)
     course_type = models.CharField(choices = COURSE_TYPE, default='course' , max_length=225, blank=True, null= True)
-    status_type = models.CharField(choices = PAYMENT_CHOICES, default='premium' ,max_length=225, blank=True, null= True)
+    status_type = models.CharField (choices = PAYMENT_CHOICES, default='premium' ,max_length=225, blank=True, null= True)
+    price = models.DecimalField (max_digits=10, decimal_places=2, default= '20000' ,max_length=225, blank=True, null= True)
     desc = tinymce_models.HTMLField(blank=True, null= True)
 
     # partdesc1 = models.CharField(max_length=300, blank=True, null= True)
