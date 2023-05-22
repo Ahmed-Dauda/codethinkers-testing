@@ -46,6 +46,9 @@
                                             <!-- <td>positon {{ forloop.counter}}</td> -->
                                             {% if course == t.exam and t.marks > t.constant or t.marks != None %}
                                             <h4 > <td style="color:green"> Passed</td> </h4>
+
+                                            {% else  %}
+                                            <h4 > <td style="color:green">Try Again</td> </h4>
                                             {% endif  %}
                                             
                                          

@@ -128,6 +128,8 @@ class Homepage1(ListView):
         context['coursecategory'] = Categories.objects.all()
         context['courses'] = Courses.objects.all().count()
         context['gallery'] = Gallery.objects.all()
+        context['blogs'] =Blog.objects.all().order_by('created')[:3]
+        context['blogs_count'] =Blog.objects.all().count() 
         # context['courses_count'] = Courses.objects.filter(categories__pk = self.kwargs['pk']).count()
         context['coursess'] = Courses.objects.all().order_by('created')[:10]
         

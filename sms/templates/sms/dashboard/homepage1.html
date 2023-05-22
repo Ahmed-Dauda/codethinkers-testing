@@ -364,7 +364,7 @@ h3{
 
 <br> <br> <br>
    <div class="card-body">
-    <h3 class="">We Offer {{category}} Course's Categories to Cuit Your Curiosity</h3>  
+    <h3 style="color: black;  font-weight: bold;" >We Offer {{category}} Course's Categories to Cuit Your Curiosity</h3>  
    </div>
     
   <div  class="container1 ">
@@ -382,9 +382,6 @@ h3{
             <br>
             <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' category.pk %}">{{category|safe}}</a>
             <p class="pl-3">{% get_hit_count for category %} <i class="fas fa-eye"></i> </p>
-           
-      
-          
 
             <p class="pl-3">{{category.desc}}</p>
         
@@ -406,7 +403,7 @@ h3{
 <br> <br> 
 <!-- benefits -->
 <div  class="card-body">
-<h3>Some Benefit Associated with the Courses:</h3>
+<h3 style="color: black;  font-weight: bold;" >Some Benefit Associated with the Courses:</h3>
 <ul>
   <li>100% online</li>
   <li>Flexible deadlines</li>
@@ -425,7 +422,7 @@ h3{
 {% if forloop.last %}
 <div class="card-body">
   <div class="">
-<h3>{{beginner_count}} Courses for {{obj.categories.name}}'s  Available for You</h3>
+<h3 style="color: black; font-weight: bold;" >{{beginner_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
 </div>
 </div>
 {% endif %}
@@ -433,8 +430,9 @@ h3{
   
 <div  class="beginner ">
 
-  {% for obj in beginner %}
-  <a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.pk %}">
+  {% for obj in coursess %}
+  {% if obj.categories.name == 'BEGINNER' %}
+  <a style="height: 10px;" class=""  href="{% url 'sms:topicslistview' obj.pk %}">
   <div  class="left-column-cat border ">
       <!-- <p class=" card rounded-4 category"> -->
       
@@ -479,6 +477,7 @@ h3{
       <!-- </p> -->
    
   </div>
+  {% endif %}
 </a>
   {% empty %}
     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -489,11 +488,11 @@ h3{
 <br> <br> <br>
 
  <!--DIFFERENT  COURSES-->
- {% for obj in intermediate %}
- {% if forloop.last %}
+ {% for obj in coursess %}
+ {% if obj.categories.name == 'ADVANCED' %}
  <div class="card-body">
    <div class="">
- <h3>{{intermediate_count}} Courses for {{obj.categories.name}}'s  Available for You</h3>
+ <h3 style="color: black; font-weight: bold;" >{{intermediate_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
  </div>
  </div>
  {% endif %}
@@ -501,8 +500,10 @@ h3{
    
  <div  class="beginner ">
  
-   {% for obj in intermediate %}
-   <a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.pk %}">
+  {% for obj in coursess %}
+  {% if obj.categories.name == 'INTERMEDIATE' %}
+
+   <a style="height: 10px;" class="" href="{% url 'sms:topicslistview' obj.pk %}">
    <div  class="left-column-cat border ">
        <!-- <p class=" card rounded-4 category"> -->
        
@@ -547,6 +548,7 @@ h3{
        <!-- </p> -->
     
    </div>
+   {% endif %}
  </a>
    {% empty %}
      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -557,20 +559,24 @@ h3{
  <br> <br> <br>
 
  <!--DIFFERENT  COURSES-->
- {% for obj in advanced %}
- {% if forloop.last %}
+ {% for obj in coursess %}
+ {% if obj.categories.name == 'ADVANCED' %}
+
  <div class="card-body">
    <div class="">
- <h3>{{advanced_count}} Courses for {{obj.categories.name}}'s  Available for You</h3>
+ <h3 style="color: black;  font-weight: bold;" >{{advanced_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
  </div>
  </div>
+
+
  {% endif %}
      {% endfor %}
    
  <div  class="beginner ">
  
-   {% for obj in advanced %}
-   <a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.pk %}">
+  {% for obj in coursess %}
+  {% if obj.categories.name == 'ADVANCED' %}
+   <a style="height: 10px;" class="" href="{% url 'sms:topicslistview' obj.pk %}">
    <div  class="left-column-cat border ">
        <!-- <p class=" card rounded-4 category"> -->
        
@@ -615,6 +621,7 @@ h3{
        <!-- </p> -->
     
    </div>
+   {% endif %}
  </a>
    {% empty %}
      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -628,7 +635,7 @@ h3{
  <!--DIFFERENT  COURSES-->
 
   <div style="margin-bottom: -50px;" class="card-body">
-    <h3 >{{latest_course_count}} Latest Courses on Codethinkers Academy </h3>
+    <h3 style="color: black;  font-weight: bold;" >{{latest_course_count}} Latest Courses on Codethinkers Academy </h3>
     <p class="" >Explore our newest programs, focused on delivering in-demand skills.</p> 
   </div>
 <div id="carouselExampleIndicator" class="carousel slide cardnew" data-ride="carousel" data-interval="false">
@@ -720,14 +727,14 @@ h3{
 
  <div class="card-body">
    <div class="">
- <h3>Popular Courses</h3>
+ <h3 style="color: black; font-weight: bold;" >Popular Courses</h3>
  </div>
  </div>
 
  <div  class="beginner ">
  
    {% for obj in popular_course %}
-   <a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.pk %}">
+   <a style="height: 10px;" class=""  href="{% url 'sms:topicslistview' obj.pk %}">
    <div  class="left-column-cat border ">
        <!-- <p class=" card rounded-4 category"> -->
        
@@ -785,7 +792,7 @@ h3{
 
   <div class="card-body">
     <div class="">
-  <h3>Free Courses</h3>
+  <h3 style="color: black;  font-weight: bold;" >Free Courses</h3>
   </div>
   </div>
  
@@ -852,7 +859,7 @@ h3{
 <section>
   <div class="row d-flex justify-content-center">
     <div class="col-md-10 col-xl-8 text-center">
-      <h3 class="mb-4">Testimonials</h3>
+      <h3 style="color: black; font-weight: bold;"  class="mb-4">Testimonials</h3>
       <p class="mb-4 pb-2 mb-md-5 pb-md-0">
 
       </p>
@@ -937,7 +944,7 @@ h3{
   <!--GALLERY-->
   <br> <br> <br>
 
-  <div  class="card-body">
+  <div style="color: black; font-size: 18px; font-weight: bold;"   class="card-body">
     <h3 >Our Gallery </h3>
   </div>
   <div class="container1 rounded-4 text-center">
@@ -965,7 +972,84 @@ h3{
   </div>
 <!-- END GALLERY-->
 
-<hr>
+  <!--DIFFERENT  COURSES-->
+  <br> <br> <br>
+
+  <div class="card-body">
+    <div class="">
+  <h3 style="color: black;  font-weight: bold;" >Latest News Feed</h3>
+  </div>
+  </div>
+ 
+  <div style="height: 450px;"  class="beginner ">
+  
+    {% for obj in blogs %}
+   
+    <a style="height: 10px;" class="" href="{% url 'sms:blogdetaillistview' obj.slug %}">
+    <div  class="left-column-cat border ">
+        <!-- <p class=" card rounded-4 category"> -->
+        
+            {% if obj.img_blog %}
+            <img class="rounded images" src="{{obj.img_blog.url}}" width="250px" height="200px" alt="cetagory image">
+          
+            
+            {% endif %}
+            <div class="pl-2">
+            <!-- <div class="d-flex rounded owner">
+              <div class="d-flex rounded owner">
+                {% if obj.course_logo.url %}
+                <img  class="rounded" src="{{ obj.img_blog.url }}" width="30px"  height="33px" alt=""> <br>
+                {% else %}
+                <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
+              {% endif %}
+      
+              {% if obj.course_owner %}
+              <small class="text-dark">{{obj.course_owner|safe}}</small>
+              {% else %}
+              <small class="text-dark">Codethinkers Academy</small>
+              {% endif %}
+  
+              </div>
+            </div> -->
+           
+            <p style="color: black;">Image source: {{obj.img_source}}</p>
+			      <small style="color: black;">{{obj.created}}, {{obj.created|timesince}}</small> 
+            {% if obj.author %}
+              <p style="color: black;" class="card-text">By {{obj.author}}</p>
+              {% else %}
+              <small style="color: black;" class="card-text">By {{obj.poster}}</small><hr>
+              {% endif %}	
+              <p  style="color: black;">{{obj.desc|safe|striptags|truncatewords:10}}</p>
+              <a style="font-size: 12px;"  href="{% url 'sms:blogdetaillistview' obj.slug %}" class="btn btn-primary">Read More....</a><hr> <br>
+             
+            
+          <!-- <a style="font-size: 12px;"  href="{% url 'sms:blogdetaillistview' obj.pk %}">{{obj.title}} </a> -->
+          <!-- {% if obj.price %}
+          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+          {% else %}
+          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
+          {% endif %}
+          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
+          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small> -->
+        </div>
+            <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
+            <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p>
+       
+            <p class="pl-3">{{obj.desc}}</p> -->
+        
+            <!-- <div class="text-left container">{{beginner_count}}</div>  -->
+      
+        <!-- </p> -->
+       
+    </div>
+  </a>
+
+    {% empty %}
+      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+    {% endfor %}
+  </div>
+  <!-- END CATEGORIES OF COURSES-->
+  
 
 
 
@@ -989,8 +1073,6 @@ items.forEach((el) => {
         next = next.nextElementSibling
     }
 })
-
-
 
 </script>
 
