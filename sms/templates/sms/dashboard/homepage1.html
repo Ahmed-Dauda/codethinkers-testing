@@ -1,7 +1,7 @@
 {% extends 'sms/dashboard/base.html' %}
 {% load hitcount_tags %}
 {% load static %}
-{% load l10n %}
+
 
 {% block title %} Codethinkers Academy home-page {% endblock %}
 
@@ -24,6 +24,13 @@ body {
     overflow-y: hidden;     
 }
 
+.gallery {
+    display: flex;
+    overflow-x: auto;
+    height: 250px;
+    overflow-y: hidden;   
+    border: 1px solid blue;  
+}
 .beginner {
     display: flex;
     overflow-x: auto;
@@ -947,7 +954,7 @@ h3{
   <div style="color: black; font-size: 18px; font-weight: bold;"   class="card-body">
     <h3 >Our Gallery </h3>
   </div>
-  <div class="container1 rounded-4 text-center">
+  <div class="gallery rounded-4 text-center">
     {% for category in gallery %}
     <div class="left-column-cat  ">
         <p class=" text-center category">
@@ -1013,15 +1020,15 @@ h3{
             </div> -->
            
             <p style="color: black;">Image source: {{obj.img_source}}</p>
-			      <small style="color: black;">{{obj.created}}, {{obj.created|timesince}}</small> 
+			      <small style="color: black;">{{obj.created|timesince}}</small> <br>
             {% if obj.author %}
-              <p style="color: black;" class="card-text">By {{obj.author}}</p>
+              <p style="color: black; font-weight: bold;" class="card-text">By {{obj.author}}</p>
               {% else %}
-              <small style="color: black;" class="card-text">By {{obj.poster}}</small><hr>
+              <small style="color: black; font-weight: bold;" class="card-text">By {{obj.poster}}</small>
               {% endif %}	
-              <p  style="color: black;">{{obj.desc|safe|striptags|truncatewords:10}}</p>
+              <p  style="color: black; ">{{obj.desc|safe|striptags|truncatewords:10}}</p>
               <a style="font-size: 12px;"  href="{% url 'sms:blogdetaillistview' obj.slug %}" class="btn btn-primary">Read More....</a><hr> <br>
-             
+             <br>
             
           <!-- <a style="font-size: 12px;"  href="{% url 'sms:blogdetaillistview' obj.pk %}">{{obj.title}} </a> -->
           <!-- {% if obj.price %}
