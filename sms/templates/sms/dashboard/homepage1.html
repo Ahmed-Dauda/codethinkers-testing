@@ -27,9 +27,9 @@ body {
 .gallery {
     display: flex;
     overflow-x: auto;
-    height: 250px;
+    height: 300px;
     overflow-y: hidden;   
-    border: 1px solid blue;  
+     
 }
 .beginner {
     display: flex;
@@ -956,11 +956,11 @@ h3{
   </div>
   <div class="gallery rounded-4 text-center">
     {% for category in gallery %}
-    <div class="left-column-cat  ">
-        <p class=" text-center category">
+    <div style="border: 1px solid blue;" class="left-column-cat  ">
+        <p  class=" text-center category">
       
             {% if category.gallery %}
-            <img class="rounded-4 images" src="{{category.gallery.url}}" width="100px" height="150px" alt="cetagory image">
+            <img class="rounded-4 images" src="{{category.gallery.url}}" width="280px" height="150px" alt="cetagory image">
             {% endif %}
             {% if category.title %}
             <div class="text-left container">{{category.title}}</div>
