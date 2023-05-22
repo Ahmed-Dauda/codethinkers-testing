@@ -6,68 +6,56 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Certificate</title>
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
-    <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Tangerine&effect=shadow-multiple"> -->
+    <link href="https://fonts.googleapis.com/css?family=Satisfy" rel="stylesheet">
+    <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Tangerine&effect=shadow-multiple">
     <style>
-
-
-
       body{
         margin: 0;
         padding: 0;
         font-family: 'Tangerine, serif';
-        background-color: #ccc;
-        font-style: inherit;
-       
+        font-size: 40px;
 
         
       }
+      @font-face {
+        font-family: 'Tangerine, serif';
+        src: url("https://fonts.googleapis.com/css?family=Tangerine");
+    }
+    .t{
+      font-family: 'Tangerine', serif;
+    }
+    
+      @page {
 
-
-    @page {
-        
-        /* background-image: url('https://i.ibb.co/3rRhxt7/logo-design.jpg');
+        background-image: url('https://i.ibb.co/Y7Pcbth/Copy-of-Blue-Orange-Elegant-Company-Certificate-Landscape.png');
         background-object-position:0px 0px;
         background-width: 100%;
-        background-height: 100%; */
-        size: letter landscape;
-        /* zoom: 100%;
-        background-image: url('https://i.ibb.co/Xyg82PN/IMG-20230413-WA0022.jpg'); */
-        opacity: 0.2;
-        margin: 2cm;
-        @frame content_frame {
-          /* background-image: url('https://i.ibb.co/Xyg82PN/IMG-20230413-WA0022.jpg'); */
-     
-            left: 10pt;
-            width: 771pt;
-            top: 0pt;
-            height: 599pt;
-      
-            /* -pdf-frame-border: 2;    for debugging the layout */
-         
+        background-height: 100%;
+        size: a4 landscape;
+        @frame header_frame {           /* Static Frame */
+            -pdf-frame-content: header_content;
             
-            padding-left: 10pt;
-            padding-right: 10pt;
-            font-family: Georgia, 'Times New Roman', Times, serif;
-            padding-top: 10pt; 
-            padding-bottom: 10pt;
-         
+            left: 0pt; width: 512pt; top: 0pt; height: 0pt;margin: 0pt;
         }
-       
-            
+        @frame content_frame {          /* Content Frame */
+            left: 10pt; width: 820pt; top: 0pt; height: 640pt;margin: 10pt;
         }
-
+        @frame footer_frame {           /* Another static Frame */
+            -pdf-frame-content: footer_content;
+            left: 0pt; width: 512pt; top: 772pt; height: 0pt;margin: 0pt;
+        }
+    }  
        table{
-        background-color: white;
-        /* color: white; */
+       /* background-color:white; 
+        color: white; */
         max-height: 512px;
-        font-family: Arial, Helvetica, sans-serif;
-  
-
+        font-family: Arial, Helvetica, sans-serif
+   
        } 
       
  
-.flex-container {
+       .flex-container {
   -webkit-display: -webkit-box;
   -webkit-display: -webkit-flex;
   display: -webkit-box;
@@ -87,83 +75,66 @@
   
 }
 
-.border{
-
-    border-top-color: #16DB93;
-    border-bottom-color: #A4036F;
-    border-left-color: #EFEA5A;
-    border-right-color: #FE5E41;
-
-}
     </style>
 </head>
 <body>
     
 <table class="cert">
 
-  <tr style="max-height: 652px;">
+  <tr style="font-size: 20px;max-height: 612px;">
     <td>
         
-      <div style="width:800px; height:700px; padding:5px; border: 10px solid #787878;">
-        <div style="width:750px; height:650px; padding:5px;padding-left: 70px;text-align:left; border: 30px double rgb(42, 39, 239); ">
-         
-         {% for image in logo %}
-         {% if image.logo %}
-         <div style="display: flex; text-align: center;">
-         <img style="width: 150px;height:150px;border-radius:100px; margin-top:-400px" src="{{image.logo.url}}" alt=""> 
-         <span class="font-effect-shadow-multiple" style="font-size:30px;color: rgb(42, 39, 239);font-style: sans serif Avant Garde;"> Codethinkers</span> 
-  
-         <div  class="flex-container">
+<div style="width:800px; height:700px; padding:0px; text-align:center;">
+    <div style="width:750px; height:550px; padding:100px 300px; text-align:right; border: 50px dashed rgb(18, 18, 19)">
 
-          <div class="flex-item">
-          {% for c in  course %}
-          {% if c.img_partdesc1 %}
-          <img style="width: 150px;height:150px;" src="{{c.img_partdesc1.url}}" alt="">
-          {% if c.partdesc1 %}
-          <span style="color: rgb(42, 39, 239);font-size:30px;" class="flex-item">{{c.partdesc1 }}</span>
-           {% endif %}
+ <div  class="flex-container">
+
+<div class="flex-item">
+{% for c in  course %}
+{% if c.img_partdesc1 %}
+<img style="width: 300px;height:300px;" src="{{c.img_partdesc1.url}}" alt="">
+{% if c.partdesc1 %}
+<span style="color: rgb(42, 39, 239);font-size:60px;" class="flex-item">{{c.partdesc1 }}</span>
+ {% endif %}
 
 
-          {% endif %}
-          {% endfor %}
-          </div>
-         
-          <div class="flex-item">
-            {% for c in course %} 
-            {% if c.img_partdesc2 %}
-            <img style="width: 150px;height:150px;" src="{{c.img_partdesc2.url}}" alt=""> 
-            {% if c.partdesc2 %}
-            <span style="color: rgb(42, 39, 239); font-size:30px;" class="flex-item"> {{c.partdesc2 }}  </span>
-            {% endif %}
+{% endif %}
+{% endfor %}
+</div>
 
-            {% endif %}
-            {% endfor %}
+<div class="flex-item">
+  {% for c in course %} 
+  {% if c.img_partdesc2 %}
+  <img style="width: 300px;height:300px;" src="{{c.img_partdesc2.url}}" alt=""> 
+  {% if c.partdesc2 %}
+  <span style="color: rgb(42, 39, 239); font-size:60px;" class="flex-item"> {{c.partdesc2 }}  </span>
+  {% endif %}
 
-          </div>
-          
+  {% endif %}
+  {% endfor %}
 
-        </div>
-         <br><br>
-    
-        </div>
-         {% endif %}
-         {% endfor %}
-     
-         <br><br/><br/>  <br><br/><br/>  <br><br/><br/>  <br><br/><br/>
+</div>
+
+
+</div>
+<br><br>  <br>  <br>
+
+        
        
-       
-           <span style="font-size:20px; color:rgb(86, 15, 218);"><i> {{date|date:"D d M Y"}}</i></span> <br>
-           <br> <br> <br>
-           <span style="font-size:45px;color:rgb(42, 39, 239)"><b>{{student.first_name|capfirst }} {{student.last_name|capfirst}}</b></span><br/> <br> <br>
-           <span style="font-size:30px;color:rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/> <br> <br>
+      
+           <span style="font-size:90px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
+           <br><br> <br> <br>
+           <span style="font-size:70px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span>
+           <br><br><br>
+           <span style="font-size:40px; color:rgb(86, 15, 218);"><i>on  {{date|date:"D d M Y"}}</i></span><br> <br> <br> <br>
+           <span style="font-size:80px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/>
+           <span style="font-size:70px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br>
            {% for name in course %}
 
+           <span style="font-size:80px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br/><br/>
+           {% endfor %}
+           <br><br>
            <span style="font-size:45px;color:rgb(17, 18, 18);">
-            {{name|upper}}
-        
-          </span> <br/> <br/> <br> <br/> <br>
-          
-          <span style="font-size:25px;color:rgb(17, 18, 18);">
           <i>
           {% for part in course %} 
            {% if part.partdesc3 %}
@@ -173,41 +144,23 @@
           </i>
           
           </span> 
-          <br/> <br/>
 
-         
-
-           {% endfor %}
-           
-
-         
-
-           <br><br><br>  <br> <br> <br> <br> <br> <br> <br> <br>  
-           <span class="font-effect-shadow-multiple" style="font-size:20px; color:rgb(17, 18, 18);"><u> <i> Signed by Codethinker's Academy</i></u></span><br>
-           {% for image in sign %}
-           {% if image.sign %}
-           
-          <img style="width:200px;height:100px;" src="{{image.sign.url}}" alt="">
-          <br><br><br>  <br> <br> <br> <br> <br> <br> <br> <br>  
-           {% endif %}
-           {% endfor %}
-   
-           
-
+           <br><br><br> <br><br><br>
           
-         
+           <br>
            
-          
-          
-     
-            <!-- <img  id="footer_content" src="https://i.ibb.co/3rRhxt7/logo-design.jpg" width="600pt"> -->
-       
 
+           <br/><br/><br/><br/><br><br><br>
+          
+           
+          <br><br><br><br><br><br><br><br><br><br><br>
+          
+
+      
+          
     </div>
-  
     </div>
     </td>
-    
   </tr>
  
 </table>
