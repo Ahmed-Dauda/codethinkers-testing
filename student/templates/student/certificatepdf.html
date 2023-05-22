@@ -27,7 +27,8 @@
     }
     
       @page {
-        background-image: url('https://i.ibb.co/Pmr5djp/Blue-Orange-Elegant-Company-Certificate-Landscape-13.png');
+        /* background-image: url('https://i.ibb.co/Pmr5djp/Blue-Orange-Elegant-Company-Certificate-Landscape-13.png'); */
+        background-image: url('https://i.ibb.co/Y7Pcbth/Copy-of-Blue-Orange-Elegant-Company-Certificate-Landscape.png');
         background-object-position:0px 0px;
         background-width: 100%;
         background-height: 100%;
@@ -134,7 +135,7 @@
            {% endfor %}
            <br><br>
            <span style="font-size:45px;color:rgb(17, 18, 18);">
-          <i>
+          <i style="font-size: 50px;">
           {% for part in course %} 
            {% if part.partdesc3 %}
           {{part.partdesc3}}   
@@ -144,11 +145,28 @@
           
           </span> 
 
-           <br><br><br> <br><br><br>
-          
-           <br>
+           <br><br><br> <br><br><br>  <br><br><br> <br><br><br>  <br><br><br>
+        
            
+            {% for c in  course %}
+            {% if c.signature %}
+            <img style="width: 850pt;height:200px;" src="{{c.signature.url}}" alt="" > <br> <br> 
+            {% else %}
+            <img style="width: 850pt;height:200px;" src=" /static/sms/images/whitesignature.jpg" alt="" > <br> <br> 
+            {% endif %}
+            <span> ______________________________________________________</span> <br> <br>
+            {% if c.signby%}
+        
+            <p style="font-size:50px;" class="flex-item">{{c.signby }}</p> <br> <br>
+            <p style="font-size:50px;" class="flex-item">{{c.signby_portfolio }}</p>
+            {% else %}
+            <p style="font-size:50px;" class="flex-item">Codethinkers</p> <br> <br>
+            <p style="font-size:50px;" class="flex-item">Global Diractor of Codethinkers of Codethikers Career Certificates</p> 
+            {% endif %}
 
+
+           
+            {% endfor %}
            <br/><br/><br/><br/><br><br><br>
           
            
