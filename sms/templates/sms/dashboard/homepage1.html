@@ -437,8 +437,8 @@ h3{
   
 <div  class="beginner ">
 
-  {% for obj in coursess %}
-  {% if obj.categories.name == 'BEGINNER' %}
+  {% for obj in beginner %}
+ 
   <a style="height: 10px;" class=""  href="{% url 'sms:topicslistview' obj.pk %}">
   <div  class="left-column-cat border ">
       <!-- <p class=" card rounded-4 category"> -->
@@ -484,7 +484,7 @@ h3{
       <!-- </p> -->
    
   </div>
-  {% endif %}
+
 </a>
   {% empty %}
     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -507,8 +507,8 @@ h3{
    
  <div  class="beginner ">
  
-  {% for obj in coursess %}
-  {% if obj.categories.name == 'INTERMEDIATE' %}
+  {% for obj in intermediate%}
+
 
    <a style="height: 10px;" class="" href="{% url 'sms:topicslistview' obj.pk %}">
    <div  class="left-column-cat border ">
@@ -555,7 +555,7 @@ h3{
        <!-- </p> -->
     
    </div>
-   {% endif %}
+
  </a>
    {% empty %}
      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
