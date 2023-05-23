@@ -495,8 +495,8 @@ h3{
 <br> <br> <br>
 
  <!--DIFFERENT  COURSES-->
- {% for obj in coursess %}
- {% if obj.categories.name == 'ADVANCED' %}
+ {% for obj in intermediate %}
+ {% if forloop.last %}
  <div class="card-body">
    <div class="">
  <h3 style="color: black; font-weight: bold;" >{{intermediate_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
@@ -566,7 +566,7 @@ h3{
  <br> <br> <br>
 
  <!--DIFFERENT  COURSES-->
- {% for obj in coursess %}
+ {% for obj in advanced %}
  {% if obj.categories.name == 'ADVANCED' %}
 
  <div class="card-body">
@@ -799,7 +799,7 @@ h3{
 
   <div class="card-body">
     <div class="">
-  <h3 style="color: black;  font-weight: bold;" >Free Courses</h3>
+  <h3 style="color: black;  font-weight: bold;" >Enjoy Our Free Courses</h3>
   </div>
   </div>
  
