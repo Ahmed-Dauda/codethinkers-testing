@@ -567,14 +567,13 @@ h3{
 
  <!--DIFFERENT  COURSES-->
  {% for obj in advanced %}
- {% if obj.categories.name == 'ADVANCED' %}
+ {% if forloop.last %}
 
  <div class="card-body">
    <div class="">
  <h3 style="color: black;  font-weight: bold;" >{{advanced_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
  </div>
  </div>
-
 
  {% endif %}
      {% endfor %}
