@@ -39,7 +39,7 @@
             left: 0pt; width: 512pt; top: 0pt; height: 0pt;margin: 0pt;
         }
         @frame content_frame {          /* Content Frame */
-            left: 10pt; width: 820pt; top: 0pt; height: 630pt;margin: 10pt; font-size: 50px;
+            left: 10pt; width: 820pt; top: 0pt; height: 640pt;margin: 5pt;
         }
         @frame footer_frame {           /* Another static Frame */
             -pdf-frame-content: footer_content;
@@ -81,11 +81,11 @@
     
 <table style= class="cert">
 
-  <tr style="font-size: 20px;max-height: 612px;">
+  <tr style="font-size: 20px;">
     <td>
         
 <div style="width:800px; height:700px; padding:0px; text-align:center;">
-    <div style="width:750px; height:550px; padding:100px 200px; text-align:right; border: 50px dashed rgb(18, 18, 19)">
+    <div style="width:750px; height:550px; padding:100px 250px; text-align:right; border: 50px dashed rgb(18, 18, 19)">
 
  <div  class="flex-container">
 
@@ -117,17 +117,13 @@
 
 
 </div>
-<br><br>  <br>  <br>
-
-        
-       
-      
+<br> <br> <br> <br> 
            <span style="font-size:110px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
-           <br><br> <br> <br>
+           </br>/br> </br> </br>
            <span style="font-size:80px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span>
            <br><br><br>
            <span style="font-size:60px; color:rgb(86, 15, 218);"><i>on  {{date|date:"D d M Y"}}</i></span><br> <br> <br> <br>
-           <span style="font-size:100px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/>
+           <span style="font-size:100px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/> <br/><br/>
            <span style="font-size:90px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
            {% for name in course %}
 
@@ -135,9 +131,9 @@
            {% endfor %}
            <br><br>
            <span style="font-size:60px;color:rgb(17, 18, 18);">
-          <i style="font-size: 70px;">
+          <i style="font-size: 60px;">
           {% for part in course %} 
-           {% if part.partdesc3 %}
+           {% if part.partdesc3 %} </br>
           {{part.partdesc3}}   
            {% endif %}
            {% endfor %}
@@ -145,30 +141,42 @@
           
           </span> 
 
-           <br><br><br> 
- 
-           
+          <i >
+          {% for part in course %} 
+           {% if part.partdesc3 %} </br>
+           <br> <br>  <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br>
+           {% endif %}
+           {% endfor %}
+          </i>
+          
             {% for c in  course %}
             {% if c.signature %}
-            <br> <br>  <br> <br>   <br> <br>  <br> <br> 
+            <br> 
             <img style="" src="{{c.signature.url}}" alt="" >
           <br>
-            <span > ______________________________________________________</span> <br> <br>
+            <span > ______________________________________________________</span> <br>  <br>
             <p style="font-size:70px;" class="flex-item">{{c.signby }}</p> <br> <br>
             <p style="font-size:70px;" class="flex-item">{{c.signby_portfolio }}</p>
-            <br> <br>  <br> <br>   <br> <br>  <br> <br>   <br><br><br>    <br><br><br>   <br><br><br>  
+
             {% else %}
-            <img  src="https://i.ibb.co/jk019M0/ahmedsignature-1-removebg-preview-edit.png" alt="" >
-             <br>
-            <span> ______________________________________________________</span> <br> <br>
-            <p style="font-size:70px; " class="flex-item">Global Director, Codethikers' Academy</p> <br> <br> 
-            <p style="font-size:70px;" class="flex-item">. </p> 
+            <br> 
+            <img style="" src="https://i.ibb.co/5sMd74C/ahmedsignature-1-removebg-preview.png" alt="" >
+          <br>
+            <span > ______________________________________________________</span> <br>  <br>
+            <p style="font-size:70px;" class="flex-item"> . </p> <br> <br>
+            <p style="font-size:70px;" class="flex-item">Global Director, Codethinkers, Academy</p>
             {% endif %}
           
-       
+            <i >
+          {% for part in course %} 
+           {% if part.partdesc3 %} </br>
+           <br> <br>  <br> <br> 
+           {% endif %}
+           {% endfor %}
+          </i>
 
 
-            <br><br><br>   <br><br><br>  
+           
             {% endfor %}
       
           
