@@ -85,7 +85,7 @@
     <td>
         
 <div style="width:800px; height:700px; padding:0px; text-align:center;">
-    <div style="width:750px; height:550px; padding:100px 300px; text-align:right; border: 50px dashed rgb(18, 18, 19)">
+    <div style="width:750px; height:550px; padding:100px 200px; text-align:right; border: 50px dashed rgb(18, 18, 19)">
 
  <div  class="flex-container">
 
@@ -128,10 +128,10 @@
            <br><br><br>
            <span style="font-size:40px; color:rgb(86, 15, 218);"><i>on  {{date|date:"D d M Y"}}</i></span><br> <br> <br> <br>
            <span style="font-size:80px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/>
-           <span style="font-size:70px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br>
+           <span style="font-size:70px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
            {% for name in course %}
 
-           <span style="font-size:80px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br/><br/>
+           <span style="font-size:50px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br/><br/>
            {% endfor %}
            <br><br>
            <span style="font-size:45px;color:rgb(17, 18, 18);">
@@ -145,24 +145,27 @@
           
           </span> 
 
-           <br><br><br> <br><br><br>  <br><br><br>  <br><br><br>   
-        
+           <br><br><br> <br><br><br>  <br><br><br> 
+ 
            
             {% for c in  course %}
             {% if c.signature %}
-            <img style="width: 850pt;height:200px;" src="{{c.signature.url}}" alt="" > <br>
-            {% else %}
-            <img style="width: 1050pt;height:500px;" src="https://i.ibb.co/R4VmLkp/Copy-of-Blue-Orange-Elegant-Company-Certificate-Landscape-2.png" alt="" > <br>
-            {% endif %}
-            <span> ______________________________________________________</span> <br> <br>
-            {% if c.signby%}
-        
+          
+            <img style="" src="{{c.signature.url}}" alt="" >
+          <br>
+            <span > ______________________________________________________</span> <br> <br>
             <p style="font-size:50px;" class="flex-item">{{c.signby }}</p> <br> <br>
             <p style="font-size:50px;" class="flex-item">{{c.signby_portfolio }}</p>
+            <br> <br>   <br> <br>   <br> <br>
             {% else %}
-            <p style="font-size:50px;" class="flex-item"></p> <br> <br>
-            <p style="font-size:50px;" class="flex-item">Global Director  of Codethikers Career Certificates</p> 
+            <img  src="https://i.ibb.co/qyjBW3J/ahmedsignature-1-removebg-preview.png" alt="" >
+             <br>
+            <span> ______________________________________________________</span> <br> <br>
+            <p style="font-size:50px; " class="flex-item">Global Director, Codethikers' Academy</p> <br> <br> <br> <br>
+            <p style="font-size:50px;" class="flex-item"></p> 
             {% endif %}
+          
+       
 
 
             <br><br><br>   <br><br><br> 
