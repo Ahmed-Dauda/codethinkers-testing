@@ -18,7 +18,7 @@ class Course(models.Model):
    partdesc3 = models.CharField(max_length=225, blank=True, null= True)
    signature = CloudinaryField('signature', blank=True, null= True)
    signby = models.CharField(max_length=229, blank=True, null= True)
-   signby_portfolio = models.CharField(max_length=229, blank=True, null= True)
+   signby_portfolio = models.CharField(max_length=229 ,blank=True, null= True)
    question_number = models.PositiveIntegerField()
    total_marks = models.PositiveIntegerField()
    pass_mark = models.PositiveIntegerField(null=True)
