@@ -126,7 +126,7 @@
            <br> <br> <br>
          
            {% else %}
-           <span style="font-size:120px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
+           <span style="font-size:110px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
            {% endif %}
            {% endfor %}
           </i>
@@ -139,7 +139,7 @@
            {% if part.partdesc3 %} <br>
            <span style="font-size:130px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span>
            {% else %}
-           <span style="font-size:100px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span> 
+           <span style="font-size:90px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span> 
            {% endif %}
            {% endfor %}
           </i>
@@ -149,7 +149,7 @@
            {% if part.partdesc3 %} <br>
            <span style="font-size:150px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/> <br/><br/>
            {% else %}
-           <span style="font-size:100px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/> <br/><br/>
+           <span style="font-size:90px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/> <br/><br/>
            {% endif %}
            {% endfor %}
           </i>
@@ -159,7 +159,7 @@
            {% if part.partdesc3 %} <br>
            <span style="font-size:110px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
            {% else %}
-           <span style="font-size:60px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
+           <span style="font-size:50px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
           
            {% endif %}
            {% endfor %}
@@ -171,7 +171,7 @@
            {% if part.partdesc3 %} <br>
            <span style="font-size:90px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
            {% else %}
-           <span style="font-size:50px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
+           <span style="font-size:35px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
            {% endif %}
            {% endfor %}
 
@@ -201,17 +201,20 @@
             {% if c.signature %}
             <br> 
             <img style="" src="{{c.signature.url}}" alt="" > <br>
-            <span > ______________________________________________________</span> <br>  <br>
-            <p style="font-size:60px;" class="flex-item">{{c.signby }}</p> <br> <br>
-            <p style="font-size:60px;" class="flex-item">{{c.signby_portfolio }}</p>
+            <span > ______________________________________________________________</span> <br>  <br><br> 
+            <p style="font-size:90px;" class="flex-item">{{c.signby }}</p> <br> <br>
+            <p style="font-size:90px;" class="flex-item">{{c.signby_portfolio }}</p>
+
             {% else %}
-            <img  src="https://i.ibb.co/5sMd74C/ahmedsignature-1-removebg-preview.png" alt="" > <br>
-            <span > ______________________________________________________</span> <br>  <br>
-            <p style="font-size:60px;" class="flex-item">{{c.signby_portfolio }}</p>
+            <img  src="https://i.ibb.co/5sMd74C/ahmedsignature-1-removebg-preview.png" alt="" > <br>  <br>  <br>
+            <span > ______________________________________________</span> <br>  <br>
+
+            <p style="font-size:50px;" class="flex-item">{{c.signby_portfolio }}</p> 
+
             {% endif %}
             {% endfor %}
 
-          <i style="font-size:40px;">
+          /* <i style="font-size:40px;">
            {% for part in course %} 
 
            {% if  part.partdesc3 %} <br>
@@ -225,7 +228,7 @@
             <br>
             {% endif %}
            {% endfor %}
-          </i>
+          </i> */
 
         
       
