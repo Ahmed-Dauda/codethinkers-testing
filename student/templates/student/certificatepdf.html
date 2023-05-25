@@ -118,22 +118,28 @@
 
 
 </div>
-<br> <br> <br> <br> 
+<br> <br> 
 <i >
           {% for part in course %} 
            {% if part.partdesc3 %} <br>
-           <span style="font-size:200px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
+           <span style="font-size:210px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
+           <br> <br> <br>
+         
            {% else %}
            <span style="font-size:120px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
            {% endif %}
            {% endfor %}
           </i>
          
+         
+      
            <br> <br> <br> <br>
            <i >
            {% for part in course %} 
            {% if part.partdesc3 %} <br>
-           <span style="font-size:120px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span>
+           <span style="font-size:130px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span>
+           {% else %}
+           <span style="font-size:100px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span> 
            {% endif %}
            {% endfor %}
           </i>
@@ -141,21 +147,34 @@
            <span style="font-size:70px; color:rgb(86, 15, 218);"><i>on  {{date|date:"D d M Y"}}</i></span><br> <br> <br> <br>
            {% for part in course %} 
            {% if part.partdesc3 %} <br>
-           <span style="font-size:140px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/> <br/><br/>
+           <span style="font-size:150px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/> <br/><br/>
+           {% else %}
+           <span style="font-size:100px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/> <br/><br/>
            {% endif %}
            {% endfor %}
           </i>
+
            <i >
            {% for part in course %} 
            {% if part.partdesc3 %} <br>
-           <span style="font-size:140px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
+           <span style="font-size:110px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
+           {% else %}
+           <span style="font-size:60px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
+          
            {% endif %}
            {% endfor %}
           </i>
+
            {% for name in course %}
-           
-           <span style="font-size:80px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br/><br/>
-          
+           <i >
+           {% for part in course %} 
+           {% if part.partdesc3 %} <br>
+           <span style="font-size:90px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
+           {% else %}
+           <span style="font-size:50px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
+           {% endif %}
+           {% endfor %}
+
            {% endfor %}
            <br><br>
            <span style="font-size:70px;color:rgb(17, 18, 18);">
@@ -170,44 +189,49 @@
           </span> 
 
           <i >
-          {% for part in course %} 
-           {% if part.partdesc3 %} </br>
-           <br> <br>  <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br>
+           {% for part in course %} 
+           {% if part.partdesc3 %} <br>
+           <br>  <br> <br>  <br> <br>  <br> <br>  <br> <br>  <br> <br>  <br> <br>  <br> <br>  <br>
            {% endif %}
            {% endfor %}
           </i>
+
           
             {% for c in  course %}
             {% if c.signature %}
             <br> 
-            <img style="" src="{{c.signature.url}}" alt="" >
-          <br>
+            <img style="" src="{{c.signature.url}}" alt="" > <br>
             <span > ______________________________________________________</span> <br>  <br>
-            <p style="font-size:80px;" class="flex-item">{{c.signby }}</p> <br> <br>
-            <p style="font-size:80px;" class="flex-item">{{c.signby_portfolio }}</p>
+            <p style="font-size:60px;" class="flex-item">{{c.signby }}</p> <br> <br>
+            <p style="font-size:60px;" class="flex-item">{{c.signby_portfolio }}</p>
+            {% else %}
+            <img  src="https://i.ibb.co/5sMd74C/ahmedsignature-1-removebg-preview.png" alt="" > <br>
+            <span > ______________________________________________________</span> <br>  <br>
+            <p style="font-size:60px;" class="flex-item">{{c.signby_portfolio }}</p>
+            {% endif %}
+            {% endfor %}
+
+          <i style="font-size:40px;">
+           {% for part in course %} 
+
+           {% if  part.partdesc3 %} <br>
+          
 
             {% else %}
-            <br> 
-            <img style="" src="https://i.ibb.co/5sMd74C/ahmedsignature-1-removebg-preview.png" alt="" >
-          <br>
-            <span > ______________________________________________________</span> <br>  <br>
-            <p style="font-size:80px;" class="flex-item">  </p> <br> <br>
-            <p style="font-size:80px;" class="flex-item">Global Director, Codethinkers, Academy</p>
+            <p style="font-size:60px;" class="flex-item">{{c.signby }}</p>
+            {% if  forloop.last %}
+            <p style="font-size:60px;" class="flex-item"></p>
             {% endif %}
-          
-            <i >
-          {% for part in course %} 
-           {% if part.partdesc3 %} </br>
-           <br> <br>  <br> <br>  <br>  <br> <br> 
-           {% endif %}
+            <br>
+            {% endif %}
            {% endfor %}
           </i>
 
-
-           
-            {% endfor %}
+        
       
-          
+      
+           
+       
            
     </div>
     </div>
