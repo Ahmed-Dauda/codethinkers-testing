@@ -97,7 +97,7 @@ class Category(LoginRequiredMixin, ListView):
 
 class Table(LoginRequiredMixin, ListView):
     models = Categories
-    template_name = 'sms/dashboard/tables sample.html'
+    template_name = 'sms/dashboard/tables.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
    

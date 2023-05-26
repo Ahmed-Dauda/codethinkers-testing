@@ -3,13 +3,13 @@
 {% block title %} Course Overall Scores Detail View {% endblock %}
 
   {% block content %}  
-  
+<!--   
   <style>
     .dataTables_filter, .dataTables_info { display: none; }
     .dataTables_length {
         display: none;
     }
-</style>
+</style> -->
 
 
   <!-- Begin Page Content -->
@@ -22,7 +22,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-bordered" data-page-length='1' id="dataTable" width="100%" cellspacing="0">
+                                <table class="table table-bordered"  id="dataTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
                                             <th>Names</th>
@@ -68,11 +68,30 @@
                 </div>
                 <!-- /.container-fluid -->
 
-            </div>
+          
             <!-- End of Main Content -->
 
  
 </div>
 
+<script>
+    $(document).ready(function () {
+$('#example').DataTable({
+    pagingType: 'simple_numbers',
+    // dom: 'Qfrtip',
+    "ordering": false,
+    "bPaginate":true,
+    // scrollY:'400px',
+    scrollY:'100%',
+    scrollCollapse:true,
+    "pageLength": 10,
+    "dom": '<"top"fl<"clear">>rt<"bottom"ip<"clear">>'
+    
+});
+});
+
+
+</script>
+ 
   {% endblock %} 
  
