@@ -142,21 +142,71 @@ class Homepage1(ListView):
         context['advanced'] = Courses.objects.filter(categories__name = "ADVANCED")
         context['advanced_count'] = Courses.objects.filter(categories__name = "ADVANCED").count()
 
+
+        context['Free_courses'] = Courses.objects.filter(status_type = 'Free')
+        context['Free_courses_count'] = Courses.objects.filter(status_type = 'Free').count()
+
+      
         context['latest_course'] =   Courses.objects.all().order_by('-created')[:8] 
         context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:8].count()
         context['popular_course'] =   Courses.objects.all().order_by('-hit_count_generic__hits')[:3] 
-        # beginner_count = Courses.objects.filter(categories__name = "BEGINNER").count()
-        # intermediate_count = Courses.objects.filter(categories__name = "INTERMEDIATE").count()
-        # advanced_count = Courses.objects.filter(categories__name = "ADVANCED").count()
-       
-
-        # context['all'] = [beginner_count, intermediate_count, advanced_count]
+    
 
         context['alerts'] = Alert.objects.order_by('-created')
         context['alert_count'] = Alert.objects.all().count()
         context['user'] = NewUser.objects.get_queryset().order_by('id')
         
         return context
+
+from django.contrib.messages.views import SuccessMessageMixin
+
+class Homepage2(SuccessMessageMixin, ListView):
+
+    template_name = 'sms/dashboard/homepage2.html'
+    success_message = "%(username)s was created successfully"
+    count_hit = True
+    
+    def get_queryset(self):
+       
+        return  Courses.objects.all().select_related('categories').distinct()
+    
+    def get_context_data(self, **kwargs): 
+        context = super(Homepage2, self).get_context_data(**kwargs)
+        
+        context['students'] = User.objects.all().count()
+        context['category'] = Categories.objects.count()
+        context['coursecategory'] = Categories.objects.all()
+        context['courses'] = Courses.objects.all().count()
+        context['gallery'] = Gallery.objects.all()
+        context['blogs'] =Blog.objects.all().order_by('created')[:3]
+        context['blogs_count'] =Blog.objects.all().count() 
+        context['user_message'] = self.request.user
+        context['coursess'] = Courses.objects.all().order_by('created')[:10]
+        
+        context['beginner'] = Courses.objects.filter(categories__name = "BEGINNER")
+        context['beginner_count'] = Courses.objects.filter(categories__name = "BEGINNER").count()
+
+        context['intermediate'] = Courses.objects.filter(categories__name = "INTERMEDIATE")
+        context['intermediate_count'] = Courses.objects.filter(categories__name = "INTERMEDIATE").count()
+
+        context['advanced'] = Courses.objects.filter(categories__name = "ADVANCED")
+        context['advanced_count'] = Courses.objects.filter(categories__name = "ADVANCED").count()
+
+        context['Free_courses'] = Courses.objects.filter(status_type = 'Free')
+        context['Free_courses_count'] = Courses.objects.filter(status_type = 'Free').count()
+
+      
+        context['latest_course'] =   Courses.objects.all().order_by('-created')[:8] 
+        context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:8].count()
+        context['popular_course'] =   Courses.objects.all().order_by('-hit_count_generic__hits')[:3] 
+    
+
+        context['alerts'] = Alert.objects.order_by('-created')
+        context['alert_count'] = Alert.objects.all().count()
+        context['user'] = NewUser.objects.get_queryset().order_by('id')
+        
+        return context
+    
 
 class PhotoGallery(ListView):
     models = Categories

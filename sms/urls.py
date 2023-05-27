@@ -11,6 +11,7 @@ from sms.views import(
        Category,
        Table,
        Homepage1,
+       Homepage2,
       #  Homepage,
      
        AlertView,
@@ -49,6 +50,7 @@ urlpatterns = [
     path('home', Category.as_view(), name='home'),
     path('table', Table.as_view(), name='table'),
     path('', Homepage1.as_view(), name='homepage'),
+    path('homepage2', Homepage2.as_view(), name='homepage2'),
     # path('homepage', Homepage.as_view(), name='homepage'),
     # path('gallery', PhotoGallery.as_view(), name='gallery'),
     path('alert', AlertView.as_view(), name='alert'),
