@@ -324,15 +324,22 @@ h3{
     </p>
     <p class="card-text"> <div class="header">
     <br>
-      <a class="btn" id="btn1" href="{% url 'account_login' %}"> Log In</a>
-      <a class="btn" id="btn1" href="{% url 'account_signup' %}"> Sign Up</a>
+      <!-- <a class="btn" id="btn1" href="{% url 'account_login' %}"> Log In</a>
+      <a class="btn" id="btn1" href="{% url 'account_signup' %}"> Sign Up</a> -->
       <!-- <button class="btn" id="btn2">Sign Up</button> -->
    
   </div></p>
   </div>
 </div>
 
-
+<br>
+{% if messages %}
+{% for message in messages %}
+    <div class="text-center alert alert-{{ message.tags }}">
+        {{ message|safe }} {{user_message}}
+    </div>
+{% endfor %}
+{% endif %}
 
 <br> <br> 
 <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>

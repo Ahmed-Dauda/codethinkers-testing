@@ -1,11 +1,17 @@
 import imp
 from django.contrib import admin
-from student.models import Logo, signature, Designcert
+from student.models import Logo, signature, Designcert, PartLogo
+
 # Register your models here.
 class LogoAdmin(admin.ModelAdmin):
     list_display = ("logo",)
 
 admin.site.register(Logo,  LogoAdmin)
+
+class PartLogoAdmin(admin.ModelAdmin):
+    list_display = ("logo",)
+
+admin.site.register(PartLogo,  LogoAdmin)
 
 class SignatureAdmin(admin.ModelAdmin):
     list_display = ("sign",)

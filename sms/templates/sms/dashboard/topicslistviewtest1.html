@@ -45,6 +45,11 @@ clear: both;
 border-collapse: collapse;
 table-layout: fixed; // ***********add this
 }
+
+.video {
+height: 450px;
+}
+
 </style>
 
  
@@ -134,16 +139,28 @@ table-layout: fixed; // ***********add this
                 </div> 
 
 </div>  -->
+               <!-- alert -->
 
-     
+  <br>                   
+ <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>  <br>
 <table  id="example" class="datatable-wide display "  style="width:100%;">
-    <thead style="display: noe;">
+    
+    <thead class="">
         <tr>
-            <th>
-                <h6 class="d-flex">
+            <th >
+
+                <h6 style="flex-wrap: wrap;" class="d-flex">
+                   
                     <a href="{% url 'student:take-exam' %}">Take Exam</a>
                     <p class="">{{c}} Modules </p> 
                     <p>{{ hitcount.total_hits }}  <i class="fas fa-eye"></i></p>
+                    <a class="" href="{% url 'sms:feedbackformview' %}">
+                      
+                        <i class="fas fa-bell fa-fw"></i>
+
+                        <span>Feedback</span></a>
+                       
+             
                 </h6>
             </th>
          
@@ -154,10 +171,8 @@ table-layout: fixed; // ***********add this
         <tr>
             <td >
           
-                <div  class="card-body bg-white">
+                <div  class=" bg-white">
             
-                <h1>{{topic.title|safe}}</h1>  
-         
 
                     {% if topic.img_topic %}
                     <img  class="img-box" src="{{topic.img_topic.url}}"  alt="topics image">
@@ -165,32 +180,52 @@ table-layout: fixed; // ***********add this
 
                     {% endif %}
              
-                    {% if topic.video %}
-                    <div   class="videoWrapper ratio ratio-16x9">
-                        <iframe  src={% video topic.video|safe %}{% video topic.video|safe %}</iframe>
+                     {% if topic.video %}
+                     <div class="text-center video">
+                        {% video topic.video|safe '100% x400'%}
+                        <!-- {% video topic.video  "100% x 100%" %} -->
+                        {% else %}
+    
+                        {% endif %}
+                     </div>
+                     
+                    
+                      <!-- {% if topic.video %}
+                   
+                       {% video topic.video|safe class="ratio ratio-16x9" %}
                     </div>
                     {% else %}
 
-                    {% endif %}
+                    {% endif %} -->
+                    <div style="padding-left: 2px;" class="card-body">
+                    <h1>{{topic.title|safe}}</h1> 
                     <small>
                         created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
-                      </small> <br>
+                    </small> <br>
 
                     {% if topic.desc %}
               
-                    <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px; font-weight: bold;">  {{topic.desc|safe}} </p>
+                    <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px; font-weight: bold;">  {{topic.desc|safe}} </p> <br>
+                    <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
                     {% else %}
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p>
                
                     {% endif %}
-
+                     </div>
+                    {% if forloop.last %}
+                    <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4> <br>
+                    <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
+                    {% else %}
+                    <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;"></p>
+               
+                    {% endif %}
         
                 </div>
             </td>
             
-        
         </tr>
-    
+        {% empty %}
+        <h3 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h3>
         {% endfor %}
     </tbody>
  
@@ -204,7 +239,8 @@ $('#example').DataTable({
     dom: 'Qfrtip',
     "ordering": false,
     "bPaginate":true,
-    scrollY:'400px',
+    // scrollY:'400px',
+    scrollY:'100%',
     scrollCollapse:true,
     "pageLength": 1,
     "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
@@ -220,6 +256,6 @@ $('#example').DataTable({
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>  -->
 
-
+    
   {% endblock %} 
  

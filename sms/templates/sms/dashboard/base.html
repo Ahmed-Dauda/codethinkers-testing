@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 
-<html lang="en"><head>
+<html lang="en">
+    
+<head myprofile="http://www.codethinkers.org/myprofile">
 
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-
-    
+    <link rel="icon" type="image/png" href="/static/sms/images/newlogo3.jpg">
+  
    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"> -->
     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script> -->
@@ -42,26 +44,50 @@ rel="stylesheet"
     <script src="/static/sms/prism.js"></script>
       <!-- Core theme CSS (includes Bootstrap)-->
     <!-- <link href="/static/sms/cssh/styles.css" rel="stylesheet"> -->
-
+    <!-- data table -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
     <title>{% block title %} dashboard {% endblock %}</title>
 
     <!-- Custom fonts for this template-->
     <link href="/static/sms/dashboard/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <!-- <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet"> -->
 
     <!-- Custom styles for this template-->
     <link href="/static/sms/dashboard/css/sb-admin-2.min.css" rel="stylesheet">
     <!-- jquery -->
     <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
 <style type="text/css">/* Chart.js */
-@keyframes chartjs-render-animation{from{opacity:.99}to{opacity:1}}.chartjs-render-monitor{animation:chartjs-render-animation 1ms}.chartjs-size-monitor,.chartjs-size-monitor-expand,.chartjs-size-monitor-shrink{position:absolute;direction:ltr;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1}.chartjs-size-monitor-expand>div{position:absolute;width:1000000px;height:1000000px;left:0;top:0}.chartjs-size-monitor-shrink>div{position:absolute;width:200%;height:200%;left:0;top:0}</style></head>
+@keyframes chartjs-render-animation{from{opacity:.99}to{opacity:1}}.chartjs-render-monitor{animation:chartjs-render-animation 1ms}.chartjs-size-monitor,.chartjs-size-monitor-expand,.chartjs-size-monitor-shrink{position:absolute;direction:ltr;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1}.chartjs-size-monitor-expand>div{position:absolute;width:1000000px;height:1000000px;left:0;top:0}.chartjs-size-monitor-shrink>div{position:absolute;width:200%;height:200%;left:0;top:0}
+</style>
+
+</head>
 
 
-<body id="page-top" class="sidebar-toggled">
+<style>
+     .navbar{
+    min-height: 50px;
+    margin-bottom: 20px;
+  }
+ .navbar-fixed-top {
+    position: fixed;
+    top:0;
+    right: 0;
+    left: 0;
+    z-index: 1030;
+ }
+
+ body {
+   padding-top: 70px;
+   color: black;
+  
+   
+ }
+</style>
+<body id="page-top" class="sidebar-toggled ">
     
   
     <!-- Page Wrapper -->
-    <div id="wrapper">
+    <div id="wrapper" class="bg-white">
 
         <!-- Sidebar -->
         <ul class="navbar-nav bg-dark sidebar sidebar-dark accordion toggled" id="accordionSidebar">
@@ -182,7 +208,7 @@ rel="stylesheet"
             <div id="content">
 
                 <!-- Topbar -->
-                <nav  class="navbar navbar-expand navbar-light bg-dark topbar navbar-fixed-top mb-4 static-fixed shadow">
+                <nav style="position: fixed; width: 100%;"  class="navbar navbar-expand navbar-light bg-white topbar navbar-fixed-top mb-4 static-fixed shadow">
 
                     <!-- Sidebar Toggle (Topbar) -->
                     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
@@ -226,30 +252,40 @@ rel="stylesheet"
 
                         <!-- Nav Item - Alerts -->
                         <!-- <li class="nav-item dropdown no-arrow mx-1"><h4><a class="nav-link dropdown-toggle" href="{% url 'account_login' %}">Log In</a></h4></li> -->
-                        <li class="nav-item dropdown no-arrow mx-1">
+                        <li style="" class=" nav-item dropdown no-arrow mx-2">
                            
-                            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            
-                                <i class="fas fa-bell fa-fw"></i>
+                            <a class=" d-flex nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <p style="font-weight: bold;color: blue; font-size: 18px; margin: 5px;">Shop Courses</p>
+                           
+                            <i class="fas fa-cart-shopping fa-fw " style="color:black;font-size: 18px;"></i>
+                                <!-- <i class="fa-solid fa-cart-shopping  " style="color:black"></i> -->
                                 
                                 <!-- Counter - Alerts -->
                                 <span class="badge badge-danger badge-counter">{{alert_count}}+</span>
+                          
                             </a>
                             <!-- Dropdown - Alerts -->
-                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdown">
+
+                            <div style="overflow-y: scroll; height:400px;" class="dropdown-list dropdown-menu dropdown-menu-right card-bod shadow animated--grow-in" aria-labelledby="alertsDropdown">
                                 <h6 class="dropdown-header">
-                                    Alerts Center
+                                   Shop Digital Products
                                 </h6>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
+                             
 
                                     <div>
                                         {% for alert in alerts %}
-                                        <div class="small text-gray-500">{{alert.created}}</div>
-                                        <span class="font-weight-bold">{{alert.title}}</span><hr>
-                                        <span class="font-weight-bold">{{alert.content}}</span><hr>
+                                     
+                                    <div style="padding-left: 10px;" class="card-bod">
+                                       <span  class="small text-gray-500">{{alert.created}}</span>
+                                       <h6 style = 'color:black; font-weight: bold'> {{alert.title|safe}} </h> <hr>
+                                       <p> {{alert.content}} </p>
+                                       <button class="btn" ><a  href="https://wa.me/23409031568177"> Shop Now </a> </button> 
+                                        </div>
+
+                                     <hr>
                                         {% endfor %}
                                     </div>
-                                </a>
+                        
                              
                                 <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
                             </div>
@@ -291,11 +327,13 @@ rel="stylesheet"
                 <!-- End of Topbar -->
 
                 <!-- Begin Page Content -->
-               
-                    {% block content %} 
+              <div class="bg-body">
+                {% block content %} 
 
 
-                    {% endblock %} 
+                {% endblock %} 
+            </div>
+                    
               
                   
            
@@ -376,8 +414,8 @@ rel="stylesheet"
     <!-- Page level custom scripts -->
     <script src="/static/sms/dashboard/js/demo/datatables-demo.js"></script>
 
-    <script src="/static/sms/dashboard/js/demo/datatables-simple-demo.js"></script>
-    <script src="/static/sms/dashboard/js/demo/scripts.js"></script>
+    <!-- <script src="/static/sms/dashboard/js/demo/datatables-simple-demo.js"></script>
+    <script src="/static/sms/dashboard/js/demo/scripts.js"></script> -->
       <!-- prism.css and prism.js -->
     
       <script src="/static/sms/prism.js"></script>

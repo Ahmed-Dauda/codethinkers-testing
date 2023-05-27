@@ -3,6 +3,8 @@ from django.db.models.aggregates import Count
 from django.shortcuts import render,redirect,reverse
 from pytz import timezone
 import datetime
+from sms.models import (Categories, Courses
+                        )
 
 from requests import delete
 from . import models
@@ -151,6 +153,9 @@ def pdf_id_view(request, *args, **kwargs):
     
     pk = kwargs.get('pk')
     posts = get_list_or_404(course, pk= pk)
+    # partdesc =  get_list_or_404(QMODEL.Course, pk= pk)
+    # for p in posts:
+    #     print (p)
     # QMODEL.Result.objects.exclude(id = m).delete()
     user_profile =  Profile.objects.filter(user_id = request.user)
     template_path = 'student/certificatepdf.html'
@@ -162,6 +167,7 @@ def pdf_id_view(request, *args, **kwargs):
         'logo':logo,
         'sign':sign,
         'design':design,
+        # 'partdesc':partdesc,
         
         }
     
