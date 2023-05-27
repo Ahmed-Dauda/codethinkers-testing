@@ -324,15 +324,22 @@ h3{
     </p>
     <p class="card-text"> <div class="header">
     <br>
-      <a class="btn" id="btn1" href="{% url 'account_login' %}"> Log In</a>
-      <a class="btn" id="btn1" href="{% url 'account_signup' %}"> Sign Up</a>
+      <!-- <a class="btn" id="btn1" href="{% url 'account_login' %}"> Log In</a>
+      <a class="btn" id="btn1" href="{% url 'account_signup' %}"> Sign Up</a> -->
       <!-- <button class="btn" id="btn2">Sign Up</button> -->
    
   </div></p>
   </div>
 </div>
 
-
+<br>
+{% if messages %}
+{% for message in messages %}
+    <div class="text-center alert alert-{{ message.tags }}">
+        {{ message|safe }} {{user_message}}
+    </div>
+{% endfor %}
+{% endif %}
 
 <br> <br> 
 <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>
@@ -798,17 +805,13 @@ h3{
 
   <div class="card-body">
     <div class="">
-
   <h3 style="color: black;  font-weight: bold;" >Enjoy Our {{Free_courses_count}} Free Courses Available for You</h3>
-
   </div>
   </div>
  
   <div  class="beginner ">
   
-
     {% for obj in Free_courses %}
-
 
     <a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.pk %}">
     <div  class="left-column-cat border ">
@@ -846,24 +849,9 @@ h3{
           <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
         </div>
 
-
        
     </div>
   </a>
-
-
-            <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
-            <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p>
-       
-            <p class="pl-3">{{obj.desc}}</p> -->
-        
-            <!-- <div class="text-left container">{{beginner_count}}</div>  -->
-      
-        <!-- </p> -->
-       
-    </div>
-  </a>
-  {% endif %}
 
     {% empty %}
       <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -889,10 +877,7 @@ h3{
       <div class="card testimonial-card">
         <div class="card-up" style="background-color: #9d789b;"></div>
         <div class="avatar mx-auto bg-white">
-
           <img src=" /static/sms/images/girlavater.webp" width="100px" class="rounded-circle img-fluid" />
-
-
         </div>
         <div class="card-body">
           <h4 class="mb-4">Maria Smantha</h4>
