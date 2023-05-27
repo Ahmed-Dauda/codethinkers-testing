@@ -142,6 +142,7 @@ class Homepage1(ListView):
         context['advanced'] = Courses.objects.filter(categories__name = "ADVANCED")
         context['advanced_count'] = Courses.objects.filter(categories__name = "ADVANCED").count()
 
+
         context['Free_courses'] = Courses.objects.filter(status_type = 'Free')
         context['Free_courses_count'] = Courses.objects.filter(status_type = 'Free').count()
 
