@@ -290,9 +290,9 @@ USE_TZ = True
 # SESSION_COOKIES_HTTPONLY = True
 # SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
+MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'sms:homepage2'
 LOGIN_URL = 'account_login'
 LOGOUT_REDIRECT_URL = 'account_login'
 ACCOUNT_SIGNUP_REDIRECT_URL= 'account_login'

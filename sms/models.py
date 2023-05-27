@@ -34,12 +34,39 @@ class Categories(models.Model, HitCountMixin):
     def __str__(self):
         return f'{self.name}'
 
+ 
+
 class Courses(models.Model):
+    
+    COURSE_TYPE = [
+    ('Course','COURSE'),
+    ('Professional Certificate', 'PROFESSIONAL CERTIFICATE'),
+    ('Specialization', 'SPECIALIZATION'),
+    ('Degree', 'DEGREE'),
+     ('Diploma', 'DIPLOMA'),
+    ]
+
+    PAYMENT_CHOICES = [
+    ('Premium','PREMIUM'),
+    ('Free', 'FREE'),
+    ('Sponsored', 'SPONSORED'),
+  
+    ]
     img_course = CloudinaryField('image', blank=True, null= True)
-    categories =models.ForeignKey(Categories, on_delete= models.CASCADE)
+    categories =models.ForeignKey(Categories, on_delete= models.CASCADE, related_name='categories')
     title = models.CharField(max_length=225, blank=True, null= True)
-    # desc_heading = tinymce_models.HTMLField(blank=True, null= True)
-    desc = tinymce_models.HTMLField(default='')
+    course_logo = CloudinaryField('course_logo', blank=True, null= True)
+    course_owner = models.CharField(max_length=225, blank=True, null= True)
+    course_type = models.CharField(choices = COURSE_TYPE, default='course' , max_length=225, blank=True, null= True)
+    status_type = models.CharField (choices = PAYMENT_CHOICES, default='premium' ,max_length=225, blank=True, null= True)
+    price = models.DecimalField (max_digits=10, decimal_places=2, default= '20000' ,max_length=225, blank=True, null= True)
+    desc = tinymce_models.HTMLField(blank=True, null= True)
+
+    # partdesc1 = models.CharField(max_length=300, blank=True, null= True)
+    # img_partdesc1 = CloudinaryField('image', blank=True, null= True)
+    # partdesc2 = models.CharField(max_length=229, blank=True, null= True)
+    # img_partdesc2 = CloudinaryField('image', blank=True, null= True)
+    # partdesc3 = models.CharField(max_length=225, blank=True, null= True)
     desc_home = tinymce_models.HTMLField( blank=True, null= True)
     course_desc = tinymce_models.HTMLField(blank=True, null= True)
     course_link = models.URLField(max_length=225, blank=True, null= True)
@@ -58,7 +85,7 @@ class Topics(models.Model):
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     courses=models.ForeignKey(Courses, on_delete= models.CASCADE) 
     title = models.CharField(max_length=500, blank=True, null= True)
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=500)
     # objectives = tinymce_models.HTMLField(null= True,blank=True,)
     desc = tinymce_models.HTMLField( blank=True, null= True)
     # desc_home = tinymce_models.HTMLField( blank=True, null= True)

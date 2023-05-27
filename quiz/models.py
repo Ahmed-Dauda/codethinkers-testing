@@ -9,6 +9,16 @@ from tinymce.widgets import TinyMCE
 
 class Course(models.Model):
    course_name = models.CharField(max_length=50, unique= True)
+
+   partdesc1 = models.CharField(max_length=300, blank=True, null= True)
+   img_partdesc1 = CloudinaryField('image', blank=True, null= True)
+   partdesc2 = models.CharField(max_length=229, blank=True, null= True)
+   img_partdesc2 = CloudinaryField('image', blank=True, null= True)
+  
+   partdesc3 = models.CharField(max_length=225, blank=True, null= True)
+   signature = CloudinaryField('signature', blank=True, null= True)
+   signby = models.CharField(max_length=229, blank=True, null= True)
+   signby_portfolio = models.CharField(max_length=229 ,blank=True, null= True)
    question_number = models.PositiveIntegerField()
    total_marks = models.PositiveIntegerField()
    pass_mark = models.PositiveIntegerField(null=True)

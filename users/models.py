@@ -69,6 +69,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
  
     class Meta:
       db_table = 'auth_user'
+     
 
 gender_choice = [
   ('Male', 'Male'),

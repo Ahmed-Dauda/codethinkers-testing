@@ -22,7 +22,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-bordered" data-page-length='1' id="dataTable" width="100%" cellspacing="0">
+                                <table class="table table-bordered"  id="dataTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
                                             <th>Names</th>
@@ -31,6 +31,7 @@
                                             
                                             <th>Total Marks</th>
                                             <!-- <th>position</th> -->
+                                            <th>passed</th>
                                             <th>Exam Date</th>
                                         </tr>
                                     </thead>
@@ -43,6 +44,14 @@
                                             <td>{{t.exam}}</td>
                                             <td>{{t.marks}} / {{course.total_marks}}</td>
                                             <!-- <td>positon {{ forloop.counter}}</td> -->
+                                            {% if course == t.exam and t.marks > t.constant or t.marks != None %}
+                                            <h4 > <td style="color:green"> Passed</td> </h4>
+
+                                            {% else  %}
+                                            <h4 > <td style="color:green">Try Again</td> </h4>
+                                            {% endif  %}
+                                            
+                                         
                                             <td> {{t.date}}</td>
                                              
                                         </tr>
@@ -62,5 +71,24 @@
  
 </div>
 
+
+<script>
+    $(document).ready(function () {
+$('#dataTable').DataTable({
+    pagingType: 'simple',
+    // dom: 'Qfrtip',
+    // "ordering": false,
+    // "bPaginate":true,
+    // // scrollY:'400px',
+    // scrollY:'100%',
+    // scrollCollapse:true,
+    // "pageLength": 3,
+    // "dom": '<"top"fl<"clear">>rt<"bottom"ip<"clear">>'
+    
+});
+});
+
+  
+</script>
   {% endblock %} 
  
