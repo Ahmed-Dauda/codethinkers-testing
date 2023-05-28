@@ -19,11 +19,11 @@
     <thead>
       <tr>
         <th>Names</th>
-        <th>email</th>
+        <th>Email</th>
+   
         <th>Exam Name</th>
         <th>Max Score</th>
-        <!-- <th>Attempt</th> -->
-        <!-- <th>Exam Status</th> -->
+
        
       </tr>
     </thead>
@@ -34,6 +34,7 @@
       {% for t in results %}
       <td> {{t.student.first_name}} {{t.student.last_name}}</td>
       <td> {{t.student.user}}</td>
+   
       <td> {{t.exam}}</td>
       <td> {{t.marks}}</td>
       <!-- <td>Attemp {{ forloop.counter }}</td> -->
@@ -46,14 +47,14 @@
 <a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>
 {% else %}
 
-{% if forloop.first %}
+<!-- {% if forloop.last %}
 <h4 style="color:red">Passed mark: {{t.pass_mark}}. You are close to get your Certificate. Please try again</h4>
-{% endif  %}
+{% endif  %} -->
 
 {% endif  %}
-<!-- {% if course == t.exam and t.marks < t.pass_mark  or t.marks == None %}
+{% if course == t.exam and t.marks < t.pass_mark  or t.marks == None %}
 <h4 style="color:red">Passed mark: {{t.pass_mark}}. You are close to get your Certificate. Please try again</h4>
-{% endif  %}
+{% endif  %} 
 
 
 {% endfor %}
