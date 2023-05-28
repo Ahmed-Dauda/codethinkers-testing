@@ -52,7 +52,7 @@
 
 {% endif  %}
 {% if course == t.exam and t.marks < course.pass_mark  or t.marks == None %}
-<h4 style="color:red">Passed mark: {{t.pass_mark}}. You are close to get your Certificate. Please try again</h4>
+<h4 style="color:red">Passed mark: {{course.pass_mark}}. You are close to get your Certificate. Please try again</h4>
 {% endif  %} 
 
 
