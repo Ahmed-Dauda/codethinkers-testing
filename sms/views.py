@@ -160,7 +160,7 @@ class Homepage1(ListView):
 
 from django.contrib.messages.views import SuccessMessageMixin
 
-class Homepage2(SuccessMessageMixin, ListView):
+class Homepage2(SuccessMessageMixin, LoginRequiredMixin,ListView):
 
     template_name = 'sms/dashboard/homepage2.html'
     success_message = "%(username)s was created successfully"
