@@ -54,7 +54,7 @@ class Result(models.Model):
     exam = models.ForeignKey(Course,on_delete=models.CASCADE)
     marks = models.PositiveIntegerField()
     date = models.DateTimeField(auto_now=True)
-    constant = models.PositiveIntegerField(null=True, default=2)
+    # constant = models.PositiveIntegerField(null=True, default=2)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
     id = models.AutoField(primary_key=True)
