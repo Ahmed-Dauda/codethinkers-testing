@@ -22,7 +22,7 @@ class Course(models.Model):
    question_number = models.PositiveIntegerField()
    total_marks = models.PositiveIntegerField()
    pass_mark = models.PositiveIntegerField(null=True)
-   constant = models.PositiveIntegerField(null=True, default=2)
+#    constant = models.PositiveIntegerField(null=True, default=2)
    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
    id = models.AutoField(primary_key=True)
