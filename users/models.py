@@ -76,29 +76,68 @@ gender_choice = [
   ('Female', 'Female')
 ]
 
+
+from django.db import models
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.urls import reverse
+
 class Profile(models.Model):
-  user = models.OneToOneField(NewUser,on_delete=models.CASCADE, unique=True, related_name= 'profile')
-  username = models.CharField(max_length=225,  blank=True)
-  first_name = models.CharField(max_length=225, blank=True, null= True)
-  last_name = models.CharField(max_length=225, blank=True, null= True)
-  gender =models.CharField(choices=gender_choice, max_length=225, blank=True, null= True)
-  phone_number = models.CharField(max_length=225, blank=True, null= True)
-  countries= models.CharField(max_length=225, blank=True, null= True)
-  pro_img = models.ImageField(upload_to = 'profile', blank = True, null = True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, unique=True, related_name='profile')
+    username = models.CharField(max_length=225, blank=True)
+    first_name = models.CharField(max_length=225, blank=True, null=True)
+    last_name = models.CharField(max_length=225, blank=True, null=True)
+    gender = models.CharField(choices=gender_choice, max_length=225, blank=True, null=True)
+    phone_number = models.CharField(max_length=225, blank=True, null=True)
+    countries = models.CharField(max_length=225, blank=True, null=True)
+    pro_img = models.ImageField(upload_to='profile', blank=True, null=True)
+    bio = models.TextField(max_length=600, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def get_absolute_url(self):
+        return reverse('sms:userprofileupdateform', kwargs={'pk': self.pk})
+
+    def __str__(self):
+        return f'{self.first_name} {self.last_name} profile'
+
+
+def userprofile_receiver(sender, instance, created, *args, **kwargs):
+    if created:
+        profile = Profile.objects.create(user=instance, 
+                                         username=instance.username, 
+                                         first_name =instance.first_name, 
+                                         last_name =instance.last_name,
+                                         countries =instance.countries,
+                                         gender =instance.gender
+                                         )
+
+post_save.connect(userprofile_receiver, sender=settings.AUTH_USER_MODEL)
+
+# class Profile(models.Model):
+#   user = models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, unique=True, related_name= 'profile')
+#   username = models.CharField(max_length=225,  blank=True)
+#   first_name = models.CharField(max_length=225, blank=True, null= True)
+#   last_name = models.CharField(max_length=225, blank=True, null= True)
+#   gender =models.CharField(choices=gender_choice, max_length=225, blank=True, null= True)
+#   phone_number = models.CharField(max_length=225, blank=True, null= True)
+#   countries= models.CharField(max_length=225, blank=True, null= True)
+#   pro_img = models.ImageField(upload_to = 'profile', blank = True, null = True)
   
-  bio = models.TextField(max_length=600, blank = True, null = True)
-  created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
-  updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+#   bio = models.TextField(max_length=600, blank = True, null = True)
+#   created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+#   updated = models.DateTimeField(auto_now=True, blank=True, null= True)
 
-  def get_absolute_url(self):
-    from django.urls import reverse
-    # return reverse('sms:userprofilelistview')
-    return reverse ('sms:userprofileupdateform',kwargs={'pk':self.pk})
+#   def get_absolute_url(self):
+#     from django.urls import reverse
+#     # return reverse('sms:userprofilelistview')
+#     return reverse ('sms:userprofileupdateform',kwargs={'pk':self.pk})
 
-  def __str__(self):
-    return f'{self.first_name} {self.last_name} profile'
+#   def __str__(self):
+#     return f'{self.first_name} {self.last_name} profile'
 
-def userprofile_receiver(sender, instance, created, *args, **kwags):
-  if created:
-    userprofile = Profile.objects.create(user = instance)
-post_save.connect(userprofile_receiver,sender = settings.AUTH_USER_MODEL)
+# def userprofile_receiver(sender, instance, created, *args, **kwags):
+#   if created:
+#     userprofile = Profile.objects.create(user = instance)
+#     # userprofile = Profile.objects.create(user=instance, username=instance.username)
+#     post_save.connect(userprofile_receiver,sender = settings.AUTH_USER_MODEL)

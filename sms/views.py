@@ -312,7 +312,7 @@ def Certificates(request,pk):
     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
 
     # QMODEL.Result.objects.exclude(id = m).delete()
-    user_profile =  Profile.objects.filter(user_id = request.user)
+    user_profile =  Profile.objects.filter(user_id = request.user.id)
 
     # results=QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
     
