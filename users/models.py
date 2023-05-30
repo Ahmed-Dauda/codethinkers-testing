@@ -108,8 +108,8 @@ def userprofile_receiver(sender, instance, created, *args, **kwargs):
                                          username=instance.username, 
                                          first_name =instance.first_name, 
                                          last_name =instance.last_name,
-                                         countries =instance.countries,
-                                         gender =instance.gender
+                                         countries =instance.countries
+                                        #  gender =instance.gender
                                          )
 
 post_save.connect(userprofile_receiver, sender=settings.AUTH_USER_MODEL)
