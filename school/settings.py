@@ -400,4 +400,4 @@ TINYMCE_SPELLCHECKER = True
 # solution
 
 # 1. python manage.py makemigrations users
-# 2.  python manage.py migrate
+# 2.  python manage.py migrate users
