@@ -17,6 +17,7 @@ from tinymce.widgets import TinyMCE
 # Create your models here.
 
 
+
 class Categories(models.Model, HitCountMixin):
    
     
