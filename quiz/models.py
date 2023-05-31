@@ -14,7 +14,7 @@ class Course(models.Model):
    img_partdesc1 = CloudinaryField('image', blank=True, null= True)
    partdesc2 = models.CharField(max_length=229, blank=True, null= True)
    img_partdesc2 = CloudinaryField('image', blank=True, null= True)
-#    slug = models.SlugField(null=False,  unique=True)
+
    partdesc3 = models.CharField(max_length=225, blank=True, null= True)
    signature = CloudinaryField('signature', blank=True, null= True)
    signby = models.CharField(max_length=229, blank=True, null= True)

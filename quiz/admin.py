@@ -12,30 +12,30 @@ from quiz.models import (
    
     )
 # Register your models here.
-# admin.site.register(Course)
+admin.site.register(Course)
 # admin.site.register(Question)
 # admin.site.register(Result)
 
-class CourseResource(resources.ModelResource):
+# class CourseResource(resources.ModelResource):
     
-    courses = fields.Field(
-        column_name= 'student',
-        attribute='student',
-        widget=ForeignKeyWidget(Profile,'username') )
+#     courses = fields.Field(
+#         column_name= 'student',
+#         attribute='student',
+#         widget=ForeignKeyWidget(Profile,'username') )
     
-    class Meta:
-        model = Course
-        # fields = ('title',)
+#     class Meta:
+#         model = Course
+#         # fields = ('title',)
                
-class CourseAdmin(ImportExportModelAdmin):
-    list_display = ['id','course_name','created']
-    # prepopulated_fields = {"slug": ("course_name",)}
-    list_filter =  ['id','course_name','created']
-    search_fields= ['id','course_name','created']
-    ordering = ['id']
-    resource_class = CourseResource
+# class CourseAdmin(ImportExportModelAdmin):
+#     list_display = ['id','course_name','created']
+#     # prepopulated_fields = {"slug": ("course_name",)}
+#     list_filter =  ['id','course_name','created']
+#     search_fields= ['id','course_name','created']
+#     ordering = ['id']
+#     resource_class = CourseResource
 
-admin.site.register(Course, CourseAdmin)
+# admin.site.register(Course, CourseAdmin)
 
 
 
