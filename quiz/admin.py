@@ -29,7 +29,7 @@ class CourseResource(resources.ModelResource):
                
 class CourseAdmin(ImportExportModelAdmin):
     list_display = ['id','course_name','created']
-    prepopulated_fields = {"slug": ("course_name",)}
+    # prepopulated_fields = {"slug": ("course_name",)}
     list_filter =  ['id','course_name','created']
     search_fields= ['id','course_name','created']
     ordering = ['id']
