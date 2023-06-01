@@ -310,7 +310,196 @@ h3{
   height: 35vh;
 }
 
+/* ebooks css  */
 
+.card-ebooks {
+
+  width: 260px;
+  padding: 20px 1px;
+  margin: 10px 0;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0 10px 15px -3px rgba(33,150,243,.4),0 4px 6px -4px rgba(33,150,243,.4);
+  border-radius: 10px;
+  background-color: #6B6ECC;
+  background: linear-gradient(45deg, #04051dea 0%, #2b566e 100%);
+}
+
+.card-ebooks-all  {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+
+}
+
+.content-ebooks {
+  padding: 0px;
+}
+
+.content-ebooks .price-ebooks {
+  color: white;
+  font-weight: 800;
+  font-size: 50px;
+  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.42);
+}
+
+.content-ebooks .description-ebooks {
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.content-ebooks .title-ebooks {
+  font-weight: 800;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.64);
+  margin-top: 10px;
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+
+.button-ebooks {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  border: none;
+  outline: none;
+  color: rgb(255 255 255);
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: .75rem;
+  padding: 0.75rem 1.5rem;
+  background-color: rgb(33 150 243);
+  border-radius: 0.5rem;
+  width: 90%;
+  text-shadow: 0px 4px 18px #2c3442;
+}
+
+
+/* ebooks css ending  */
+
+/* articles css  */
+
+.action-news {
+  display: inline-flex;
+  margin-top: 1rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #2563EB;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.action-news span {
+  transition: .3s ease;
+}
+
+.action-news:hover span {
+  transform: translateX(9px);
+  background-color: red;
+}
+
+/* earticles css endign */
+
+/* animination  */
+.obj {
+  position: relative;
+  width: 200px;
+  height: 200px;
+    /* background-color: rgb(96, 96, 232); */
+  transform-style: preserve-3d;
+  transition: 0.5s all;
+  transform: rotateX(-25deg) rotateY(20deg);
+}
+
+.objchild {
+  animation: rotate 4s infinite linear;
+  transform-style: preserve-3d;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+    /* background:linear-gradient( to top,rgb(11, 11, 102),rgb(96, 96, 232) ) ; */
+}
+
+.objchild::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+    /* background: rgb(37, 101, 230); */
+    /* background: radial-gradient(center center, farthest-side , #9993, transparent); */
+  filter: blur(20px);
+  box-shadow: 0 0 200px 15px white;
+  transform: rotateX(90deg) scale(1.1) translateZ(-120px);
+}
+
+.inn1 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 30px;
+  filter: blur(2px);
+  transform: translateZ(-250px);
+  background: linear-gradient( to top,rgb(11, 11, 102),rgb(96, 96, 232) );
+}
+
+.inn2 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform: translateZ(100px);
+  background: linear-gradient( to top,rgb(11, 11, 102),rgb(96, 96, 232) );
+}
+
+.inn3 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform: translateX(-100px) rotateY(90deg);
+  background: linear-gradient( to top,rgb(11, 11, 102),rgb(96, 96, 232) );
+}
+
+.inn4 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform: translateX(100px) rotateY(90deg);
+  background: linear-gradient( to top,rgb(10, 10, 78),rgb(96, 96, 232) );
+}
+
+.inn5 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgb(10, 10, 79);
+  transform: rotateX(90deg) translateZ(-100px);
+}
+
+.inn6 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgb(46, 46, 46);
+  transform: rotateX(90deg) translateZ(100px);
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate3d(0,1,0,0deg);
+  }
+
+  100% {
+    transform: rotate3d(0,1,0,360deg);
+  }
+}
+/* animinations ending */
 </style>
 
 <div class="card bg-dark text-white" style="width: 100%;">
@@ -322,6 +511,7 @@ h3{
     <p class="card-text">
       Our  academy provides practical training for different programming languages, suited for both beginners and experienced coders, with real-world projects and portfolio-building opportunities.
     </p>
+    
     <p class="card-text"> <div class="header">
     <br>
       <a class="btn" id="btn1" href="{% url 'account_login' %}"> Log In</a>
@@ -365,7 +555,18 @@ h3{
 
  
 <!-- end page Statistics -->  
-
+<div class="bg-black py-5 d-flex justify-content-center align-items-center">
+  <div class="obj">
+      <div class="objchild">
+          <span class="inn1">This is Codethinkers Academy</span>
+          <span class="inn2"></span>
+          <span class="inn3"></span>
+          <span class="inn4"></span>
+          <span class="inn5"></span>
+          <span class="inn6"></span>
+      </div>
+  </div>
+</div>
   <!--CATEGORIES OF COURSES-->
 
 
@@ -851,15 +1052,6 @@ h3{
     </div>
   </a>
 
-
-            <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
-            <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p>
-       
-            <p class="pl-3">{{obj.desc}}</p> -->
-        
-            <!-- <div class="text-left container">{{beginner_count}}</div>  -->
-      
-        <!-- </p> -->
        
   
   </a>
@@ -871,6 +1063,40 @@ h3{
   <!-- END CATEGORIES OF COURSES-->
   
 
+  <br> <br> <br>
+  <!-- ebooks section  -->
+  <div class="card-body">
+    <div class="">
+
+  <h3 style="color: black;  font-weight: bold;" >{{alert_count_homes}} Latest Programming Ebooks Available for You</h3>
+
+  </div>
+  </div>
+  <div class="card-ebooks-all">
+  {% for alert in alert_homes %}
+<div class="card-ebooks">
+
+      <div class="content-ebooks">
+
+        <div class="title-ebooks">{{alert.title|safe}}</div>
+        <div class="description-ebooks"> {{alert.created}}</div>
+        <div style="font-size: 15px;" class="price-ebooks">$ {{alert.price}}</div>
+        <div class="description-ebooks">{{alert.content}}</div>
+      
+      </div>
+   
+     <hr>
+          <button ><a href="https://wa.me/23409031568177"> Buy now </a>  </button>
+
+   
+  </div>
+  {% empty %}
+  <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+    {% endfor %}
+
+  </div>
+
+  <!-- ebooks section endign -->
 
 <br> <br> <br>
 <section>
@@ -1015,22 +1241,6 @@ h3{
             
             {% endif %}
             <div class="pl-2">
-            <!-- <div class="d-flex rounded owner">
-              <div class="d-flex rounded owner">
-                {% if obj.course_logo.url %}
-                <img  class="rounded" src="{{ obj.img_blog.url }}" width="30px"  height="33px" alt=""> <br>
-                {% else %}
-                <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-              {% endif %}
-      
-              {% if obj.course_owner %}
-              <small class="text-dark">{{obj.course_owner|safe}}</small>
-              {% else %}
-              <small class="text-dark">Codethinkers Academy</small>
-              {% endif %}
-  
-              </div>
-            </div> -->
            
             <p style="color: black;">Image source: {{obj.img_source}}</p>
 			      <small style="color: black;">{{obj.created|timesince}}</small> <br>
@@ -1040,27 +1250,17 @@ h3{
               <small style="color: black; font-weight: bold;" class="card-text">By {{obj.poster}}</small>
               {% endif %}	
               <p  style="color: black; ">{{obj.desc|safe|striptags|truncatewords:10}}</p>
-              <a style="font-size: 12px;"  href="{% url 'sms:blogdetaillistview' obj.slug %}" class="btn btn-primary">Read More....</a><hr> <br>
-             <br>
+
+              <a href="{% url 'sms:blogdetaillistview' obj.slug %}" class="action-news">
+                Find out more
+                <span aria-hidden="true">
+                  →
+                </span>
+              </a>
+
             
-          <!-- <a style="font-size: 12px;"  href="{% url 'sms:blogdetaillistview' obj.pk %}">{{obj.title}} </a> -->
-          <!-- {% if obj.price %}
-          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
-          {% else %}
-          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-          {% endif %}
-          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
-          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small> -->
         </div>
-            <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
-            <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p>
-       
-            <p class="pl-3">{{obj.desc}}</p> -->
-        
-            <!-- <div class="text-left container">{{beginner_count}}</div>  -->
-      
-        <!-- </p> -->
-       
+  
     </div>
   </a>
 
@@ -1071,6 +1271,7 @@ h3{
   <!-- END CATEGORIES OF COURSES-->
   
 
+<!-- articles news feeds -->
 
 
 <script>

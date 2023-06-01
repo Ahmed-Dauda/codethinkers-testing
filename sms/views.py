@@ -153,6 +153,8 @@ class Homepage1(ListView):
     
 
         context['alerts'] = Alert.objects.order_by('-created')
+        context['alert_homes'] = Alert.objects.order_by('-created')[:5] 
+        context['alert_count_homes'] = Alert.objects.order_by('-created')[:5].count() 
         context['alert_count'] = Alert.objects.all().count()
         context['user'] = NewUser.objects.get_queryset().order_by('id')
         
