@@ -85,18 +85,13 @@ import uuid
 import random
 import string
 
-def generate_certificate_code():
-    code_length = 10
-    characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for _ in range(code_length))
 
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, unique=True, related_name='profile')
     username = models.CharField(max_length=225, blank=True)
     first_name = models.CharField(max_length=225, blank=True, null=True)
     last_name = models.CharField(max_length=225, blank=True, null=True)
-    # user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null= True)
-    code = models.CharField(max_length=10, unique=True, default=generate_certificate_code)
+ 
     gender = models.CharField(choices=gender_choice, max_length=225, blank=True, null=True)
     phone_number = models.CharField(max_length=225, blank=True, null=True)
     countries = models.CharField(max_length=225, blank=True, null=True)
