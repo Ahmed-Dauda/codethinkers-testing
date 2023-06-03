@@ -150,7 +150,7 @@ class Homepage1(ListView):
         
         context['beginner'] = Courses.objects.filter(categories__name = "BEGINNER")
         context['beginner_count'] = Courses.objects.filter(categories__name = "BEGINNER").count()
-        beginner = Courses.objects.filter(student__status_type = "Premium")
+        # beginner = Courses.objects.filter(student__status_type = "Premium")
         # for b in beginner:
 
         #     print('test',b)
