@@ -1367,18 +1367,18 @@ h3{
             <p style="color: black;">Image source: {{obj.img_source}}</p>
 			      <small style="color: black;">{{obj.created|timesince}}</small> <br>
             {% if obj.author %}
-              <p style="color: black; font-weight: bold;" class="card-text">By {{obj.author}}</p>
+            <p style="color: black; font-weight: bold;" class="card-text">By {{obj.author}}</p>
               {% else %}
-              <small style="color: black; font-weight: bold;" class="card-text">By {{obj.poster}}</small>
+            <small style="color: black; font-weight: bold;" class="card-text">By {{obj.poster}}</small>
               {% endif %}	
-              <p  style="color: black; ">{{obj.desc|safe|striptags|truncatewords:10}}</p>
+            <p  style="color: black; ">{{obj.desc|safe|striptags|truncatewords:10}}</p>
 
-              <a href="{% url 'sms:blogdetaillistview' obj.slug %}" class="action-news">
+            <a href="{% url 'sms:blogdetaillistview' obj.slug %}" class="action-news">
                 Find out more
                 <span aria-hidden="true">
                   →
                 </span>
-              </a>
+            </a>
 
   
     </div>
@@ -1393,38 +1393,6 @@ h3{
   <br> <br>  <br>
 
   
-  <!-- FAQ-->
-
-<h3 style="text-align: center;" class="text-danger ">Frequently Asked Questions</h3>
-
-<br>
-<div class="container4">
-  <div class="accordion" id="faqAccordion">
-    {% for faq in faqs %}
-    <div class="card ">
-
-      <div class="card-header " id="faqHeading{{ faq.id }}">
-        <h2 class="mb-0">
-          <button class="btn btn-link " type="button" data-toggle="collapse" data-target="#faqCollapse{{ faq.id }}" aria-expanded="true" aria-controls="faqCollapse{{ faq.id }}">
-            {{ faq.title|safe }}
-            <i class="fas fa-chevron-down"></i> <!-- Font Awesome icon -->
-          </button>
-        </h2>
-      </div>
-
-      <div id="faqCollapse{{ faq.id }}" class="collapse" aria-labelledby="faqHeading{{ faq.id }}" data-parent="#faqAccordion">
-        <div class="card-body">
-          {{ faq.desc|safe }}
-        </div>
-      </div>
-    </div>
-    
-    {% empty %}
-    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-    {% endfor %}
-  </div>
-</div>
-  <!--END OF FAQ-->
 
 
 <script>
