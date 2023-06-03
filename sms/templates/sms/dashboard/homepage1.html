@@ -1373,58 +1373,6 @@ h3{
   </div>
 <!-- END GALLERY-->
 
-  <!--DIFFERENT  COURSES-->
-  <br> <br> <br>
-
-  <div class="card-body">
-    <div class="">
-  <h3 style="color: black;  font-weight: bold;" >Latest News Feed</h3>
-    </div>
-  </div>
- 
-  <div style="height: 450px;"  class="beginner ">
-  
-    {% for obj in blogs %}
-   
-    <a style="height: 10px;" class="" href="{% url 'sms:blogdetaillistview' obj.slug %}">
-    <div  class="left-column-cat border ">
-  
-        
-            {% if obj.img_blog %}
-            <img class="rounded images" src="{{obj.img_blog.url}}" width="250px" height="200px" alt="cetagory image">
-          
-            
-            {% endif %}
-            <div class="pl-2">
-           
-            <p style="color: black;">Image source: {{obj.img_source}}</p>
-			      <small style="color: black;">{{obj.created|timesince}}</small> <br>
-            {% if obj.author %}
-            <p style="color: black; font-weight: bold;" class="card-text">By {{obj.author}}</p>
-              {% else %}
-            <small style="color: black; font-weight: bold;" class="card-text">By {{obj.poster}}</small>
-              {% endif %}	
-            <p  style="color: black; ">{{obj.desc|safe|striptags|truncatewords:10}}</p>
-
-            <a href="{% url 'sms:blogdetaillistview' obj.slug %}" class="action-news">
-                Find out more
-                <span aria-hidden="true">
-                  →
-                </span>
-            </a>
-
-  
-    </div>
-  </a>
-
-    {% empty %}
-      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-    {% endfor %}
-  </div>
-  <!-- END CATEGORIES OF COURSES-->
-  
-  <br> <br>  <br>
-
   
 
 
