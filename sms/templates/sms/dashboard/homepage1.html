@@ -775,9 +775,9 @@ h3{
  {% if forloop.last %}
 
  <div class="card-body">
-   <div class="">
+    <div class="">
  <h3 style="color: black;  font-weight: bold;" >{{advanced_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
- </div>
+    </div>
  </div>
 
  {% endif %}
@@ -831,7 +831,6 @@ h3{
            <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p> -->
        
    </div>
-
  </a>
  {% else %}
 
@@ -872,7 +871,7 @@ h3{
       </div>
           <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
           <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p> -->
-  </div>
+
 
 </a>
 </div>
@@ -1017,9 +1016,9 @@ h3{
  
    {% for obj in popular_course %}
 
-   {% if obj.status_type  == 'Premium' %}
 
-   {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' %}
+
+   {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' or obj.status_type  == 'Free' %}
 
    <a style="height: 10px;" class=""  href="{% url 'sms:topicslistview' obj.pk %}">
    <div  class="left-column-cat border ">
@@ -1107,7 +1106,7 @@ h3{
 </a>
 
  {% endif %}
- {% endif %}
+
 
    {% empty %}
      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -1396,6 +1395,7 @@ h3{
 
 <!-- articles news feeds -->
 
+<br><br><br>
 <!-- FAQ-->
 
 <h3 style="text-align: center;" class="text-danger ">Frequently Asked Questions</h3>
@@ -1429,7 +1429,7 @@ h3{
   </div>
 </div>
   <!--END OF FAQ-->
-  
+
 
 <script>
 
