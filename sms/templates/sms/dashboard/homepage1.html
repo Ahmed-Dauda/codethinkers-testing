@@ -549,9 +549,9 @@ h3{
 
   {% for obj in beginner %}
 
-  {% if obj.status_type  == 'Premium' %}
+  {% if obj.status_type  == 'Premium' or obj.status_type  == 'Free' %}
 
-  {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' %}
+  {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' or  obj.status_type  == 'Free' %}
 
   <a style="height: 10px;" class=""  href="{% url 'sms:topicslistview' obj.pk %}">
   <div  class="left-column-cat border ">
@@ -666,9 +666,9 @@ h3{
  
   {% for obj in intermediate %}
 
-  {% if obj.status_type  == 'Premium' %}
 
-  {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' %}
+
+  {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' or obj.status_type  == 'Free' %}
 
    <a style="height: 10px;" class="" href="{% url 'sms:topicslistview' obj.pk %}">
    <div  class="left-column-cat border ">
@@ -759,7 +759,7 @@ h3{
   </div>
     {% endif %}
     
-    {% endif %}
+
 
    {% empty %}
      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -788,9 +788,9 @@ h3{
  
   {% for obj in advanced %}
 
-  {% if obj.status_type  == 'Premium' %}
 
-  {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' %}
+
+  {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' or obj.status_type  == 'Free' %}
 
    <a style="height: 10px;" class="" href="{% url 'sms:topicslistview' obj.pk %}">
    <div  class="left-column-cat border ">
@@ -878,7 +878,7 @@ h3{
 </div>
 {% endif %}
 
-{% endif %}
+
 
    {% empty %}
      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -904,9 +904,9 @@ h3{
  
    {% for obj in latest_course %}
 
-   {% if obj.status_type  == 'Premium' %}
 
-   {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' %}
+
+   {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' or obj.status_type  == 'Free' %}
 
    <a style="height: 10px;" class=""  href="{% url 'sms:topicslistview' obj.pk %}">
    <div  class="left-column-cat border ">
@@ -994,7 +994,7 @@ h3{
 </a>
 
  {% endif %}
- {% endif %}
+
 
    {% empty %}
      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
