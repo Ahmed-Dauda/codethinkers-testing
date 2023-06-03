@@ -396,8 +396,10 @@ TINYMCE_SPELLCHECKER = True
 # python manage.py migrate --run-syncdb
 
 
+
 # problem: ValueError: Dependency on app with no migrations: users
 # solution
 
 # 1. python manage.py makemigrations users
 # 2.  python manage.py migrate users
+
