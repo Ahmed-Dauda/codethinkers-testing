@@ -1192,15 +1192,13 @@ h3{
   <!-- ebooks section  -->
   <div class="card-body">
     <div class="">
-
-  <h3 style="color: black;  font-weight: bold;" >{{alert_count_homes}} Latest Programming Ebooks Available for You</h3>
-
+  <h3 style="color: black;  font-weight: bold;" > {{alert_count_homes}} Latest Programming Ebooks Available for You</h3>
+    </div>
   </div>
-  </div>
+
   <div class="card-ebooks-all bg-white text-white">
   {% for alert in alert_homes %}
-<div class="card-ebooks bg-primary  ">
-
+ <div class="card-ebooks bg-primary  ">
       <div class="content-ebooks">
 
         <div class="title-ebooks">{{alert.title|safe}}</div>
@@ -1211,9 +1209,8 @@ h3{
       </div>
    
      <hr>
-          <button ><a href="https://wa.me/23409031568177"> Buy now </a>  </button>
+  <button ><a href="https://wa.me/23409031568177"> Buy now </a>  </button>
 
-   
   </div>
   {% empty %}
   <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -1241,7 +1238,6 @@ h3{
         <div class="avatar mx-auto bg-white">
 
           <img src=" /static/sms/images/girlavater.webp" width="100px" class="rounded-circle img-fluid" />
-
 
         </div>
         <div class="card-body">
@@ -1306,9 +1302,9 @@ h3{
     
     {% endfor %}
 </div>
+-->
 
 
- -->
   <!--endregroup -->
  
   
@@ -1318,6 +1314,7 @@ h3{
   <div style="color: black; font-size: 18px; font-weight: bold;"   class="card-body">
     <h3 >Our Gallery </h3>
   </div>
+  
   <div class="gallery rounded-4 text-center">
     {% for category in gallery %}
     <div style="border: 1px solid blue;" class="left-column-cat  ">
@@ -1349,7 +1346,7 @@ h3{
   <div class="card-body">
     <div class="">
   <h3 style="color: black;  font-weight: bold;" >Latest News Feed</h3>
-  </div>
+    </div>
   </div>
  
   <div style="height: 450px;"  class="beginner ">
