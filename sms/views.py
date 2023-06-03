@@ -7,7 +7,7 @@ from django.db.models import fields
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from sms.models import (Categories, Courses, Topics, 
-                        Comment, Blog, Blogcomment,Alert, Gallery
+                        Comment, Blog, Blogcomment,Alert, Gallery, FrequentlyAskQuestions
                         )
 
 from hitcount.utils import  get_hitcount_model
@@ -110,6 +110,21 @@ class Table(LoginRequiredMixin, ListView):
         return context
 
 
+class Paymentdesc(LoginRequiredMixin, ListView):
+    models = Categories
+    template_name = 'sms/dashboard/paymentdesc.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+   
+    def get_queryset(self):
+        return Categories.objects.all()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['students'] = User.objects.all().count()
+
+        return context
+    
 class Homepage1(ListView):
 
     template_name = 'sms/dashboard/homepage1.html'
@@ -130,12 +145,15 @@ class Homepage1(ListView):
         context['gallery'] = Gallery.objects.all()
         context['blogs'] =Blog.objects.all().order_by('created')[:3]
         context['blogs_count'] =Blog.objects.all().count() 
-        # context['courses_count'] = Courses.objects.filter(categories__pk = self.kwargs['pk']).count()
+        context['faqs'] = FrequentlyAskQuestions.objects.all()
         context['coursess'] = Courses.objects.all().order_by('created')[:10]
         
         context['beginner'] = Courses.objects.filter(categories__name = "BEGINNER")
         context['beginner_count'] = Courses.objects.filter(categories__name = "BEGINNER").count()
+        beginner = Courses.objects.filter(student__status_type = "Premium")
+        # for b in beginner:
 
+        #     print('test',b)
         context['intermediate'] = Courses.objects.filter(categories__name = "INTERMEDIATE")
         context['intermediate_count'] = Courses.objects.filter(categories__name = "INTERMEDIATE").count()
 
@@ -147,8 +165,9 @@ class Homepage1(ListView):
         context['Free_courses_count'] = Courses.objects.filter(status_type = 'Free').count()
 
       
-        context['latest_course'] =   Courses.objects.all().order_by('-created')[:8] 
-        context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:8].count()
+        context['latest_course'] =   Courses.objects.all().order_by('-created')[:5] 
+        context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:5].count()
+
         context['popular_course'] =   Courses.objects.all().order_by('-hit_count_generic__hits')[:3] 
     
 

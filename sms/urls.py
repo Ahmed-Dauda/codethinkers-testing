@@ -36,7 +36,8 @@ from sms.views import(
       Baseblogview,
       BlogcommentCreateView,
       PhotoGallery,
-    #   display_latestnews,
+      Paymentdesc,
+   
       
 ) 
 
@@ -48,6 +49,7 @@ urlpatterns = [
     
     # new dashboard urls
     path('home', Category.as_view(), name='home'),
+    path('paymentdesc',  Paymentdesc.as_view(), name='paymentdesc'),
     path('table', Table.as_view(), name='table'),
     path('', Homepage1.as_view(), name='homepage'),
     path('homepage2', Homepage2.as_view(), name='homepage2'),
