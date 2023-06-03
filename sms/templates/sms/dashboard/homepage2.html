@@ -651,6 +651,9 @@ h3{
     <h3 style="color: black;  font-weight: bold;" >{{latest_course_count}} Latest Courses on Codethinkers Academy </h3>
     <p class="" >Explore our newest programs, focused on delivering in-demand skills.</p> 
   </div>
+
+  <div id="existingCarousel">
+
 <div id="carouselExampleIndicator" class="carousel slide cardnew" data-ride="carousel" data-interval="false">
 
   <ol class="carousel-indicators ">
@@ -732,6 +735,9 @@ h3{
 <!-- <a style="margin-top: -70px; padding-left: 90px;" class="card" href="">Explore All Courses</a>   -->
 </div>  
   <!--END DIFFERENT  COURSES-->
+</div>
+
+
 
 
 
@@ -1067,13 +1073,11 @@ items.forEach((el) => {
     const minPerSlide = 4
     let next = el.nextElementSibling
     for (var i=1; i<minPerSlide; i++) {
-        if (next) {
+        if (!next) {
             // wrap carousel by using first child
             next = items[0]
         }
-        else{
-            next = items[0]
-        }
+    
         let cloneChild = next.cloneNode(true)
         el.appendChild(cloneChild.children[0])
         next = next.nextElementSibling
@@ -1083,6 +1087,7 @@ items.forEach((el) => {
 </script>
 
   
+
 
 {% endblock %} 
  

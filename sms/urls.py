@@ -59,6 +59,9 @@ urlpatterns = [
     path('admin_result_detail_view/<pk>/', Admin_detail_view, name ='admin_result_detail_view'),
     path('userprofileform', UserProfileForm.as_view(), name ='userprofileform'),
     path('myprofile', UserProfilelistview.as_view(), name ='myprofile'),
+
+    
+
     # path('certificates/<pk>/', views.Certificates, name ='certificates'),
     path('certificates/<pk>/', Certdetaillistview.as_view(), name ='certificates'),
     path('bloglistview', Bloglistview.as_view(), name ='bloglistview'),
@@ -87,6 +90,10 @@ urlpatterns = [
     path("terms/<int:page>",views.listing,name="terms-by-page"),
     path('terms.json/',views.listing_api, name='terms-api'),
     path("faux",views.AllKeywordsView.as_view(),name="faux"),
+
+    # path('verify/', views.verify_cert, name='verify_cert'),
+
+    # path('verify/<str:certificate_code>/', views.verify_certificate, name='verify_certificate'),
  
 ]
 

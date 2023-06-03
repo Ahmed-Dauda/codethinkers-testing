@@ -154,13 +154,16 @@ class Homepage1(ListView):
 
         context['alerts'] = Alert.objects.order_by('-created')
         context['alert_count'] = Alert.objects.all().count()
+        context['alert_homes'] = Alert.objects.order_by('-created')[:4] 
+        context['alert_count_homes'] = Alert.objects.order_by('-created')[:4].count() 
+       
         context['user'] = NewUser.objects.get_queryset().order_by('id')
         
         return context
 
 from django.contrib.messages.views import SuccessMessageMixin
 
-class Homepage2(SuccessMessageMixin, ListView):
+class Homepage2(SuccessMessageMixin, LoginRequiredMixin,ListView):
 
     template_name = 'sms/dashboard/homepage2.html'
     success_message = "%(username)s was created successfully"
@@ -297,13 +300,35 @@ class Admin_result(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return QMODEL.Course.objects.all()
 
+from student.models import Certificate
+
+def verify_cert(request):
+    certificate = get_object_or_404(Certificate, user=request.user)
+    # Perform any additional verification logic here
+
+    context = {
+        'certificate': certificate,
+    }
+    return render(request, 'student/verify_certificate.html', context)
+
+def verify_certificate(request, certificate_code):
+    certificate = get_object_or_404(Certificate, code=certificate_code, user=request.user)
+    # Perform any additional verification logic here
+
+    context = {
+        'certificate': certificate,
+    }
+    return render(request, 'student/verify_certificate.html', context)
+
 
 @login_required
 def Certificates(request,pk):
     course=QMODEL.Course.objects.get(id=pk)
     courses = QMODEL.Course.objects.all()
     cert_note = QMODEL.Certificate_note.objects.all()
-    
+
+    certificate = get_object_or_404(Certificate, code=pk, user=request.user)
+
     student = Profile.objects.get(user_id=request.user.id)
     # student = request.user.id  
     # m = QMODEL.Result.objects.aggregate(Max('marks'))  
@@ -312,7 +337,7 @@ def Certificates(request,pk):
     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
 
     # QMODEL.Result.objects.exclude(id = m).delete()
-    user_profile =  Profile.objects.filter(user_id = request.user)
+    user_profile =  Profile.objects.filter(user_id = request.user.id)
 
     # results=QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
     
@@ -322,7 +347,9 @@ def Certificates(request,pk):
         'st':request.user,
         'user_profile':user_profile,
         'courses':courses,
-        'cert_note':cert_note
+        'cert_note':cert_note,
+   
+        # 'message': message,
     }
 
     
@@ -342,19 +369,25 @@ class Certdetaillistview(HitCountDetailView,DetailView):
         context = super().get_context_data(**kwargs)
         course = get_object_or_404(QMODEL.Course, pk=self.kwargs['pk'])
         # course=QMODEL.Course.objects.get(id=pk)
+        
         courses = QMODEL.Course.objects.all()
         cert_note = QMODEL.Certificate_note.objects.all()
         
-        student = Profile.objects.get(user_id=self.request.user.id)
-        # student = request.user.id  
-        # m = QMODEL.Result.objects.aggregate(Max('marks'))  
+        try:
+            student = Profile.objects.get(user_id=self.request.user.id) 
+        except Profile.DoesNotExist:
+            return HttpResponseRedirect("account_login")
+      
         max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
         results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
         Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
 
-      
-        user_profile =  Profile.objects.filter(user_id = self.request.user)
-
+        try:
+            user_profile =  Profile.objects.filter(user_id = self.request.user) 
+        except Profile.DoesNotExist:
+            return HttpResponseRedirect("account_login")
+        
+        # context['certificate'] = get_object_or_404(Certificate, code=self.kwargs['pk'], user=self.request.user)
         context['results'] = results
         context['course'] = course
         context['st'] = self.request.user

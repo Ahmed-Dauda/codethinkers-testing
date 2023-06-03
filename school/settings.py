@@ -394,3 +394,12 @@ TINYMCE_SPELLCHECKER = True
 
 # # solution to django.db.utils.OperationalError: no such table: auth_user
 # python manage.py migrate --run-syncdb
+
+
+
+# problem: ValueError: Dependency on app with no migrations: users
+# solution
+
+# 1. python manage.py makemigrations users
+# 2.  python manage.py migrate users
+

@@ -1,7 +1,9 @@
 import imp
 from django.contrib import admin
-from student.models import Logo, signature, Designcert, PartLogo
+from student.models import Logo, signature, Designcert, PartLogo, Certificate
 
+
+admin.site.register(Certificate)
 # Register your models here.
 class LogoAdmin(admin.ModelAdmin):
     list_display = ("logo",)

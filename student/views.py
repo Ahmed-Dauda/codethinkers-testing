@@ -136,6 +136,31 @@ def check_marks_view(request,pk):
 
 #
 
+
+from django.shortcuts import render, get_object_or_404
+from .models import Certificate
+
+
+def verify_cert(request):
+    certificate = get_object_or_404(Certificate, user=request.user)
+    # Perform any additional verification logic here
+
+    context = {
+        'certificate': certificate,
+    }
+    return render(request, 'student/verify_certificate.html', context)
+
+
+def verify_certificate(request, certificate_code):
+    certificate = get_object_or_404(Certificate, code=certificate_code, user=request.user)
+    # Perform any additional verification logic here
+
+    context = {
+        'certificate': certificate,
+    }
+    return render(request, 'student/verify_certificate.html', context)
+
+
 # download pdf id view
 @login_required
 def pdf_id_view(request, *args, **kwargs):

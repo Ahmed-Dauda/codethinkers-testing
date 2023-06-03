@@ -80,6 +80,7 @@ class CategoriesResource(resources.ModelResource):
     
     class Meta:
         model = Courses
+        prepopulated_fields = {"slug": ("course_name",)}
         # fields = ('title',)
                
 class CoursesAdmin(ImportExportModelAdmin):

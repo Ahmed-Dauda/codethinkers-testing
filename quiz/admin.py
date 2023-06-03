@@ -16,6 +16,29 @@ admin.site.register(Course)
 # admin.site.register(Question)
 # admin.site.register(Result)
 
+# class CourseResource(resources.ModelResource):
+    
+#     courses = fields.Field(
+#         column_name= 'student',
+#         attribute='student',
+#         widget=ForeignKeyWidget(Profile,'username') )
+    
+#     class Meta:
+#         model = Course
+#         # fields = ('title',)
+               
+# class CourseAdmin(ImportExportModelAdmin):
+#     list_display = ['id','course_name','created']
+#     # prepopulated_fields = {"slug": ("course_name",)}
+#     list_filter =  ['id','course_name','created']
+#     search_fields= ['id','course_name','created']
+#     ordering = ['id']
+#     resource_class = CourseResource
+
+# admin.site.register(Course, CourseAdmin)
+
+
+
 class ResultResource(resources.ModelResource):
     
     courses = fields.Field(
@@ -37,15 +60,7 @@ class ResultAdmin(ImportExportModelAdmin):
 
 admin.site.register(Result, ResultAdmin)
 
-
-# @admin.register(Certificate_note)
-# class Certificateadmin(admin.ModelAdmin):
-#     list_display = ['id','note']
-#     # prepopulated_fields = {"slug": ("title",)}
-#     list_filter =  ['note']
-#     search_fields= ['note']
-#     ordering = ['id']
-    
+ 
 
 class CertificateResource(resources.ModelResource):
     
