@@ -88,11 +88,18 @@ import string
 
 
 class Profile(models.Model):
+    
+    PAYMENT_CHOICES = [
+    ('Premium','PREMIUM'),
+    ('Free', 'FREE'),
+    ('Sponsored', 'SPONSORED'),
+  
+    ]
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, unique=True, related_name='profile')
     username = models.CharField(max_length=225, blank=True)
     first_name = models.CharField(max_length=225, blank=True, null=True)
     last_name = models.CharField(max_length=225, blank=True, null=True)
-
+    status_type = models.CharField (choices = PAYMENT_CHOICES, default='Free' ,max_length=225)
     gender = models.CharField(choices=gender_choice, max_length=225, blank=True, null=True)
     phone_number = models.CharField(max_length=225, blank=True, null=True)
     countries = models.CharField(max_length=225, blank=True, null=True)

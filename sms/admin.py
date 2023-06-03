@@ -6,11 +6,12 @@ from import_export.widgets import ForeignKeyWidget
 
 from sms.models import (
     Categories, Courses, Topics, 
-    Comment, Blog, Blogcomment,Alert, Gallery
+    Comment, Blog, Blogcomment,Alert, Gallery, FrequentlyAskQuestions
     )
 
 
 admin.site.register(Gallery)
+admin.site.register(FrequentlyAskQuestions)
 # class ArticleAdminResource(resources.ModelResource):
     
 #     class Meta:
