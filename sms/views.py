@@ -7,7 +7,8 @@ from django.db.models import fields
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from sms.models import (Categories, Courses, Topics, 
-                        Comment, Blog, Blogcomment,Alert, Gallery, FrequentlyAskQuestions
+                        Comment, Blog, Blogcomment,Alert, Gallery,
+                          FrequentlyAskQuestions, Partners
                         )
 
 from hitcount.utils import  get_hitcount_model
@@ -146,8 +147,12 @@ class Homepage1(ListView):
         context['blogs'] =Blog.objects.all().order_by('created')[:3]
         context['blogs_count'] =Blog.objects.all().count() 
         context['faqs'] = FrequentlyAskQuestions.objects.all()
+        context['partners'] = Partners.objects.all()
         context['coursess'] = Courses.objects.all().order_by('created')[:10]
-        
+        context['category_sta'] = Categories.objects.annotate(num_courses=Count('categories'))
+        # for category in categories:
+        #     print(f"Category: {category.name} - Number of courses: {category.num_courses}")
+
         context['beginner'] = Courses.objects.filter(categories__name = "BEGINNER")
         context['beginner_count'] = Courses.objects.filter(categories__name = "BEGINNER").count()
         # beginner = Courses.objects.filter(student__status_type = "Premium")

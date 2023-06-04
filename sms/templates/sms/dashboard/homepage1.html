@@ -309,88 +309,37 @@ h3{
   height: 35vh;
 }
 
-/* ebooks css  */
-
-.card-ebooks {
-
-  width: 230px;
-  padding: 20px 1px;
-  margin: 10px 0;
-  text-align: center;
-  position: relative;
-  cursor: pointer;
-  box-shadow: 0 10px 15px -3px rgba(33,150,243,.4),0 4px 6px -4px rgba(33,150,243,.4);
-  border-radius: 10px;
-  /* background-color: white; */
-  color: #000000;
-  /* background: linear-gradient(45deg, #04051dea 0%, #2b566e 100%); */
-}
-
-.card-ebooks-all  {
+/* partners css  */
+.partners{
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
   flex-wrap: wrap;
-  background-color: black;
-  margin: 10px;
-  
+ justify-content: center;
+}
 
+.partners >*{
+ /* flex: 1 1 auto; */
+ margin: 10px;
 
 }
 
-.card-ebooks-all >*  {
-  flex: 1 1 auto;
-  margin: 20px;
-  min-height: 350px;
-  /* background-color: white; */
+/* partners css ending  */
+
+
+/* ebooks css  */
+.ebooks{
+  display: flex;
+  flex-wrap: wrap;
+  width: 1000px;
+  margin: 0 auto;
+ /* justify-content: center;  */
+
 }
 
-.content-ebooks {
-  padding: 0px;
+.ebooks >*{
+ flex: 1 1 auto;
+ margin: -10px;
+ /* width: 10px; */
 }
-
-.content-ebooks .price-ebooks {
-  color: white;
-  font-weight: 800;
-  font-size: 50px;
-  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.42);
-}
-
-.content-ebooks .description-ebooks {
-  color: white;
-  margin-top: 10px;
-  font-size: 14px;
-  padding: 0px 5px 0px 5px;
-}
-
-.content-ebooks .title-ebooks {
-  font-weight: 800;
-  text-transform: uppercase;
-  color: white;
-  margin-top: 10px;
-  font-size: 20px;
-  letter-spacing: 1px;
-}
-
-.button-ebooks {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  user-select: none;
-  border: none;
-  outline: none;
-  color: white;
-  text-transform: uppercase;
-  font-weight: 100%;
-  font-size: 1.95rem;
-  padding: 0.75rem 1.5rem;
-  background-color: rgb(33 150 243);
-  border-radius: 0.5rem;
-  width: 90%;
-  text-shadow: 0px 4px 18px #2c3442;
-}
-
-
 /* ebooks css ending  */
 
 /* articles css  */
@@ -476,11 +425,33 @@ h3{
 
   </div>
 
- 
+
+  <!-- partners section  -->
+ <br> <br> <br>
+ <div class="card-bod">
+ <h3 class="text-center text-primary">Our Partners</h3>
+</div>
+
+<br>
+ <section class="partners">
+
+  {% for partner in partners %}
+
+          <!-- <img src=" /static/sms/images/girlavater.webp" width="100%" class="img-fluid" /> -->
+          <img src="{{partner.img_partner.url}}" width="100px" class="img-fluid" />
+   
+    {% empty %}
+    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+
+    {% endfor %}
+
+</section>
+
+<!-- partners section endign -->
 
 <br> <br> <br>
    <div class="card-body">
-    <h3 style="color: black;  font-weight: bold;" >We Offer {{category}} Course's Categories to Cuit Your Curiosity</h3>  
+    <h3 style="color: black;  font-weight: bold;" >We Offer {{category}} Course's Categories to Suit Your Curiosity</h3>  
    </div>
     
   <div  class="container1 ">
@@ -1189,20 +1160,20 @@ h3{
 
   <br> <br> <br>
   <!-- ebooks section  -->
-  <div class="card-body">
+  <div class="card-body text-center">
     <div class="">
   <h3 style="color: black;  font-weight: bold;" > {{alert_count_homes}} Latest Programming Ebooks Available for You</h3>
     </div>
   </div>
-
-  <div class="card-ebooks-all bg-white text-white">
+  <br>
+  <!-- <div class="card-ebooks-all bg-white text-white">
   {% for alert in alert_homes %}
  <div class="card-ebooks bg-primary  ">
       <div class="content-ebooks">
 
         <div class="title-ebooks">{{alert.title|safe}}</div>
         <div class="description-ebooks"> {{alert.created}}</div>
-        <div style="font-size: 15px;" class="price-ebooks">$ {{alert.price}}</div>
+        <div style="font-size: 15px;" class="price-ebooks"># {{alert.price}}</div>
         <div class="description-ebooks">{{alert.content}}</div>
       
       </div>
@@ -1215,23 +1186,67 @@ h3{
   <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
     {% endfor %}
 
-  </div>
+  </div> -->
+
+  <section class="ebooks  r">
+
+    {% for alert in alert_homes %}
+
+
+  <div class="row col-sm-3  text-center align-items-stretch ">
+
+   <div class="  align-items-stretch"> 
+        <div class="card testimonial-card">
+       
+          <div class="avatar mx-auto bg-white">
+           
+            <!-- <img src=" /static/sms/images/girlavater.webp" width="100%" class="img-fluid" /> -->
+            <img src="{{alert.img_ebook.url}}" width="100%" class="img-fluid" />
+          </div>
+          <div class="card-body">
+            <h4 class="mb-2">{{alert.title|safe}}</h4>
+            <hr />
+            <p class="text-primary ">
+             
+              #{{alert.price}}
+            </p>
+            <p class="dark-grey-text ">
+             
+              {{alert.content}}
+            </p>
+            <button ><a href="https://wa.me/23409031568177"> Buy now </a>  </button>
+          </div>
+
+        </div>
+     </div> 
+    </div> 
+      
+   
+      {% empty %}
+      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+
+
+      {% endfor %}
+  
+  </section>
 
   <!-- ebooks section endign -->
 
 <br> <br> <br>
-<section>
-  <div class="row d-flex justify-content-center">
-    <div class="col-md-10 col-xl-8 text-center">
-      <h3 style="color: black; font-weight: bold;"  class="mb-4">Testimonials</h3>
-      <p class="mb-4 pb-2 mb-md-5 pb-md-0">
+<div class="row d-flex justify-content-center">
+  <div class="col-md-10 col-xl-8 text-center">
+    <h3 style="color: black; font-weight: bold;"  class="mb-4">Testimonials</h3>
+    <p class="mb-4 pb-2 mb-md-5 pb-md-0">
 
-      </p>
-    </div>
+    </p>
   </div>
+</div>
+
+<section style="" class="container ">
+
 
   <div class="row text-center d-flex align-items-stretch">
-    <div class="col-md-4 mb-5 mb-md-0 d-flex align-items-stretch">
+    <div class="col-sm mb-5 mb-md-0 d-flex align-items-stretch">
       <div class="card testimonial-card">
         <div class="card-up" style="background-color: #9d789b;"></div>
         <div class="avatar mx-auto bg-white">
@@ -1249,7 +1264,8 @@ h3{
         </div>
       </div>
     </div>
-    <div class="col-md-4 mb-5 mb-md-0 d-flex align-items-stretch">
+
+    <div class="col-sm mb-5 mb-md-0 d-flex align-items-stretch">
       <div class="card testimonial-card">
         <div class="card-up" style="background-color: #7a81a8;"></div>
         <div class="avatar mx-auto bg-white">
@@ -1265,7 +1281,7 @@ h3{
         </div>
       </div>
     </div>
-    <div class="col-md-4 mb-0 d-flex align-items-stretch">
+    <div class="col-sm mb-0 d-flex align-items-stretch">
       <div class="card testimonial-card">
         <div class="card-up" style="background-color: #6d5b98;"></div>
         <div class="avatar mx-auto bg-white">
@@ -1396,9 +1412,24 @@ h3{
 <!-- articles news feeds -->
 
 <br><br><br>
+<h3 class="text-center text-primary">Categories and Course Counts</h3>
+<br>
+{% for category in category_sta %}
+<div class="card">
+  <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
+  <div class="card-body">
+    <h5 style="font-weight: bold;" class="card-title ">{{ category.name }}</h5>
+    <p class="card-text">Courses: {{ category.num_courses }}</p>
+    <!-- <p class="card-text">{{ category.desc }}</p> -->
+  </div>
+</div>
+{% endfor %}
+
+
+<br> <br> <br>
 <!-- FAQ-->
 
-<h3 style="text-align: center;" class="text-danger ">Frequently Asked Questions</h3>
+<h3 id="faqs" style="text-align: center;" class="text-danger ">Frequently Asked Questions</h3>
 
 <br>
 <div class="container4">
