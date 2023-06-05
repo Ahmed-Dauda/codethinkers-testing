@@ -390,7 +390,8 @@ FREQUENTLY ASKED QUESTIONS */
 }
 
 .card-cat{
-  width: 500px;
+  width: 250px;
+  padding-right: 3px;
 }
 .card-cat:hover {
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
@@ -426,6 +427,8 @@ FREQUENTLY ASKED QUESTIONS */
 .flex-container >*{
   margin: 10px;
 }
+
+
  /* end of ebooks */
 </style>
 
@@ -1253,7 +1256,7 @@ FREQUENTLY ASKED QUESTIONS */
   <!-- ebooks section  -->
   <div class="card-body text-center">
     <div class="">
-  <h3 style="color: black;  font-weight: bold;" > {{alert_count_homes}} Latest Programming Ebooks Available for You</h3>
+  <h3 style="color: black;  font-weight: bold;" > {{alert_count_homes}} Latest Programming E-books Available for You</h3>
     </div>
   </div>
   <br>
@@ -1287,7 +1290,7 @@ FREQUENTLY ASKED QUESTIONS */
     <div class="card-body child-ebooks">
       <img class="" src="{{ alert.img_ebook.url }}" width="100px" height="130px" alt="{{ obj.desc }}">
       <div class="">
-        <h5 style="font-weight: bold;" class="card-title">{{ alert.title|safe }}</h5>
+        <h6 style="color: #000000;  padding-right: 3px;" class="card-title">{{ alert.title|safe }}</h6>
         <p class="card-text"> #{{ alert.price }}</p>
         <button><a href="https://wa.me/23409031568177">Buy now</a></button>
       </div>
