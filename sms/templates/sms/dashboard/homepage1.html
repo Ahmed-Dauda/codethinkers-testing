@@ -374,7 +374,7 @@ FREQUENTLY ASKED QUESTIONS */
 
 /* earticles css endign */
 
-
+ /* course categories */
 .child-ele{
   display: flex;
   margin-top: -25px;
@@ -399,10 +399,38 @@ FREQUENTLY ASKED QUESTIONS */
 .flex-container >*{
   margin: 10px;
 }
+ /* end of course categories */
+
+  /* ebooks */
+.child-ebooks{
+  display: flex;
+  margin-top: -25px;
+}
+
+.child-ebooks >*{
+  margin: 10px;
+}
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card-ebooks{
+  width: 300px;
+}
+.card-ebooks:hover {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+.flex-container >*{
+  margin: 10px;
+}
+ /* end of ebooks */
 </style>
 
-<div class="card bg-dark text-white" style="width: 100%;">
-  <img src="/static/sms/images/landing.jpg" class="card-img" height="450px" alt="">
+<div class="card bg-dark text-white" style="width: 100%; margin-left: 0px; margin-top: 0px;">
+  <img src="/static/sms/images/landing.jpg" class="card-img" width="100%" height="450px" alt="">
   <!-- <img src="https://mdbcdn.b-cdn.net/img/new/slids/017.webp" class="card-img" alt="Stony Beach"/> -->
   <div class="card-img-overlay" style="background-color: rgba(0, 0, 0, 0.3)">
     <br> <br> <br>
@@ -460,7 +488,7 @@ FREQUENTLY ASKED QUESTIONS */
 <div class="container4">
   <div class="accordion" id="faqAccordion">
     {% for faq in faqs %}
-    <div class="card ">
+    <div class="card bg-primary">
 
       <div style="margin: 0 auto;" class="" id="faqHeading{{ faq.id }}">
         <progress class="mb-0 tex">
@@ -496,12 +524,12 @@ FREQUENTLY ASKED QUESTIONS */
 </div>
 
 <br>
- <section class="partners">
+ <section class="partners ">
 
   {% for partner in partners %}
 
           <!-- <img src=" /static/sms/images/girlavater.webp" width="100%" class="img-fluid" /> -->
-    <img src="{{partner.img_partner.url}}" width="30px" height="30px" class="img-fluid" />
+    <img src="{{partner.img_partner.url}}" width="50px" height="50px" class="img-fluid" />
    
     {% empty %}
     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -1254,10 +1282,10 @@ FREQUENTLY ASKED QUESTIONS */
   
 <div class="flex-container">
   {% for alert in alert_homes %}
-  <div class="card card-cat">
+  <div class="card card-ebooks">
     <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
-    <div class="card-body child-ele">
-      <img class="" src="{{ alert.img_ebook.url }}" width="200px" height="150px" alt="{{ obj.desc }}">
+    <div class="card-body child-ebooks">
+      <img class="" src="{{ alert.img_ebook.url }}" width="100px" height="130px" alt="{{ obj.desc }}">
       <div class="">
         <h5 style="font-weight: bold;" class="card-title">{{ alert.title|safe }}</h5>
         <p class="card-text"> #{{ alert.price }}</p>
@@ -1268,34 +1296,8 @@ FREQUENTLY ASKED QUESTIONS */
   {% endfor %}
 </div>
 
-<!-- 
-  <section class="ebooks no-gutters">
-    <div class="row">
-      {% for alert in alert_homes %}
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
-        <div class="card testimonial-card" style="box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);">
-          <div class="avatar mx-auto bg-white">
-      
-            <img src="{{ alert.img_ebook.url }}" width="100%" class="img-fluid" />
-          </div>
-          <div class="card-body">
-            <h4 class="mb-2">{{ alert.title|safe }}</h4>
-            <hr />
-            <p class="text-primary">
-              #{{ alert.price }}
-            </p>
-       
-            <button><a href="https://wa.me/23409031568177">Buy now</a></button>
-          </div>
-        </div>
-      </div>
-      {% empty %}
-      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-      {% endfor %}
-    </div>
-  </section>
-   -->
-  
+
+
 
   <!-- ebooks section endign -->
 
