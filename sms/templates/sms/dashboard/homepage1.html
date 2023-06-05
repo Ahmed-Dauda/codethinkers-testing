@@ -325,22 +325,27 @@ h3{
 /* partners css ending  */
 
 
-/* ebooks css  */
-.ebooks{
-  display: flex;
-  flex-wrap: wrap;
-  width: 1000px;
-  margin: 0 auto;
- /* justify-content: center;  */
+/* Testmony css  */
+.testimonial-card:hover {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+  }
+/* Testmony css ending  */
 
-}
+/* 
+FREQUENTLY ASKED QUESTIONS */
+.card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+    margin: 10px;
+  
+  }
+  
+  .card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  }
 
-.ebooks >*{
- flex: 1 1 auto;
- margin: -10px;
- /* width: 10px; */
-}
-/* ebooks css ending  */
+/* END OF FREQUENTLY ASKED QUESTIONS  */
 
 /* articles css  */
 
@@ -369,9 +374,28 @@ h3{
 
 /* earticles css endign */
 
-/* animination  */
 
-/* animinations ending */
+.child-ele{
+  display: flex;
+  margin-top: -25px;
+}
+
+.child-ele >*{
+  margin: 10px;
+}
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card-cat:hover {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+.flex-container >*{
+  margin: 10px;
+}
 </style>
 
 <div class="card bg-dark text-white" style="width: 100%;">
@@ -397,7 +421,9 @@ h3{
 
 
 <br> <br> 
-<button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>
+
+<button class="btn text-center " ><a class="btn text-center text-center"  href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>
+
 <!-- page Statistics -->
 
 <br> <br> <br>
@@ -425,6 +451,38 @@ h3{
 
   </div>
 
+<!-- page animinations -->
+<div class="container4">
+  <div class="accordion" id="faqAccordion">
+    {% for faq in faqs %}
+    <div class="card ">
+
+      <div style="margin: 0 auto;" class="" id="faqHeading{{ faq.id }}">
+        <progress class="mb-0 tex">
+          <p class="" data-toggle="collapse" data-target="#faqCollapse{{ faq.id }}" aria-expanded="true" aria-controls="faqCollapse{{ faq.id }}">
+            {{ faq.title|safe }}
+            <i class="fas fa-chevron-down"></i> 
+          </p>
+        </p>
+      </div>
+
+      <div id="faqCollapse{{ faq.id }}" class="collapse" aria-labelledby="faqHeading{{ faq.id }}" data-parent="#faqAccordion">
+        <div class="card-body">
+          {{ faq.desc|safe }}
+        </div>
+      </div>
+   
+    </div>
+    
+    {% empty %}
+    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+    {% endfor %}
+  </div>
+</div>
+  <!--END OF FAQ-->
+
+<!-- ending of page animination -->
+
 
   <!-- partners section  -->
  <br> <br> <br>
@@ -438,7 +496,7 @@ h3{
   {% for partner in partners %}
 
           <!-- <img src=" /static/sms/images/girlavater.webp" width="100%" class="img-fluid" /> -->
-          <img src="{{partner.img_partner.url}}" width="100px" class="img-fluid" />
+    <img src="{{partner.img_partner.url}}" width="30px" height="30px" class="img-fluid" />
    
     {% empty %}
     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -1188,47 +1246,51 @@ h3{
 
   </div> -->
 
-  <section class="ebooks  r">
+  
+<div class="flex-container">
+  {% for alert in alert_homes %}
+  <div class="card card-cat">
+    <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
+    <div class="card-body child-ele">
+      <img class="" src="{{ alert.img_ebook.url }}" width="200px" height="110px" alt="{{ obj.desc }}">
+      <div class="">
+        <h5 style="font-weight: bold;" class="card-title">{{ alert.title|safe }}</h5>
+        <p class="card-text"> #{{ alert.price }}</p>
+        <button><a href="https://wa.me/23409031568177">Buy now</a></button>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
 
-    {% for alert in alert_homes %}
-
-
-  <div class="row col-sm-3  text-center align-items-stretch ">
-
-   <div class="  align-items-stretch"> 
-        <div class="card testimonial-card">
-       
+<!-- 
+  <section class="ebooks no-gutters">
+    <div class="row">
+      {% for alert in alert_homes %}
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
+        <div class="card testimonial-card" style="box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);">
           <div class="avatar mx-auto bg-white">
-           
-            <!-- <img src=" /static/sms/images/girlavater.webp" width="100%" class="img-fluid" /> -->
-            <img src="{{alert.img_ebook.url}}" width="100%" class="img-fluid" />
+      
+            <img src="{{ alert.img_ebook.url }}" width="100%" class="img-fluid" />
           </div>
           <div class="card-body">
-            <h4 class="mb-2">{{alert.title|safe}}</h4>
+            <h4 class="mb-2">{{ alert.title|safe }}</h4>
             <hr />
-            <p class="text-primary ">
-             
-              #{{alert.price}}
+            <p class="text-primary">
+              #{{ alert.price }}
             </p>
-            <p class="dark-grey-text ">
-             
-              {{alert.content}}
-            </p>
-            <button ><a href="https://wa.me/23409031568177"> Buy now </a>  </button>
+       
+            <button><a href="https://wa.me/23409031568177">Buy now</a></button>
           </div>
-
         </div>
-     </div> 
-    </div> 
-      
-   
+      </div>
       {% empty %}
       <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-
-
       {% endfor %}
-  
+    </div>
   </section>
+   -->
+  
 
   <!-- ebooks section endign -->
 
@@ -1414,36 +1476,42 @@ h3{
 <br><br><br>
 <h3 class="text-center text-primary">Categories and Course Counts</h3>
 <br>
-{% for category in category_sta %}
-<div class="card">
-  <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
-  <div class="card-body">
-    <h5 style="font-weight: bold;" class="card-title ">{{ category.name }}</h5>
-    <p class="card-text">Courses: {{ category.num_courses }}</p>
-    <!-- <p class="card-text">{{ category.desc }}</p> -->
+
+<div class="flex-container">
+  {% for category in category_sta %}
+  <div class="card card-cat">
+    <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
+    <div class="card-body child-ele">
+      <img class="" src="/static/sms/images/newlogo3.jpg" width="100px" height="50px" alt="{{ obj.desc }}">
+      <div class="">
+        <h5 style="font-weight: bold;" class="card-title">{{ category.name|title }}</h5>
+        <p class="card-text">{{ category.num_courses }} Courses</p>
+      </div>
+    </div>
   </div>
+  {% endfor %}
 </div>
-{% endfor %}
+
 
 
 <br> <br> <br>
+
 <!-- FAQ-->
 
 <h3 id="faqs" style="text-align: center;" class="text-danger ">Frequently Asked Questions</h3>
-
 <br>
-<div class="container4">
+<div class="container4 bg-primary" style="width: 70%; margin: 0 auto;">
   <div class="accordion" id="faqAccordion">
     {% for faq in faqs %}
-    <div class="card ">
+    <div class="card">
 
-      <div class="card-header " id="faqHeading{{ faq.id }}">
-        <h2 class="mb-0">
-          <button class="btn btn-link " type="button" data-toggle="collapse" data-target="#faqCollapse{{ faq.id }}" aria-expanded="true" aria-controls="faqCollapse{{ faq.id }}">
-            {{ faq.title|safe }}
-            <i class="fas fa-chevron-down"></i> 
+      <div class="card-header" id="faqHeading{{ faq.id }}">
+        <p class="mb-0">
+          <button style="font-size: 12px;" class="btn btn-link" type="button" data-toggle="collapse" data-target="#faqCollapse{{ faq.id }}" aria-expanded="true" aria-controls="faqCollapse{{ faq.id }}">
+            {{ faq.title|safe|lower }}
+            <i class="fas fa-chevron-down"></i>
           </button>
-        </h2>
+        </p>
       </div>
 
       <div id="faqCollapse{{ faq.id }}" class="collapse" aria-labelledby="faqHeading{{ faq.id }}" data-parent="#faqAccordion">
@@ -1459,7 +1527,8 @@ h3{
     {% endfor %}
   </div>
 </div>
-  <!--END OF FAQ-->
+<br>
+
 
 
 <script>
