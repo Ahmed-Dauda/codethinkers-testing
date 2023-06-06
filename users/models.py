@@ -6,6 +6,8 @@ from django.conf import settings
 # from django.contrib.auth import get_user_model
 # User = get_user_model()
 
+# from sms.models import Courses
+
 from django.db.models.signals import post_save, pre_save
 
 
@@ -87,6 +89,7 @@ import string
 
 
 
+
 class Profile(models.Model):
     
     PAYMENT_CHOICES = [
@@ -95,8 +98,10 @@ class Profile(models.Model):
     ('Sponsored', 'SPONSORED'),
   
     ]
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, unique=True, related_name='profile')
     username = models.CharField(max_length=225, blank=True)
+    # courses =models.ForeignKey(Courses,blank=False ,default=1, on_delete=models.SET_NULL, related_name='coursesoooo', null= True)
     first_name = models.CharField(max_length=225, blank=True, null=True)
     last_name = models.CharField(max_length=225, blank=True, null=True)
     status_type = models.CharField (choices = PAYMENT_CHOICES, default='Free' ,max_length=225)

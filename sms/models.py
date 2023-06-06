@@ -1,7 +1,7 @@
 from typing import cast
 from django.contrib.contenttypes.fields import GenericRelation
 from django.forms import Widget
-from users.models import Profile
+from users.models import Profile 
 from django.db import models
 from django.db.models.deletion import CASCADE
 from users.models import NewUser
@@ -60,7 +60,7 @@ class Courses(models.Model):
     course_logo = CloudinaryField('course_logo', blank=True, null= True)
     course_owner = models.CharField(max_length=225, blank=True, null= True)
     course_type = models.CharField(choices = COURSE_TYPE, default='course' , max_length=225, blank=True, null= True)
-    status_type = models.CharField (choices = PAYMENT_CHOICES, default='premium' ,max_length=225, blank=True, null= True)
+    status_type = models.CharField (choices = PAYMENT_CHOICES, default='Free' ,max_length=225, blank=True, null= True)
     price = models.DecimalField (max_digits=10, decimal_places=2, default= '20000' ,max_length=225, blank=True, null= True)
     desc = tinymce_models.HTMLField(blank=True, null= True)
     desc_home = tinymce_models.HTMLField( blank=True, null= True)
