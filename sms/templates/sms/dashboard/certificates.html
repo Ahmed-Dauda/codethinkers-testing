@@ -44,10 +44,12 @@
 
 {% for course in courses %}
 
+{% if course == t.exam and t.marks >= course.pass_mark %}
+
+
 {% if t.student.status_type == 'Premium'  %}
 
 
-{% if course == t.exam and t.marks >= course.pass_mark %}
 <p>{{ hitcount.total_hits}} Certificates printed</p>
 <p style="color:green">Congratulations, {{t.student.user}} you made it!</p>
 <a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>

@@ -11,6 +11,8 @@ from sms.models import (Categories, Courses, Topics,
                           FrequentlyAskQuestions, Partners
                         )
 
+from profile import Profile as NewProfile
+
 from hitcount.utils import  get_hitcount_model
 from hitcount.views import HitCountMixin
 
@@ -148,17 +150,11 @@ class Homepage1(ListView):
         context['blogs_count'] =Blog.objects.all().count() 
         context['faqs'] = FrequentlyAskQuestions.objects.all()
         context['partners'] = Partners.objects.all()
-        context['coursess'] = Courses.objects.all().order_by('created')[:10]
+        context['coursess'] = Courses.objects.all().order_by('created')[:10] 
         context['category_sta'] = Categories.objects.annotate(num_courses=Count('categories'))
-        # for category in categories:
-        #     print(f"Category: {category.name} - Number of courses: {category.num_courses}")
-
+        # context['newprofile'] = NewProfile.objects.all()
         context['beginner'] = Courses.objects.filter(categories__name = "BEGINNER")
         context['beginner_count'] = Courses.objects.filter(categories__name = "BEGINNER").count()
-        # beginner = Courses.objects.filter(student__status_type = "Premium")
-        # for b in beginner:
-
-        #     print('test',b)
         context['intermediate'] = Courses.objects.filter(categories__name = "INTERMEDIATE")
         context['intermediate_count'] = Courses.objects.filter(categories__name = "INTERMEDIATE").count()
 
@@ -184,6 +180,7 @@ class Homepage1(ListView):
         context['user'] = NewUser.objects.get_queryset().order_by('id')
         
         return context
+
 
 from django.contrib.messages.views import SuccessMessageMixin
 
@@ -299,6 +296,7 @@ class Courseslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
 
         return context
+
 
 class Bloglistview(ListView):
 
