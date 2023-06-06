@@ -318,7 +318,7 @@ h3{
 
 .partners >*{
  /* flex: 1 1 auto; */
- margin: 10px;
+ margin: 30px;
 
 }
 
@@ -532,7 +532,7 @@ FREQUENTLY ASKED QUESTIONS */
   {% for partner in partners %}
 
           <!-- <img src=" /static/sms/images/girlavater.webp" width="100%" class="img-fluid" /> -->
-    <img src="{{partner.img_partner.url}}" width="50px" height="50px" class="img-fluid" />
+    <img src="{{partner.img_partner.url}}" width="100px" height="100px" class="img-fluid" />
    
     {% empty %}
     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -614,7 +614,6 @@ FREQUENTLY ASKED QUESTIONS */
 
   {% for obj in beginner %}
 
-  {% if obj.status_type  == 'Premium' or obj.status_type  == 'Free' %}
 
   {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' or  obj.status_type  == 'Free' %}
 
@@ -699,7 +698,7 @@ FREQUENTLY ASKED QUESTIONS */
   </div>
 
 </a>
-{% endif %}
+
 
 {% endif %}
 

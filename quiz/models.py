@@ -2,7 +2,7 @@ from django.db import models
 # from student.models import Student
 from users.models import Profile
 from cloudinary.models import CloudinaryField
-
+from sms.models import Courses as smscourses
 from tinymce.models import HTMLField
 from tinymce import models as tinymce_models
 from tinymce.widgets import TinyMCE
@@ -52,6 +52,7 @@ class Result(models.Model):
 
     student = models.ForeignKey(Profile,on_delete=models.CASCADE)
     exam = models.ForeignKey(Course,on_delete=models.CASCADE)
+    smscourses = models.ForeignKey(smscourses,on_delete=models.CASCADE, blank=True, null= True)
     marks = models.PositiveIntegerField()
     date = models.DateTimeField(auto_now=True)
     # pass_mark = models.PositiveIntegerField(null=True)
@@ -60,6 +61,7 @@ class Result(models.Model):
     id = models.AutoField(primary_key=True)
     def __str__(self):
         return f"{self.student}---{self.exam.course_name}----{self.marks}"
+
 
 class Certificate_note(models.Model):
     
