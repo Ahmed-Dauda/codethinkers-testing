@@ -52,7 +52,7 @@ class Result(models.Model):
 
     student = models.ForeignKey(Profile,on_delete=models.CASCADE)
     exam = models.ForeignKey(Course,on_delete=models.CASCADE)
-    smscourses = models.ForeignKey(smscourses,on_delete=models.CASCADE, blank=True, null= True)
+    # smscourses = models.ForeignKey(smscourses,on_delete=models.CASCADE, blank=True, null= True)
     marks = models.PositiveIntegerField()
     date = models.DateTimeField(auto_now=True)
     # pass_mark = models.PositiveIntegerField(null=True)
