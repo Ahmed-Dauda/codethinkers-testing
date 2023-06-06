@@ -49,7 +49,7 @@
 
 {% if course == t.exam and t.marks >= course.pass_mark %}
 
-{% if t.student.status_type == 'Premium' and course == t.exam %}
+{% if t.student.status_type == 'Premium' %}
 
 <p>{{ hitcount.total_hits}} Certificates printed</p>
 <p style="color:green">Congratulations, {{t.student.user}} you made it!</p>
@@ -59,18 +59,20 @@
 <!-- {% if forloop.last %}
 <h4 style="color:red">Passed mark: {{t.pass_mark}}. You are close to get your Certificate. Please try again</h4>
 {% endif  %} -->
-{% endif  %}
-
-{% if course == t.exam and t.marks < course.pass_mark  or t.marks == None %}
-<h4 style="color:red">Passed mark: {{course.pass_mark}}. You are close to get your Certificate. Please try again</h4>
-
-
-{% else %}
 <h3> Certificate is for Premium Student.<button class="btn "><a href="https://wa.me/23409031568177"> Contact Us  </a>  </button></h3>
 {% endif  %}
 
 
+{% if course == t.exam and t.marks < course.pass_mark  or t.marks == None %}
+<h4 style="color:red">Passed mark: {{course.pass_mark}}. You are close to get your Certificate. Please try again</h4>
+
+{% endif  %}
+
+
+
+
 {% endif  %} 
+
 {% endfor %}
 
 
