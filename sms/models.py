@@ -35,7 +35,18 @@ class Categories(models.Model, HitCountMixin):
     def __str__(self):
         return f'{self.name}'
 
- 
+class Coursefaqs(models.Model):
+    
+
+    title = models.CharField(max_length=225,  null=True, blank =True )
+    desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
+    course_type = models.CharField(max_length=500, blank=True, null= True)
+    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+    # id = models.BigAutoField(primary_key=True)
+
+    def __str__(self):
+        return f'{self.course_type} {self.title}' 
 
 class Courses(models.Model):
     
@@ -65,7 +76,10 @@ class Courses(models.Model):
     desc = tinymce_models.HTMLField(blank=True, null= True)
     desc_home = tinymce_models.HTMLField( blank=True, null= True)
     course_desc = tinymce_models.HTMLField(blank=True, null= True)
-    course_link = models.URLField(max_length=225, blank=True, null= True)
+    whatyouwilllearn = tinymce_models.HTMLField(blank=True, null= True)
+    # skillyouwillgain = models.CharField(max_length=225,blank=True, null= True)
+    # faqs = models.ForeignKey(Coursefaqs,on_delete=models.CASCADE, blank=True, null= True)
+    # course_link = models.URLField(max_length=225, blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
     hit_count_generic = GenericRelation(
@@ -75,7 +89,34 @@ class Courses(models.Model):
     def __str__(self):
         return f'{self.title}'
 
+class Coursefaqs(models.Model):
+    
 
+    title = models.CharField(max_length=225,  null=True, blank =True )
+    desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
+    # course_type = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
+    faqs_courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
+    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+    # id = models.BigAutoField(primary_key=True)
+
+    def __str__(self):
+        return f'{self.title} -{self.faqs_courses.title}' 
+
+class Skillyouwillgain(models.Model):
+    
+
+    title = models.CharField(max_length=225,  null=True, blank =True )
+    # desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
+    # course_type = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
+    courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
+    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+    # id = models.BigAutoField(primary_key=True)
+
+    def __str__(self):
+        return f'{self.title} ' 
+      
 class Topics(models.Model):
     
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
@@ -86,8 +127,8 @@ class Topics(models.Model):
     desc = tinymce_models.HTMLField( blank=True, null= True)
     # desc_home = tinymce_models.HTMLField( blank=True, null= True)
     coursedesc = tinymce_models.HTMLField( blank=True, null= True)
-    img_topic = CloudinaryField('image', blank=True, null= True)
-    img_tutorial = CloudinaryField('image', blank=True, null= True)
+    img_topic = CloudinaryField('topic image', blank=True, null= True)
+    # img_tutorial = CloudinaryField('image', blank=True, null= True)
     video = EmbedVideoField(blank=True, null= True)  # same like models.URLField()
     topics_url = models.CharField(max_length=500, blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
@@ -108,12 +149,13 @@ class FrequentlyAskQuestions(models.Model):
 
     title = models.CharField(max_length=225,  null=True, blank =True )
     desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
+    course_type = models.CharField(max_length=500, blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
     # id = models.BigAutoField(primary_key=True)
 
     def __str__(self):
-        return f'{self.title}'
+        return f'{self.course_type} {self.title}' 
     
 class Comment(models.Model):
     
@@ -136,7 +178,7 @@ class Blog(models.Model):
     title = models.CharField(max_length=225,  null=True, blank =True )
     img_source = models.CharField(max_length=225, null= True)
     slug = models.SlugField(null=False, unique=True) 
-    img_blog = CloudinaryField('image', blank=True, null= True)
+    img_blog = CloudinaryField('blog image', blank=True, null= True)
     desc = tinymce_models.HTMLField( blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
@@ -158,7 +200,7 @@ class Blogcomment(models.Model):
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
    
-    img_blogcomment = CloudinaryField('image', blank=True, null= True)
+    img_blogcomment = CloudinaryField('comment image', blank=True, null= True)
     
     def __str__(self):
         return f'{self.post}'
@@ -188,7 +230,7 @@ class Partners(models.Model):
 class Gallery(models.Model):
 
     title = models.CharField(max_length=100, null=True)
-    gallery = CloudinaryField('image', blank=True, null= True)
+    gallery = CloudinaryField('gallery image', blank=True, null= True)
  
     def __str__(self):
         return f'{self.title}'
