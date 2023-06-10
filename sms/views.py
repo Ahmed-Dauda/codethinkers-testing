@@ -8,7 +8,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from sms.models import (Categories, Courses, Topics, 
                         Comment, Blog, Blogcomment,Alert, Gallery,
-                          FrequentlyAskQuestions, Partners
+                          FrequentlyAskQuestions, Partners, Coursefaqs, Skillyouwillgain
                         )
 
 from profile import Profile as NewProfile
@@ -136,7 +136,8 @@ class Homepage1(ListView):
    
     def get_queryset(self):
        
-        return  Courses.objects.all().select_related('categories').distinct()
+        # return  Courses.objects.all().select_related('categories').distinct()
+        return  Courses.objects.all()
     
     def get_context_data(self, **kwargs): 
         context = super(Homepage1, self).get_context_data(**kwargs)
@@ -155,6 +156,7 @@ class Homepage1(ListView):
         # context['newprofile'] = NewProfile.objects.all()
         context['beginner'] = Courses.objects.filter(categories__name = "BEGINNER")
         context['beginner_count'] = Courses.objects.filter(categories__name = "BEGINNER").count()
+
         context['intermediate'] = Courses.objects.filter(categories__name = "INTERMEDIATE")
         context['intermediate_count'] = Courses.objects.filter(categories__name = "INTERMEDIATE").count()
 
@@ -255,25 +257,7 @@ class PhotoGallery(ListView):
         
         return context
 
-# class Homepage(LoginRequiredMixin,ListView):
-#     models = Categories
-#     template_name = 'sms/dashboard/index.html'
-#     success_message = 'TestModel successfully updated!'
-#     count_hit = True
-   
-#     def get_queryset(self):
-#         return Categories.objects.all()
-    
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['students'] = User.objects.all().count()
-#         context['category'] = Categories.objects.count()
-#         context['courses'] = Courses.objects.all().count()
-#         context['alerts'] = Alert.objects.order_by('-created')
-#         context['alert_count'] = Alert.objects.all().count()
-#         context['user'] = NewUser.objects.get_queryset().order_by('id')
-        
-#         return context
+
 
 from django.contrib.auth import logout
 
@@ -447,22 +431,25 @@ class Blogdetaillistview(HitCountDetailView,DetailView):
 
 
 class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
-    models = Categories
-    template_name = 'sms/courselistdesc.html'
+    models = Courses
+    template_name = 'sms/dashboard/courselistdesc.html'
     count_hit = True
     queryset = Categories.objects.all()
     def get_queryset(self):
-        return Categories.objects.all()
+        return Courses.objects.all()
    
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
-        context['courses'] = Courses.objects.filter(categories__pk = self.object.id)
+       
+        context['coursess'] = Courses.objects.all().order_by('created')[:10] 
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
-        # course = Courses.objects.get(pk=self.kwargs["pk"])
-        
-        # context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
+        course = Courses.objects.get(pk=self.kwargs["pk"])
+        context['faqs'] = Coursefaqs.objects.all().filter(faqs_courses_id= course).order_by('id')
+        context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
+        context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
         # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
+        
         return context
 
 

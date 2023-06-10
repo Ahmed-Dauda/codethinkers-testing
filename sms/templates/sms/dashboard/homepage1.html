@@ -390,7 +390,7 @@ FREQUENTLY ASKED QUESTIONS */
 }
 
 .card-cat{
-  width: 250px;
+  width: 350px;
   padding-right: 3px;
 }
 .card-cat:hover {
@@ -567,10 +567,7 @@ FREQUENTLY ASKED QUESTIONS */
             <p class="pl-3">{{category.desc}}</p>
         
             <div class="text-left container">{{courses_count}}</div> 
-      
-            <!-- {% for obj in all %}
-            <p> {{obj.0}}</p> 
-              {% endfor %} -->
+
      
     </div>
   </a>
@@ -612,12 +609,11 @@ FREQUENTLY ASKED QUESTIONS */
   
 <div  class="beginner ">
 
+
   {% for obj in beginner %}
 
 
-  {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' or  obj.status_type  == 'Free' %}
-
-  <a style="height: 10px;" class=""  href="{% url 'sms:topicslistview' obj.pk %}">
+  <a style="height: 10px;" class=""  href="{% url 'sms:courseslistdesc' obj.pk %}">
   <div  class="left-column-cat border ">
       <!-- <p class=" card rounded-4 category"> -->
       
@@ -643,7 +639,7 @@ FREQUENTLY ASKED QUESTIONS */
 
             </div>
           </div>
-        <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+        <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
         {% if obj.price %}
         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
         {% else %}
@@ -651,57 +647,12 @@ FREQUENTLY ASKED QUESTIONS */
         {% endif %}
         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
       </div>
    
   </div>
 
 </a>
-
-{% else %}
-
-<a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}">
-  <div  class="left-column-cat border ">
-      <!-- <p class=" card rounded-4 category"> -->
-      
-          {% if obj.img_course %}
-          <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="200px" alt="cetagory image">
-          <br>
-          
-          {% endif %}
-          <div class="pl-2">
-          <div class="d-flex rounded owner">
-            <div class="d-flex rounded owner">
-              {% if obj.course_logo.url %}
-              <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-              {% else %}
-              <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-            {% endif %}
-    
-            {% if obj.course_owner %}
-            <small class="text-dark">{{obj.course_owner|safe}}</small>
-            {% else %}
-            <small class="text-dark">Codethinkers Academy</small>
-            {% endif %}
-
-            </div>
-          </div>
-        <a style="font-size: 12px;"  href="{% url 'sms:paymentdesc' %}">{{obj}} </a>
-        {% if obj.price %}
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
-        {% else %}
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-        {% endif %}
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-      </div>
-   
-  </div>
-
-</a>
-
-
-{% endif %}
-
 
 
   {% empty %}
@@ -715,7 +666,8 @@ FREQUENTLY ASKED QUESTIONS */
 
 <br> <br> <br>
 
- <!--DIFFERENT  COURSES-->
+ <!--INTERMEDIATE DIFFERENT  COURSES-->
+
  {% for obj in intermediate %}
  {% if forloop.last %}
  <div class="card-body">
@@ -731,10 +683,7 @@ FREQUENTLY ASKED QUESTIONS */
   {% for obj in intermediate %}
 
 
-
-  {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' or obj.status_type  == 'Free' %}
-
-   <a style="height: 10px;" class="" href="{% url 'sms:topicslistview' obj.pk %}">
+   <a style="height: 10px;" class="" href="{% url 'sms:courseslistdesc' obj.pk %}">
    <div  class="left-column-cat border ">
        <!-- <p class=" card rounded-4 category"> -->
        
@@ -760,7 +709,7 @@ FREQUENTLY ASKED QUESTIONS */
  
              </div>
            </div>
-         <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+         <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
          {% if obj.price %}
          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
          {% else %}
@@ -768,6 +717,7 @@ FREQUENTLY ASKED QUESTIONS */
          {% endif %}
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
        </div>
            <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
            <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p>
@@ -778,52 +728,7 @@ FREQUENTLY ASKED QUESTIONS */
    </div>
 
  </a>
- {% else %}
-
- <a style="height: 10px;" class="" href="{% url 'sms:paymentdesc' %}">
-  <div  class="left-column-cat border ">
-      <!-- <p class=" card rounded-4 category"> -->
-      
-          {% if obj.img_course %}
-          <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="200px" alt="cetagory image">
-          <br>
-          
-          {% endif %}
-          <div class="pl-2">
-          <div class="d-flex rounded owner">
-            <div class="d-flex rounded owner">
-              {% if obj.course_logo.url %}
-              <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-              {% else %}
-              <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-            {% endif %}
-    
-            {% if obj.course_owner %}
-            <small class="text-dark">{{obj.course_owner|safe}}</small>
-            {% else %}
-            <small class="text-dark">Codethinkers Academy</small>
-            {% endif %}
-
-            </div>
-          </div>
-        <a style="font-size: 12px;"  href="{% url 'sms:paymentdesc' %}">{{obj}} </a>
-        {% if obj.price %}
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
-        {% else %}
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-        {% endif %}
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-      </div>
-          <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
-          <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p>
-     
-         -->
-    </a>
-  </div>
-    {% endif %}
-    
-
+ 
 
    {% empty %}
      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -853,10 +758,7 @@ FREQUENTLY ASKED QUESTIONS */
   {% for obj in advanced %}
 
 
-
-  {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' or obj.status_type  == 'Free' %}
-
-   <a style="height: 10px;" class="" href="{% url 'sms:topicslistview' obj.pk %}">
+   <a style="height: 10px;" class="" href="{% url 'sms:courseslistdesc' obj.pk %}">
    <div  class="left-column-cat border ">
        <!-- <p class=" card rounded-4 category"> -->
        
@@ -882,7 +784,7 @@ FREQUENTLY ASKED QUESTIONS */
  
              </div>
            </div>
-         <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+         <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
          {% if obj.price %}
          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
          {% else %}
@@ -890,58 +792,14 @@ FREQUENTLY ASKED QUESTIONS */
          {% endif %}
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
        </div>
            <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
            <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p> -->
        
    </div>
  </a>
- {% else %}
-
- <a style="height: 10px;" class="" href="{% url 'sms:paymentdesc' %}">
-  <div  class="left-column-cat border ">
-      <!-- <p class=" card rounded-4 category"> -->
-      
-          {% if obj.img_course %}
-          <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="200px" alt="cetagory image">
-          <br>
-          
-          {% endif %}
-          <div class="pl-2">
-          <div class="d-flex rounded owner">
-            <div class="d-flex rounded owner">
-              {% if obj.course_logo.url %}
-              <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-              {% else %}
-              <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-            {% endif %}
-    
-            {% if obj.course_owner %}
-            <small class="text-dark">{{obj.course_owner|safe}}</small>
-            {% else %}
-            <small class="text-dark">Codethinkers Academy</small>
-            {% endif %}
-
-            </div>
-          </div>
-        <a style="font-size: 12px;"  href="{% url 'sms:paymentdesc' %}">{{obj}} </a>
-        {% if obj.price %}
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
-        {% else %}
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-        {% endif %}
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-      </div>
-          <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
-          <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p> -->
-
-
-</a>
-</div>
-{% endif %}
-
-
+ 
 
    {% empty %}
      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
@@ -968,10 +826,7 @@ FREQUENTLY ASKED QUESTIONS */
    {% for obj in latest_course %}
 
 
-
-   {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' or obj.status_type  == 'Free' %}
-
-   <a style="height: 10px;" class=""  href="{% url 'sms:topicslistview' obj.pk %}">
+   <a style="height: 10px;" class=""  href="{% url 'sms:courseslistdesc' obj.pk %}">
    <div  class="left-column-cat border ">
        <!-- <p class=" card rounded-4 category"> -->
        
@@ -997,7 +852,7 @@ FREQUENTLY ASKED QUESTIONS */
  
              </div>
            </div>
-         <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+         <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
          {% if obj.price %}
          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
          {% else %}
@@ -1005,6 +860,7 @@ FREQUENTLY ASKED QUESTIONS */
          {% endif %}
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
        </div>
            <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
            <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p> -->
@@ -1012,51 +868,6 @@ FREQUENTLY ASKED QUESTIONS */
 
    </div>
  </a>
- {% else %}
-
- <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}">
-  <div  class="left-column-cat border ">
-      <!-- <p class=" card rounded-4 category"> -->
-      
-          {% if obj.img_course %}
-          <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="200px" alt="cetagory image">
-          <br>
-          
-          {% endif %}
-          <div class="pl-2">
-          <div class="d-flex rounded owner">
-            <div class="d-flex rounded owner">
-              {% if obj.course_logo.url %}
-              <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-              {% else %}
-              <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-            {% endif %}
-    
-            {% if obj.course_owner %}
-            <small class="text-dark">{{obj.course_owner|safe}}</small>
-            {% else %}
-            <small class="text-dark">Codethinkers Academy</small>
-            {% endif %}
-
-            </div>
-          </div>
-        <a style="font-size: 12px;"  href="{% url 'sms:paymentdesc' %}">{{obj}} </a>
-        {% if obj.price %}
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
-        {% else %}
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-        {% endif %}
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-      </div>
-          <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
-          <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p> -->
-      
-
-  </div>
-</a>
-
- {% endif %}
 
 
    {% empty %}
@@ -1081,10 +892,7 @@ FREQUENTLY ASKED QUESTIONS */
    {% for obj in popular_course %}
 
 
-
-   {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' or obj.status_type  == 'Free' %}
-
-   <a style="height: 10px;" class=""  href="{% url 'sms:topicslistview' obj.pk %}">
+   <a style="height: 10px;" class=""  href="{% url 'sms:courseslistdesc' obj.pk %}">
    <div  class="left-column-cat border ">
        <!-- <p class=" card rounded-4 category"> -->
        
@@ -1110,7 +918,7 @@ FREQUENTLY ASKED QUESTIONS */
  
              </div>
            </div>
-         <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+         <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
          {% if obj.price %}
          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
          {% else %}
@@ -1118,6 +926,7 @@ FREQUENTLY ASKED QUESTIONS */
          {% endif %}
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
        </div>
            <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
            <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p> -->
@@ -1125,51 +934,6 @@ FREQUENTLY ASKED QUESTIONS */
 
    </div>
  </a>
- {% else %}
-
- <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}">
-  <div  class="left-column-cat border ">
-      <!-- <p class=" card rounded-4 category"> -->
-      
-          {% if obj.img_course %}
-          <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="200px" alt="cetagory image">
-          <br>
-          
-          {% endif %}
-          <div class="pl-2">
-          <div class="d-flex rounded owner">
-            <div class="d-flex rounded owner">
-              {% if obj.course_logo.url %}
-              <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-              {% else %}
-              <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-            {% endif %}
-    
-            {% if obj.course_owner %}
-            <small class="text-dark">{{obj.course_owner|safe}}</small>
-            {% else %}
-            <small class="text-dark">Codethinkers Academy</small>
-            {% endif %}
-
-            </div>
-          </div>
-        <a style="font-size: 12px;"  href="{% url 'sms:paymentdesc' %}">{{obj}} </a>
-        {% if obj.price %}
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
-        {% else %}
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-        {% endif %}
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-      </div>
-          <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
-          <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p> -->
-      
-
-  </div>
-</a>
-
- {% endif %}
 
 
    {% empty %}
@@ -1197,7 +961,7 @@ FREQUENTLY ASKED QUESTIONS */
     {% for obj in Free_courses %}
 
 
-    <a style="height: 10px;" class="" href="{% url 'sms:topicslistview' obj.pk %}">
+    <a style="height: 10px;" class="" href="{% url 'sms:courseslistdesc' obj.pk %}">
     <div  class="left-column-cat border ">
         <!-- <p class=" card rounded-4 category"> -->
         
@@ -1223,7 +987,7 @@ FREQUENTLY ASKED QUESTIONS */
   
               </div>
             </div>
-          <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+          <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
           {% if obj.price %}
           <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
           {% else %}
@@ -1231,6 +995,7 @@ FREQUENTLY ASKED QUESTIONS */
           {% endif %}
           <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
           <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
         </div>
 
 
@@ -1371,28 +1136,7 @@ FREQUENTLY ASKED QUESTIONS */
 </section>
 
 
-  <!-- regroup -->
-
-<!-- 
-{% regroup object_list by categories as post_list %}
-
-<div class="card-body ">
-    {% for post_category in post_list %}
-       {{ post_category.grouper }}
-            <ul >
-            {% for post in post_category.list %}
-           
-                <li> <a  href="{% url 'sms:topicslistview' post.pk %}">{{ post.title|safe }}</a> </li>
-            {% endfor %}
-            </ul>
-    
-    {% endfor %}
-</div>
--->
-
-
-  <!--endregroup -->
-   
+ 
 
   
   <!--GALLERY-->
@@ -1480,10 +1224,10 @@ FREQUENTLY ASKED QUESTIONS */
   <!-- END CATEGORIES OF COURSES-->
   
 
-<!-- articles news feeds -->
+<!-- Categories and Courses -->
 
 <br><br><br>
-<h3 class="text-center text-primary">Categories and Course Counts</h3>
+<h3 class="text-center text-primary">Categories and Courses</h3>
 <br>
 
 <div class="flex-container">
@@ -1500,7 +1244,7 @@ FREQUENTLY ASKED QUESTIONS */
   </div>
   {% endfor %}
 </div>
-
+<!--end Categories and Courses -->
 
 
 <br> <br> <br>
