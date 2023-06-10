@@ -192,12 +192,15 @@
           <i >
            {% for part in course %} 
            {% if part.partdesc3 %} <br>
-           <br>  <br> <br>  <br> <br>  <br> <br>  <br> <br>  <br> <br>  <br> <br>  <br> <br>  <br>
+           <br>  <br> <br>  <br> <br>  <br> <br>  <br> <br>  <br> <br>  <br> <br>  <br> <br>  
            {% endif %}
            {% endfor %}
           </i>
 
-          <a href="{% url 'student:verify_cert' %}"> verification link</a>
+         
+
+          
+
             {% for c in  course %}
             {% if c.signature %}
             <br> 
@@ -211,7 +214,7 @@
             <span > ______________________________________________ </span> <br>  <br>
 
             <p style="font-size:50px;" class="flex-item"> Global Director, Codethinkers' Academy </p> 
-           
+            <a style="font-size:20px;" href="https://codethinkers.org/"> Visit Academy</a>
             {% endif %}
             {% endfor %}
 
