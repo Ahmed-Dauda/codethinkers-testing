@@ -27,12 +27,13 @@
   <div  style="padding-left: 20px; background-color: rgb(240, 197, 197);" class="">
     <br> <br>
 
-
-    {% if object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
-  
     <h3>{{ object.title|safe }}</h3>
     <p>{{ object.desc|safe }}</p>
     <p>{{ object.categories.name|title|safe }} category</p>
+
+    {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
+  
+    
     <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a>
     {% else %}
     <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a>
@@ -216,9 +217,9 @@
 
 <br> <br> <br>
 
-<div class="container card-body">
+<div class="container">
   <h1>Shareable Certificate</h1>
-  <img style="width:400px;" src="/static/sms/images/designcertificate2.png" class="card-img"  height="250px" alt="">
+  <img style="width:100%;" src="/static/sms/images/designcertificate2.png" class="card-img"  height="250px" alt="">
   <p>You can share your Certificate with friends and famaly, on printed resumes, CVs, or other important documents.</p>
 
 
