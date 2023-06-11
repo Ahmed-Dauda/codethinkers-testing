@@ -17,18 +17,69 @@
    width: 10px;
    margin: -10px;
   
-  
 
   }
- 
+  [aria-expanded="false"] > .expanded,
+[aria-expanded="true"] > .collapsed {
+  display: none;
+}
+ .page{
+  display: flex;
+  flex-wrap: wrap;
+ }
+ .page > *{
+  flex: 1 1 auto;
+  margin: 5px;
+ }
+ .rounded{
+  width: 30px;
+  height: 150px;
+ }
+
+ .gallery {
+    display: flex;
+    overflow-x: auto;
+    height: 200px;
+    overflow-y: hidden;       
+}
+.gallery>* {
+   flex: 1 1 auto;
+   margin: 10px;
+       
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
 </style>
 
 
   <div  style="padding-left: 20px; background-color: rgb(240, 197, 197);" class="">
     <br> <br>
 
-    <h3>{{ object.title|safe }}</h3>
-    <p>{{ object.desc|safe }}</p>
+    <h6>{{ object.title|safe }}</h6>
+
+  <div class="page">
+    {% if object.course_logo.url %}
+    <img  class="rounded" src="{{ obj.course_logo.url }}" alt=""> <br>
+    {% else %}
+    <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" alt="{{obj.desc}}"> <br>
+  {% endif %}
+
+  {% if object.course_owner %}
+  <small class="text-dark">{{object.course_owner|safe}}</small>
+  {% else %}
+  <small class="text-dark">Codethinkers Academy</small>
+  {% endif %}
+ </div>
+ 
+    <p>{{ object.course_type|safe }} </p>
+    <p>{{ object.price|safe }} </p>
+    <p>{{ object.status_type|safe }} </p>
+    <p>welcome: {{ request.user }} </p>
     <p>{{ object.categories.name|title|safe }} category</p>
 
     {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
@@ -40,6 +91,30 @@
     {% endif %}
 
   </div>
+
+<br>
+<!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" /> -->
+
+<div class="container">
+  <p>{{ object.desc|truncatechars:100|safe }}</p>
+
+  <p>
+    <!-- aria-expanded attribute is mandatory -->
+    <!-- bootstrap changes it to true/false on toggle -->
+    <a href="#block-id" class="btn btn-primary" data-toggle="collapse" aria-expanded="false" aria-controls="block-id">
+      <span class="collapsed">
+        Show more
+      </span>
+      <span class="expanded">
+        Show Less
+      </span>
+    </a>
+  </p>
+
+  <p class="collapse" id="block-id">
+    {{ object.desc|safe }}
+  </p>
+</div>
 
 
   <br> <br><br>
@@ -180,20 +255,20 @@
 <br> <br> <br>
 
 <!-- FAQ-->
-<div class="container">
+<div class="container ">
   <h3 id="faqs" style="text-align: center;" class="text-danger ">Frequently Asked Questions</h3>
 </div>
 
 <br>
-<div class="container4 bg-primary" style="width: 90%; margin: 0 auto;">
+<div class="container4 " style="width: 90%; margin: 0 auto;">
   <div class="accordion" id="faqAccordion">
     {% for faq in faqs %}
     <div class="card">
 
-      <div class="card-header" id="faqHeading{{ faq.id }}">
+      <div class="card-header " id="faqHeading{{ faq.id }}">
         <p class="mb-0">
           <button style="font-size: 12px;" class="btn btn-link" type="button" data-toggle="collapse" data-target="#faqCollapse{{ faq.id }}" aria-expanded="true" aria-controls="faqCollapse{{ faq.id }}">
-            {{ faq.title|safe|title }}
+            {{ faq.title|safe }}
             <i class="fas fa-chevron-down"></i>
           </button>
         </p>
@@ -201,7 +276,7 @@
 
       <div id="faqCollapse{{ faq.id }}" class="collapse" aria-labelledby="faqHeading{{ faq.id }}" data-parent="#faqAccordion">
         <div class="card-body">
-          {{ faq.desc|safe|title }}
+          {{ faq.desc|safe }}
         </div>
       </div>
    
@@ -219,13 +294,48 @@
 
 <div class="container">
   <h1>Shareable Certificate</h1>
-  <img style="width:100%;" src="/static/sms/images/designcertificate2.png" class="card-img"  height="250px" alt="">
-  <p>You can share your Certificate with friends and famaly, on printed resumes, CVs, or other important documents.</p>
+  <img style="width:100%;" src="/static/sms/images/designcertificate2.png" class="card-img"  height="auto alt="">
+  <p>You can share your Certificate with friends and family, on printed resumes, CVs, or other important documents.</p>
 
 
 </div>
 
 <br>
+
+ 
+<!--Review-->
+<br> <br> <br>
+
+<div style="color: black; font-size: 18px; font-weight: bold;" class="card-body">
+  <h3 class="text-center">Learners' Reviews</h3>
+</div>
+
+<div class="">
+  <div class="card-body">
+    <div class="gallery rounded-4 text-center">
+      {% for category in courseLearnerReviews %}
+      <div style="border: 1px solid blue;" class="left-column-cat">
+        <div class=" card-hover">
+          <div class="card-body">
+            <p class="text-center category">
+              <img class="rounded-4 images" src=" /static/sms/images/avater2.webp" width="30px" height="30px" alt="category image">
+              {% if category.title %}
+              <div class="text-left container">{{ category.title }}</div>
+              {% endif %}
+              <div class="text-left container">{{ category.desc }}</div>
+            </p>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<!-- end Review-->
+
+
 
   {% endblock %} 
 

@@ -8,7 +8,8 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from sms.models import (Categories, Courses, Topics, 
                         Comment, Blog, Blogcomment,Alert, Gallery,
-                          FrequentlyAskQuestions, Partners, Coursefaqs, Skillyouwillgain
+                          FrequentlyAskQuestions, Partners, 
+                          Coursefaqs, Skillyouwillgain,  CourseLearnerReviews
                         )
 
 from profile import Profile as NewProfile
@@ -441,11 +442,12 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
-       
+        
         context['coursess'] = Courses.objects.all().order_by('created')[:10] 
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
         course = Courses.objects.get(pk=self.kwargs["pk"])
         context['faqs'] = Coursefaqs.objects.all().filter(faqs_courses_id= course).order_by('id')
+        context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courses_id= course).order_by('id')
         context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
         # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
