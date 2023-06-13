@@ -65,7 +65,7 @@ class Courses(models.Model):
   
     ]
     img_course = CloudinaryField('image', blank=True, null= True)
-    student = models.ForeignKey(Profile,on_delete=models.CASCADE, blank=True, null= True)
+    student = models.ForeignKey(Profile,on_delete=models.CASCADE, blank=True, null= True, related_name='courses')
     categories =models.ForeignKey(Categories,blank=False ,default=1, on_delete=models.SET_NULL, related_name='categories', null= True)
     title = models.CharField(max_length=225, blank=True, null= True)
     course_logo = CloudinaryField('course_logo', blank=True, null= True)
@@ -76,10 +76,6 @@ class Courses(models.Model):
     desc = models.TextField( null= True)
     desc_home = models.TextField(blank=True, null= True)
     course_desc = models.TextField(blank=True, null= True)
-    # whatyouwilllearn = tinymce_models.HTMLField(blank=True, null= True)
-    # skillyouwillgain = models.CharField(max_length=225,blank=True, null= True)
-    # faqs = models.ForeignKey(Coursefaqs,on_delete=models.CASCADE, blank=True, null= True)
-    # course_link = models.URLField(max_length=225, blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
     hit_count_generic = GenericRelation(
@@ -88,6 +84,8 @@ class Courses(models.Model):
 
     def __str__(self):
         return f'{self.title}'
+    
+ 
 
 
 class CourseLearnerReviews(models.Model):
@@ -130,8 +128,19 @@ class Skillyouwillgain(models.Model):
     # id = models.BigAutoField(primary_key=True)
 
     def __str__(self):
-        return f'{self.title} ' 
-      
+        return f'{self.title}' 
+
+class Whatyouwilllearn(models.Model):
+    
+    desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
+    courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
+    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+    # id = models.BigAutoField(primary_key=True)
+
+    def __str__(self):
+        return f'{self.desc}' 
+
 class Topics(models.Model):
     
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
