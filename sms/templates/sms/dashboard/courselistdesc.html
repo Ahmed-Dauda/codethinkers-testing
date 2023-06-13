@@ -1,5 +1,5 @@
 {% extends 'sms/dashboard/base.html' %}
-
+{% load hitcount_tags %}
 {% block title %} Course Details {% endblock %}
 
   {% block content %}  
@@ -39,7 +39,7 @@
  .gallery {
     display: flex;
     overflow-x: auto;
-    height: 200px;
+    height: 400px;
     overflow-y: hidden;       
 }
 .gallery>* {
@@ -54,35 +54,61 @@
   transition: all 0.3s ease;
 }
 
+.rounded{
+  width: 50px;
+  height: 53px;
+}
+
+.course-owner{
+  display: flex;
+}
+.course-owner >*{
+
+  margin: 5px;
+}
+.sta{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.sta >*{
+  flex: 1 1 auto;
+  margin: 10px;
+
+}
+.name{
+  padding: 20px;
+}
 </style>
 
 
-  <div  style="padding-left: 20px; background-color: rgb(240, 197, 197);" class="">
+  <div  style="padding-left: 20px; background-color: rgb(240, 238, 235)" class="">
     <br> <br>
+    <div class="course-owner d-flex ">
+      {% if object.course_logo.url %}
+      <img  class="rounded" src="{{ object.course_logo.url }}"  alt=""> 
+      <p>{{object.course_owner|safe}}</p>
+      {% else %}
+      <img  class="rounded" src=" /static/sms/images/newlogo3.jpg"  alt="">
+      <p style="" class="text-dark ">Codethinkers Academy</p>
+    {% endif %}
+    </div>
+    
+    <br>
+  <h6>{{ object.title|safe }}</h6>
 
-    <h6>{{ object.title|safe }}</h6>
-
-  <div class="page">
-    {% if object.course_logo.url %}
-    <img  class="rounded" src="{{ obj.course_logo.url }}" alt=""> <br>
-    {% else %}
-    <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" alt="{{obj.desc}}"> <br>
-  {% endif %}
-
-  {% if object.course_owner %}
-  <small class="text-dark">{{object.course_owner|safe}}</small>
+  {% if object.price %}
+  <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  #{{object.price|safe|floatformat:"0g"}}</p> 
   {% else %}
-  <small class="text-dark">Codethinkers Academy</small>
+  <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}}</p> 
   {% endif %}
- </div>
+  <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.categories.name|safe|title}} level</small> <br>
+  <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.course_type|safe}}</small>
  
-    <p>{{ object.course_type|safe }} </p>
-    <p>{{ object.price|safe }} </p>
-    <p>{{ object.status_type|safe }} </p>
-    <p>welcome: {{ request.user }} </p>
-    <p>{{ object.categories.name|title|safe }} category</p>
-
-    {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
+    <br> <br>
+    <p>{{ object.desc|truncatechars:100|safe }}</p>
+  {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
   
     
     <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a>
@@ -93,14 +119,18 @@
   </div>
 
 <br>
-<!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" /> -->
 
-<div class="container">
-  <p>{{ object.desc|truncatechars:100|safe }}</p>
+<div class="pl-3 pr-3">
 
+  <h3>About this Course</h3>
+  <p class="pl-3">{% get_hit_count for object %} <i class="fas fa-eye"></i> recent views</p>
+  <p class="collapse" id="block-id">
+    {{ object.desc|safe }}
+  </p>
   <p>
     <!-- aria-expanded attribute is mandatory -->
     <!-- bootstrap changes it to true/false on toggle -->
+   
     <a href="#block-id" class="btn btn-primary" data-toggle="collapse" aria-expanded="false" aria-controls="block-id">
       <span class="collapsed">
         Show more
@@ -111,13 +141,9 @@
     </a>
   </p>
 
-  <p class="collapse" id="block-id">
-    {{ object.desc|safe }}
-  </p>
+ 
 </div>
 
-
-  <br> <br><br>
 
 
   <!-- ebooks section endign -->
@@ -125,147 +151,136 @@
   <br> <br> <br>
   <div class="row d-flex justify-content-center">
     <div class="col-md-10 col-xl-8 text-center">
-      <h3 style="color: black; font-weight: bold;"  class="mb-4">
-        Some Benefit Associated with the Courses:
-      </h3>
+     
       <p class="mb-4 pb-2 mb-md-5 pb-md-0">
   
       </p>
     </div>
   </div>
   
-  <section style="margin: 0 auto;" class=" ">
-  
-  
- <div  class="row text-center  align-items-stretch">
 
-      <div class="col-sm mb-0 d-flex align-items-stretch">
-        <div class="card testimonial-card">
-          <div class="card-up" style="background-color: #6d5b98;"></div>
+  <div  class=" sta">
 
-          <div class="card-body benefits">
-          
-            <p class="dark-grey-text">
-       
-              100% online
-            </p>
+    <div class="card mb-4 py-3  border-bottom-primary pl-3">
+      <h6 style="color: black;" class="mb-4">
+        Some Benefit Associated with the Courses:
+      </h6>
+        <div class="card-body">
+          <ul>
+            <li> 100% online </li>
+            <li>   Flexible deadlines</li>
+            <li> Collaborators</li>
+            <li> Jobs opportunities</li>
+            <li> Certificate of completion</li>
+            <li>  Language: English</li>
+          </ul>
+         
+  
+        </div>
+    </div>
+
+    <div class="card mb-4 py-3  border-bottom-primary pl-3">
+      <h6 style="color: black; " class="mb-4">
+       Offered by
+      </h>
+      <div class="card-body">
+        <div class="course-owner">
+          {% if object.course_logo.url %}
+          <img  class="" src="{{ object.course_logo.url }}" width="100px" height="100px" alt=""> 
+          <p class="name">{{object.course_owner|safe}}</p>
+          {% else %}
+          <img  class="" src=" /static/sms/images/newlogo3.jpg" width="100px" height="100px"  alt="">
+          <p style="name" class="text-dark ">Codethinkers Academy</p>
+        {% endif %}
+        </div>
+        
+      </div>
+  </div>
+
+
+</div>
+
+
+<div  class=" bg-dark sta">
+
+  <div class="card mb-4 py-3  border-bottom-primary pl-3">
+    <h6 style="color: black;" class="mb-4">
+      WHAT YOU WILL LEARN
+    </h6>
+      <div class="card-body">
+        {% for obj in whatyouwilllearn %}
+
+        <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button body-text text-left">{{obj.desc|safe}}</p>
+        {% empty %}
+        <h1 class="card text-center text-danger">No Record here</h1>
+      {% endfor %}
+
+      </div>
+  </div>
+
+  <div class="card mb-4 py-3  border-bottom-primary pl-3">
+    <h6 style="color: black; " class="mb-4">
+      SKILLS YOU WILL GAIN
+    </h>
+    <div class="card-body">
+      <div class="course-owner">
+        {% for category in skillyouwillgain %}
+        <div class="card card-cat">
+          <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
+          <div class="card-body child-ele">
+            <!-- <img class="" src="/static/sms/images/newlogo3.jpg" width="100px" height="50px" alt="{{ obj.desc }}"> -->
+            <div class="">
+              <h5 style="" class="card-title">{{ category.title|title }}</h5>
+           
+            </div>
           </div>
         </div>
+        {% empty %}
+        <h1 class="card text-center text-danger">No Record here</h1>
+        {% endfor %}
       </div>
       
-  
-      <div class="col-sm mb-0 d-flex align-items-stretch">
-        <div class="card testimonial-card">
-          <div class="card-up" style="background-color: #6d5b98;"></div>
+    </div>
+</div>
 
-          <div class="card-body benefits">
-          
-            <p class="dark-grey-text">
-       
-              Flexible deadlines
-            </p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-sm mb-0 d-flex align-items-stretch">
-        <div class="card testimonial-card">
-          <div class="card-up" style="background-color: #6d5b98;"></div>
-      
-          <div class="card-body benefits">
-          
-            <p class="dark-grey-text ">
-       
-              Collaborators
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm mb-0 d-flex align-items-stretch">
-        <div class="card testimonial-card">
-          <div class="card-up" style="background-color: #6d5b98;"></div>
-    
-          <div class="card-body benefits">
-          
-            <p class="dark-grey-text ">
-       
-              Jobs opportunities
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm mb-0 d-flex align-items-stretch">
-        <div class="card testimonial-card">
-          <div class="card-up" style="background-color: #6d5b98;"></div>
-   
-          <div class="card-body benefits">
-          
-            <p class="dark-grey-text">
-       
-              Certificate of completion
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm mb-0 d-flex align-items-stretch">
-        <div class="card testimonial-card">
-          <div class="card-up" style="background-color: #6d5b98;"></div>
 
-          <div class="card-body benefits">
-          
-            <p class="dark-grey-text">
-       
-              Language: English
-            </p>
-          </div>
-        </div>
-      </div>
-      
+</div>
 
-    </div> 
-
-  </section>
-  
-
- <br> <br> <br>
-<!-- SKILLS YOU WILL GAIN -->
-
-<br><br><br>
-<h3 class="text-center text-primary">SKILLS YOU WILL GAIN</h3>
-<br>
-
+hhhhh
+Enrolled {{ num_students}}
 <div class="flex-container">
-  {% for category in skillyouwillgain %}
+  {% for profile in profiles %}
   <div class="card card-cat">
-    <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
+
     <div class="card-body child-ele">
-      <!-- <img class="" src="/static/sms/images/newlogo3.jpg" width="100px" height="50px" alt="{{ obj.desc }}"> -->
+      
       <div class="">
-        <h5 style="font-weight: bold;" class="card-title">{{ category.title|title }}</h5>
-        <!-- <p class="card-text">{{ category.num_courses }} Courses</p> -->
+       
+        <p class="card-text">{{ profile.first_name }} {{ profile.last_name }} - {{ profile.num_courses }} Courses</p>
       </div>
     </div>
   </div>
-  {% empty %}
-  <h1 class="card text-center text-danger">No Record here</h1>
   {% endfor %}
 </div>
-<!--end SKILLS YOU WILL GAIN -->
+<!--end Categories and Courses -->
+
+hhhh
 
 <br> <br> <br>
 
-<!-- FAQ-->
-<div class="container ">
-  <h3 id="faqs" style="text-align: center;" class="text-danger ">Frequently Asked Questions</h3>
+<!-- FAQ -->
+<div class="container">
+  <h3 id="faqs" style="text-align: center;" class="text-danger">Frequently Asked Questions</h3>
 </div>
 
 <br>
-<div class="container4 " style="width: 90%; margin: 0 auto;">
+
+<div class="container4" style="width: 90%; margin: 0 auto;">
   <div class="accordion" id="faqAccordion">
     {% for faq in faqs %}
     <div class="card">
 
-      <div class="card-header " id="faqHeading{{ faq.id }}">
+      <div class="card-header" id="faqHeading{{ faq.id }}">
         <p class="mb-0">
           <button style="font-size: 12px;" class="btn btn-link" type="button" data-toggle="collapse" data-target="#faqCollapse{{ faq.id }}" aria-expanded="true" aria-controls="faqCollapse{{ faq.id }}">
             {{ faq.title|safe }}
@@ -279,21 +294,22 @@
           {{ faq.desc|safe }}
         </div>
       </div>
-   
+
     </div>
-    
     {% empty %}
     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
     {% endfor %}
   </div>
 </div>
+
 <br>
-<!--end FAQ-->
+<!-- end FAQ -->
 
 <br> <br> <br>
 
 <div class="container">
   <h1>Shareable Certificate</h1>
+  <p>Share your certificate with prospecti  ve employers and your professional network on LikedIn and other relevent platforms</p>
   <img style="width:100%;" src="/static/sms/images/designcertificate2.png" class="card-img"  height="auto alt="">
   <p>You can share your Certificate with friends and family, on printed resumes, CVs, or other important documents.</p>
 
@@ -320,9 +336,9 @@
             <p class="text-center category">
               <img class="rounded-4 images" src=" /static/sms/images/avater2.webp" width="30px" height="30px" alt="category image">
               {% if category.title %}
-              <div class="text-left container">{{ category.title }}</div>
+              <div class="text-left ">{{ category.title }}</div>
               {% endif %}
-              <div class="text-left container">{{ category.desc }}</div>
+              <div class="text-left ">{{ category.desc }}</div>
             </p>
           </div>
         </div>
