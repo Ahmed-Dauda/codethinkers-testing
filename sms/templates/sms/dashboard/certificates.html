@@ -45,13 +45,13 @@
 {% for course in courses %}
 
 
-
+{% if t.student.status_type == 'Premium' and course == t.exam %}
 
 {% if course == t.exam and t.marks >= course.pass_mark %}
 
-{% if t.student.status_type == 'Premium' %}
 
-<p>{{ hitcount.total_hits}} Certificates printed</p>
+
+<p>{{ hitcount.total_hits}} Certificates printed on this course</p>
 <p style="color:green">Congratulations, {{t.student.user}} you made it!</p>
 <a href="{% url 'student:pdf' course.id %}">Print Certificate {{course}}</a><br>
 {% else %}
@@ -59,7 +59,8 @@
 <!-- {% if forloop.last %}
 <h4 style="color:red">Passed mark: {{t.pass_mark}}. You are close to get your Certificate. Please try again</h4>
 {% endif  %} -->
-<h3> Certificate is for Premium Student.<button class="btn "><a href="https://wa.me/23409031568177"> Contact Us  </a>  </button></h3>
+<!-- 
+<h3> Certificate is for Premium Student.<button class="btn "><a href="https://wa.me/23409031568177"> Contact Us  </a>  </button></h3> -->
 {% endif  %}
 
 
@@ -69,7 +70,7 @@
 {% endif  %}
 
 
-
+{% else %}
 
 {% endif  %} 
 
