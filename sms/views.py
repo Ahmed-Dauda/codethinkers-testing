@@ -10,7 +10,8 @@ from sms.models import (Categories, Courses, Topics,
                         Comment, Blog, Blogcomment,Alert, Gallery,
                           FrequentlyAskQuestions, Partners, 
                           Coursefaqs, Skillyouwillgain,  
-                          CourseLearnerReviews, Whatyouwilllearn
+                          CourseLearnerReviews, Whatyouwilllearn,
+                          CareerOpportunities
                         )
 
 from profile import Profile as NewProfile
@@ -447,21 +448,24 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['coursess'] = Courses.objects.all().order_by('created')[:10] 
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
         # context['profiles'] = Courses.objects.annotate(num_student =Count('courses'))
-        course = Courses.objects.get(id=1)  # Get a specific course
+        # course = Courses.objects.get(id=1)  # Get a specific course
         # context['profiles'] =  Profile.objects.filter(courses__pk = self.object.id)
         context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
         course = Courses.objects.get(pk=self.kwargs["pk"])
          # this gives me numbers of the courses enrolled for all students
         # context['profiles'] =  Profile.objects.annotate(num_courses = Count('courses')) 
-        course = self.get_object()  # Get the current course
+        # course = self.get_object()  # Get the current course
     
-        context['profiles'] = Profile.objects.filter(courses=course)
-        context['num_students'] = context['profiles'].count()
-        
+        students = Profile.objects.filter(courses = self.object.id)  # Get all students related to the course
+        context['num_students'] = students.count()  # Get the count of students
+    
+        context['students'] = students
+
         context['faqs'] = Coursefaqs.objects.all().filter(faqs_courses_id= course).order_by('id')
         context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courses_id= course).order_by('id')
         context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
         context['whatyouwilllearn'] =   Whatyouwilllearn.objects.all().filter(courses_id= course).order_by('id')
+        context['careeropportunities'] =  CareerOpportunities.objects.all().filter(courses_id= course).order_by('id')
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
         # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
         
