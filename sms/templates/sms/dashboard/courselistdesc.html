@@ -152,14 +152,14 @@
   <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.course_type|safe}}</small>
  
     <br> <br>
-    <p class=" pr-3">{{ object.desc|truncatechars:350|safe }}</p>
+    <p class=" pr-3">{{ object.desc|truncatechars:320|safe }}</p>
 
   {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
   
-    <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> <br>
+    <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
     {% else %}
-    <br>
-    <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a> <br>
+  
+    <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
     {% endif %}
 
   </div>
