@@ -61,6 +61,7 @@
 
 .course-owner{
   display: flex;
+  flex-wrap: wrap;
 }
 .course-owner >*{
 
@@ -80,6 +81,50 @@
 .name{
   padding: 20px;
 }
+
+  /* ebooks */
+  .child-review{
+  display: flex;
+  margin-top: -25px;
+}
+
+.child-review >*{
+  margin: 10px;
+}
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card-review{
+  width: 300px;
+}
+.card-review:hover {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+.flex-container >*{
+  margin: 10px;
+}
+
+ /* end of ebooks */
+
+  /* fixed-bottom */
+ .fixed-bottom {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      margin: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .fixed-bottom {
+        display: none;
+      }
+    }
+
+  /* end fixed-bottom */
 </style>
 
 
@@ -108,9 +153,9 @@
  
     <br> <br>
     <p>{{ object.desc|truncatechars:100|safe }}</p>
+
   {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
   
-    
     <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a>
     {% else %}
     <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a>
@@ -226,9 +271,9 @@
       <div class="course-owner">
         {% for category in skillyouwillgain %}
         <div class="card card-cat">
-          <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
+         
           <div class="card-body child-ele">
-            <!-- <img class="" src="/static/sms/images/newlogo3.jpg" width="100px" height="50px" alt="{{ obj.desc }}"> -->
+          
             <div class="">
               <h5 style="" class="card-title">{{ category.title|title }}</h5>
            
@@ -246,25 +291,25 @@
 
 </div>
 
-hhhhh
-Enrolled {{ num_students}}
+
+<!-- Enrolled {{ num_students}}
 <div class="flex-container">
-  {% for profile in profiles %}
+  {% for profile in students %}
   <div class="card card-cat">
 
     <div class="card-body child-ele">
       
       <div class="">
+        {{ profile }}
        
-        <p class="card-text">{{ profile.first_name }} {{ profile.last_name }} - {{ profile.num_courses }} Courses</p>
       </div>
     </div>
   </div>
   {% endfor %}
-</div>
+</div> -->
 <!--end Categories and Courses -->
 
-hhhh
+
 
 <br> <br> <br>
 
@@ -305,6 +350,47 @@ hhhh
 <br>
 <!-- end FAQ -->
 
+
+
+<br> <br> <br>
+
+<!-- FAQ -->
+<div class="container">
+  <h3 id="faqs" style="text-align: center;" class="text-danger">Career Opportunities</h3>
+</div>
+
+<br>
+
+<div class="container4" style="width: 90%; margin: 0 auto;">
+  <div class="accordion" id="faqAccordion">
+    {% for obj in careeropportunities %}
+    <div class="card">
+
+      <div class="card-header" id="faqHeading{{ faq.id }}">
+        <p class="mb-0 ">
+          <button style="font-size: 12px;" class="btn btn-link " type="button" data-toggle="collapse" data-target="#faqCollapse{{ faq.id }}" aria-expanded="true" aria-controls="faqCollapse{{ faq.id }}">
+          {{ obj.courses|safe }}
+            <i class="fas fa-chevron-down"></i>
+          </button>
+        </p>
+      </div>
+
+      <div id="faqCollapse{{ faq.id }}" class="collapse" aria-labelledby="faqHeading{{ faq.id }}" data-parent="#faqAccordion">
+        <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button " class="card-body">
+          {{ obj.desc|safe }}
+        </div>
+      </div>
+
+    </div>
+    {% empty %}
+    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+    {% endfor %}
+  </div>
+</div>
+
+<br>
+<!-- end FAQ -->
+
 <br> <br> <br>
 
 <div class="container">
@@ -313,11 +399,20 @@ hhhh
   <img style="width:100%;" src="/static/sms/images/designcertificate2.png" class="card-img"  height="auto alt="">
   <p>You can share your Certificate with friends and family, on printed resumes, CVs, or other important documents.</p>
 
-
 </div>
 
 <br>
+<div class="text-center" style="margin: 0 auto;">
+  <h3 class="text-center text-danger">Start Learning Today</h3> <br>
+  {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
+    
+  <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a>
+  {% else %}
+  <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a>
+  {% endif %}
+</div>
 
+<br>
  
 <!--Review-->
 <br> <br> <br>
@@ -326,7 +421,7 @@ hhhh
   <h3 class="text-center">Learners' Reviews</h3>
 </div>
 
-<div class="">
+<!-- <div class="text-center">
   <div class="card-body">
     <div class="gallery rounded-4 text-center">
       {% for category in courseLearnerReviews %}
@@ -336,9 +431,9 @@ hhhh
             <p class="text-center category">
               <img class="rounded-4 images" src=" /static/sms/images/avater2.webp" width="30px" height="30px" alt="category image">
               {% if category.title %}
-              <div class="text-left ">{{ category.title }}</div>
+              <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button" class="text-center">{{ category.title }}</div> <br>
               {% endif %}
-              <div class="text-left ">{{ category.desc }}</div>
+              <div  class="text-center "> <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button"> {{ category.desc }}</p></div>
             </p>
           </div>
         </div>
@@ -348,10 +443,35 @@ hhhh
       {% endfor %}
     </div>
   </div>
-</div>
+</div> -->
 <!-- end Review-->
 
+<div class="flex-container">
+  {% for obj in courseLearnerReviews %}
+  <div class="card card-review">
+    <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
+    <div class="card-body child-ebooks">
+      <!-- <img class="" src="{{ alert.img_ebook.url }}" width="100px" height="130px" alt="{{ obj.desc }}"> -->
+      <div class="text-center">
+        <img src=" /static/sms/images/blankavater.png" width="100px" class="rounded-circle img-fluid" /> <hr>
+       <h3>{{ obj.title }}</h3>
 
+      </div>
+      <p class=""> {{ obj.desc }}</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- <a href="#" class="btn btn-primary fixed-bottom">Click Me</a> -->
+
+
+{% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
+  
+<a class="btn btn-primary fixed-bottom" href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a>
+{% else %}
+<a class="btn btn-primary fixed-bottom" style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a>
+{% endif %}
 
   {% endblock %} 
 
