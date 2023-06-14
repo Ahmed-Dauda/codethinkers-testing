@@ -111,11 +111,19 @@
  /* end of ebooks */
 
   /* fixed-bottom */
- .fixed-bottom {
+  .fixed-bottom {
       position: fixed;
       bottom: 0;
       right: 0;
-      margin: 25px;
+      margin: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+
+    .fixed-bottom.show {
+      opacity: 1;
+      visibility: visible;
     }
 
     @media (min-width: 768px) {
@@ -395,7 +403,7 @@
 <br> <br> <br>
 
 <div class="container">
-  <h1>Shareable Certificate</h1>
+  <h3>Shareable Certificate</h3>
 
   <img style="width:100%;" src="/static/sms/images/designcertificate2.png" class="card-img"  height="auto alt="">
   <p>You can share your Certificate with friends and family, on printed resumes, CVs, or other important documents.</p>
@@ -422,30 +430,6 @@
   <h3 class="text-center">Learners' Reviews</h3>
 </div>
 
-<!-- <div class="text-center">
-  <div class="card-body">
-    <div class="gallery rounded-4 text-center">
-      {% for category in courseLearnerReviews %}
-      <div style="border: 1px solid blue;" class="left-column-cat">
-        <div class=" card-hover">
-          <div class="card-body">
-            <p class="text-center category">
-              <img class="rounded-4 images" src=" /static/sms/images/avater2.webp" width="30px" height="30px" alt="category image">
-              {% if category.title %}
-              <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button" class="text-center">{{ category.title }}</div> <br>
-              {% endif %}
-              <div  class="text-center "> <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button"> {{ category.desc }}</p></div>
-            </p>
-          </div>
-        </div>
-      </div>
-      {% empty %}
-      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-      {% endfor %}
-    </div>
-  </div>
-</div> -->
-<!-- end Review-->
 
 <div class="flex-container">
   {% for obj in courseLearnerReviews %}
@@ -484,9 +468,9 @@
       var scrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
 
       if (scrollPosition > 500) {
-        button.style.display = "block";
+        button.classList.add("show");
       } else {
-        button.style.display = "none";
+        button.classList.remove("show");
       }
     });
   });
