@@ -152,13 +152,14 @@
   <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.course_type|safe}}</small>
  
     <br> <br>
-    <p>{{ object.desc|truncatechars:100|safe }}</p>
+    <p class=" pr-3">{{ object.desc|truncatechars:350|safe }}</p>
 
   {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
   
-    <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a>
+    <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> <br>
     {% else %}
-    <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a>
+    <br>
+    <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a> <br>
     {% endif %}
 
   </div>
@@ -468,9 +469,9 @@
 
 {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
   
-<a class="btn btn-primary fixed-bottom" href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a>
+<a class="btn btn-secondary fixed-bottom" href="{% url 'sms:topicslistview' object.id %}">Enroll {{ object.title|safe }}</a>
 {% else %}
-<a class="btn btn-primary fixed-bottom" style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a>
+<a class="btn btn-secondary fixed-bottom" style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}">Make payment to proceed </a>
 {% endif %}
 
   {% endblock %} 
