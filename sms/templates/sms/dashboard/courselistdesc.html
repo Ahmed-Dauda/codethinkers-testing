@@ -396,7 +396,7 @@
 
 <div class="container">
   <h1>Shareable Certificate</h1>
-  <p>Share your certificate with prospecti  ve employers and your professional network on LikedIn and other relevent platforms</p>
+
   <img style="width:100%;" src="/static/sms/images/designcertificate2.png" class="card-img"  height="auto alt="">
   <p>You can share your Certificate with friends and family, on printed resumes, CVs, or other important documents.</p>
 
@@ -473,6 +473,24 @@
 {% else %}
 <a class="btn btn-secondary fixed-bottom"  class=""  href="{% url 'sms:paymentdesc' %}">Make payment to proceed </a>
 {% endif %}
+
+
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    window.addEventListener("scroll", function() {
+      var button = document.querySelector(".fixed-bottom");
+      var scrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+
+      if (scrollPosition > 500) {
+        button.style.display = "block";
+      } else {
+        button.style.display = "none";
+      }
+    });
+  });
+</script>
 
   {% endblock %} 
 
