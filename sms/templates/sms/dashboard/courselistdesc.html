@@ -471,7 +471,7 @@
   
 <a class="btn btn-secondary fixed-bottom" href="{% url 'sms:topicslistview' object.id %}">Enroll {{ object.title|safe }}</a>
 {% else %}
-<a class="btn btn-secondary fixed-bottom" style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}">Make payment to proceed </a>
+<a class="btn btn-secondary fixed-bottom"  class=""  href="{% url 'sms:paymentdesc' %}">Make payment to proceed </a>
 {% endif %}
 
   {% endblock %} 
