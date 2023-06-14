@@ -428,19 +428,32 @@ FREQUENTLY ASKED QUESTIONS */
   margin: 10px;
 }
 
-
  /* end of ebooks */
+
+ @media (max-width: 767px) {
+    div[style*="background-color"] {
+      background-color: transparent !important;
+      color: white !important;
+      width: 100%;
+      font-size: 20px;
+      /* overflow-x: auto; */
+    }
+  }
 </style>
 
-<div class="card bg-dark text-white" style="width: 100%; margin-left: 0px; margin-top: 0px;">
-  <img src="/static/sms/images/landing.jpg" class="card-img" width="100%" height="450px" alt="">
-  <!-- <img src="https://mdbcdn.b-cdn.net/img/new/slids/017.webp" class="card-img" alt="Stony Beach"/> -->
+<div class="card bg-dark " style="width: 100%; margin-left: 0px; margin-right: 0px;  margin: 0px;">
+  <img src="/static/sms/images/frontend3.png" class="card-img" width="100%" height="600px" alt="">
+
   <div class="card-img-overlay" style="background-color: rgba(0, 0, 0, 0.3)">
     <br> <br> <br>
-    <h5 class="card-title">Learn without limits</h5>
-    <p class="card-text">
-      Our  academy provides practical training for different programming languages, suited for both beginners and experienced coders, with real-world projects and portfolio-building opportunities.
-    </p>
+    <div style=" background-color: white; width: 70%; font-size: 20px;" class="card-bod">
+      <h5 class="card-title">Learn without limits</h5>
+      <p  class="card-text ">
+        Our academy provides practical training for different programming languages, suited for both beginners and experienced coders,  with real-world projects and portfolio-building opportunities.
+      </p>
+      <br>
+    </div>
+   
     
     <p class="card-text"> <div class="header">
     <br>
