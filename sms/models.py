@@ -146,7 +146,7 @@ class Skillyouwillgain(models.Model):
 
 class Whatyouwilllearn(models.Model):
     
-    desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
+    desc = tinymce_models.HTMLField( blank=True, null= True)
     courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
