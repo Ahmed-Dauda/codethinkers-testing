@@ -153,7 +153,7 @@ class Whatyouwilllearn(models.Model):
     # id = models.BigAutoField(primary_key=True)
 
     def __str__(self):
-        return f'{self.desc} -{self.courses.desc}' 
+        return f'{self.desc} -{self.courses.title}' 
     
 class Whatyouwillbuild(models.Model):
     
@@ -164,7 +164,7 @@ class Whatyouwillbuild(models.Model):
     # id = models.BigAutoField(primary_key=True)
 
     def __str__(self):
-        return f'{self.desc} {self.courses.desc}' 
+        return f'{self.desc} {self.courses.title}' 
 
 class Topics(models.Model):
     
