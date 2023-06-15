@@ -11,7 +11,7 @@ from sms.models import (Categories, Courses, Topics,
                           FrequentlyAskQuestions, Partners, 
                           Coursefaqs, Skillyouwillgain,  
                           CourseLearnerReviews, Whatyouwilllearn,
-                          CareerOpportunities
+                          CareerOpportunities, Whatyouwillbuild
                         )
 
 from profile import Profile as NewProfile
@@ -465,6 +465,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courses_id= course).order_by('id')
         context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
         context['whatyouwilllearn'] =   Whatyouwilllearn.objects.all().filter(courses_id= course).order_by('id')
+        context['whatyouwillbuild'] =   Whatyouwillbuild.objects.all().filter(courses_id= course).order_by('id')
         context['careeropportunities'] =  CareerOpportunities.objects.all().filter(courses_id= course).order_by('id')
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
         # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
