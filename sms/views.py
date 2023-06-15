@@ -9,7 +9,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from sms.models import (Categories, Courses, Topics, 
                         Comment, Blog, Blogcomment,Alert, Gallery,
                           FrequentlyAskQuestions, Partners, 
-                          Coursefaqs, Skillyouwillgain,  
+                          CourseFrequentlyAskQuestions, Skillyouwillgain,  
                           CourseLearnerReviews, Whatyouwilllearn,
                           CareerOpportunities, Whatyouwillbuild
                         )
@@ -461,7 +461,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
     
         context['students'] = students
 
-        context['faqs'] = Coursefaqs.objects.all().filter(faqs_courses_id= course).order_by('id')
+        context['faqs'] = CourseFrequentlyAskQuestions.objects.all().filter(faqs_courses_id= course).order_by('id')
         context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courses_id= course).order_by('id')
         context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
         context['whatyouwilllearn'] =   Whatyouwilllearn.objects.all().filter(courses_id= course).order_by('id')
