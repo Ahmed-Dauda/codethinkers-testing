@@ -107,7 +107,7 @@ class CareerOpportunities(models.Model):
 
     # title = models.CharField(max_length=225,  null=True, blank =True )
     # desc = models.TextField(blank=True, null= True)
-    desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
+    desc = tinymce_models.HTMLField( blank=True, null= True)
     courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
@@ -119,7 +119,7 @@ class CareerOpportunities(models.Model):
 class Coursefaqs(models.Model):
     
 
-    title = models.CharField(max_length=225,  null=True, blank =True )
+    title = models.CharField( null=True, blank =True )
     desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
     # course_type = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
     faqs_courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
@@ -133,7 +133,7 @@ class Coursefaqs(models.Model):
 class Skillyouwillgain(models.Model):
     
 
-    title = models.CharField(max_length=225,  null=True, blank =True )
+    title = models.CharField(null=True, blank =True )
     # desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
     # course_type = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
     courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
@@ -146,7 +146,7 @@ class Skillyouwillgain(models.Model):
 
 class Whatyouwilllearn(models.Model):
     
-    desc = tinymce_models.HTMLField( blank=True, null= True)
+    desc = tinymce_models.HTMLField(blank=True, null= True)
     courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
