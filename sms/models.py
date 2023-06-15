@@ -35,18 +35,7 @@ class Categories(models.Model, HitCountMixin):
     def __str__(self):
         return f'{self.name}'
 
-class CourseFrequentlyAskQuestions(models.Model):
-    
 
-    title = models.CharField(max_length=225,  null=True, blank =True )
-    desc = models.TextField(blank=True, null= True)
-    course_type = models.CharField(max_length=400, blank=True, null= True)
-    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
-    # updated = models.DateTimeField(auto_now=True, blank=True, null= True)
-   
-
-    def __str__(self):
-        return f'{self.course_type} - {self.title}' 
 
 class Courses(models.Model):
     
@@ -87,7 +76,20 @@ class Courses(models.Model):
     
  
 
+class CourseFrequentlyAskQuestions(models.Model):
+    
 
+    title = models.CharField(max_length=225,  null=True, blank =True )
+    desc = models.TextField(blank=True, null= True)
+    courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True)
+    # course_type = models.CharField(max_length=400, blank=True, null= True)
+    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+    # updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+   
+
+    def __str__(self):
+        return f'{self.courses} - {self.title}' 
+    
 class CourseLearnerReviews(models.Model):
     
 
