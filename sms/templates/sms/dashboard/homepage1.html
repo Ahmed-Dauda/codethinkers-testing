@@ -23,14 +23,44 @@ body {
     height: 435px;
     overflow-y: hidden;     
 }
-
+/* end card hover effect */
 .gallery {
-    display: flex;
-    overflow-x: auto;
-    height: 300px;
-    overflow-y: hidden;   
-     
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
+
+.left-column-cat {
+  width: 300px;
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid blue;
+  transition: all 0.3s;
+}
+
+.left-column-cat:hover {
+  transform: scale(1.01);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.text-center.category {
+  margin-top: 0;
+}
+
+.text-left.container {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.images {
+  border-radius: 4px;
+}
+
+.card.text-center.text-danger {
+  margin-top: 20px;
+}
+/* end card hover effect */
+
 .beginner {
     display: flex;
     overflow-x: auto;
@@ -1136,25 +1166,18 @@ FREQUENTLY ASKED QUESTIONS */
   
   <div class="gallery rounded-4 text-center">
     {% for category in gallery %}
-    <div style="border: 1px solid blue;" class="left-column-cat  ">
-        <p  class=" text-center category">
-      
-            {% if category.gallery %}
-            <img class="rounded-4 images" src="{{category.gallery.url}}" width="280px" height="150px" alt="cetagory image">
-            {% endif %}
-            {% if category.title %}
-            <div class="text-left container">{{category.title}}</div>
-            {% endif %}
-            <!-- <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a> -->
-           <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
-            <div>{{category.created}}</div> <hr>-->
-           
-        </p>
-     
+    <div class="left-column-cat">
+      <p class="text-center category">
+        {% if category.gallery %}
+        <img class="rounded-4 images" src="{{category.gallery.url}}" width="280px" height="150px" alt="category image">
+        {% endif %}
+        {% if category.title %}
+        <div class="text-left container">{{category.title}}</div>
+        {% endif %}
+      </p>
     </div>
-
     {% empty %}
-      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
     {% endfor %}
   </div>
 <!-- END GALLERY-->
