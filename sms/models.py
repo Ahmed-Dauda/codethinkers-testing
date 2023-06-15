@@ -204,7 +204,7 @@ class FrequentlyAskQuestions(models.Model):
     # id = models.BigAutoField(primary_key=True)
 
     def __str__(self):
-        return f'{self.course_type} {self.title}' 
+        return f'{self.course_type}' 
     
 class Comment(models.Model):
     
