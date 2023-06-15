@@ -7,7 +7,7 @@ from import_export.widgets import ForeignKeyWidget
 from sms.models import (
     Categories, Courses, Topics, 
     Comment, Blog, Blogcomment,Alert, Gallery, 
-    FrequentlyAskQuestions, Partners, Coursefaqs, Skillyouwillgain, 
+    FrequentlyAskQuestions, Partners, CourseFrequentlyAskQuestions, Skillyouwillgain, 
     CourseLearnerReviews, Whatyouwilllearn, 
     CareerOpportunities, Whatyouwillbuild
     )
@@ -16,7 +16,7 @@ from sms.models import (
 admin.site.register(Gallery)
 admin.site.register(FrequentlyAskQuestions)
 admin.site.register(Partners)
-admin.site.register(Coursefaqs)
+admin.site.register(CourseFrequentlyAskQuestions)
 admin.site.register(Skillyouwillgain)
 admin.site.register( CourseLearnerReviews)
 admin.site.register(Whatyouwilllearn)
