@@ -8,7 +8,8 @@ from sms.models import (
     Categories, Courses, Topics, 
     Comment, Blog, Blogcomment,Alert, Gallery, 
     FrequentlyAskQuestions, Partners, Coursefaqs, Skillyouwillgain, 
-    CourseLearnerReviews, Whatyouwilllearn, CareerOpportunities
+    CourseLearnerReviews, Whatyouwilllearn, 
+    CareerOpportunities, Whatyouwillbuild
     )
 
 
@@ -20,6 +21,7 @@ admin.site.register(Skillyouwillgain)
 admin.site.register( CourseLearnerReviews)
 admin.site.register(Whatyouwilllearn)
 admin.site.register(CareerOpportunities)
+admin.site.register(Whatyouwillbuild)
 # class ArticleAdminResource(resources.ModelResource):
     
 #     class Meta:
