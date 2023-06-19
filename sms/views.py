@@ -12,7 +12,8 @@ from sms.models import (Categories, Courses, Topics,
                           CourseFrequentlyAskQuestions, Skillyouwillgain,  
                           CourseLearnerReviews, Whatyouwilllearn,
                           CareerOpportunities, Whatyouwillbuild,
-                          CoursePrerequisites, AboutCourseOwner,
+                          CoursePrerequisites, 
+                          AboutCourseOwner,
                           CourseEnrolled, ProfileStudent
                         )
 
@@ -455,8 +456,8 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
         course = Courses.objects.get(pk=self.kwargs["pk"])
         context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
-        prerequisites = course.prerequisites.all()
-        context['prerequisites'] =course.prerequisites.all()
+        # prerequisites = course.prerequisites.all()
+        # context['prerequisites'] =course.prerequisites.all()
          # Retrieve related courses based on categories
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
         # duplicate_slugs = Topics.objects.values('slug').annotate(count=Count('slug')).filter(count__gt=1)
