@@ -232,16 +232,16 @@ class Topics(models.Model):
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     courses=models.ForeignKey(Courses, on_delete= models.CASCADE) 
     title = models.CharField(max_length=500, blank=True, null= True)
-    # slug = models.SlugField(unique=False, blank=True, null= True)  # Enforce uniqueness
+    slug = models.SlugField(unique= True, blank=True, null= True)  # Enforce uniqueness
 
     # slug = models.SlugField(unique=True)  # Enforce uniqueness
 
-    # def save(self, *args, **kwargs):
-    #     # Generate unique slug if it's not provided
-    #     if not self.slug:
-    #         self.slug = slugify(self.title)
+    def save(self, *args, **kwargs):
+        # Generate unique slug if it's not provided
+        if not self.slug:
+            self.slug = slugify(self.title)
 
-    #     super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     # objectives = tinymce_models.HTMLField(null= True,blank=True,)
     desc = models.TextField(blank=True, null= True)
