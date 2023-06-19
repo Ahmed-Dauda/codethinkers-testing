@@ -232,7 +232,7 @@ class Topics(models.Model):
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     courses=models.ForeignKey(Courses, on_delete= models.CASCADE) 
     title = models.CharField(max_length=500, blank=True, null= True)
-    slug = models.SlugField(unique=True)  # Enforce uniqueness
+    slug = models.SlugField(unique=True, blank=True, null= True)  # Enforce uniqueness
 
     def save(self, *args, **kwargs):
         # Generate unique slug if it's not provided
