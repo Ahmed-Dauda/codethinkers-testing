@@ -149,7 +149,7 @@ class TopicsResource(resources.ModelResource):
                
 class TopicsAdmin(ImportExportModelAdmin):
     list_display = ['id','categories','courses' ,'title','desc' , 'img_topic', 'video', 'topics_url', 'created','updated']
-    # prepopulated_fields = {"slug": ("title",)}
+    prepopulated_fields = {"slug": ("title",)}
     list_filter =  ['id','categories','courses' ,'title', 'topics_url', 'created']
     search_fields= ['id','categories','courses' ,'title', 'created']
     ordering = ['id']
