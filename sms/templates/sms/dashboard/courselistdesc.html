@@ -202,6 +202,7 @@
 <div class="pl-3 pr-3">
 
   <h3>About this Course</h3>
+
   <p class="pl-3">{% get_hit_count for object %} <i class="fas fa-eye"></i> recent views</p>
 
   <p id="myLink" class=" pr-3">{{ object.desc|truncatechars:290|safe }}</p>
@@ -301,6 +302,7 @@
 <br> <br> <br>
 <div class="pl-3 pr-3">
 <h3>About Course Owner</h3>
+
 {% for aboutcourseowner in aboutcourseowners %}
 
 <p id="myLink2" class=" pr-3">{{ aboutcourseowner.desc|truncatechars:200|safe }}</p>
@@ -312,10 +314,10 @@
   <!-- bootstrap changes it to true/false on toggle -->
  
   <a href="#block-id" class="" data-toggle="collapse" aria-expanded="false" aria-controls="block-id">
-    <span onclick="toggleElement()" class="collapsed">
+    <span onclick="toggleElement2()" class="collapsed">
       Show more
     </span>
-    <span onclick="toggleElement()" class="expanded">
+    <span onclick="toggleElement2()" class="expanded">
       Show Less
     </span>
   </a>
@@ -620,11 +622,10 @@
       link.style.display = "none";
     }
   }
-</script>
 
-<!-- about the course owner -->
-<script>
-  function toggleElement() {
+
+  // about the course owner section
+  function toggleElement2() {
     var link = document.getElementById("myLink2");
     if (link.style.display === "none") {
       link.style.display = "inline";
@@ -632,7 +633,12 @@
       link.style.display = "none";
     }
   }
+  // end about the course owner section
 </script>
+
+<!-- about the course owner -->
+
+
   {% endblock %} 
 
 
