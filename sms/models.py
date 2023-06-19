@@ -230,7 +230,7 @@ class Topics(models.Model):
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     courses=models.ForeignKey(Courses, on_delete= models.CASCADE) 
     title = models.CharField(max_length=500, blank=True, null= True)
-    slug = models.SlugField(null=False, unique=True) 
+    slug = models.SlugField(null=False) 
     # objectives = tinymce_models.HTMLField(null= True,blank=True,)
     desc = models.TextField(blank=True, null= True)
     # desc_home = tinymce_models.HTMLField( blank=True, null= True)
@@ -240,7 +240,7 @@ class Topics(models.Model):
     video = EmbedVideoField(blank=True, null= True)  # same like models.URLField()
     topics_url = models.CharField(max_length=500, blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
-    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null= True) 
     id = models.BigAutoField(primary_key=True)
     hit_count_generic = GenericRelation(
     HitCount, object_id_field='object_pk',
