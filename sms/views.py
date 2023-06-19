@@ -460,7 +460,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
          # Retrieve related courses based on categories
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
         # duplicate_slugs = Topics.objects.values('slug').annotate(count=Count('slug')).filter(count__gt=1)
-        print('duplicate slug: ',duplicate_slugs)
+        # print('duplicate slug: ',duplicate_slugs)
        
         courses = Courses.objects.all()
     
