@@ -148,7 +148,16 @@
   .card:hover {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
+
+.desc-hidden {
+      display: none;
+  }
+
+
+  
 </style>
+
+
 
 
   <div  style="padding-left: 20px; background-color: rgb(240, 238, 235)" class="">
@@ -173,7 +182,7 @@
   {% endif %}
   <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.categories.name|safe|title}} level</small> <br>
   <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.course_type|safe}}</small>
- 
+
     <br> <br>
     <p class=" pr-3">{{ object.desc|truncatechars:300|safe }}</p>
 
@@ -189,22 +198,25 @@
 
 <br>
 
+
 <div class="pl-3 pr-3">
 
   <h3>About this Course</h3>
   <p class="pl-3">{% get_hit_count for object %} <i class="fas fa-eye"></i> recent views</p>
-  <p class="collapse" id="block-id">
-    {{ object.desc|safe }}
-  </p>
+
+  <p id="myLink" class=" pr-3">{{ object.desc|truncatechars:290|safe }}</p>
+  
+  <p class="collapse" id="block-id"> {{ object.desc|safe }}</p>
+
   <p>
     <!-- aria-expanded attribute is mandatory -->
     <!-- bootstrap changes it to true/false on toggle -->
    
-    <a href="#block-id" class="btn btn-primary" data-toggle="collapse" aria-expanded="false" aria-controls="block-id">
-      <span class="collapsed">
+    <a href="#block-id" class="" data-toggle="collapse" aria-expanded="false" aria-controls="block-id">
+      <span onclick="toggleElement()" class="collapsed">
         Show more
       </span>
-      <span class="expanded">
+      <span onclick="toggleElement()" class="expanded">
         Show Less
       </span>
     </a>
@@ -213,6 +225,23 @@
  
 </div>
 
+
+<br><br><br>
+<div class="pl-3 pr-3">
+<h3>Course Prerequisites</h3>
+{% if prerequisites %}
+    <ul >
+        {% for prerequisite in prerequisites %}
+            <li >
+                <a href="{% url 'sms:courseslistdesc' prerequisite.id %}">{{ prerequisite.title }}</a>
+                
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No prerequisites for this course.</p>
+{% endif %}
+</div>
 
 
   <!-- ebooks section endign -->
@@ -269,6 +298,33 @@
 
 </div>
 
+<br> <br> <br>
+<div class="pl-3 pr-3">
+<h3>About Course Owner</h3>
+{% for aboutcourseowner in aboutcourseowners %}
+
+<p id="myLink2" class=" pr-3">{{ aboutcourseowner.desc|truncatechars:200|safe }}</p>
+  
+<p class="collapse" id="block-id"> {{ aboutcourseowner.desc|safe }}</p>
+
+<p>
+  <!-- aria-expanded attribute is mandatory -->
+  <!-- bootstrap changes it to true/false on toggle -->
+ 
+  <a href="#block-id" class="" data-toggle="collapse" aria-expanded="false" aria-controls="block-id">
+    <span onclick="toggleElement()" class="collapsed">
+      Show more
+    </span>
+    <span onclick="toggleElement()" class="expanded">
+      Show Less
+    </span>
+  </a>
+</p>
+{% empty %}
+<h3 class="card text-center text-danger">No Record here</h3>
+{% endfor %}
+
+</div>
 <br><br><br>
 
 <div class="container ">
@@ -299,7 +355,7 @@
             <p class="card-title">{{ category.title|safe }}</p>
           </div>
           {% empty %}
-          <h1 class="card text-center text-danger">No Record here</h1>
+          <h3 class="card text-center text-danger">No Record here</h3>
           {% endfor %}
         </div>
       </div>
@@ -315,7 +371,7 @@
             <p class="card-title">{{ category.desc|safe }}</p>
           </div>
           {% empty %}
-          <h1 class="card text-center text-danger">No Record here</h1>
+          <h3 class="card text-center text-danger">No Record here</h3>
           {% endfor %}
         </div>
       </div>
@@ -323,53 +379,21 @@
   </div>
 </div>
 
-  <!-- <div class="card mb-4 py-3  border-bottom-primary pl-3">
-    <h6 class="mb-4">
-      SKILLS YOU WILL GAIN
-    </h>
-
-    <div class="card-body whatyouwilllearn">
-      <div class="course-owner">
-        {% for category in skillyouwillgain %}
-        <div class="card card-cat">
-         
-          <div class="card-body child-ele">
-          
-            <div class="">
-              <p  class="card-title">{{ category.title|safe }}</p>
-           
-            </div>
-          </div>
-        </div>
-        {% empty %}
-        <h3 class="card text-center text-danger">No Record here</h3>
-        {% endfor %}
-      </div>
-      
-    </div>
-  </div> -->
-
 
 </div>
 
 
-<!-- Enrolled {{ num_students}}
-<div class="flex-container">
-  {% for profile in students %}
-  <div class="card card-cat">
 
-    <div class="card-body child-ele">
-      
-      <div class="">
-        {{ profile }}
-       
-      </div>
-    </div>
-  </div>
-  {% endfor %}
-</div> -->
-<!--end Categories and Courses -->
 
+<!-- your_template.html -->
+ <!-- ffffffffff 
+ {{course_enrollment}} -->
+ 
+
+{% for item in course_enrollment %}
+  <h3>Course: {{ item.course.title }}</h3>
+  <p>Number of Students Enrolled: {{ item.num_students_enrolled }}</p>
+{% endfor %} 
 
 
 <br> <br> <br>
@@ -501,7 +525,63 @@
 </div>
 
 <!-- <a href="#" class="btn btn-primary fixed-bottom">Click Me</a> -->
+<br> <br> <br>
 
+<!--  related courses -->
+<div style="color: black; font-size: 18px; font-weight: bold;" class="card-body">
+  <h3 class="text-center">Related Courses</h3>
+</div>
+
+
+<div class="flex-container">
+  {% for obj in related_courses %}
+  <div class="card card-review">
+
+    <a style="height: 10px;" class=""  href="{% url 'sms:courseslistdesc' obj.pk %}">
+    <div class="card-body child-ebooks">
+      <a  class=""  href="{% url 'sms:courseslistdesc' obj.pk %}">
+      <div class="">
+        {% if obj.img_course %}
+        <img class="" src="{{obj.img_course.url}}" width="100%" height="200px" alt="cetagory image">
+        
+        {% endif %}
+        <br>
+        <div class="pl-2">
+        <div class="d-flex ">
+
+        {% if obj.course_logo.url %}
+        <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
+        {% else %}
+        <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
+      {% endif %}
+
+      {% if obj.course_owner %}
+      <small class="text-dark">{{obj.course_owner|safe}}</small>
+      {% else %}
+      <small class="text-dark">Codethinkers Academy</small>
+      {% endif %}
+    
+      </div>
+    </div>
+
+      <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
+      {% if obj.price %}
+      <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+      {% else %}
+      <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
+      {% endif %}
+      <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
+      <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+      <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
+      </div>
+  
+    </div>
+    </a>
+    
+  </div>
+  {% endfor %}
+</div>
+<!-- end of related courses -->
 
 {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
   
@@ -512,6 +592,8 @@
 
 
 
+
+<!-- about scroll top to see enrollment -->
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
@@ -528,6 +610,29 @@
   });
 </script>
 
+<!-- about course descriptions -->
+<script>
+  function toggleElement() {
+    var link = document.getElementById("myLink");
+    if (link.style.display === "none") {
+      link.style.display = "inline";
+    } else {
+      link.style.display = "none";
+    }
+  }
+</script>
+
+<!-- about the course owner -->
+<script>
+  function toggleElement() {
+    var link = document.getElementById("myLink2");
+    if (link.style.display === "none") {
+      link.style.display = "inline";
+    } else {
+      link.style.display = "none";
+    }
+  }
+</script>
   {% endblock %} 
 
 
