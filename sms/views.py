@@ -11,7 +11,9 @@ from sms.models import (Categories, Courses, Topics,
                           FrequentlyAskQuestions, Partners, 
                           CourseFrequentlyAskQuestions, Skillyouwillgain,  
                           CourseLearnerReviews, Whatyouwilllearn,
-                          CareerOpportunities, Whatyouwillbuild
+                          CareerOpportunities, Whatyouwillbuild,
+                          CoursePrerequisites, AboutCourseOwner,
+                          CourseEnrolled, ProfileStudent
                         )
 
 from profile import Profile as NewProfile
@@ -452,14 +454,31 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # context['profiles'] =  Profile.objects.filter(courses__pk = self.object.id)
         context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
         course = Courses.objects.get(pk=self.kwargs["pk"])
-         # this gives me numbers of the courses enrolled for all students
-        # context['profiles'] =  Profile.objects.annotate(num_courses = Count('courses')) 
-        # course = self.get_object()  # Get the current course
+        context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
+        prerequisites = course.prerequisites.all()
+        context['prerequisites'] =course.prerequisites.all()
+         # Retrieve related courses based on categories
+        context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
+     
+       
+        courses = Courses.objects.all()
     
-        students = Profile.objects.filter(courses = self.object.id)  # Get all students related to the course
-        context['num_students'] = students.count()  # Get the count of students
-    
-        context['students'] = students
+        # Retrieve the number of students enrolled per course
+        course_enrollment = []
+        for course in courses:
+            num_students_enrolled = Profile.objects.filter(courses__id=course.id).count()
+            course_enrollment.append({
+                'course': course,
+                'num_students_enrolled': num_students_enrolled
+            })
+        context['course_enrollment']=course_enrollment
+
+        # context = super().get_context_data(**kwargs)
+        
+        # Retrieve the number of students enrolled for this course
+        # course = self.get_object()
+        # num_students_enrolled = Profile.objects.filter(courses__id=course.id).count()
+        # context['course_enrollment']= num_students_enrolled
 
         context['faqs'] = CourseFrequentlyAskQuestions.objects.all().filter(courses_id= course).order_by('id')
         context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courses_id= course).order_by('id')
@@ -467,6 +486,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['whatyouwilllearn'] =   Whatyouwilllearn.objects.all().filter(courses_id= course).order_by('id')
         context['whatyouwillbuild'] =   Whatyouwillbuild.objects.all().filter(courses_id= course).order_by('id')
         context['careeropportunities'] =  CareerOpportunities.objects.all().filter(courses_id= course).order_by('id')
+        context['aboutcourseowners'] =  AboutCourseOwner.objects.all().filter(courses_id= course).order_by('id')
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
         # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
         

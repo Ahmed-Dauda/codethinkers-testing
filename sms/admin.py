@@ -9,7 +9,8 @@ from sms.models import (
     Comment, Blog, Blogcomment,Alert, Gallery, 
     FrequentlyAskQuestions, Partners, CourseFrequentlyAskQuestions, Skillyouwillgain, 
     CourseLearnerReviews, Whatyouwilllearn, 
-    CareerOpportunities, Whatyouwillbuild
+    CareerOpportunities, Whatyouwillbuild, 
+    CoursePrerequisites,AboutCourseOwner, ProfileStudent, CourseEnrolled
     )
 
 
@@ -22,6 +23,10 @@ admin.site.register( CourseLearnerReviews)
 admin.site.register(Whatyouwilllearn)
 admin.site.register(CareerOpportunities)
 admin.site.register(Whatyouwillbuild)
+admin.site.register(CoursePrerequisites)
+admin.site.register(AboutCourseOwner)
+admin.site.register(ProfileStudent)
+admin.site.register(CourseEnrolled)
 # class ArticleAdminResource(resources.ModelResource):
     
 #     class Meta:
@@ -144,7 +149,7 @@ class TopicsResource(resources.ModelResource):
                
 class TopicsAdmin(ImportExportModelAdmin):
     list_display = ['id','categories','courses' ,'title','desc' , 'img_topic', 'video', 'topics_url', 'created','updated']
-    # prepopulated_fields = {"slug": ("title",)}
+    prepopulated_fields = {"slug": ("title",)}
     list_filter =  ['id','categories','courses' ,'title', 'topics_url', 'created']
     search_fields= ['id','categories','courses' ,'title', 'created']
     ordering = ['id']
