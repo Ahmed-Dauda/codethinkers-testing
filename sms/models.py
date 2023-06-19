@@ -224,13 +224,23 @@ class AboutCourseOwner(models.Model):
 
     def __str__(self):
         return f'{self.courses.title}' 
-    
+
+from django.utils.text import slugify
+
 class Topics(models.Model):
     
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     courses=models.ForeignKey(Courses, on_delete= models.CASCADE) 
     title = models.CharField(max_length=500, blank=True, null= True)
-    slug = models.SlugField(null=False) 
+    slug = models.SlugField(unique=True)  # Enforce uniqueness
+
+    def save(self, *args, **kwargs):
+        # Generate unique slug if it's not provided
+        if not self.slug:
+            self.slug = slugify(self.title)
+
+        super().save(*args, **kwargs)
+
     # objectives = tinymce_models.HTMLField(null= True,blank=True,)
     desc = models.TextField(blank=True, null= True)
     # desc_home = tinymce_models.HTMLField( blank=True, null= True)
