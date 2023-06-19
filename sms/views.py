@@ -12,7 +12,7 @@ from sms.models import (Categories, Courses, Topics,
                           CourseFrequentlyAskQuestions, Skillyouwillgain,  
                           CourseLearnerReviews, Whatyouwilllearn,
                           CareerOpportunities, Whatyouwillbuild,
-                          CoursePrerequisites, AboutCourseOwner,
+                          AboutCourseOwner,
                           CourseEnrolled, ProfileStudent
                         )
 
@@ -456,23 +456,23 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         course = Courses.objects.get(pk=self.kwargs["pk"])
         context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
         prerequisites = course.prerequisites.all()
-        context['prerequisites'] =course.prerequisites.all() 
+        context['prerequisites'] = prerequisites
          # Retrieve related courses based on categories
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
         # duplicate_slugs = Topics.objects.values('slug').annotate(count=Count('slug')).filter(count__gt=1)
         # print('duplicate slug: ',duplicate_slugs)
        
-        courses = Courses.objects.all()
+        # courses = Courses.objects.all()
     
-        # Retrieve the number of students enrolled per course
-        course_enrollment = []
-        for course in courses:
-            num_students_enrolled = Profile.objects.filter(courses__id=course.id).count()
-            course_enrollment.append({
-                'course': course,
-                'num_students_enrolled': num_students_enrolled
-            })
-        context['course_enrollment']=course_enrollment
+        # # Retrieve the number of students enrolled per course
+        # course_enrollment = []
+        # for course in courses:
+        #     num_students_enrolled = Profile.objects.filter(courses__id=course.id).count()
+        #     course_enrollment.append({
+        #         'course': course,
+        #         'num_students_enrolled': num_students_enrolled
+        #     })
+        # context['course_enrollment']=course_enrollment
 
         # context = super().get_context_data(**kwargs)
         
