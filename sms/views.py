@@ -459,28 +459,22 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['prerequisites'] = prerequisites
          # Retrieve related courses based on categories
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
-        # duplicate_slugs = Topics.objects.values('slug').annotate(count=Count('slug')).filter(count__gt=1)
-        # print('duplicate slug: ',duplicate_slugs)
-       
-        # courses = Courses.objects.all()
-    
-        # # Retrieve the number of students enrolled per course
+      
+        courses = Courses.objects.get(pk=self.kwargs["pk"])
+        # Retrieve the number of students enrolled per course
+         # Retrieve the number of students enrolled per course
         # course_enrollment = []
-        # for course in courses:
-        #     num_students_enrolled = Profile.objects.filter(courses__id=course.id).count()
+        # context['course_enrollment'] = course_enrollment
+        # for courseen in courses:
+        #     # num_students_enrolled = Profile.objects.filter(courses__id=course.id).count()
+        #     num_students_enrolled = Profile.objects.filter(courses__id=courseen.id).count()
         #     course_enrollment.append({
-        #         'course': course,
+        #         'course': courseen,  
         #         'num_students_enrolled': num_students_enrolled
         #     })
-        # context['course_enrollment']=course_enrollment
 
-        # context = super().get_context_data(**kwargs)
-        
-        # Retrieve the number of students enrolled for this course
-        # course = self.get_object()
-        # num_students_enrolled = Profile.objects.filter(courses__id=course.id).count()
-        # context['course_enrollment']= num_students_enrolled
-
+      
+    
         context['faqs'] = CourseFrequentlyAskQuestions.objects.all().filter(courses_id= course).order_by('id')
         context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courses_id= course).order_by('id')
         context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
