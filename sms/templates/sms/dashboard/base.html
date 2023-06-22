@@ -82,6 +82,9 @@ rel="stylesheet"
   
    
  }
+ .nav-item{
+    font-size: 30px;
+ }
 </style>
 <body id="page-top" class="sidebar-toggled ">
     
@@ -90,7 +93,7 @@ rel="stylesheet"
     <div id="wrapper" class="bg-white">
 
         <!-- Sidebar -->
-        <ul class="navbar-nav bg-primary sidebar sidebar-dark accordion toggled" id="accordionSidebar">
+        <ul  class="navbar-nav bg-primary sidebar sidebar-dark accordion toggled" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'sms:homepage' %}">
@@ -104,12 +107,12 @@ rel="stylesheet"
             <hr class="sidebar-divider my-0">
 
             <!-- Nav Item - Dashboard -->
-            <li class="nav-item active">
+            <!-- <li class="nav-item active">
                 <a class="nav-link" href="{% url 'sms:homepage' %}">
                     <i class="fas fa-home fa-fw "></i>
                     <span>Home Page</span>
                 </a>
-            </li>
+            </li> -->
 
             <!-- Divider -->
             
@@ -350,18 +353,19 @@ rel="stylesheet"
             <!-- Footer -->
            <br><br><br><br>
         
-            <footer class="sticky-footer bg-dark"> 
-            <div class=" text-center col-lg-4 my-3 my-lg-0">
+            <footer class="sticky-footer bg-dark "> 
+            <div style="margin: 0 auto;" class=" text-center col-lg-4 my-3 my-lg-0">
                     
                 <a class="text-center bg-white btn btn-white btn-social mx-2" href="https://youtube.com/channel/UCZLdq1lpQOZAO7fDc6n8GtQ" role="button"><i class="fab fa-youtube"></i></a>        
                 <a class="text-center bg-white btn btn-white btn-social mx-2" href="https://web.facebook.com/addatainsight"><i class="fab fa-facebook"></i></a>
             </div>
-            
+            <br>
                 <div class="container my-auto">
                     <div class="copyright text-center text-white my-auto">
                         <span>Copyright © Codethinkers' Academy 2023</span>
                     </div>
                 </div>
+                <br>   <br>   <br>   <br>   
             </footer>
             <!-- End of Footer -->
 

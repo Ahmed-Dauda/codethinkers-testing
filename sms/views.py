@@ -9,7 +9,11 @@ from django.http import HttpResponse, HttpResponseRedirect
 from sms.models import (Categories, Courses, Topics, 
                         Comment, Blog, Blogcomment,Alert, Gallery,
                           FrequentlyAskQuestions, Partners, 
-                          Coursefaqs, Skillyouwillgain,  CourseLearnerReviews
+                          CourseFrequentlyAskQuestions, Skillyouwillgain,  
+                          CourseLearnerReviews, Whatyouwilllearn,
+                          CareerOpportunities, Whatyouwillbuild,
+                          AboutCourseOwner,
+                          CourseEnrolled, ProfileStudent
                         )
 
 from profile import Profile as NewProfile
@@ -442,13 +446,42 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
-        
+      
         context['coursess'] = Courses.objects.all().order_by('created')[:10] 
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
+        # context['profiles'] = Courses.objects.annotate(num_student =Count('courses'))
+        # course = Courses.objects.get(id=1)  # Get a specific course
+        # context['profiles'] =  Profile.objects.filter(courses__pk = self.object.id)
+        context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
         course = Courses.objects.get(pk=self.kwargs["pk"])
-        context['faqs'] = Coursefaqs.objects.all().filter(faqs_courses_id= course).order_by('id')
+        context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
+        prerequisites = course.prerequisites.all()
+        context['prerequisites'] = prerequisites
+         # Retrieve related courses based on categories
+        context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
+      
+        courses = Courses.objects.get(pk=self.kwargs["pk"])
+        # Retrieve the number of students enrolled per course
+         # Retrieve the number of students enrolled per course
+        # course_enrollment = []
+        # context['course_enrollment'] = course_enrollment
+        # for courseen in courses:
+        #     # num_students_enrolled = Profile.objects.filter(courses__id=course.id).count()
+        #     num_students_enrolled = Profile.objects.filter(courses__id=courseen.id).count()
+        #     course_enrollment.append({
+        #         'course': courseen,  
+        #         'num_students_enrolled': num_students_enrolled
+        #     })
+
+      
+    
+        context['faqs'] = CourseFrequentlyAskQuestions.objects.all().filter(courses_id= course).order_by('id')
         context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courses_id= course).order_by('id')
         context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
+        context['whatyouwilllearn'] =   Whatyouwilllearn.objects.all().filter(courses_id= course).order_by('id')
+        context['whatyouwillbuild'] =   Whatyouwillbuild.objects.all().filter(courses_id= course).order_by('id')
+        context['careeropportunities'] =  CareerOpportunities.objects.all().filter(courses_id= course).order_by('id')
+        context['aboutcourseowners'] =  AboutCourseOwner.objects.all().filter(courses_id= course).order_by('id')
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
         # print('tttt',Topics.objects.get(slug=self.kwargs["slug"]))
         

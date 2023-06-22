@@ -35,66 +35,115 @@ class Categories(models.Model, HitCountMixin):
     def __str__(self):
         return f'{self.name}'
 
-class Coursefaqs(models.Model):
-    
 
-    title = models.CharField(max_length=225,  null=True, blank =True )
-    desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
-    course_type = models.CharField(max_length=500, blank=True, null= True)
-    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
-    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
-    # id = models.BigAutoField(primary_key=True)
-
-    def __str__(self):
-        return f'{self.course_type} {self.title}' 
 
 class Courses(models.Model):
-    
     COURSE_TYPE = [
-    ('Course','COURSE'),
-    ('Professional Certificate', 'PROFESSIONAL CERTIFICATE'),
-    ('Specialization', 'SPECIALIZATION'),
-    ('Degree', 'DEGREE'),
-     ('Diploma', 'DIPLOMA'),
+        ('Course', 'COURSE'),
+        ('Professional Certificate', 'PROFESSIONAL CERTIFICATE'),
+        ('Specialization', 'SPECIALIZATION'),
+        ('Degree', 'DEGREE'),
+        ('Diploma', 'DIPLOMA'),
     ]
 
     PAYMENT_CHOICES = [
-    ('Premium','PREMIUM'),
-    ('Free', 'FREE'),
-    ('Sponsored', 'SPONSORED'),
-  
+        ('Premium', 'PREMIUM'),
+        ('Free', 'FREE'),
+        ('Sponsored', 'SPONSORED'),
     ]
-    img_course = CloudinaryField('image', blank=True, null= True)
-    student = models.ForeignKey(Profile,on_delete=models.CASCADE, blank=True, null= True)
-    categories =models.ForeignKey(Categories,blank=False ,default=1, on_delete=models.SET_NULL, related_name='categories', null= True)
-    title = models.CharField(max_length=225, blank=True, null= True)
-    course_logo = CloudinaryField('course_logo', blank=True, null= True)
-    course_owner = models.CharField(max_length=225, blank=True, null= True)
-    course_type = models.CharField(choices = COURSE_TYPE, default='course' , max_length=225, blank=True, null= True)
-    status_type = models.CharField (choices = PAYMENT_CHOICES, default='Free' ,max_length=225, blank=True, null= True)
-    price = models.DecimalField (max_digits=10, decimal_places=2, default= '20000' ,max_length=225, blank=True, null= True)
-    desc = models.TextField( null= True)
-    desc_home = models.TextField(blank=True, null= True)
-    course_desc = models.TextField(blank=True, null= True)
-    # whatyouwilllearn = tinymce_models.HTMLField(blank=True, null= True)
-    # skillyouwillgain = models.CharField(max_length=225,blank=True, null= True)
-    # faqs = models.ForeignKey(Coursefaqs,on_delete=models.CASCADE, blank=True, null= True)
-    # course_link = models.URLField(max_length=225, blank=True, null= True)
-    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
-    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+
+    img_course = CloudinaryField('image', blank=True, null=True)
+    student = models.ForeignKey(Profile, on_delete=models.CASCADE, blank=True, null=True, related_name='courses')
+    prerequisites = models.ManyToManyField('self', blank=True, symmetrical=False)
+    categories = models.ForeignKey(Categories, blank=False, default=1, on_delete=models.SET_NULL, related_name='categories', null=True)
+    title = models.CharField(max_length=225, blank=True, null=True)
+    course_logo = CloudinaryField('course_logo', blank=True, null=True)
+    course_owner = models.CharField(max_length=225, blank=True, null=True)
+    course_type = models.CharField(choices=COURSE_TYPE, default='course', max_length=225, blank=True, null=True)
+    status_type = models.CharField(choices=PAYMENT_CHOICES, default='Free', max_length=225, blank=True, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default='20000', max_length=225, blank=True, null=True)
+    desc = models.TextField(null=True)
+    # desc_home = models.TextField(blank=True, null=True)
+    # course_desc = models.TextField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
     hit_count_generic = GenericRelation(
-    HitCount, object_id_field='object_pk',
-    related_query_name='hit_count_generic_relation')
+        HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
 
     def __str__(self):
         return f'{self.title}'
 
 
+class ProfileStudent(models.Model):
+    user = models.OneToOneField(Profile, on_delete=models.CASCADE)
+    # ... other profile fields ...
+
+class CourseEnrolled(models.Model):
+    # ... other course fields ...
+    students = models.ManyToManyField(ProfileStudent, related_name='enrolled_courses')
+
+    def get_num_students_enrolled(self):
+        return self.students.count()
+    
+# class Courses(models.Model):
+    
+#     COURSE_TYPE = [
+#     ('Course','COURSE'),
+#     ('Professional Certificate', 'PROFESSIONAL CERTIFICATE'),
+#     ('Specialization', 'SPECIALIZATION'),
+#     ('Degree', 'DEGREE'),
+#      ('Diploma', 'DIPLOMA'),
+#     ]
+
+#     PAYMENT_CHOICES = [
+#     ('Premium','PREMIUM'),
+#     ('Free', 'FREE'),
+#     ('Sponsored', 'SPONSORED'),
+  
+#     ]
+#     img_course = CloudinaryField('image', blank=True, null= True)
+#     student = models.ForeignKey(Profile,on_delete=models.CASCADE, blank=True, null= True, related_name='courses')
+#     prerequisite = models.ForeignKey(CoursePrerequisites,on_delete=models.CASCADE, blank=True, null= True, related_name='courseprerequisites')
+#     categories =models.ForeignKey(Categories,blank=False ,default=1, on_delete=models.SET_NULL, related_name='categories', null= True)
+#     title = models.CharField(max_length=225, blank=True, null= True)
+#     course_logo = CloudinaryField('course_logo', blank=True, null= True)
+#     course_owner = models.CharField(max_length=225, blank=True, null= True)
+#     course_type = models.CharField(choices = COURSE_TYPE, default='course' , max_length=225, blank=True, null= True)
+#     status_type = models.CharField (choices = PAYMENT_CHOICES, default='Free' ,max_length=225, blank=True, null= True)
+#     price = models.DecimalField (max_digits=10, decimal_places=2, default= '20000' ,max_length=225, blank=True, null= True)
+#     desc = models.TextField( null= True)
+#     desc_home = models.TextField(blank=True, null= True)
+#     course_desc = models.TextField(blank=True, null= True)
+#     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+#     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+#     hit_count_generic = GenericRelation(
+#     HitCount, object_id_field='object_pk',
+#     related_query_name='hit_count_generic_relation')
+
+#     def __str__(self):
+#         return f'{self.title}'
+    
+ 
+
+class CourseFrequentlyAskQuestions(models.Model):
+    
+
+    title = models.CharField(max_length=225,  null=True, blank =True )
+    desc = models.TextField(blank=True, null= True)
+    courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True)
+    # course_type = models.CharField(max_length=400, blank=True, null= True)
+    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+    # updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+   
+
+    def __str__(self):
+        return f'{self.courses} - {self.title}' 
+    
 class CourseLearnerReviews(models.Model):
     
 
     title = models.CharField(max_length=225,  null=True, blank =True )
-    desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
+    desc = models.TextField(blank=True, null= True)
     # course_type = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
     courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
@@ -102,26 +151,28 @@ class CourseLearnerReviews(models.Model):
     # id = models.BigAutoField(primary_key=True)
 
     def __str__(self):
-        return f'{self.title} -{self.courses.title}' 
-    
-class Coursefaqs(models.Model):
+        return f'{self.title} -{self.courses.title}'
+     
+class CareerOpportunities(models.Model):
     
 
-    title = models.CharField(max_length=225,  null=True, blank =True )
-    desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
-    # course_type = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
-    faqs_courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
+    # title = models.CharField(max_length=225,  null=True, blank =True )
+    # desc = models.TextField(blank=True, null= True)
+    desc = tinymce_models.HTMLField( blank=True, null= True)
+    courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
     # id = models.BigAutoField(primary_key=True)
 
     def __str__(self):
-        return f'{self.title} -{self.faqs_courses.title}' 
+        return f'{self.desc} -{self.courses.title}' 
+      
+
 
 class Skillyouwillgain(models.Model):
     
 
-    title = models.CharField(max_length=225,  null=True, blank =True )
+    title = models.CharField(max_length=900,null=True, blank =True )
     # desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
     # course_type = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
     courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
@@ -130,14 +181,59 @@ class Skillyouwillgain(models.Model):
     # id = models.BigAutoField(primary_key=True)
 
     def __str__(self):
-        return f'{self.title} ' 
-      
+        return f'{self.title} - {self.courses.title}' 
+
+class Whatyouwilllearn(models.Model):
+    
+    desc = models.CharField(max_length=900,null=True, blank =True )
+    courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
+    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+    # id = models.BigAutoField(primary_key=True)
+
+    def __str__(self):
+        return f'{self.desc} -{self.courses.title}' 
+    
+class Whatyouwillbuild(models.Model):
+    
+    desc = models.CharField(max_length=900,null=True, blank =True )
+    courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
+    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+    # id = models.BigAutoField(primary_key=True)
+
+    def __str__(self):
+        return f'{self.desc} {self.courses.title}' 
+
+class AboutCourseOwner(models.Model):
+    
+    desc = models.TextField(null=True, blank =True )
+    courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
+    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+    # id = models.BigAutoField(primary_key=True)
+
+    def __str__(self):
+        return f'{self.courses.title}' 
+
+from django.utils.text import slugify
+
 class Topics(models.Model):
     
     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
     courses=models.ForeignKey(Courses, on_delete= models.CASCADE) 
     title = models.CharField(max_length=500, blank=True, null= True)
-    slug = models.SlugField(max_length=500)
+    slug = models.SlugField(unique= True, blank=True, null= True)  # Enforce uniqueness
+
+    # slug = models.SlugField(unique=True)  # Enforce uniqueness
+
+    def save(self, *args, **kwargs):
+        # Generate unique slug if it's not provided
+        if not self.slug:
+            self.slug = slugify(self.title)
+
+        super().save(*args, **kwargs)
+
     # objectives = tinymce_models.HTMLField(null= True,blank=True,)
     desc = models.TextField(blank=True, null= True)
     # desc_home = tinymce_models.HTMLField( blank=True, null= True)
@@ -147,7 +243,7 @@ class Topics(models.Model):
     video = EmbedVideoField(blank=True, null= True)  # same like models.URLField()
     topics_url = models.CharField(max_length=500, blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
-    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null= True) 
     id = models.BigAutoField(primary_key=True)
     hit_count_generic = GenericRelation(
     HitCount, object_id_field='object_pk',
@@ -163,14 +259,14 @@ class FrequentlyAskQuestions(models.Model):
     
 
     title = models.CharField(max_length=225,  null=True, blank =True )
-    desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
+    desc = models.TextField(blank=True, null= True)
     course_type = models.CharField(max_length=500, blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
     # id = models.BigAutoField(primary_key=True)
 
     def __str__(self):
-        return f'{self.course_type} {self.title}' 
+        return f'{self.title}' 
     
 class Comment(models.Model):
     
