@@ -1,5 +1,7 @@
 {% extends 'sms/dashboard/base.html' %}
 {% load hitcount_tags %}
+
+
 {% block title %} Course Details {% endblock %}
 
   {% block content %}  
@@ -140,7 +142,7 @@
     flex-wrap: wrap;
     background-color: black;
     color: white;
-    min-height: 400px;
+    min-height: 370px;
   }
   .whatyouwilllearn >*{
     margin: 10px;
@@ -205,9 +207,9 @@
 
   <p class="pl-3">{% get_hit_count for object %} <i class="fas fa-eye"></i> recent views</p>
 
-  <p id="myLink" class=" pr-3">{{ object.desc|truncatechars:290|safe }}</p>
+  <p id="myLink" class=" pr-3">{{ object.desc|linebreaksbr|truncatechars:200|safe }}</p>
   
-  <p class="collapse" id="block-id"> {{ object.desc|safe }}</p>
+  <p class="collapse" id="block-id"> {{ object.desc|linebreaksbr|safe }}</p>
 
   <p>
     <!-- aria-expanded attribute is mandatory -->
@@ -305,9 +307,9 @@
 
 {% for aboutcourseowner in aboutcourseowners %}
 
-<p id="myLink2" class=" pr-3">{{ aboutcourseowner.desc|truncatechars:200|safe }}</p>
+<p id="myLink2" class=" pr-3">{{ aboutcourseowner.desc|linebreaksbr|truncatechars:200|safe }}</p>
   
-<p class="collapse" id="block-id"> {{ aboutcourseowner.desc|safe }}</p>
+<p class="collapse" id="block-id"> {{ aboutcourseowner.desc|linebreaksbr|safe }}</p>
 
 <p>
   <!-- aria-expanded attribute is mandatory -->
@@ -326,7 +328,8 @@
 <h3 class="card text-center text-danger">No Record here</h3>
 {% endfor %}
 
-</div>
+</div
+>
 <br><br><br>
 
 <div class="container ">
@@ -338,7 +341,25 @@
           {% for obj in whatyouwilllearn %}
           <div class="d-flex">
             <img src="https://th.bing.com/th/id/OIP.K2XmktPQf-TO5XMjz-l_DAHaHa?w=187&h=188&c=7&r=0&o=5&pid=1.7" width="20px" height="20px" alt="">
-            <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button body-text text-left">{{ obj.desc|safe }}</p>
+            <!-- <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button body-text text-left">{{ obj.desc|safe }}</p> -->
+
+            <p id="myLink3" class=" pr-3">{{ obj.desc|linebreaksbr|truncatechars:150|safe }}</p>
+            <p class="collapse" id="block-id"> {{ obj.desc|linebreaksbr|safe }}</p>
+          
+            <p>
+              <!-- aria-expanded attribute is mandatory -->
+              <!-- bootstrap changes it to true/false on toggle -->
+             
+              <a href="#block-id" class="" data-toggle="collapse" aria-expanded="false" aria-controls="block-id">
+                <span onclick="toggleElement3()" class="collapsed">
+                  Show more
+                </span>
+                <span onclick="toggleElement3()" class="expanded">
+                  Show Less
+                </span>
+              </a>
+            </p>
+
           </div>
           {% empty %}
           <h1 class="card text-center text-danger">No Record here</h1>
@@ -634,6 +655,18 @@
     }
   }
   // end about the course owner section
+
+    // what you will learn section
+    function toggleElement3() {
+    var link3 = document.getElementById("myLink3");
+    if (link3.style.display === "none") {
+      link3.style.display = "inline";
+    } else {
+      link3.style.display = "none";
+    }
+  }
+  // end what you will learn section
+
 </script>
 
 <!-- about the course owner -->

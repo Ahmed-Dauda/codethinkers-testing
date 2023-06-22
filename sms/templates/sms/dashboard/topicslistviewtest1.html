@@ -73,6 +73,22 @@ table-layout: fixed; // ***********add this
 }
 
 /*  end video controller css  */
+
+/* transcript */
+.transcriptLine {
+    color: #000;
+}
+
+.transcriptLine.highlight {
+    background-color: yellow;
+}
+
+  .highlight {
+    background-color: yellow;
+  }
+
+
+
 </style>
 
  
@@ -117,33 +133,36 @@ table-layout: fixed; // ***********add this
 
                     {% endif %}
                 
-                  {% if topic.video %}
+                  <!-- {% if topic.video %}
                   <div class="video-container">
-                    <div  class="video-wrapper">
+                    <div id="myVideo" class="video-wrapper">
                       {% video topic.video|safe class="ratio ratio-16x9 " %}
                     </div>
                   </div>
                   {% else %}
                   
-                {% endif %}
-                
-               
-                     <!-- ggggg 
-                     <iframe
-                           width="640" height="360"
-                           src="{{ topic.video|safe }}"
-                           frameborder="0"
-                       ></iframe>
-                   
-                     ffffff -->
-                    
-                      <!-- {% if topic.video %}
-                   
-                       {% video topic.video|safe class="ratio ratio-16x9" %}
-                    </div>
-                    {% else %}
+                {% endif %} -->
+           
+                                <!-- Add the video player -->
+                        {% if topic.video %}
+                        <div class="video-container">
+                        <div id="myVideo" class="video-wrapper">
+                            {% video topic.video|safe class="ratio ratio-16x9" %}
+                        </div>
+                        </div>
+                        {% endif %}
 
-                    {% endif %} -->
+                        <!-- Display the transcript with text highlighting -->
+                        <!-- <div class="transcript">
+                            <span>43 seconds can easily use it to create videos on</span>
+                            <span>0 seconds this is the complete Capcom video</span>
+                            <span>1 second editing tutorial for beginners we're</span>
+                     
+                          </div> -->
+                          
+                      
+                      
+                          
 
                     <div style="padding-left: 2px;" class="card-body">
                     <h1>{{topic.title|safe}}</h1> 
@@ -311,8 +330,12 @@ $('#example').DataTable({
         window.runOnce = true;
     }
     
+
+    // transcript viddo
+
     </script>
     
+
 
     <!-- link to the solution of related videos -->
     <!-- https://stackoverflow.com/questions/57820478/how-to-disable-related-videos-from-an-embedded-youtube-playlist -->
