@@ -112,7 +112,7 @@ table-layout: fixed; // ***********add this
             <td class="d-flex">
 			
 				<div  class="card h-100" style="width: 18rem ;margin: 0 auto;" >
-					<a  href="{% url 'sms:topicslistview' obj.pk %}">
+					<a  href="{% url 'sms:courseslistdesc' obj.pk %}">
 				<img src="{{ obj.img_course.url }}" class="card-img-top" alt="...">
 			</a>
 					<div class="card-body">
@@ -135,7 +135,7 @@ table-layout: fixed; // ***********add this
 							 
 							  </div>
 							</div>
-							<a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
+							<a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
 						   
 							<p style="color: green; font-size: 12px;" class="">{{obj.status_type|safe}}</p>
 							<small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe}}</small> <br>

@@ -7,16 +7,26 @@ from import_export.widgets import ForeignKeyWidget
 from sms.models import (
     Categories, Courses, Topics, 
     Comment, Blog, Blogcomment,Alert, Gallery, 
-    FrequentlyAskQuestions, Partners, Coursefaqs, Skillyouwillgain, CourseLearnerReviews
+    FrequentlyAskQuestions, Partners, CourseFrequentlyAskQuestions, Skillyouwillgain, 
+    CourseLearnerReviews, Whatyouwilllearn, 
+    CareerOpportunities, Whatyouwillbuild, 
+    AboutCourseOwner, ProfileStudent, CourseEnrolled
     )
 
 
 admin.site.register(Gallery)
 admin.site.register(FrequentlyAskQuestions)
 admin.site.register(Partners)
-admin.site.register(Coursefaqs)
+admin.site.register(CourseFrequentlyAskQuestions)
 admin.site.register(Skillyouwillgain)
 admin.site.register( CourseLearnerReviews)
+admin.site.register(Whatyouwilllearn)
+admin.site.register(CareerOpportunities)
+admin.site.register(Whatyouwillbuild)
+
+admin.site.register(AboutCourseOwner)
+admin.site.register(ProfileStudent)
+admin.site.register(CourseEnrolled)
 # class ArticleAdminResource(resources.ModelResource):
     
 #     class Meta:
@@ -139,7 +149,7 @@ class TopicsResource(resources.ModelResource):
                
 class TopicsAdmin(ImportExportModelAdmin):
     list_display = ['id','categories','courses' ,'title','desc' , 'img_topic', 'video', 'topics_url', 'created','updated']
-    # prepopulated_fields = {"slug": ("title",)}
+    prepopulated_fields = {"slug": ("title",)}
     list_filter =  ['id','categories','courses' ,'title', 'topics_url', 'created']
     search_fields= ['id','categories','courses' ,'title', 'created']
     ordering = ['id']
