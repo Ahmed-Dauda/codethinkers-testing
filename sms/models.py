@@ -185,7 +185,7 @@ class Skillyouwillgain(models.Model):
 
 class Whatyouwilllearn(models.Model):
     
-    desc = models.CharField(max_length=900,null=True, blank =True )
+    desc = models.TextField(max_length=900,null=True, blank =True )
     courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
@@ -218,40 +218,64 @@ class AboutCourseOwner(models.Model):
 
 from django.utils.text import slugify
 
-class Topics(models.Model):
+# class Topics(models.Model):
     
-    categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
-    courses=models.ForeignKey(Courses, on_delete= models.CASCADE) 
-    title = models.CharField(max_length=500, blank=True, null= True)
-    slug = models.SlugField(unique= True, blank=True, null= True)  # Enforce uniqueness
+#     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
+#     courses=models.ForeignKey(Courses, on_delete= models.CASCADE) 
+#     title = models.CharField(max_length=500, blank=True, null= True)
+#     transcript = models.TextField(blank=True, null=True)
+#     slug = models.SlugField(unique= True, blank=True, null= True)  # Enforce uniqueness
 
-    # slug = models.SlugField(unique=True)  # Enforce uniqueness
+#     def save(self, *args, **kwargs):
+#         # Generate unique slug if it's not provided
+#         if not self.slug:
+#             self.slug = slugify(self.title)
+
+#         super().save(*args, **kwargs)
+
+#     desc = models.TextField(blank=True, null= True)
+#     img_topic = CloudinaryField('topic image', blank=True, null= True)
+#     video = EmbedVideoField(blank=True, null= True)  # same like models.URLField()
+#     topics_url = models.CharField(max_length=500, blank=True, null= True)
+#     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+#     updated = models.DateTimeField(auto_now=True, blank=True, null= True) 
+#     id = models.BigAutoField(primary_key=True)
+#     hit_count_generic = GenericRelation(
+#     HitCount, object_id_field='object_pk',
+#     related_query_name='hit_count_generic_relation')
+
+
+#     def __str__(self):
+#         return f'{self.title}-----{self.courses}'
+
+
+
+class Topics(models.Model):
+    categories = models.ForeignKey(Categories, on_delete=models.CASCADE)
+    courses = models.ForeignKey(Courses, on_delete=models.CASCADE) 
+    title = models.CharField(max_length=500, blank=True, null=True)
+    slug = models.SlugField(unique=True, blank=True, null=True)
+    desc = models.TextField(blank=True, null=True)
+    transcript = models.TextField(blank=True, null=True)  # New field for transcript
+    img_topic = CloudinaryField('topic image', blank=True, null=True)
+    video = EmbedVideoField(blank=True, null=True)
+    topics_url = models.CharField(max_length=500, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True) 
+    id = models.BigAutoField(primary_key=True)
+    hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
+
+
 
     def save(self, *args, **kwargs):
-        # Generate unique slug if it's not provided
         if not self.slug:
             self.slug = slugify(self.title)
 
         super().save(*args, **kwargs)
 
-    # objectives = tinymce_models.HTMLField(null= True,blank=True,)
-    desc = models.TextField(blank=True, null= True)
-    # desc_home = tinymce_models.HTMLField( blank=True, null= True)
-    coursedesc = tinymce_models.HTMLField( blank=True, null= True)
-    img_topic = CloudinaryField('topic image', blank=True, null= True)
-    # img_tutorial = CloudinaryField('image', blank=True, null= True)
-    video = EmbedVideoField(blank=True, null= True)  # same like models.URLField()
-    topics_url = models.CharField(max_length=500, blank=True, null= True)
-    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
-    updated = models.DateTimeField(auto_now=True, blank=True, null= True) 
-    id = models.BigAutoField(primary_key=True)
-    hit_count_generic = GenericRelation(
-    HitCount, object_id_field='object_pk',
-    related_query_name='hit_count_generic_relation')
-
-
     def __str__(self):
-        return f'{self.title}-----{self.courses}'
+        return f'{self.title} - {self.courses}'
+
 
 
 
