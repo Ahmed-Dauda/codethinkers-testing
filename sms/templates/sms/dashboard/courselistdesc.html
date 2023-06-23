@@ -187,19 +187,49 @@
 
     <br> <br>
     <p class=" pr-3">{{ object.desc|truncatechars:300|safe }}</p>
-
-  {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
+  
+      {% if request.user.profile in course.student.all or object.status_type  == 'Free'  %}
+    <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
+      {% else %}
+    <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
+      {% endif %}
+   
+  <!-- {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
   
     <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
     {% else %}
   
     <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
-    {% endif %}
+  {% endif %}  -->
+
 
   </div>
 
 <br>
 
+<!-- <ul>
+  {% if request.user.profile in course.student.all or object.status_type  == 'Free'  %}
+<a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
+  {% else %}
+<a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
+  {% endif %}
+</ul> -->
+
+<!-- <ul>
+  
+
+    {% if request.user in object.student.all  %}
+   
+    <p>yes</p>
+
+    {% else %}
+
+    <h1>nnnnnnnnnnnnoooo</h1>
+
+    {% endif %}
+
+
+</ul> -->
 
 <div class="pl-3 pr-3">
 
@@ -512,12 +542,14 @@
 <br>
 <div class="text-center" style="margin: 0 auto;">
   <h3 class="text-center text-danger">Start Learning Today</h3> <br>
-  {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
-    
-  <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a>
-  {% else %}
-  <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a>
-  {% endif %}
+  <ul>
+    {% if request.user.profile in course.student.all or object.status_type  == 'Free'  %}
+  <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
+    {% else %}
+  <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
+    {% endif %}
+  </ul>
+  
 </div>
 
 <br>
@@ -606,14 +638,20 @@
 </div>
 <!-- end of related courses -->
 
-{% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
+<!-- {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
   
 <a class="btn btn-secondary fixed-bottom" href="{% url 'sms:topicslistview' object.id %}">Enroll {{ object.title|safe }}</a>
 {% else %}
 <a class="btn btn-secondary fixed-bottom"  class=""  href="{% url 'sms:paymentdesc' %}">Make payment to proceed </a>
-{% endif %}
+{% endif %} -->
 
-
+<ul>
+  {% if request.user.profile in course.student.all or object.status_type  == 'Free'  %}
+<a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary fixed-bottom">Enroll {{ object.title|safe }}</button> </a> 
+  {% else %}
+<a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}"><button class="btn btn-primary fixed-bottom">Make payment to proceed</button> </a> 
+  {% endif %}
+</ul>
 
 
 <!-- about scroll top to see enrollment -->

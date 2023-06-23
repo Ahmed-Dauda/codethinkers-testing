@@ -454,6 +454,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # context['profiles'] =  Profile.objects.filter(courses__pk = self.object.id)
         context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
         course = Courses.objects.get(pk=self.kwargs["pk"])
+        # context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
         context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
         prerequisites = course.prerequisites.all()
         context['prerequisites'] = prerequisites
@@ -461,20 +462,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
       
         courses = Courses.objects.get(pk=self.kwargs["pk"])
-        # Retrieve the number of students enrolled per course
-         # Retrieve the number of students enrolled per course
-        # course_enrollment = []
-        # context['course_enrollment'] = course_enrollment
-        # for courseen in courses:
-        #     # num_students_enrolled = Profile.objects.filter(courses__id=course.id).count()
-        #     num_students_enrolled = Profile.objects.filter(courses__id=courseen.id).count()
-        #     course_enrollment.append({
-        #         'course': courseen,  
-        #         'num_students_enrolled': num_students_enrolled
-        #     })
-
-      
-    
+  
         context['faqs'] = CourseFrequentlyAskQuestions.objects.all().filter(courses_id= course).order_by('id')
         context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courses_id= course).order_by('id')
         context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
