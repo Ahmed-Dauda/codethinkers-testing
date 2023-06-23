@@ -172,7 +172,7 @@ table-layout: fixed; // ***********add this
 
                     {% if topic.desc %}
               
-                    <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px; font-weight: bold;">  {{topic.desc|safe}} </p> <br>
+                    <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px;">  {{topic.desc|linebreaksbr|safe}} </p> <br>
                     <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
                     {% else %}
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p>
