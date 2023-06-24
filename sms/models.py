@@ -255,7 +255,7 @@ class Topics(models.Model):
     courses = models.ForeignKey(Courses, on_delete=models.CASCADE) 
     title = models.CharField(max_length=500, blank=True, null=True)
     slug = models.SlugField(unique=True, blank=True, null=True)
-    desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
+    desc = tinymce_models.HTMLField( blank=True, null= True)
     transcript = models.TextField(blank=True, null=True)  # New field for transcript
     img_topic = CloudinaryField('topic image', blank=True, null=True)
     video = EmbedVideoField(blank=True, null=True)
