@@ -7,7 +7,9 @@
 {% block title %} Course Overall Scores Detail View {% endblock %}
 
   {% block content %} 
-  
+    <!-- prism.css and prism.js -->
+    <link rel="stylesheet" type="text/css" href="/static/sms/prism.css">
+    <script src="/static/sms/prism.js"></script>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
   <style>
@@ -171,11 +173,12 @@ table-layout: fixed; // ***********add this
                     </small> <br>
 
                     {% if topic.desc %}
-              
-                    <p  data-label="my-label-button" class=" line-numbers copy-to-clipboard-button" style="font-size: 20px;">  {{topic.desc|linebreaksbr|safe}} </p> <br>
+                    <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.desc|safe}}</label> <br>
+                    <!-- <p  data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left"style="font-size: 20px;">  {{topic.desc|linebreaksbr|safe}} </p> <br> -->
                     <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
                     {% else %}
-                    <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p>
+                    <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.coursedesc|safe}}</label>
+                    <!-- <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p> -->
                
                     {% endif %}
                      </div>
