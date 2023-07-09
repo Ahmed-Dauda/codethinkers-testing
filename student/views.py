@@ -121,6 +121,11 @@ from sms.paystack import Paystack
 from django.http import HttpResponse
 import json
 
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@csrf_exempt
 def handle_webhook(request):
     if request.method == 'POST':
         # Parse the webhook data
@@ -137,6 +142,9 @@ def handle_webhook(request):
 
         # Respond with a 200 OK status
         return HttpResponse(status=200)
+
+    # Return an empty HttpResponse for non-POST requests
+    return HttpResponse()
 
 
 def process_payment(request):
