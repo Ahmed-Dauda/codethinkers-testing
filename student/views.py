@@ -141,7 +141,9 @@ def handle_webhook(request):
             # ...
 
         # Respond with a 200 OK status
-        return HttpResponse('success', status=200)
+        
+        # return HttpResponse(status=200)
+        return JsonResponse(status=200)
 
     # Return an empty HttpResponse for non-POST requests
     return HttpResponse()
