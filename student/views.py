@@ -25,16 +25,180 @@ from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max, Subquery, OuterRef
 #  xhtml2 pdf
-
+from django.contrib import messages
 import os
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 import pdfkit
 from django.contrib.staticfiles import finders
 from quiz.models import Result, Course
 from django.template import loader
+from django import forms
+
+from student.models import Payment
+
+import requests    
+from django.http import JsonResponse
+     
+
+
+
+
+
+# def make_payment(request:HttpResponse) -> HttpResponse:
+#     if request.method == 'POST':
+#         payment_form = PaymentForm(request.POST)
+#         if payment_form.is_valid():
+#         # payment = payment_form.save(commit=False)
+#             payment = payment_form.save()
+#         # payment_status = verify_payment(payment.ref)
+#         # if payment_status == 'success':
+#         #     payment.verified = True
+                   
+#             return render(request, 'student/make_payment.html', {'payment': payment, 'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY})
+#     # else:
+#     #     payment_form = PaymentForm()
+#     # return render (request, 'student/initiate_payment.html', {'payment_form':payment_form})
+           
+ 
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+import requests
+
+
+def get_payment_status(request, reference):
+    url = f'https://api.paystack.co/transaction/verify/{reference}'
+   
+    headers = {
+        'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.get(url, headers=headers)
+    data = response.json()
+
+    status = data['data']['status']
+    amount_paid = data['data']['amount']
+
+    return JsonResponse({'status': status, 'amount_paid': amount_paid})
+
+
+
+
+def get_customer_references():
+    url = "https://api.paystack.co/customer"
+
+    headers = {
+        'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
+        "Content-Type": "application/json"
+    }
+
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        data = response.json()
+        customer_references = data.get('data', [])
+        return customer_references
+    else:
+        # Handle the API request error here
+        return []
+
+from django.http import JsonResponse
+
+def customer_references_view(request):
+    customer_references = get_customer_references()
+    return JsonResponse(customer_references, safe=False)
+
+
+import requests
+from django.shortcuts import render
+from django.conf import settings
+from .models import Payment
+
+from sms.paystack import Paystack
+from django.http import HttpResponse
+import json
+
+def handle_webhook(request):
+    if request.method == 'POST':
+        # Parse the webhook data
+        payload = json.loads(request.body)
+        event = payload['event']
+        data = payload['data']
+
+        # Check if the event is a successful payment
+        if event == 'charge.success':
+            payment_reference = data['reference']
+            
+            # Process the payment reference as needed
+            # ...
+
+        # Respond with a 200 OK status
+        return HttpResponse(status=200)
+
+
+def process_payment(request):
+
+    if request.method == 'POST':
+        ref = request.POST.get('ref')
+        amount_str = request.POST.get('amount')
+        amount = int(amount_str.replace(',', ''))
+        email = request.POST.get('email')
+
+          
+        # Fetch payment status and amount from Paystack API
+        ref = 568560343
+        url = f'https://api.paystack.co/transaction/verify/{ref}'
+      
+        headers = {
+            'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
+            'Content-Type': 'application/json'
+        }
+        response = requests.get(url, headers=headers)
+        data = response.json()
+
+        status = data['data']['status']
+        print('status', status)
+        if status == 'success':
+            verified = True
+        amount_paid = data['data']['amount']/100
+        print('amount',amount_paid)
+
+        # Save the payment information to the database
+        payment = Payment(ref=ref, amount=amount_paid, verified=verified, email=email)
+        payment.save()
+
+        # Redirect or render a success page
+        return render(request, 'student/verification_result.html', {'amount': amount, 'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY})
+    else:
+        # Render the payment form
+        return render(request, 'sms/dashboard/paymentdesc.html', {'amount': amount})
+
+# def process_payment(request):
+
+#     if request.method == 'POST':
+#         ref = request.POST.get('ref')
+#         amount_str = request.POST.get('amount')
+#         amount = int(amount_str.replace(',', ''))
+#         verified = request.POST.get('verified')
+#         email = request.POST.get('email')
+    
+#         # Save the payment information to the database
+#         payment = Payment(ref=ref, amount=amount, verified=verified, email=email)
+#         payment.save()
+
+#         # Redirect or render a success page
+#         return render(request, 'student/verification_result.html', {'amount': amount, 'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY})
+#     else:
+#         # Render the payment form
+#         return render (request, 'sms/dashboard/paymentdesc.html', {'amount':amount})
+
+
+
+
+
 
 # dashboard view
 @login_required
