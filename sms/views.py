@@ -116,23 +116,66 @@ class Table(LoginRequiredMixin, ListView):
         context['students'] = User.objects.all().count()
 
         return context
+    
+from sms.forms import PaymentForm
+# from student.views import verify_payment
+from django.conf import settings
 
+from student.models import Payment
 
-class Paymentdesc(LoginRequiredMixin, ListView):
-    models = Categories
+class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
+    models = Courses
     template_name = 'sms/dashboard/paymentdesc.html'
-    success_message = 'TestModel successfully updated!'
     count_hit = True
-   
+    queryset = Categories.objects.all()
     def get_queryset(self):
-        return Categories.objects.all()
+        return Courses.objects.all()
+   
     def get_context_data(self, **kwargs):
+
         context = super().get_context_data(**kwargs)
+        
+        context['coursess'] = Courses.objects.all().order_by('created')[:10] 
+        context['courses_count'] = Courses.objects.filter(categories__pk=self.object.id).count()
+        context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
+        course = Courses.objects.get(pk=self.kwargs["pk"])
+        context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
+        num_students = course.student.count()
+        context['num_students'] = num_students
+        prerequisites = course.prerequisites.all()
+        context['prerequisites'] = prerequisites
+        context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
+        courses = Courses.objects.get(pk=self.kwargs["pk"])
+        context['topics'] = Topics.objects.get_queryset().filter(courses_id=course).order_by('id')
+        context['paystack_public_key'] =  settings.PAYSTACK_PUBLIC_KEY
+        # if self.request.method == 'POST':
+        # # Get the form data
+        #     # ref = self.request.POST.get('ref')
+        #     amount = self.request.POST.get('amount')
+        #     # verified = self.request.POST.get('verified')
 
-        context['students'] = User.objects.all().count()
-
+        #     # Save the payment information to the database
+        #     payment = Payment(amount=amount)
+        #     print('jjjj',payment)
+        #     payment.save()
+   
         return context
     
+# class Paymentdesc(LoginRequiredMixin, ListView):
+#     models = Categories
+#     template_name = 'sms/dashboard/paymentdesc.html'
+#     success_message = 'TestModel successfully updated!'
+#     count_hit = True
+   
+#     def get_queryset(self):
+#         return Categories.objects.all()
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+
+#         context['students'] = User.objects.all().count()
+
+#         return context
+
 class Homepage1(ListView):
 
     template_name = 'sms/dashboard/homepage1.html'
@@ -449,9 +492,6 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
       
         context['coursess'] = Courses.objects.all().order_by('created')[:10] 
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
-        # context['profiles'] = Courses.objects.annotate(num_student =Count('courses'))
-        # course = Courses.objects.get(id=1)  # Get a specific course
-        # context['profiles'] =  Profile.objects.filter(courses__pk = self.object.id)
         context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
         course = Courses.objects.get(pk=self.kwargs["pk"])
         # context['course'] = Courses.objects.get(pk=self.kwargs["pk"])

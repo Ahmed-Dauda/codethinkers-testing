@@ -1,9 +1,13 @@
 import imp
 from django.contrib import admin
-from student.models import Logo, signature, Designcert, PartLogo, Certificate
+from student.models import Logo, signature, Designcert, PartLogo, Payment
 
 
-admin.site.register(Certificate)
+from django.contrib import admin
+from .models import Payment, UserWallet
+
+admin.site.register(Payment)
+admin.site.register(UserWallet)
 # Register your models here.
 class LogoAdmin(admin.ModelAdmin):
     list_display = ("logo",)

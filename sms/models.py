@@ -53,7 +53,7 @@ class Courses(models.Model):
     ]
 
     img_course = CloudinaryField('image', blank=True, null=True)
-    student = models.ManyToManyField(Profile, blank=True, null=True, related_name='courses')
+    student = models.ManyToManyField(Profile, blank=True, related_name='courses')
     prerequisites = models.ManyToManyField('self', blank=True, symmetrical=False)
     categories = models.ForeignKey(Categories, blank=False, default=1, on_delete=models.SET_NULL, related_name='categories', null=True)
     title = models.CharField(max_length=225, blank=True, null=True)
@@ -61,7 +61,7 @@ class Courses(models.Model):
     course_owner = models.CharField(max_length=225, blank=True, null=True)
     course_type = models.CharField(choices=COURSE_TYPE, default='course', max_length=225, blank=True, null=True)
     status_type = models.CharField(choices=PAYMENT_CHOICES, default='Free', max_length=225, blank=True, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, default='20000', max_length=225, blank=True, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=0, default='20000', max_length=225, blank=True, null=True)
     desc = models.TextField(null=True)
     # desc_home = models.TextField(blank=True, null=True)
     # course_desc = models.TextField(blank=True, null=True)

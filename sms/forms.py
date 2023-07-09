@@ -9,6 +9,13 @@ from django.db import models
 from sms.models import Comment, Blogcomment
 from users.models import NewUser, BaseUserManager
 from tinymce.widgets import TinyMCE
+from student.models import Payment
+
+class PaymentForm(ModelForm):
+    class Meta:
+        model = Payment
+        fields = ('amount', 'email',)
+
 class smspostform(ModelForm):
     class Meta:
         
