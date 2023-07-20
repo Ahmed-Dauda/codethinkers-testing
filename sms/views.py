@@ -529,7 +529,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         #     payment_ref = None
         # context['payment_ref'] = payment_ref
 
-        # Assuming you have a specific course instance (replace 'course_instance' with the actual course instance)
+       
         course_instance = Courses.objects.get(pk=self.kwargs["pk"])
 
         # Get the payments related to the specific course
