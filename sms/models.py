@@ -35,7 +35,8 @@ class Categories(models.Model, HitCountMixin):
     def __str__(self):
         return f'{self.name}'
 
-
+# from student.models import Payment
+import uuid
 
 class Courses(models.Model):
     COURSE_TYPE = [
@@ -69,9 +70,13 @@ class Courses(models.Model):
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
     hit_count_generic = GenericRelation(
         HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
+    
 
     def __str__(self):
         return f'{self.title}'
+
+
+# payment models and logics 
 
 
 class ProfileStudent(models.Model):

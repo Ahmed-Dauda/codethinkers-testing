@@ -41,10 +41,6 @@ from student.models import Payment
 
 import requests    
 from django.http import JsonResponse
-     
-
-
-
 
 
 # def make_payment(request:HttpResponse) -> HttpResponse:
@@ -66,51 +62,42 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 import requests
-
-
-def get_payment_status(request, reference):
-    url = f'https://api.paystack.co/transaction/verify/{reference}'
-   
-    headers = {
-        'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
-        'Content-Type': 'application/json'
-    }
-
-    response = requests.get(url, headers=headers)
-    data = response.json()
-
-    status = data['data']['status']
-    amount_paid = data['data']['amount']
-
-    return JsonResponse({'status': status, 'amount_paid': amount_paid})
-
-
-
-
-def get_customer_references():
-    url = "https://api.paystack.co/customer"
-
-    headers = {
-        'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
-        "Content-Type": "application/json"
-    }
-
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 200:
-        data = response.json()
-        customer_references = data.get('data', [])
-        return customer_references
-    else:
-        # Handle the API request error here
-        return []
+        
 
 from django.http import JsonResponse
+import requests
 
-def customer_references_view(request):
-    customer_references = get_customer_references()
-    return JsonResponse(customer_references, safe=False)
+import json
+from django.http import JsonResponse
 
+import json
+from django.http import JsonResponse
+
+
+
+from django.http import HttpResponse
+
+
+# def get_payment_status(reference):
+
+#     url = f'https://api.paystack.co/transaction/verify/{reference}'
+#     headers = {
+#         'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
+#         'Content-Type': 'application/json'
+#     }
+
+#     response = requests.get(url, headers=headers)
+#     data = response.json()
+#     status = data['data']['status']
+#     ref = data['data']['reference']
+#     id = data['data']['id']
+#     amount_paid = data['data']['amount'] / 100
+#     # print('ref', reference)
+#     print('ref', id)
+#     print('status', status)
+#     print('amount', amount_paid)
+
+#     return JsonResponse({'status': status, 'amount_paid': amount_paid})
 
 import requests
 from django.shortcuts import render
@@ -124,31 +111,177 @@ import json
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from pypaystack import Transaction, Customer, Plan
+from django.http import JsonResponse
 
-@csrf_exempt
-def handle_webhook(request):
+
+
+def process(request):
+
+    context = {
+        'courses':'course',
+        'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY,
+    }
+
+    return render(request, 'sms/dashboard/records.html', context=context)
+
+# add to cart payment view 
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Courses, Cart, CartItem, Order, OrderItem
+
+@login_required
+def course_list(request):
+    courses = Courses.objects.all()
+    return render(request, 'student/dashboard/course_list.html', {'courses': courses})
+
+@login_required
+def add_to_cart(request, course_id):
+    course = Courses.objects.get(id=course_id)
+    cart, created = Cart.objects.get_or_create(user=request.user.profile)
+
+    
+
+    cart_item, item_created = CartItem.objects.get_or_create(cart=cart, course=course)
+
+    if not item_created:
+        print('course', cart_item.course,'cert',cart.user,'item_created',created)
+        cart_item.quantity += 1
+        cart_item.save()
+
+    return redirect('student:cart')
+
+@login_required
+def cart(request):
+    cart = Cart.objects.get(user=request.user.profile)
+    cart_items = cart.cartitem_set.all()
+    return render(request, 'student/dashboard/cart.html', {'cart': cart, 'cart_items': cart_items})
+
+@login_required
+def update_cart(request, cart_item_id):
+    cart_item = CartItem.objects.get(id=cart_item_id)
+
     if request.method == 'POST':
-        # Parse the webhook data
-        payload = json.loads(request.body)
-        event = payload['event']
-        data = payload['data']
+        quantity = int(request.POST['quantity'])
+        if quantity > 0:
+            cart_item.quantity = quantity
+            cart_item.save()
+        else:
+            cart_item.delete()
 
-        # Check if the event is a successful payment
-        if event == 'charge.success':
-            payment_reference = data['reference']
-            
-            # Process the payment reference as needed
-            # ...
+    return redirect('student:cart')
 
-        # Respond with a 200 OK status
+from student.forms import CheckoutForm
+
+
+from .forms import CheckoutForm
+
+@login_required
+def checkout(request):
+    cart = Cart.objects.get(user=request.user.profile)
+    cart_items = cart.cartitem_set.all()
+    total_amount = sum(item.course.price * item.quantity for item in cart_items)
+    
+
+    if request.method == 'POST':
+        form = CheckoutForm(request.POST)
+        if form.is_valid():
+            order = form.save(commit=False)
+            order.user = request.user.profile
+            order.total_amount = total_amount
         
-        # return HttpResponse(status=200)
-        return JsonResponse(status=200)
+            order.save()
 
-    # Return an empty HttpResponse for non-POST requests
-    return HttpResponse()
+            # Process the payment, create the order, etc.
+            # Redirect to the order confirmation page
+       
+            order = Order.objects.create(user=request.user.profile, total_amount=total_amount)
+
+            for cart_item in cart_items:
+                OrderItem.objects.create(order=order, course=cart_item.course, quantity=cart_item.quantity)
+
+            # Clear the cart after successful checkout
+            cart_items.delete()
+
+            return redirect('student:order_confirmation', order_id=order.id)
+    else:
+        form = CheckoutForm()
+
+    return render(request, 'student/dashboard/checkout.html', {'cart': cart, 'cart_items': cart_items, 'total_amount': total_amount, 'form': form})
 
 
+@login_required
+def order_confirmation(request, order_id):
+    order = Order.objects.get(id=order_id)
+    order_items = order.orderitem_set.all()
+
+    return render(request, 'student/dashboard/order_confirmation.html', {'order': order, 'order_items': order_items})
+
+# end of add to ccart view
+import json
+
+
+
+import re
+
+def verify(request ,id):
+
+    
+
+    transaction = Transaction(authorization_key=settings.PAYSTACK_SECRET_KEY)
+    response = transaction.verify(id)
+
+    
+
+    if response[1]:
+        reference = response[3]['reference']
+        amount = response[3]['amount']/100
+        email = response[3]['customer']['email']
+        status = response[3]['status']
+        first_name = request.user.profile.first_name
+        last_name = request.user.profile.last_name
+
+    
+
+        referrer = response[3]['metadata']['referrer'].strip()
+        print("Referrer URL:", referrer)
+
+        # Split the referrer URL by '/'
+        url_parts = referrer.split('/')
+        print('u', url_parts)
+
+        # Check if the last part of the URL is a numeric "id"
+        if url_parts[-2].isdigit():
+            id_value = url_parts[-2]
+            print("Extracted ID:", id_value)
+        else:
+            id_value = None
+        course = Courses.objects.get(pk =id_value )
+        print("ccc:", course)
+        print('ref',  reference)
+        print('amoun', amount)
+        print('email', email)
+        print('referrer', referrer)
+        print('fn', first_name)
+        print('ln', last_name)
+    
+        if status == 'success':
+            verified = True
+
+            payment = Payment(ref=reference,first_name = first_name, last_name = last_name ,user=request.user.profile,courses=course ,amount=amount, email=email, verified = verified)
+            payment.save()
+  
+
+        data = JsonResponse({'reference': reference})
+    else:
+        data = JsonResponse({'error': 'Payment verification failed.'}, status=400)
+    
+    print('ver', data)
+    return data
+
+
+
+      
 def process_payment(request):
 
     if request.method == 'POST':
@@ -156,19 +289,21 @@ def process_payment(request):
         amount_str = request.POST.get('amount')
         amount = int(amount_str.replace(',', ''))
         email = request.POST.get('email')
-
+        first_name  = request.POST.get('first-name')
+        last_name  = request.POST.get('last-name')
+        print('last n', last_name)
           
+
         # Fetch payment status and amount from Paystack API
         ref = 568560343
         url = f'https://api.paystack.co/transaction/verify/{ref}'
-      
+          
         headers = {
             'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
             'Content-Type': 'application/json'
         }
         response = requests.get(url, headers=headers)
         data = response.json()
-
         status = data['data']['status']
         print('status', status)
         if status == 'success':
@@ -184,27 +319,9 @@ def process_payment(request):
         return render(request, 'student/verification_result.html', {'amount': amount, 'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY})
     else:
         # Render the payment form
-        return render(request, 'sms/dashboard/paymentdesc.html', {'amount': amount})
-
-# def process_payment(request):
-
-#     if request.method == 'POST':
-#         ref = request.POST.get('ref')
-#         amount_str = request.POST.get('amount')
-#         amount = int(amount_str.replace(',', ''))
-#         verified = request.POST.get('verified')
-#         email = request.POST.get('email')
-    
-#         # Save the payment information to the database
-#         payment = Payment(ref=ref, amount=amount, verified=verified, email=email)
-#         payment.save()
-
-#         # Redirect or render a success page
-#         return render(request, 'student/verification_result.html', {'amount': amount, 'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY})
-#     else:
-#         # Render the payment form
-#         return render (request, 'sms/dashboard/paymentdesc.html', {'amount':amount})
-
+        return render(request, 'sms/dashboard/paymentdesc.html',
+                    #    {'amount': amount}
+                       )
 
 
 

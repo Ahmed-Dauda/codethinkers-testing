@@ -29,6 +29,7 @@ urlpatterns = [
     path('teacher/', include('teacher.urls')),
     path('accounts/', include('allauth.urls')),
     path('tinymce/', include('tinymce.urls')),
+    # path('verify', include('student.urls')),
  
 ]
 

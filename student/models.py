@@ -12,6 +12,8 @@ import random
 import string
 from django.contrib import messages
 
+
+
 # from sms.paystack import Paystack
 
 from django.db import models
@@ -72,28 +74,23 @@ from django.db import models
 from sms.paystack import Paystack  # Assuming the Paystack class is imported correctly
 from django.utils import timezone
 
-class UserWallet(models.Model):
-    user = models.OneToOneField(Profile, null=True, on_delete=models.CASCADE)
-    currency = models.CharField(max_length=50, default='NGN', null=True)
-    created_at = models.DateTimeField(default=timezone.now, null=True)
+# class UserWallet(models.Model):
+#     user = models.OneToOneField(Profile, null=True, on_delete=models.CASCADE)
+#     currency = models.CharField(max_length=50, default='NGN', null=True)
+#     created_at = models.DateTimeField(default=timezone.now, null=True)
 
-    def _str_(self):
-        return self.user._str_()
+#     def _str_(self):
+#         return self.user._str_()
+from sms.models import Courses
 
-# class Payment(models.Model):
-#     user = models.ForeignKey(Profile, on_delete=models.CASCADE, blank=True, null=True)
-#     amount = models.PositiveIntegerField(null=True)
-#     ref = models.CharField(max_length=200)
-#     email = models.EmailField()
-#     verified = models.BooleanField(default=False)
-#     date_created = models.DateTimeField(auto_now_add=True, null=True)
-
-#     def __str__(self):
-#          return f"{self.amount}"
 
 class Payment(models.Model):
+    user = models.ForeignKey(Profile, null=True, on_delete=models.CASCADE)
+    courses = models.ForeignKey(Courses, null=True, on_delete=models.CASCADE, related_name='payments')
     amount = models.PositiveBigIntegerField(null=True)
-    ref = models.CharField(max_length=200, null=True)
+    ref = models.CharField(max_length=250, null=True)
+    first_name = models.CharField(max_length=250, null=True)
+    last_name = models.CharField(max_length=200, null=True)
     email = models.EmailField(null=True)
     verified = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
@@ -104,6 +101,64 @@ class Payment(models.Model):
     def __str__(self):
 
         return f"Payment: {self.amount}"
+
+
+class Cart(models.Model):
+    user = models.OneToOneField(Profile, on_delete=models.CASCADE)
+    courses = models.ManyToManyField(Courses, through='CartItem')
+    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    class Meta:
+            ordering = ('-created',)
+
+    def __str__(self):
+
+        return f"{self.user} "
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    course = models.ForeignKey(Courses, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    class Meta:
+            ordering = ('-created',)
+
+    def __str__(self):
+
+        return f"{self.cart} {self.quantity}"
+
+class Order(models.Model):
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    courses = models.ManyToManyField(Courses, through='OrderItem')
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_reference = models.CharField(max_length=100)
+    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    class Meta:
+            ordering = ('-created',)
+
+    def __str__(self):
+
+        return f"{self.user}  {self.total_amount}"
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    course = models.ForeignKey(Courses, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    class Meta:
+            ordering = ('-created',)
+
+    def __str__(self):
+
+        return f"{self.order}  {self.quantity}"
+
+        
+# end of payment logics 
+
+
     
 
     # def save(self, *args, **kwargs):
