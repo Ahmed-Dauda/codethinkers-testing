@@ -1,181 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
 
- <!-- POPULAR DIFFERENT  COURSES-->
- <br> <br> <br>
-
- <div class="card-body">
-   <div class="">
- <h3 style="color: black; font-weight: bold;" >Popular Courses</h3>
- </div>
- </div>
-
- <div  class="beginner ">
- 
-   {% for obj in popular_course %}
-
-   {% if obj.status_type  == 'Premium' %}
-
-   {% if obj.student.status_type  == 'Premium' and obj.status_type  == 'Premium' %}
-
-   <a style="height: 10px;" class=""  href="{% url 'sms:topicslistview' obj.pk %}">
-   <div  class="left-column-cat border ">
-       <!-- <p class=" card rounded-4 category"> -->
-       
-           {% if obj.img_course %}
-           <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="200px" alt="cetagory image">
-           <br>
-           
-           {% endif %}
-           <div class="pl-2">
-           <div class="d-flex rounded owner">
-             <div class="d-flex rounded owner">
-               {% if obj.course_logo.url %}
-               <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-               {% else %}
-               <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-             {% endif %}
-     
-             {% if obj.course_owner %}
-             <small class="text-dark">{{obj.course_owner|safe}}</small>
-             {% else %}
-             <small class="text-dark">Codethinkers Academy</small>
-             {% endif %}
- 
-             </div>
-           </div>
-         <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
-         {% if obj.price %}
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
-         {% else %}
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-         {% endif %}
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-       </div>
-           <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
-           <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p> -->
-       
-
-   </div>
- </a>
- {% else %}
-
- <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' %}">
-  <div  class="left-column-cat border ">
-      <!-- <p class=" card rounded-4 category"> -->
-      
-          {% if obj.img_course %}
-          <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="200px" alt="cetagory image">
-          <br>
-          
-          {% endif %}
-          <div class="pl-2">
-          <div class="d-flex rounded owner">
-            <div class="d-flex rounded owner">
-              {% if obj.course_logo.url %}
-              <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-              {% else %}
-              <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-            {% endif %}
+    <title>Paystack payment verification integration in php</title>
+    <!-- Prepare django to load static files -->
+    {% load static %}
+  </head>
+  <body>
+    <div class="container">
+      <div class="text-center">
     
-            {% if obj.course_owner %}
-            <small class="text-dark">{{obj.course_owner|safe}}</small>
-            {% else %}
-            <small class="text-dark">Codethinkers Academy</small>
-            {% endif %}
-
-            </div>
-          </div>
-        <a style="font-size: 12px;"  href="{% url 'sms:paymentdesc' %}">{{obj}} </a>
-        {% if obj.price %}
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
-        {% else %}
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-        {% endif %}
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
       </div>
-          <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
-          <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p> -->
-      
+      <div class="header p-3 bg-dark m-2 text-center text-white">
+        <h1>
+          Paystack payment verification integration in <br />
+          Python Django
+        </h1>
+      </div>
+      <div class="alert alert-warning">Your log here</div>
 
-  </div>
-</a>
+      <form>
+        <div class="main">
+          <div class="form-group">
 
- {% endif %}
- {% endif %}
+            <label for="amount">Any Amount</label>
+            <input
+              type="number"
+              name="amount"
+              class="form-control"
+              id="amount"
+              placeholder="Enter your amount"
+            />
+          </div>
+          <div class="row">
+            <div class="col">
+              <div class="form-group">
 
-   {% empty %}
-     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-   {% endfor %}
- </div>
- <!-- END POPULAR OF COURSES-->
-
-
- 
-  <!--FREE DIFFERENT  COURSES-->
-  <br> <br> <br>
-
-  <div class="card-body">
-    <div class="">
-
-  <h3 style="color: black;  font-weight: bold;" >Enjoy Our {{Free_courses_count}} Free Courses Available for You</h3>
-
-  </div>
-  </div>
- 
-  <div  class="beginner ">
-  
-
-    {% for obj in Free_courses %}
-
-
-    <a style="height: 10px;" class="" href="{% url 'sms:topicslistview' obj.pk %}">
-    <div  class="left-column-cat border ">
-        <!-- <p class=" card rounded-4 category"> -->
-        
-            {% if obj.img_course %}
-            <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="200px" alt="cetagory image">
-            <br>
-            
-            {% endif %}
-            <div class="pl-2">
-            <div class="d-flex rounded owner">
-              <div class="d-flex rounded owner">
-                {% if obj.course_logo.url %}
-                <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-                {% else %}
-                <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-              {% endif %}
-      
-              {% if obj.course_owner %}
-              <small class="text-dark">{{obj.course_owner|safe}}</small>
-              {% else %}
-              <small class="text-dark">Codethinkers Academy</small>
-              {% endif %}
-  
+                <label for="name">Fullname</label>
+                <input
+                  type="text"
+                  name="name"
+                  class="form-control"
+                  id="name"
+                  placeholder="Enter your fullname"
+                />
               </div>
             </div>
-          <a style="font-size: 12px;"  href="{% url 'sms:topicslistview' obj.pk %}">{{obj}} </a>
-          {% if obj.price %}
-          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
-          {% else %}
-          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-          {% endif %}
-          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
-          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
+            <div class="col">
+              <div class="form-group">
+
+                <label for="email">Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  name="email"
+                  id="email"
+                  placeholder="Enter your email"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <input
+              type="button"
+              class="form-control btn btn-dark"
+              id="purchasebtn"
+              value="Make Payment"
+            />
+          </div>
         </div>
+      </form>
 
-
-       
     </div>
-  </a>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    >
+  </script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    >
+  </script>
 
-       
-  
-  </a>
+    <!-- Paystack starts here -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
 
-    {% empty %}
-      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-    {% endfor %}
-  </div>
-  <!-- END CATEGORIES OF COURSES-->
+    <script>
+      //Custom script goes here
+      $(document).ready(function () {
+        //Trigger submit when make payment button is been clicked
+        $("#purchasebtn").click(function (e) {
+          e.preventDefault();
+          //Submit details for payment
+          var email = $("#email").val();
+          var name = $("#name").val();
+          var amount = $("#amount").val();
+          //Check if email is empty
+          if (email == "") {
+            alert("Enter your email"); //display notification
+            return; //i.e stop running query
+          } else if (name == "") {
+            alert("Enter your name"); //i.e display notification
+            return; //i.e stop running query
+          } else if (amount == "") {
+            alert("Enter your amount"); //i.e display notification
+            return; //i.e stop running query
+          }
+          //Run paystack query
+          var handler = PaystackPop.setup({
+            key: "{{paystack_public_key}}",
+            email: email,
+            amount: amount + "00",
+            currency: "NGN",
+            ref: "" + Math.floor(Math.random() * 1000000000 + 1), // generates a pseudo-unique reference. Please replace with a reference you generated. Or remove the line entirely so our API will generate one for you
+            metadata: {
+              custom_fields: [
+                {
+                  display_name: name,
+                  variable_name: name
+                }
+              ]
+            },
+            callback: function (response) {
+              //   if transaction successful do this
+
+              //   alert('success. transaction ref is ' + response.reference);
+              var referenceid = response.reference;
+              //Make an http request to cart process
+              $.ajax({
+                type: "GET", //Send in POST Method
+                url: "/student/verify/" + referenceid, //Endpoint for the ajax
+                beforeSend: function () {
+                  console.log("Sending request");
+                  $(".alert").text("Sending request");
+                },
+                success: function (response) {
+                  if (response[3].status == "success") {
+                    //Once transaction completed redirect to complete page
+                    $(".alert").removeClass("alert-warning");
+                    $(".alert").addClass("alert-success");
+                    $(".alert").text("Transaction verified");
+                    console.log("Transaction verified");
+                    $("form").trigger("reset");
+                  } else {
+                    $(".alert").text("Transaction reference not found");
+                  }
+                }
+              });
+            },
+            onClose: function () {
+              //Do stuff
+            }
+          });
+          handler.openIframe();
+        });
+      });
+    </script>
+    
+  </body>
+</html>

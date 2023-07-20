@@ -46,10 +46,10 @@ app_name = 'sms'
 urlpatterns = [
   
     # path('', Categorieslistview.as_view(), name='categorieslist'),
-    
+        
     # new dashboard urls
     path('home', Category.as_view(), name='home'),
-    path('paymentdesc/<pk>/',  Paymentdesc.as_view(), name='paymentdesc'),
+    path('paymentdesc/<str:pk>/',  Paymentdesc.as_view(), name='paymentdesc'),
     path('table', Table.as_view(), name='table'),
     path('', Homepage1.as_view(), name='homepage'),
     path('homepage2', Homepage2.as_view(), name='homepage2'),

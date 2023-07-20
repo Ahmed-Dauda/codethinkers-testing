@@ -1,25 +1,32 @@
 from django.urls import path
 
 from . import views
-# from .views import verify_payment
-from django.urls import path
 
+from student.views import course_list, add_to_cart, cart, update_cart, checkout, order_confirmation
 
+        
 app_name = 'student'
 
 urlpatterns = [
-    path('payment-status/<str:reference>/', views.get_payment_status, name='payment-status'),
-    path('customer-references/', views.customer_references_view, name='customer_references'),
-    path('process_payment', views.process_payment, name='process_payment'),
-    path('webhook/', views.handle_webhook, name='webhook'),
- 
-    # path('initiate-payment', views.initiate_payment,name='initiate-payment'),
-    # path('<str:ref>/', views.verify_payment,name='verify-payment'),
-    # path('verify-payment/', views.verify_payment, name='verify-payment'),
-    path('customer_references_view', views.customer_references_view,name='customer_references_view'),
-    # path('success', views.succes,name='success'),
-    # new url
+    # add to cart 
+    path('courses/', course_list, name='course_list'),
+    path('course/<int:course_id>/add-to-cart/', add_to_cart, name='add_to_cart'),
+    path('cart/', cart, name='cart'),
+    path('cart/<int:cart_item_id>/update/', update_cart, name='update_cart'),
+    path('checkout/', checkout, name='checkout'),
+    path('order/<int:order_id>/confirmation/', order_confirmation, name='order_confirmation'),
+    # end
+    
 
+    
+    path('process_payment', views.process_payment, name='process_payment'),
+    # path('webhook/', views.handle_webhook, name='webhook'),
+      
+    path('verify/<str:id>/', views.verify,name='verify'),
+    # path('verify-payment/', views.verify_payment, name='verify-payment'),
+  
+    path('process', views.process,name='process'),
+    # new url
     path('take-exam', views.take_exams_view,name='take-exam'),
     path('start-exam/<pk>/', views.start_exams_view,name='start-exam'),
     path('calculate_marks', views.calculate_marks_view,name='calculate_marks'),

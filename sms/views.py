@@ -122,6 +122,11 @@ from sms.forms import PaymentForm
 from django.conf import settings
 
 from student.models import Payment
+from pypaystack import Transaction, Customer, Plan
+from django.http import JsonResponse
+
+from student.views import verify
+import uuid
 
 class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
     models = Courses
@@ -134,11 +139,16 @@ class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
-        
+     
         context['coursess'] = Courses.objects.all().order_by('created')[:10] 
         context['courses_count'] = Courses.objects.filter(categories__pk=self.object.id).count()
+        # context['payment_course'] = Courses.objects.filter(payment__reference = payment__reference, request.user.profile=request.user.profile)
         context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
         course = Courses.objects.get(pk=self.kwargs["pk"])
+
+        student = course.student
+        context['student'] = student
+
         context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
         num_students = course.student.count()
         context['num_students'] = num_students
@@ -147,17 +157,11 @@ class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
         courses = Courses.objects.get(pk=self.kwargs["pk"])
         context['topics'] = Topics.objects.get_queryset().filter(courses_id=course).order_by('id')
-        context['paystack_public_key'] =  settings.PAYSTACK_PUBLIC_KEY
-        # if self.request.method == 'POST':
-        # # Get the form data
-        #     # ref = self.request.POST.get('ref')
-        #     amount = self.request.POST.get('amount')
-        #     # verified = self.request.POST.get('verified')
+        
+       
 
-        #     # Save the payment information to the database
-        #     payment = Payment(amount=amount)
-        #     print('jjjj',payment)
-        #     payment.save()
+        context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
+
    
         return context
     
@@ -494,6 +498,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
         context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
         course = Courses.objects.get(pk=self.kwargs["pk"])
+       
         # context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
         context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
         num_students = course.student.count()
@@ -506,8 +511,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
          # Retrieve related courses based on categories
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
       
-        courses = Courses.objects.get(pk=self.kwargs["pk"])
-  
+    
         context['faqs'] = CourseFrequentlyAskQuestions.objects.all().filter(courses_id= course).order_by('id')
         context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courses_id= course).order_by('id')
         context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
@@ -515,8 +519,27 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['whatyouwillbuild'] =   Whatyouwillbuild.objects.all().filter(courses_id= course).order_by('id')
         context['careeropportunities'] =  CareerOpportunities.objects.all().filter(courses_id= course).order_by('id')
         context['aboutcourseowners'] =  AboutCourseOwner.objects.all().filter(courses_id= course).order_by('id')
+        
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
-   
+        context['payments'] = Payment.objects.all().filter(courses_id=course).order_by('id')
+        
+        # if course.payments.exists():
+        #     payment_ref = course.payments.first().ref
+        # else:
+        #     payment_ref = None
+        # context['payment_ref'] = payment_ref
+
+        # Assuming you have a specific course instance (replace 'course_instance' with the actual course instance)
+        course_instance = Courses.objects.get(pk=self.kwargs["pk"])
+
+        # Get the payments related to the specific course
+        payments_for_course = course_instance.payments.all()
+
+        # Get the number of enrolled students for the course
+        student_enrollment = payments_for_course.count()
+
+        print(f"Enrollment for '{course_instance.title}': {student_enrollment} students")
+        context['student_enrollment'] = student_enrollment + 100
         return context
 
 
