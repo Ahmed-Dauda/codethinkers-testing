@@ -122,7 +122,9 @@ from sms.forms import PaymentForm
 from django.conf import settings
 
 from student.models import Payment
-from pypaystack import Transaction, Customer, Plan
+
+from pypaystack import Transaction
+
 from django.http import JsonResponse
 
 from student.views import verify
