@@ -11,7 +11,7 @@ urlpatterns = [
     path('view_result', views.view_result_view,name='view_result'),
     
     path('pdf/<pk>/', views.pdf_id_view,name='pdf'),
-    # path('check_marks/<pk>/', views.check_marks_view,name='check_marks'),
+
     path('verify/', views.verify_cert, name='verify_cert'),
 
     path('verify/<str:certificate_code>/', views.verify_certificate, name='verify_certificate'),
