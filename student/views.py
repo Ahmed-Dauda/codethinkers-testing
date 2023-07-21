@@ -82,8 +82,6 @@ from django.views.decorators.csrf import csrf_exempt
 from pypaystack import Transaction, Customer, Plan
 
 
-
-
 def process(request):
 
     context = {
