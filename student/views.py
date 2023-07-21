@@ -39,7 +39,7 @@ from django import forms
 
 from student.models import Payment
 
-import requests    
+
 from django.http import JsonResponse
 
 
@@ -59,16 +59,6 @@ from django.http import JsonResponse
 #     # return render (request, 'student/initiate_payment.html', {'payment_form':payment_form})
            
  
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
-import requests
-        
-
-from django.http import JsonResponse
-import requests
-
-import json
-from django.http import JsonResponse
 
 import json
 from django.http import JsonResponse
@@ -78,29 +68,7 @@ from django.http import JsonResponse
 from django.http import HttpResponse
 
 
-# def get_payment_status(reference):
 
-#     url = f'https://api.paystack.co/transaction/verify/{reference}'
-#     headers = {
-#         'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
-#         'Content-Type': 'application/json'
-#     }
-
-#     response = requests.get(url, headers=headers)
-#     data = response.json()
-#     status = data['data']['status']
-#     ref = data['data']['reference']
-#     id = data['data']['id']
-#     amount_paid = data['data']['amount'] / 100
-#     # print('ref', reference)
-#     print('ref', id)
-#     print('status', status)
-#     print('amount', amount_paid)
-
-#     return JsonResponse({'status': status, 'amount_paid': amount_paid})
-
-import requests
-from django.shortcuts import render
 from django.conf import settings
 from .models import Payment
 
@@ -281,47 +249,6 @@ def verify(request ,id):
 
 
 
-      
-def process_payment(request):
-
-    if request.method == 'POST':
-        ref = request.POST.get('ref')
-        amount_str = request.POST.get('amount')
-        amount = int(amount_str.replace(',', ''))
-        email = request.POST.get('email')
-        first_name  = request.POST.get('first-name')
-        last_name  = request.POST.get('last-name')
-        print('last n', last_name)
-          
-
-        # Fetch payment status and amount from Paystack API
-        ref = 568560343
-        url = f'https://api.paystack.co/transaction/verify/{ref}'
-          
-        headers = {
-            'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
-            'Content-Type': 'application/json'
-        }
-        response = requests.get(url, headers=headers)
-        data = response.json()
-        status = data['data']['status']
-        print('status', status)
-        if status == 'success':
-            verified = True
-        amount_paid = data['data']['amount']/100
-        print('amount',amount_paid)
-
-        # Save the payment information to the database
-        payment = Payment(ref=ref, amount=amount_paid, verified=verified, email=email)
-        payment.save()
-
-        # Redirect or render a success page
-        return render(request, 'student/verification_result.html', {'amount': amount, 'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY})
-    else:
-        # Render the payment form
-        return render(request, 'sms/dashboard/paymentdesc.html',
-                    #    {'amount': amount}
-                       )
 
 
 
