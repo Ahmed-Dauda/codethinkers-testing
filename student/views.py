@@ -161,7 +161,7 @@ def checkout(request):
             order.save()
 
             # Process the payment, create the order, etc.
-            # Redirect to the order confirmation page
+
        
             order = Order.objects.create(user=request.user.profile, total_amount=total_amount)
 
