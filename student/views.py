@@ -78,9 +78,9 @@ import json
 
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-import json
+
 from pypaystack import Transaction, Customer, Plan
-from django.http import JsonResponse
+
 
 
 
@@ -186,14 +186,13 @@ def order_confirmation(request, order_id):
 # end of add to ccart view
 import json
 
-
-
+import requests 
+from pypaystack import Transaction, Customer, Plan
 import re
 
 def verify(request ,id):
 
     
-
     transaction = Transaction(authorization_key=settings.PAYSTACK_SECRET_KEY)
     response = transaction.verify(id)
 
@@ -206,8 +205,6 @@ def verify(request ,id):
         status = response[3]['status']
         first_name = request.user.profile.first_name
         last_name = request.user.profile.last_name
-
-    
 
         referrer = response[3]['metadata']['referrer'].strip()
         print("Referrer URL:", referrer)
