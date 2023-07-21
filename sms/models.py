@@ -14,7 +14,7 @@ from django.db import models
 from tinymce.models import HTMLField
 from tinymce import models as tinymce_models
 from tinymce.widgets import TinyMCE
-# Create your models here.
+
 
 
 
