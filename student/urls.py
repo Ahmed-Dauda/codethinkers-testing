@@ -18,9 +18,6 @@ urlpatterns = [
     # end
     
 
-    
-    path('process_payment', views.process_payment, name='process_payment'),
-    # path('webhook/', views.handle_webhook, name='webhook'),
       
     path('verify/<str:id>/', views.verify,name='verify'),
     # path('verify-payment/', views.verify_payment, name='verify-payment'),
