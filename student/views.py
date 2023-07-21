@@ -104,10 +104,7 @@ def calculate_marks_view(request):
             
         if total_marks > score:
             result.save()
-        # if total_marks >= course.pass_mark:
-        #     result.save()   
-        # print('resulth', x)
-        
+   
 
         return HttpResponseRedirect('view_result')
     else:
