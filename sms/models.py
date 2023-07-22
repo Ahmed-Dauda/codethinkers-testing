@@ -11,11 +11,6 @@ from embed_video.fields import EmbedVideoField
 from django.conf import settings
 from hitcount.models import HitCount, HitCountMixin
 from django.db import models
-from tinymce.models import HTMLField
-from tinymce import models as tinymce_models
-from tinymce.widgets import TinyMCE
-
-from .models import HTMLField
 
 
 
@@ -145,8 +140,22 @@ class CourseFrequentlyAskQuestions(models.Model):
     def __str__(self):
         return f'{self.courses} - {self.title}' 
     
+
+
+
+
+
 class CourseLearnerReviews(models.Model):
-    
+    title = models.CharField(max_length=225,  null=True, blank=True)
+    desc = models.TextField(blank=True, null=True)
+
+    courses = models.ForeignKey(Courses, on_delete=models.CASCADE, null=True)
+    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    # id = models.BigAutoField(primary_key=True)
+
+    def __str__(self):
+        return f'{self.title} - {self.courses.title}'
 
     title = models.CharField(max_length=225,  null=True, blank =True )
     desc = models.TextField(blank=True, null= True)
@@ -159,12 +168,13 @@ class CourseLearnerReviews(models.Model):
     def __str__(self):
         return f'{self.title} -{self.courses.title}'
      
+
 class CareerOpportunities(models.Model):
     
 
     # title = models.CharField(max_length=225,  null=True, blank =True )
     # desc = models.TextField(blank=True, null= True)
-    desc = tinymce_models.HTMLField( blank=True, null= True)
+    desc = models.TextField( blank=True, null= True)
     courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
@@ -179,8 +189,6 @@ class Skillyouwillgain(models.Model):
     
 
     title = models.CharField(max_length=900,null=True, blank =True )
-    # desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
-    # course_type = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
     courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
@@ -261,7 +269,7 @@ class Topics(models.Model):
     courses = models.ForeignKey(Courses, on_delete=models.CASCADE) 
     title = models.CharField(max_length=500, blank=True, null=True)
     slug = models.SlugField(unique=True, blank=True, null=True)
-    desc = tinymce_models.HTMLField( blank=True, null= True)
+    desc = models.TextField( blank=True, null= True)
     transcript = models.TextField(blank=True, null=True)  # New field for transcript
     img_topic = CloudinaryField('topic image', blank=True, null=True)
     video = EmbedVideoField(blank=True, null=True)
@@ -304,7 +312,7 @@ class Comment(models.Model):
     first_name = models.CharField(default='fff', max_length=225, blank=True, null= True)
     last_name = models.CharField(max_length=225, blank=True, null= True)
     title = models.CharField(max_length=225,  null=True, blank =True )
-    desc = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
+    desc = models.TextField(max_length=500, blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
     # id = models.BigAutoField(primary_key=True)
@@ -320,7 +328,7 @@ class Blog(models.Model):
     img_source = models.CharField(max_length=225, null= True)
     slug = models.SlugField(null=False, unique=True) 
     img_blog = CloudinaryField('blog image', blank=True, null= True)
-    desc = tinymce_models.HTMLField( blank=True, null= True)
+    desc = models.TextField( blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
     hit_count_generic = GenericRelation(

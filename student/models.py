@@ -3,8 +3,8 @@ from cloudinary.models import CloudinaryField
 # from users.models import NewUser
 # from django.conf import settings
 from cloudinary.models import CloudinaryField
-from tinymce.models import HTMLField
-from tinymce import models as tinymce_models
+
+
 import secrets
 from django.conf import settings
 import uuid
