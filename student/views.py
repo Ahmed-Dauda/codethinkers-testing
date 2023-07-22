@@ -185,8 +185,8 @@ def order_confirmation(request, order_id):
 # end of add to ccart view
 import json
 
-import requests 
-# from pypaystack import Transaction, Customer, Plan
+
+
 import re
 
 
@@ -248,7 +248,7 @@ from django.http import JsonResponse
 
 
 def verify(request, id):
-    
+
     secret_key = settings.PAYSTACK_SECRET_KEY
     api_url = f'https://api.paystack.co/transaction/verify/{id}'
     headers = {
