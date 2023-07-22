@@ -3,9 +3,8 @@ from django.db import models
 from users.models import Profile
 from cloudinary.models import CloudinaryField
 from sms.models import Courses as smscourses
-from tinymce.models import HTMLField
-from tinymce import models as tinymce_models
-from tinymce.widgets import TinyMCE
+
+
 
 class Course(models.Model):
    course_name = models.CharField(max_length=50, unique= True)
@@ -33,12 +32,12 @@ class Course(models.Model):
 class Question(models.Model):
     course=models.ForeignKey(Course,on_delete=models.CASCADE)
     marks=models.PositiveIntegerField()
-    question= tinymce_models.HTMLField( blank=True, null= True)
+    question= models.TextField( blank=True, null= True)
     img_quiz = CloudinaryField('image', blank=True, null= True)
-    option1=tinymce_models.HTMLField(max_length=200)
-    option2= tinymce_models.HTMLField(max_length=200)
-    option3= tinymce_models.HTMLField(max_length=200)
-    option4=tinymce_models.HTMLField(max_length=200)
+    option1= models.TextField(max_length=200)
+    option2= models.TextField(max_length=200)
+    option3= models.TextField(max_length=200)
+    option4= models.TextField(max_length=200)
     cat=(('Option1','Option1'),('Option2','Option2'),('Option3','Option3'),('Option4','Option4'))
     answer=models.CharField(max_length=200,choices=cat)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
