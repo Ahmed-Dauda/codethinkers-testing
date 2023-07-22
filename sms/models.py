@@ -15,7 +15,7 @@ from tinymce.models import HTMLField
 from tinymce import models as tinymce_models
 from tinymce.widgets import TinyMCE
 
-
+from .models import HTMLField
 
 
 

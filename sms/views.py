@@ -123,7 +123,7 @@ from django.conf import settings
 
 from student.models import Payment
 
-from pypaystack import Transaction
+# from pypaystack import Transaction
 
 from django.http import JsonResponse
 
