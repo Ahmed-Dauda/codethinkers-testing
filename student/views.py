@@ -79,7 +79,8 @@ import json
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from pypaystack import Transaction, Customer, Plan
+# from pypaystack import Transaction, Customer, Plan
+
 
 
 def process(request):
@@ -185,26 +186,87 @@ def order_confirmation(request, order_id):
 import json
 
 import requests 
-from pypaystack import Transaction, Customer, Plan
+# from pypaystack import Transaction, Customer, Plan
 import re
 
-def verify(request ,id):
+
+# def verify(request ,id):
 
     
-    transaction = Transaction(authorization_key=settings.PAYSTACK_SECRET_KEY)
-    response = transaction.verify(id)
+#     transaction = Transaction(authorization_key=settings.PAYSTACK_SECRET_KEY)
+#     response = transaction.verify(id)
 
     
 
-    if response[1]:
-        reference = response[3]['reference']
-        amount = response[3]['amount']/100
-        email = response[3]['customer']['email']
-        status = response[3]['status']
+#     if response[1]:
+#         reference = response[3]['reference']
+#         amount = response[3]['amount']/100
+#         email = response[3]['customer']['email']
+#         status = response[3]['status']
+#         first_name = request.user.profile.first_name
+#         last_name = request.user.profile.last_name
+
+#         referrer = response[3]['metadata']['referrer'].strip()
+#         print("Referrer URL:", referrer)
+
+#         # Split the referrer URL by '/'
+#         url_parts = referrer.split('/')
+#         print('u', url_parts)
+
+#         # Check if the last part of the URL is a numeric "id"
+#         if url_parts[-2].isdigit():
+#             id_value = url_parts[-2]
+#             print("Extracted ID:", id_value)
+#         else:
+#             id_value = None
+#         course = Courses.objects.get(pk =id_value )
+#         print("ccc:", course)
+#         print('ref',  reference)
+#         print('amoun', amount)
+#         print('email', email)
+#         print('referrer', referrer)
+#         print('fn', first_name)
+#         print('ln', last_name)
+    
+#         if status == 'success':
+#             verified = True
+
+#             payment = Payment(ref=reference,first_name = first_name, last_name = last_name ,user=request.user.profile,courses=course ,amount=amount, email=email, verified = verified)
+#             payment.save()
+  
+
+#         data = JsonResponse({'reference': reference})
+#     else:
+#         data = JsonResponse({'error': 'Payment verification failed.'}, status=400)
+    
+#     print('ver', data)
+#     return data
+
+import requests
+from django.conf import settings
+from django.http import JsonResponse
+
+
+def verify(request, id):
+    
+    secret_key = settings.PAYSTACK_SECRET_KEY
+    api_url = f'https://api.paystack.co/transaction/verify/{id}'
+    headers = {
+        'Authorization': f'Bearer {secret_key}',
+    }
+
+    response = requests.get(api_url, headers=headers)
+
+    if response.status_code == 200:
+        data = response.json()  # Parse the JSON response
+        reference = data['data']['reference']
+        amount = data['data']['amount'] / 100
+        email = data['data']['customer']['email']
+        status = data['data']['status']
         first_name = request.user.profile.first_name
         last_name = request.user.profile.last_name
 
-        referrer = response[3]['metadata']['referrer'].strip()
+        referrer = data['data']['metadata']['referrer'].strip()
         print("Referrer URL:", referrer)
 
         # Split the referrer URL by '/'
@@ -217,26 +279,35 @@ def verify(request ,id):
             print("Extracted ID:", id_value)
         else:
             id_value = None
-        course = Courses.objects.get(pk =id_value )
+
+        course = Courses.objects.get(pk=id_value)
         print("ccc:", course)
-        print('ref',  reference)
+        print('ref', reference)
         print('amoun', amount)
         print('email', email)
         print('referrer', referrer)
         print('fn', first_name)
         print('ln', last_name)
-    
+
         if status == 'success':
             verified = True
 
-            payment = Payment(ref=reference,first_name = first_name, last_name = last_name ,user=request.user.profile,courses=course ,amount=amount, email=email, verified = verified)
+            payment = Payment(
+                ref=reference,
+                first_name=first_name,
+                last_name=last_name,
+                user=request.user.profile,
+                courses=course,
+                amount=amount,
+                email=email,
+                verified=verified
+            )
             payment.save()
-  
 
         data = JsonResponse({'reference': reference})
     else:
         data = JsonResponse({'error': 'Payment verification failed.'}, status=400)
-    
+
     print('ver', data)
     return data
 
