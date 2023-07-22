@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
-from posixpath import join
+
 from django.conf import settings
 
 from django.contrib.auth import SESSION_KEY
@@ -153,7 +153,7 @@ SOCIALACCOUNT_PROVIDERS = {
 # api_secret = 'P5WKA1qweMmd1i4TkU2W_ZY9ZuA'
 # secure = True
 CLOUDINARY_URL = 'CLOUDINARY_URL=cloudinary://671667183251344:P5WKA1qweMmd1i4TkU2W_ZY9ZuA@ds5l3gqr6'
-cname='mydomain.com&upload_prefix=myprefix.com'
+
 
 import cloudinary
 
@@ -324,7 +324,7 @@ db_from_env = dj_database_url.config(conn_max_age=500)
 # db_from_env = dj_database_url.config(default='postgre://...')
 DATABASES['default'].update(db_from_env)
 
-STATIC_URL = '/static/'
+
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
