@@ -81,6 +81,8 @@ from django.utils import timezone
 
 #     def _str_(self):
 #         return self.user._str_()
+
+
 from sms.models import Courses
 
 
