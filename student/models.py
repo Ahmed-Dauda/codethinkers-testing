@@ -81,8 +81,7 @@ from sms.models import Courses
 
 class PaymentN(models.Model):
     user = models.ForeignKey(Profile, null=True, on_delete=models.CASCADE)
-#     courses = models.ForeignKey(Courses, null=True, on_delete=models.CASCADE, related_name='payments')
-    courses = models.CharField(max_length=250, null=True)
+    courses = models.ForeignKey(Courses, null=True, on_delete=models.CASCADE, related_name='payments')
     amount = models.PositiveBigIntegerField(null=True)
     ref = models.CharField(max_length=250, null=True)
     first_name = models.CharField(max_length=250, null=True)
