@@ -11,7 +11,7 @@ from django.contrib import admin
 # admin.site.register(Order)
 # admin.site.register(OrderItem)
 
-admin.site.register(PaymentN)
+# admin.site.register(PaymentN)
 
 # Register your models here.
 class LogoAdmin(admin.ModelAdmin):
