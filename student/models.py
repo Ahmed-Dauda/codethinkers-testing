@@ -105,57 +105,57 @@ class Payment(models.Model):
         return f"Payment: {self.amount}"
 
 
-class Cart(models.Model):
-    user = models.OneToOneField(Profile, on_delete=models.CASCADE)
-    courses = models.ManyToManyField(Courses, through='CartItem')
-    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+# class Cart(models.Model):
+#     user = models.OneToOneField(Profile, on_delete=models.CASCADE)
+#     courses = models.ManyToManyField(Courses, through='CartItem')
+#     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
-    class Meta:
-            ordering = ('-created',)
+#     class Meta:
+#             ordering = ('-created',)
 
-    def __str__(self):
+#     def __str__(self):
 
-        return f"{self.user} "
+#         return f"{self.user} "
 
-class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
-    course = models.ForeignKey(Courses, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+# class CartItem(models.Model):
+#     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+#     course = models.ForeignKey(Courses, on_delete=models.CASCADE)
+#     quantity = models.PositiveIntegerField(default=1)
+#     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
-    class Meta:
-            ordering = ('-created',)
+#     class Meta:
+#             ordering = ('-created',)
 
-    def __str__(self):
+#     def __str__(self):
 
-        return f"{self.cart} {self.quantity}"
+#         return f"{self.cart} {self.quantity}"
 
-class Order(models.Model):
-    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    courses = models.ManyToManyField(Courses, through='OrderItem')
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_reference = models.CharField(max_length=100)
-    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+# class Order(models.Model):
+#     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
+#     courses = models.ManyToManyField(Courses, through='OrderItem')
+#     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+#     payment_reference = models.CharField(max_length=100)
+#     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
-    class Meta:
-            ordering = ('-created',)
+#     class Meta:
+#             ordering = ('-created',)
 
-    def __str__(self):
+#     def __str__(self):
 
-        return f"{self.user}  {self.total_amount}"
+#         return f"{self.user}  {self.total_amount}"
 
-class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    course = models.ForeignKey(Courses, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+# class OrderItem(models.Model):
+#     order = models.ForeignKey(Order, on_delete=models.CASCADE)
+#     course = models.ForeignKey(Courses, on_delete=models.CASCADE)
+#     quantity = models.PositiveIntegerField(default=1)
+#     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
-    class Meta:
-            ordering = ('-created',)
+#     class Meta:
+#             ordering = ('-created',)
 
-    def __str__(self):
+#     def __str__(self):
 
-        return f"{self.order}  {self.quantity}"
+#         return f"{self.order}  {self.quantity}"
 
         
 # end of payment logics 

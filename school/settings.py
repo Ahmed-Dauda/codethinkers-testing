@@ -245,6 +245,7 @@ WSGI_APPLICATION = 'school.wsgi.application'
 
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 PROJECT_PATH =os.path.dirname(os.path.abspath(__file__))
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -340,7 +341,6 @@ import dj_database_url
 db_from_env = dj_database_url.config(conn_max_age=500)
 # db_from_env = dj_database_url.config(default='postgre://...')
 DATABASES['default'].update(db_from_env)
-
 
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'

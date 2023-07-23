@@ -2,20 +2,12 @@ from django.urls import path
 
 from . import views
 
-from student.views import course_list, add_to_cart, cart, update_cart, checkout, order_confirmation
 
         
 app_name = 'student'
 
 urlpatterns = [
-    # add to cart 
-    path('courses/', course_list, name='course_list'),
-    path('course/<int:course_id>/add-to-cart/', add_to_cart, name='add_to_cart'),
-    path('cart/', cart, name='cart'),
-    path('cart/<int:cart_item_id>/update/', update_cart, name='update_cart'),
-    path('checkout/', checkout, name='checkout'),
-    path('order/<int:order_id>/confirmation/', order_confirmation, name='order_confirmation'),
-    # end
+
     
 
       
