@@ -186,13 +186,8 @@
     <br> <br>
     <p class=" pr-3">{{ object.desc|truncatechars:300|safe }}</p>
  
-    <!-- {% for payment in payments %}
-<p>reference {{payment.ref}}</p>
-<p> course {{payment.courses.title}}</p>
-<p>user {{payment.user}}</p>
 
-  {% endfor %} -->
-
+<!-- 
   {% for payment in payments %}
  {% if payment.ref and payment.verified %}
  {% if forloop.first %}
@@ -205,6 +200,7 @@
   {% endif %}
 
   {% endfor %}
+   -->
       <!-- {% if request.user.profile in course.student.all  or object.status_type  == 'Free'  %}
     <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
       {% else %}
