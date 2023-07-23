@@ -37,7 +37,7 @@ from quiz.models import Result, Course
 from django.template import loader
 from django import forms
 
-from student.models import PaymentN
+from student.models import Payment
 
 
 from django.http import JsonResponse
@@ -54,7 +54,7 @@ from django.http import HttpResponse
 
 
 from django.conf import settings
-from .models import PaymentN
+from .models import Payment
 
 from sms.paystack import Paystack
 from django.http import HttpResponse
@@ -139,7 +139,7 @@ def verify(request, id):
         if status == 'success':
             verified = True
 
-            payment = PaymentN(
+            payment = Payment(
                 ref=reference,
                 first_name=first_name,
                 last_name=last_name,
