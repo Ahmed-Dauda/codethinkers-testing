@@ -186,8 +186,21 @@
     <br> <br>
     <p class=" pr-3">{{ object.desc|truncatechars:300|safe }}</p>
  
-here the code
 
+
+  {% for payment in payments %}
+ {% if payment.ref and payment.verified %}
+ {% if forloop.first %}
+  {% if request.user.profile == payment.user and object.title == payment.courses.title or object.status_type  == 'Free'  %}
+    <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
+      {% else %}
+    <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' object.id  %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
+  {% endif %}
+  {% endif %}
+  {% endif %}
+
+  {% endfor %}
+  
       <!-- {% if request.user.profile in course.student.all  or object.status_type  == 'Free'  %}
     <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
       {% else %}
