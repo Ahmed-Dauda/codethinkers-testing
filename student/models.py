@@ -79,7 +79,7 @@ from django.utils import timezone
 from sms.models import Courses
 
 
-class Payment(models.Model):
+class PaymentN(models.Model):
     user = models.ForeignKey(Profile, null=True, on_delete=models.CASCADE)
     courses = models.ForeignKey(Courses, null=True, on_delete=models.CASCADE, related_name='payments')
     payment_course = models.CharField(max_length=250, null=True)

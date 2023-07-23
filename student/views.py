@@ -37,27 +37,11 @@ from quiz.models import Result, Course
 from django.template import loader
 from django import forms
 
-from student.models import Payment
+from student.models import PaymentN
 
 
 from django.http import JsonResponse
 
-
-# def make_payment(request:HttpResponse) -> HttpResponse:
-#     if request.method == 'POST':
-#         payment_form = PaymentForm(request.POST)
-#         if payment_form.is_valid():
-#         # payment = payment_form.save(commit=False)
-#             payment = payment_form.save()
-#         # payment_status = verify_payment(payment.ref)
-#         # if payment_status == 'success':
-#         #     payment.verified = True
-                   
-#             return render(request, 'student/make_payment.html', {'payment': payment, 'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY})
-#     # else:
-#     #     payment_form = PaymentForm()
-#     # return render (request, 'student/initiate_payment.html', {'payment_form':payment_form})
-           
  
 
 import json
@@ -70,7 +54,7 @@ from django.http import HttpResponse
 
 
 from django.conf import settings
-from .models import Payment
+from .models import PaymentN
 
 from sms.paystack import Paystack
 from django.http import HttpResponse
@@ -104,58 +88,6 @@ import json
 
 import re
 
-
-# def verify(request ,id):
-
-    
-#     transaction = Transaction(authorization_key=settings.PAYSTACK_SECRET_KEY)
-#     response = transaction.verify(id)
-
-    
-
-#     if response[1]:
-#         reference = response[3]['reference']
-#         amount = response[3]['amount']/100
-#         email = response[3]['customer']['email']
-#         status = response[3]['status']
-#         first_name = request.user.profile.first_name
-#         last_name = request.user.profile.last_name
-
-#         referrer = response[3]['metadata']['referrer'].strip()
-#         print("Referrer URL:", referrer)
-
-#         # Split the referrer URL by '/'
-#         url_parts = referrer.split('/')
-#         print('u', url_parts)
-
-#         # Check if the last part of the URL is a numeric "id"
-#         if url_parts[-2].isdigit():
-#             id_value = url_parts[-2]
-#             print("Extracted ID:", id_value)
-#         else:
-#             id_value = None
-#         course = Courses.objects.get(pk =id_value )
-#         print("ccc:", course)
-#         print('ref',  reference)
-#         print('amoun', amount)
-#         print('email', email)
-#         print('referrer', referrer)
-#         print('fn', first_name)
-#         print('ln', last_name)
-    
-#         if status == 'success':
-#             verified = True
-
-#             payment = Payment(ref=reference,first_name = first_name, last_name = last_name ,user=request.user.profile,courses=course ,amount=amount, email=email, verified = verified)
-#             payment.save()
-  
-
-#         data = JsonResponse({'reference': reference})
-#     else:
-#         data = JsonResponse({'error': 'Payment verification failed.'}, status=400)
-    
-#     print('ver', data)
-#     return data
 
 import requests
 from django.conf import settings
@@ -207,7 +139,7 @@ def verify(request, id):
         if status == 'success':
             verified = True
 
-            payment = Payment(
+            payment = PaymentN(
                 ref=reference,
                 first_name=first_name,
                 last_name=last_name,

@@ -8,11 +8,11 @@ from django import forms
 from django.db import models 
 from sms.models import Comment, Blogcomment
 from users.models import NewUser, BaseUserManager
-from student.models import Payment
+from student.models import PaymentN
 
 class PaymentForm(ModelForm):
     class Meta:
-        model = Payment
+        model = PaymentN
         fields = ('amount', 'email',)
 
 class smspostform(ModelForm):
