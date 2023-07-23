@@ -1,15 +1,15 @@
 import imp
 from django.contrib import admin
 from student.models import Logo, signature, Designcert, PartLogo, Payment
-from student.models import Cart,CartItem, Order, OrderItem
+# from student.models import Cart,CartItem, Order, OrderItem
 
 from django.contrib import admin
 
 
-admin.site.register(Cart)
-admin.site.register(CartItem)
-admin.site.register(Order)
-admin.site.register(OrderItem)
+# admin.site.register(Cart)
+# admin.site.register(CartItem)
+# admin.site.register(Order)
+# admin.site.register(OrderItem)
 
 admin.site.register(Payment)
 
