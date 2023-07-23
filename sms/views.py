@@ -523,7 +523,8 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['aboutcourseowners'] =  AboutCourseOwner.objects.all().filter(courses_id= course).order_by('id')
         
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
-        context['payments'] = PaymentN.objects.all().filter(courses_id=course).order_by('id')
+        # context['payments'] = PaymentN.objects.all().filter(courses_id=course).order_by('id')
+        context['payments'] = PaymentN.objects.all()
         
         # if course.payments.exists():
         #     payment_ref = course.payments.first().ref
