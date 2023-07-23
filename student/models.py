@@ -79,7 +79,7 @@ from django.utils import timezone
 from sms.models import Courses
 
 
-class PaymentN(models.Model):
+class Payment(models.Model):
     user = models.ForeignKey(Profile, null=True, on_delete=models.CASCADE)
     courses = models.ForeignKey(Courses, null=True, on_delete=models.CASCADE, related_name='payments')
     amount = models.PositiveBigIntegerField(null=True)

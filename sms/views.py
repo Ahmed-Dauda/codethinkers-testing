@@ -121,7 +121,7 @@ from sms.forms import PaymentForm
 # from student.views import verify_payment
 from django.conf import settings
 
-from student.models import PaymentN
+from student.models import Payment
 
 # from pypaystack import Transaction
 
@@ -523,7 +523,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['aboutcourseowners'] =  AboutCourseOwner.objects.all().filter(courses_id= course).order_by('id')
         
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
-        context['payments'] = PaymentN.objects.all().filter(courses_id=course).order_by('id')
+        context['payments'] = Payment.objects.all().filter(courses_id=course).order_by('id')
         
         # if course.payments.exists():
         #     payment_ref = course.payments.first().ref
@@ -536,7 +536,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
 
         # Get the payments related to the specific course
         # payments_for_course = course_instance.payments.all()
-        payments_for_course = PaymentN.objects.filter(courses=course_instance)
+        payments_for_course = Payment.objects.filter(courses=course_instance)
 
         # Get the number of enrolled students for the course
         # student_enrollment = payments_for_course.count()
