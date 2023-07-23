@@ -8,7 +8,6 @@ from django import forms
 from django.db import models 
 from sms.models import Comment, Blogcomment
 from users.models import NewUser, BaseUserManager
-from tinymce.widgets import TinyMCE
 from student.models import Payment
 
 class PaymentForm(ModelForm):
@@ -27,10 +26,10 @@ class feedbackform(ModelForm):
         
         model = Comment
         fields= '__all__'
-        
+
 
 class BlogcommentForm(forms.ModelForm):
-    content =forms.CharField(widget=TinyMCE(attrs={'cols': 50, 'rows': 30}))
+    content =forms.CharField()
     class Meta:
         model = Blogcomment
         fields = ('name','content',)
