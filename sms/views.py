@@ -130,6 +130,7 @@ from django.http import JsonResponse
 from student.views import verify
 import uuid
 
+
 class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
     models = Courses
     template_name = 'sms/dashboard/paymentdesc.html'
@@ -525,14 +526,8 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
         context['payments'] = Payment.objects.all().filter(courses_id=course).order_by('id')
         
-        # if course.payments.exists():
-        #     payment_ref = course.payments.first().ref
-        # else:
-        #     payment_ref = None
-        # context['payment_ref'] = payment_ref
-
-       
-        course_instance = Courses.objects.get(pk=self.kwargs["pk"])
+   
+        course_instance = Courses.objects.filter(pk=self.kwargs["pk"])
 
         # Get the payments related to the specific course
         # payments_for_course = course_instance.payments.all()
@@ -540,7 +535,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
 
         # Get the number of enrolled students for the course
         # student_enrollment = payments_for_course.count()
-        student_enrollment = payments_for_course.count() 
+        student_enrollment = 4
 
         print(f"Enrollment for '{course_instance.title}': {student_enrollment} students")
         context['student_enrollment'] = student_enrollment + 100
