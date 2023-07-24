@@ -527,11 +527,11 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['payments'] = Payment.objects.all().filter(courses_id=course).order_by('id')
         
    
-        course_instance = Courses.objects.filter(pk=self.kwargs["pk"])
+        course_instance = Courses.objects.get(pk=self.kwargs["pk"])
 
         # Get the payments related to the specific course
         # payments_for_course = course_instance.payments.all()
-        payments_for_course = Payment.objects.filter(courses=course_instance)
+        payments_for_course = Payment.objects.get(courses=course_instance)
 
         # Get the number of enrolled students for the course
         # student_enrollment = payments_for_course.count()
