@@ -160,6 +160,7 @@ class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
         courses = Courses.objects.get(pk=self.kwargs["pk"])
         context['topics'] = Topics.objects.get_queryset().filter(courses_id=course).order_by('id')
+        context['payments'] = Payment.objects.all().filter(courses_id=course).order_by('id')
         
        
 
