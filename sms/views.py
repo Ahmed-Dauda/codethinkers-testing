@@ -527,29 +527,16 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['payments'] = Payment.objects.all().filter(courses_id=course).order_by('id')
         
    
-        course_instance = Courses.objects.get(pk=self.kwargs["pk"])
+        # course_instance = Courses.objects.get(pk=self.kwargs["pk"])
 
-        # Get the payments related to the specific course
-        # payments_for_course = course_instance.payments.all()
-        
-        payments_for_course = Payment.objects.filter(courses=course_instance)
-        if payments_for_course.exists():
-            # Payments exist for the course
-            student_enrollment = payments_for_course.count()
-            print(f"Enrollment for '{course_instance.title}': {student_enrollment} students")
-            context['student_enrollment'] = student_enrollment + 100
-        else:
-            # No payments found for the course
-            print(f"No enrollment found for '{course_instance.title}'.")
-            context['student_enrollment'] = 0
-
+        # payments_for_course = Payment.objects.filter(courses=course_instance)
 
         # Get the number of enrolled students for the course
         # student_enrollment = payments_for_course.count()
-        student_enrollment = 4
+        student_enrollment = 10
 
-        print(f"Enrollment for '{course_instance.title}': {student_enrollment} students")
-        context['student_enrollment'] = student_enrollment + 100
+        # print(f"Enrollment for '{course_instance.title}': {student_enrollment} students")
+        # context['student_enrollment'] = student_enrollment + 100
 
         
         return context
