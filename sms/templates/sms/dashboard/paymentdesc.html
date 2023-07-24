@@ -215,19 +215,7 @@
   </div>
 
 <br>
-{% for payment in payments %}
-{% if payment.ref and payment.verified %}
-{% if forloop.first %}
- {% if  object.title == payment.courses.title or object.status_type  == 'Free'  %}
-   <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
-     {% else %}
-   <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' object.id  %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
- {% endif %}
- {% endif %}
- {% endif %}
 
- {% endfor %}
- 
 <!-- <form method="get" onsubmit="handleSubmit(event)">
   <div class="main">
     {% csrf_token %}
