@@ -80,7 +80,8 @@ from sms.models import Courses
 
 
 class Payment(models.Model):
-    user = models.ForeignKey(Profile, null=True, on_delete=models.CASCADE)
+    # user = models.ForeignKey(Profile, null=True, on_delete=models.CASCADE)
+    payment_user = models.CharField(max_length=200, null=True)
     courses = models.ManyToManyField(Courses,   related_name='payments')
     amount = models.PositiveBigIntegerField(null=True)
     ref = models.CharField(max_length=250, null=True)
