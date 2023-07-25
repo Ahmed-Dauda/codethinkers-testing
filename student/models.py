@@ -97,11 +97,11 @@ from sms.models import Courses
 
   
 
+from django.db import models
 
 class Payment(models.Model):
-    # user = models.ForeignKey(Profile, null=True, on_delete=models.CASCADE)
-    payment_user = models.CharField(max_length=200, null=True)
-    courses = models.ManyToManyField(Courses,   related_name='payments')
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
+    courses = models.ManyToManyField(Courses, related_name='payments')
     amount = models.PositiveBigIntegerField(null=True)
     ref = models.CharField(max_length=250, null=True)
     first_name = models.CharField(max_length=250, null=True)
@@ -110,11 +110,7 @@ class Payment(models.Model):
     verified = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
 
-    class Meta:
-        ordering = ('-date_created',)
-
     def __str__(self):
-
-        return f"Payment: {self.amount}"
-
-
+        # Get a comma-separated list of course titles
+        course_titles = ', '.join(course.title for course in self.courses.all())
+        return f"{self.user} {self.amount} {course_titles}"
