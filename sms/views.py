@@ -505,7 +505,8 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
        
         # context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
         context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
-        num_students = course.student.count()
+        num_students = 'course.student.count()'
+        
          # Print the number of students
         context['num_students'] = num_students
        
