@@ -189,13 +189,7 @@
 
 <!-- course_detail.html -->
 
-<h2>Related Payments:</h2>
-<ul>
-  {% for payment in related_payments %}
-    <li>{{ payment.user }} - {{ payment.amount }} -{{ payment.verified }} - {{ payment.ref }} - {{ payment.date_created }} {{ payment.courses.first }}</li>
-  
-  {% endfor %}
-</ul>
+
 
 
 
