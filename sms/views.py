@@ -536,7 +536,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
 
         # payments_for_course = Payment.objects.filter(courses=course_instance)
 
-        # Get the number of enrolled students for the course
+    
         # student_enrollment = payments_for_course.count()
         student_enrollment = 107
 
