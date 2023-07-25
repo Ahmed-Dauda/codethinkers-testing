@@ -50,7 +50,7 @@ class Courses(models.Model):
     ]
 
     img_course = CloudinaryField('image', blank=True, null=True)
-    # student = models.ManyToManyField(Profile, blank=True, related_name='courses')
+    student = models.ManyToManyField(Profile, blank=True, related_name='courses')
     prerequisites = models.ManyToManyField('self', blank=True, symmetrical=False)
     categories = models.ForeignKey(Categories, blank=False, default=1, on_delete=models.SET_NULL, related_name='categories', null=True)
     title = models.CharField(max_length=225, blank=True, null=True)
