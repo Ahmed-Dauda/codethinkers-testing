@@ -75,16 +75,7 @@ class Courses(models.Model):
 # payment models and logics 
 
 
-class ProfileStudent(models.Model):
-    user = models.OneToOneField(Profile, on_delete=models.CASCADE)
-    # ... other profile fields ...
 
-class CourseEnrolled(models.Model):
-    # ... other course fields ...
-    students = models.ManyToManyField(ProfileStudent, related_name='enrolled_courses')
-
-    def get_num_students_enrolled(self):
-        return self.students.count()
     
 # class Courses(models.Model):
     
