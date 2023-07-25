@@ -525,7 +525,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['aboutcourseowners'] =  AboutCourseOwner.objects.all().filter(courses_id= course).order_by('id')
         
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
-        context['payments'] = Payment.objects.all().filter(courses_id=course).order_by('id')
+        context['payments'] = Payment.objects.all().filter(courses=course).order_by('id')
         
    
         # course_instance = Courses.objects.get(pk=self.kwargs["pk"])
