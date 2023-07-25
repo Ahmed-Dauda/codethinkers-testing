@@ -187,28 +187,37 @@
     <p class=" pr-3">{{ object.desc|truncatechars:300|safe }}</p>
  
 
+<!-- course_detail.html -->
 
+<h2>Related Payments:</h2>
+<ul>
+  {% for payment in related_payments %}
+    <li>{{ payment.user }} - {{ payment.amount }} -{{ payment.verified }} - {{ payment.ref }} - {{ payment.date_created }} {{ payment.courses.first }}</li>
   
-    {% if payments.ref and payments.verified %}
-    {% if forloop.first %}
+  {% endfor %}
+</ul>
 
-     {% if  object.title == payments.courses.title or object.status_type  == 'Free'  %}
-       <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
 
-     {% endif %}
 
-     {% endif %}
-     {% else %}
-     <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' object.id  %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
-     {% endif %}
-
-   
-  
-      <!-- {% if request.user.profile in course.student.all  or object.status_type  == 'Free'  %}
-    <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
-      {% else %}
-    <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' object.id  %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
-      {% endif %} -->
+{% if course.status_type == 'Free' %}
+  <!-- For free courses, always display the "Enroll" button -->
+  <a href="{% url 'sms:topicslistview' course.id %}">
+    <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
+  </a>
+{% else %}
+  {% if not related_payments.exists %}
+    <!-- User has not made a payment for this course -->
+    <a style="height: 10px;" class="" href="{% url 'sms:paymentdesc' course.id %}">
+      <button class="btn btn-primary">Make payment to proceed</button>
+    </a>
+  {% else %}
+    <!-- User has made a payment for this course -->
+    <a href="{% url 'sms:topicslistview' course.id %}">
+      <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
+    </a>
+  {% endif %}
+{% endif %}
+     
 
  
       

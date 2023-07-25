@@ -484,7 +484,7 @@ class Blogdetaillistview(HitCountDetailView,DetailView):
         return context 
 # end dashboard view
 
-
+   
 
 class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
     models = Courses
@@ -525,7 +525,14 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['aboutcourseowners'] =  AboutCourseOwner.objects.all().filter(courses_id= course).order_by('id')
         
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
-        context['payments'] = Payment.objects.all().filter(courses=course).order_by('id')
+        # context['payments'] = Payment.objects.all().filter(courses=course).order_by('id')
+        # Get the course instance for this view
+        user = self.request.user.profile
+        
+        # Query the Payment model to get all payments related to the user and course
+        related_payments = Payment.objects.filter(user=user, courses=course)
+
+        context['related_payments'] = related_payments
         
    
         # course_instance = Courses.objects.get(pk=self.kwargs["pk"])
