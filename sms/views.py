@@ -13,7 +13,7 @@ from sms.models import (Categories, Courses, Topics,
                           CourseLearnerReviews, Whatyouwilllearn,
                           CareerOpportunities, Whatyouwillbuild,
                           AboutCourseOwner,
-                          CourseEnrolled, ProfileStudent
+                         
                         )
 
 from profile import Profile as NewProfile

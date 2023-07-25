@@ -11,7 +11,7 @@ from sms.models import (
     FrequentlyAskQuestions, Partners, CourseFrequentlyAskQuestions, Skillyouwillgain, 
     CourseLearnerReviews, Whatyouwilllearn, 
     CareerOpportunities, Whatyouwillbuild, 
-    AboutCourseOwner, ProfileStudent, CourseEnrolled
+    AboutCourseOwner, 
     )
 
 
@@ -26,8 +26,7 @@ admin.site.register(CareerOpportunities)
 admin.site.register(Whatyouwillbuild)
 
 admin.site.register(AboutCourseOwner)
-admin.site.register(ProfileStudent)
-admin.site.register(CourseEnrolled)
+
 # class ArticleAdminResource(resources.ModelResource):
     
 #     class Meta:
