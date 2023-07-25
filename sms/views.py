@@ -523,7 +523,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
         # context['payments'] = Payment.objects.all().filter(courses=course).order_by('id')
-        # Get the course instance for this view
+    
         user = self.request.user.profile
         
         # Query the Payment model to get all payments related to the user and course
