@@ -191,15 +191,17 @@
   
     {% if payments.ref and payments.verified %}
     {% if forloop.first %}
+
      {% if  object.title == payments.courses.title or object.status_type  == 'Free'  %}
        <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
-         {% else %}
-       <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' object.id  %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
+      {% else %}
+      <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' object.id  %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
      {% endif %}
+
      {% endif %}
      {% endif %}
 
-     
+   
   
       <!-- {% if request.user.profile in course.student.all  or object.status_type  == 'Free'  %}
     <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
