@@ -78,6 +78,25 @@ from django.utils import timezone
 
 from sms.models import Courses
 
+# begin;
+# set transaction read write;
+
+#             CREATE TABLE IF NOT EXISTS student_payment (
+#                 id SERIAL PRIMARY KEY,
+#                 payment_user VARCHAR(200),
+#                 amount BIGINT,
+#                 ref VARCHAR(250),
+#                 first_name VARCHAR(250),
+#                 last_name VARCHAR(200),
+#                 email VARCHAR,
+#                 verified BOOLEAN DEFAULT FALSE,
+#                 date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+#             );
+
+# COMMIT;
+
+  
+
 
 class Payment(models.Model):
     # user = models.ForeignKey(Profile, null=True, on_delete=models.CASCADE)
