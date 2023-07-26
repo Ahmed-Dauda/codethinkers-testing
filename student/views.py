@@ -94,22 +94,6 @@ from django.conf import settings
 from django.http import JsonResponse
 
 
-# begin;
-# set transaction read write;
-
-#             CREATE TABLE IF NOT EXISTS student_payment (
-#                 id SERIAL PRIMARY KEY,
-#                 user VARCHAR(200),
-#                 amount BIGINT,
-#                 ref VARCHAR(250),
-#                 first_name VARCHAR(250),
-#                 last_name VARCHAR(200),
-#                 email VARCHAR,
-#                 verified BOOLEAN DEFAULT FALSE,
-#                 date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-#             );
-
-# COMMIT;
 
 
 
@@ -168,7 +152,7 @@ def verify(request, id):
                 ref=reference,
                 first_name=first_name,
                 last_name=last_name,
-                user=request.user.profile,
+                user_name=request.user.profile,
                 amount=amount,
                 email=email,
                 verified=verified
