@@ -100,7 +100,7 @@ from sms.models import Courses
 from django.db import models
 
 class Payment(models.Model):
-    user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
+    user_name = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
     courses = models.ManyToManyField(Courses, related_name='payments')
     amount = models.PositiveBigIntegerField(null=True)
     ref = models.CharField(max_length=250, null=True)
@@ -113,4 +113,4 @@ class Payment(models.Model):
     def __str__(self):
         # Get a comma-separated list of course titles
         course_titles = ', '.join(course.title for course in self.courses.all())
-        return f"{self.user} {self.amount} {course_titles}"
+        return f"{self.user_name} {self.amount} {course_titles}"
