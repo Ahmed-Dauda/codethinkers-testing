@@ -153,7 +153,7 @@ class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['student'] = student
 
         context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
-        num_students = course.student.count()
+        num_students = 'course.student.count()'
         context['num_students'] = num_students
         prerequisites = course.prerequisites.all()
         context['prerequisites'] = prerequisites
