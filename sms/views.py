@@ -527,7 +527,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         user = self.request.user.profile
         
         # Query the Payment model to get all payments related to the user and course
-        related_payments = Payment.objects.filter(user_name=user, courses_id=course)
+        related_payments = Payment.objects.filter(user_name=user, courses_p=course)
 
         context['related_payments'] = related_payments
         
