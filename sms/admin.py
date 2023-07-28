@@ -3,13 +3,14 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields,resources
 from import_export.widgets import ForeignKeyWidget
-
+  
 
 from sms.models import (
     Categories, Courses, Topics, 
     Comment, Blog, Blogcomment,Alert, Gallery, 
     FrequentlyAskQuestions, Partners, CourseFrequentlyAskQuestions, Skillyouwillgain, 
-    CourseLearnerReviews, Whatyouwilllearn, 
+    # CourseLearnerReviews, 
+    Whatyouwilllearn, 
     CareerOpportunities, Whatyouwillbuild, 
     AboutCourseOwner, 
     )
@@ -20,7 +21,7 @@ admin.site.register(FrequentlyAskQuestions)
 admin.site.register(Partners)
 admin.site.register(CourseFrequentlyAskQuestions)
 admin.site.register(Skillyouwillgain)
-admin.site.register( CourseLearnerReviews)
+# admin.site.register( CourseLearnerReviews)
 admin.site.register(Whatyouwilllearn)
 admin.site.register(CareerOpportunities)
 admin.site.register(Whatyouwillbuild)
