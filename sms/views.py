@@ -10,12 +10,14 @@ from sms.models import (Categories, Courses, Topics,
                         Comment, Blog, Blogcomment,Alert, Gallery,
                           FrequentlyAskQuestions, Partners, 
                           CourseFrequentlyAskQuestions, Skillyouwillgain,  
-                          CourseLearnerReviews, Whatyouwilllearn,
+                        #   CourseLearnerReviews, 
+                          Whatyouwilllearn,
                           CareerOpportunities, Whatyouwillbuild,
                           AboutCourseOwner,
                          
                         )
-
+ 
+ 
 from profile import Profile as NewProfile
 
 from hitcount.utils import  get_hitcount_model
@@ -514,7 +516,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
       
     
         context['faqs'] = CourseFrequentlyAskQuestions.objects.all().filter(courses_id= course).order_by('id')
-        context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courses_review_id = course).order_by('id')
+        # context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courses_review_id = course).order_by('id')
         context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
         context['whatyouwilllearn'] =   Whatyouwilllearn.objects.all().filter(courses_id= course).order_by('id')
         context['whatyouwillbuild'] =   Whatyouwillbuild.objects.all().filter(courses_id= course).order_by('id')
