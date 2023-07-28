@@ -32,6 +32,7 @@ class Migration(migrations.Migration):
                 to="sms.courses",
             ),
         ),
+        
         migrations.AddField(
             model_name="coursefrequentlyaskquestions",
             name="courses",
@@ -39,6 +40,7 @@ class Migration(migrations.Migration):
                 null=True, on_delete=django.db.models.deletion.CASCADE, to="sms.courses"
             ),
         ),
+
         migrations.AddField(
             model_name="careeropportunities",
             name="courses",
