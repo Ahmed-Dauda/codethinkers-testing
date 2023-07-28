@@ -160,7 +160,7 @@ def verify(request, id):
 
             # Add courses to the payment using the 'set()' method
             if course:
-                payment.courses_p.set([course])
+                payment.courses.set([course])
 
         data = JsonResponse({'reference': reference})
     else:
