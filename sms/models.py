@@ -93,7 +93,7 @@ class CourseFrequentlyAskQuestions(models.Model):
 
 
 
-
+# proble
 
 class CourseLearnerReviews(models.Model):
     title = models.CharField(max_length=225,  null=True, blank=True)
@@ -149,6 +149,7 @@ class Whatyouwilllearn(models.Model):
     def __str__(self):
         return f'{self.desc} -{self.courses.title}' 
     
+    
 class Whatyouwillbuild(models.Model):
     
     desc = models.CharField(max_length=900,null=True, blank =True )
@@ -160,6 +161,7 @@ class Whatyouwillbuild(models.Model):
     def __str__(self):
         return f'{self.desc} {self.courses.title}' 
 
+
 class AboutCourseOwner(models.Model):
     
     desc = models.TextField(null=True, blank =True )
@@ -170,6 +172,7 @@ class AboutCourseOwner(models.Model):
 
     def __str__(self):
         return f'{self.courses.title}' 
+    
 
 from django.utils.text import slugify
 
