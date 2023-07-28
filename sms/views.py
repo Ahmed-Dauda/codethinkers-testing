@@ -509,7 +509,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # print('nnnnnnnn', num_students)
         prerequisites = course.prerequisites.all()
         context['prerequisites'] = prerequisites
-         # Retrieve related courses based on categories
+         # Retrieve related courses based on category
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
       
     
