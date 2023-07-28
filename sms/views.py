@@ -509,12 +509,12 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # print('nnnnnnnn', num_students)
         prerequisites = course.prerequisites.all()
         context['prerequisites'] = prerequisites
-         # Retrieve related courses based on category
+         # Retrieve related courses based on categories
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
       
     
         context['faqs'] = CourseFrequentlyAskQuestions.objects.all().filter(courses_id= course).order_by('id')
-        context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courselearner__id = course).order_by('id')
+        context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courses_id = course).order_by('id')
         context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
         context['whatyouwilllearn'] =   Whatyouwilllearn.objects.all().filter(courses_id= course).order_by('id')
         context['whatyouwillbuild'] =   Whatyouwillbuild.objects.all().filter(courses_id= course).order_by('id')
