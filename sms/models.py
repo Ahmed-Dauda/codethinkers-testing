@@ -31,7 +31,7 @@ class Categories(models.Model, HitCountMixin):
     def __str__(self):
         return f'{self.name}'
 
-# from student.models import Payment
+
 import uuid
 
 class Courses(models.Model):
@@ -99,7 +99,7 @@ class CourseLearnerReviews(models.Model):
     title = models.CharField(max_length=225,  null=True, blank=True)
     desc = models.TextField(blank=True, null=True)
 
-    courses = models.ForeignKey(Courses, on_delete=models.CASCADE, null=True)
+    courses = models.ForeignKey(Courses, on_delete=models.CASCADE, null= True, related_name= 'courselearner')
     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
     # id = models.BigAutoField(primary_key=True)

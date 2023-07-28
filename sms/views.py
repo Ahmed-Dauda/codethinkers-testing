@@ -513,7 +513,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
       
     
-        context['faqs'] = CourseFrequentlyAskQuestions.objects.all().filter(courses_id= course).order_by('id')
+        context['faqs'] = CourseFrequentlyAskQuestions.objects.all().filter(courselearner_id= course).order_by('id')
         context['courseLearnerReviews'] = CourseLearnerReviews.objects.all().filter(courses_id= course).order_by('id')
         context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
         context['whatyouwilllearn'] =   Whatyouwilllearn.objects.all().filter(courses_id= course).order_by('id')
@@ -527,7 +527,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         user = self.request.user.profile
         
         # Query the Payment model to get all payments related to the user and course
-        related_payments = Payment.objects.filter(user_name=user, courses_p=course)
+        related_payments = Payment.objects.filter(user_name=user, courses=course)
 
         context['related_payments'] = related_payments
         

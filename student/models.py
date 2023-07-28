@@ -101,7 +101,7 @@ from django.db import models
 
 class Payment(models.Model):
     user_name = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
-    courses_p = models.ManyToManyField(Courses, related_name='payments')
+    courses = models.ManyToManyField(Courses, related_name='payments')
     amount = models.PositiveBigIntegerField(null=True)
     ref = models.CharField(max_length=250, null=True)
     first_name = models.CharField(max_length=250, null=True)
