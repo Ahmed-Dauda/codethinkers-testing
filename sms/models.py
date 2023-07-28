@@ -107,16 +107,7 @@ class CourseLearnerReviews(models.Model):
     def __str__(self):
         return f'{self.title} - {self.courses.title}'
 
-    title = models.CharField(max_length=225,  null=True, blank =True )
-    desc = models.TextField(blank=True, null= True)
-    # course_type = tinymce_models.HTMLField(max_length=500, blank=True, null= True)
-    courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
-    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
-    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
-    # id = models.BigAutoField(primary_key=True)
-
-    def __str__(self):
-        return f'{self.title} -{self.courses.title}'
+    
      
 
 class CareerOpportunities(models.Model):
