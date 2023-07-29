@@ -208,9 +208,25 @@
   </div>
  
   <div class="form-submit">
-    <button type="submit"  id="purchasebtn" onclick="payWithPaystack()"> Pay </button>
+   
   </div>
+
+  {% if not related_payments.exists %}
+    <!-- User has not made a payment for this course -->
+    <button type="submit"  id="purchasebtn" onclick="payWithPaystack()">Make Payment </button>
+  {% else %}
+    <!-- User has made a payment for this course -->
+    <a href="{% url 'sms:courseslistdesc' course.id %}">
+      Start {{ course.title|safe }}
+    </a>
+    <div>
+      <p class="" style="color: green;">You have already made payment! You can now proceed with the course enrollment.</p>
+    </div>
+    <input type="hidden" id="paymentSuccess" value="true">
+  {% endif %}
 </form>
+
+
 
   </div>
 

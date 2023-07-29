@@ -162,9 +162,12 @@ class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
         courses = Courses.objects.get(pk=self.kwargs["pk"])
         context['topics'] = Topics.objects.get_queryset().filter(courses_id=course).order_by('id')
-        # context['payments'] = Payment.objects.all().filter(courses_id=course).order_by('id')
+        user = self.request.user.profile
         
-       
+        # Query the Payment model to get all payments related to the user and course
+        related_payments = Payment.objects.filter(payment_user=user, courses=course)
+
+        context['related_payments'] = related_payments
 
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
 
