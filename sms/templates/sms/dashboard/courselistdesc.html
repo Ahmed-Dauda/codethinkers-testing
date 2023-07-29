@@ -211,7 +211,12 @@
     </a>
   {% endif %}
 {% endif %}
-     
+
+{% if related_payments.exists %}
+<!-- Add a hidden input field to hold the payment success flag -->
+<input type="hidden" id="paymentSuccess" value="true">
+{% endif %}
+
 
  
       
@@ -718,6 +723,24 @@
 
 <!-- about the course owner -->
 
+<!-- page refresh javascripts -->
+<!-- Include the following JavaScript at the end of the template -->
+<script>
+  // Check if the payment success flag is present
+  var paymentSuccessInput = document.getElementById('paymentSuccess');
+  if (paymentSuccessInput && paymentSuccessInput.value === 'true') {
+    // Reload the page only if it hasn't been reloaded before
+    if (!localStorage.getItem('paymentReloaded')) {
+      // Set a flag in localStorage to indicate the page has been reloaded
+      localStorage.setItem('paymentReloaded', 'true');
+
+      // Reload the page after 1 second
+      setTimeout(function() {
+        window.location.reload();
+      }, 1000);
+    }
+  }
+</script>
 
   {% endblock %} 
 
