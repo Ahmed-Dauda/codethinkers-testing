@@ -729,16 +729,10 @@
   // Check if the payment success flag is present
   var paymentSuccessInput = document.getElementById('paymentSuccess');
   if (paymentSuccessInput && paymentSuccessInput.value === 'true') {
-    // Reload the page only if it hasn't been reloaded before
-    if (!localStorage.getItem('paymentReloaded')) {
-      // Set a flag in localStorage to indicate the page has been reloaded
-      localStorage.setItem('paymentReloaded', 'true');
-
-      // Reload the page after 1 second
-      setTimeout(function() {
-        window.location.reload();
-      }, 1000);
-    }
+    // Reload the page after 1 second
+    setTimeout(function() {
+      window.location.reload();
+    }, 1000);
   }
 </script>
 
