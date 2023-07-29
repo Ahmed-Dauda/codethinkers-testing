@@ -152,7 +152,7 @@ def verify(request, id):
                 ref=reference,
                 first_name=first_name,
                 last_name=last_name,
-                user_name=request.user.profile,
+                payment_user=request.user.profile,
                 amount=amount,
                 email=email,
                 verified=verified
