@@ -93,8 +93,6 @@ class CourseFrequentlyAskQuestions(models.Model):
 
 
 
-# proble
-
 class CourseLearnerReviews(models.Model):
     title = models.CharField(max_length=225,  null=True, blank=True)
     desc = models.TextField(null=True)
