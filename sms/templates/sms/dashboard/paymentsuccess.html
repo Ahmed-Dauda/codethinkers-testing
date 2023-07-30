@@ -160,73 +160,16 @@
 </style>
 
 
+<div style="margin: 60px;" class="container ">
 
-
-  <div  style="padding-left: 20px; background-color: rgb(240, 238, 235)" class="">
-    <br> <br>
-    <div class="course-owner d-flex ">
-      {% if object.course_logo.url %}
-      <img  class="rounded" src="{{ object.course_logo.url }}"  alt=""> 
-      <p>{{object.course_owner|safe}}</p>
-      {% else %}
-      <img  class="rounded" src=" /static/sms/images/newlogo3.jpg"  alt="">
-      <p  class="text-dark ">Codethinkers Academy</p>
-    {% endif %}
-    </div>
-    
-    <br>
-  <h6>{{ object.title|safe }}</h6>
-
-  {% if object.price %}
-  <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  #{{object.price|safe|floatformat:"0g"}}</p> 
-  {% else %}
-  <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}}</p> 
-  {% endif %}
-  <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.categories.name|safe|title}} level</small> <br>
-  <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.course_type|safe}}</small>
-
-    <br> <br>
-    <p class=" pr-3">{{ object.desc|truncatechars:300|safe }}</p>
-
-      {% if request.user.profile in course.student.all or object.status_type  == 'Free'  %}
-    <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
-      {% else %}
-  
-      {% endif %}
-
-<br> <br>
-<p>{{enrollment_count}}  students already enrolled </p>
-
-<form id="paymentForm" action="">
-  <div class="form-group">
- 
-    <input  value = '{{request.user}}' type="hidden" id="email-address" required />
-  </div>
-  <div class="form-group">
-
-    <input  value = "{{object.price|safe}}"  type="hidden" id="amount" required />
-  </div>
- 
-  <div class="form-submit">
-   
-  </div>
-
-  {% if not related_payments.exists %}
-    <!-- User has not made a payment for this course -->
-    <button class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Make Payment </button>
-  {% else %}
     <!-- User has made a payment for this course -->
     <a href="{% url 'sms:courseslistdesc' course.id %}">
       Start {{ course.title|safe }}
     </a>
+    <br>
     <div>
-      <p class="" style="color: green;">You have already made payment! You can now proceed with the course enrollment.</p>
+      <p class="" style="color: green;">Payment successful! You can now proceed with the course enrollment.</p>
     </div>
-   
-  {% endif %}
-</form>
-
-<input type="hidden" id="paymentSuccess" value="true">
 
 
   </div>
@@ -460,7 +403,7 @@ function payWithPaystack(e) {
          callback: function (response) {
           // If transaction successful, do this
           var referenceid = response.reference;
-          window.location.href = "{% url 'sms:paymentsucess' object.id %}"
+          window.location.href = "{% url 'sms:courseslistdesc' object.id %}"
 
           // Set the referenceid value to the ref hidden input field
           $("#ref").val(referenceid);
@@ -517,32 +460,6 @@ function payWithPaystack(e) {
 <!-- about the course owner -->
 
 
-
-<script>
-  // Check if the payment success flag is present
-  var paymentSuccessInput = document.getElementById('paymentSuccess');
-  if (paymentSuccessInput && paymentSuccessInput.value === 'true') {
-    // Check if the payment_success session storage is set
-    var paymentSuccessStorage = sessionStorage.getItem('payment_success');
-    if (!paymentSuccessStorage || paymentSuccessStorage === 'true') {
-      // Set the payment_success session storage to false and reload the page after 1 second
-      sessionStorage.setItem('payment_success', 'false');
-      console.log('Page reloading - 1st time');
-      setTimeout(function() {
-        console.log('Page reloaded - 1st time');
-        window.location.reload();
-      }, 1000);
-    } else if (paymentSuccessStorage === 'false') {
-      // Set the payment_success session storage back to true and reload the page again after 5 seconds
-      sessionStorage.setItem('payment_success', 'true');
-      console.log('Page reloading - 2nd time');
-      setTimeout(function() {
-        console.log('Page reloaded - 2nd time');
-        window.location.reload();
-      }, 30000);
-    }
-  }
-</script>
 
   {% endblock %} 
 

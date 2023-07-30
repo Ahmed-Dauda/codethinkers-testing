@@ -163,31 +163,70 @@ class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
         courses = Courses.objects.get(pk=self.kwargs["pk"])
         context['topics'] = Topics.objects.get_queryset().filter(courses_id=course).order_by('id')
         user = self.request.user.profile
-        
+        courses = Courses.objects.get(pk=self.kwargs["pk"])
         # Query the Payment model to get all payments related to the user and course
         related_payments = Payment.objects.filter(payment_user=user, courses=course)
 
         context['related_payments'] = related_payments
 
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
+        # Get the number of student enrollments for this user and course
+        enrollment_count = related_payments.count()
 
-   
+        # Print or use the enrollment_count as needed
+        context['enrollment_count'] = enrollment_count + 100
+        print(enrollment_count)
+        
+        
         return context
     
-# class Paymentdesc(LoginRequiredMixin, ListView):
-#     models = Categories
-#     template_name = 'sms/dashboard/paymentdesc.html'
-#     success_message = 'TestModel successfully updated!'
-#     count_hit = True
+class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
+    models = Courses
+    template_name = 'sms/dashboard/paymentsuccess.html'
+    count_hit = True
+    queryset = Categories.objects.all()
+    def get_queryset(self):
+        return Courses.objects.all()
    
-#     def get_queryset(self):
-#         return Categories.objects.all()
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
+    def get_context_data(self, **kwargs):
 
-#         context['students'] = User.objects.all().count()
+        context = super().get_context_data(**kwargs)
+     
+        context['coursess'] = Courses.objects.all().order_by('created')[:10] 
+        context['courses_count'] = Courses.objects.filter(categories__pk=self.object.id).count()
+        # context['payment_course'] = Courses.objects.filter(payment__reference = payment__reference, request.user.profile=request.user.profile)
+        context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
+        course = Courses.objects.get(pk=self.kwargs["pk"])
 
-#         return context
+        student = course.student
+        context['student'] = student
+
+        context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
+        num_students = 'course.student.count()'
+        context['num_students'] = num_students
+        prerequisites = course.prerequisites.all()
+        context['prerequisites'] = prerequisites
+        context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
+        courses = Courses.objects.get(pk=self.kwargs["pk"])
+        context['topics'] = Topics.objects.get_queryset().filter(courses_id=course).order_by('id')
+        user = self.request.user.profile
+        courses = Courses.objects.get(pk=self.kwargs["pk"])
+        # Query the Payment model to get all payments related to the user and course
+        related_payments = Payment.objects.filter(payment_user=user, courses=course)
+
+        context['related_payments'] = related_payments
+
+        context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
+        # Get the number of student enrollments for this user and course
+        enrollment_count = related_payments.count()
+
+        # Print or use the enrollment_count as needed
+        context['enrollment_count'] = enrollment_count + 100
+        print(enrollment_count)
+        
+        
+        return context
+    
 
 class Homepage1(ListView):
 
@@ -536,18 +575,11 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
 
         context['related_payments'] = related_payments
         
-   
-        # course_instance = Courses.objects.get(pk=self.kwargs["pk"])
+        enrollment_count = related_payments.count()
 
-        # payments_for_course = Payment.objects.filter(courses=course_instance)
-
-    
-        # student_enrollment = payments_for_course.count()
-        student_enrollment = 107
-
-        # print(f"Enrollment for '{course_instance.title}': {student_enrollment} students")
-        # context['student_enrollment'] = student_enrollment + 100
-
+        # Print or use the enrollment_count as needed
+        context['enrollment_count'] = enrollment_count + 100
+        print(enrollment_count)
         
         return context
 
