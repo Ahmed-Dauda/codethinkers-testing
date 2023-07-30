@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth import SESSION_KEY
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -16,11 +17,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECRET_KEY = 'django-insecure-f1btf-a@a!84mjii=$tgdel4$+w5gtmbw3o%7$8n4w+2rntpns'
 
 # Read SECRET_KEY from an environment variable
+
 import os
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'cg#p$g+j9tax!#a3cup@1$8obt2_+&k3q+pmu)5%asj6yjpkag')
+
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# SECURITY WARNING: don't run with debug turned on in production!
+# DEBUG = True
 DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
+
+
 ALLOWED_HOSTS = ['*']
 # ALLOWED_HOSTS = ['codethinkers.herokuapp.com','codethinkerslms.com','www.codethinkerslms.com','codethinkers.org','www.codethinkers.org', '127.0.0.1']
 # ALLOWED_HOSTS = ['ctsaalms.herokuapp.com','codethinkers.org' ,'127.0.0.1']
@@ -246,13 +254,22 @@ WSGI_APPLICATION = 'school.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 PROJECT_PATH =os.path.dirname(os.path.abspath(__file__))
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(PROJECT_PATH, 'school.sqlite3'),
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+import os
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(PROJECT_PATH, 'school.sqlite3'),
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 
 # Password validation
@@ -337,13 +354,14 @@ MEDIA_ROOT =os.path.join(BASE_DIR, 'media')
 # Heroku: Update database configuration from $DATABASE_URL.
 
 import dj_database_url
+# Update database configuration from $DATABASE_URL.
 
 db_from_env = dj_database_url.config(conn_max_age=500)
-# db_from_env = dj_database_url.config(default='postgre://...')
 DATABASES['default'].update(db_from_env)
 
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = '/static/'
 
 # Simplified static file serving.
 # https://warehouse.python.org/project/whitenoise/
