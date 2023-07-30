@@ -187,10 +187,7 @@
     <p class=" pr-3">{{ object.desc|truncatechars:300|safe }}</p>
  
 
-<!-- course_detail.html -->
-
-
-
+<!-- payment logics -->
 
 {% if course.status_type == 'Free' %}
   <!-- For free courses, always display the "Enroll" button -->
@@ -220,6 +217,7 @@
 
 {% endif %}
 
+<!--end payment logics -->
  
       
   <!-- {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
@@ -559,11 +557,34 @@
 <div class="text-center" style="margin: 0 auto;">
   <h3 class="text-center text-danger">Start Learning Today</h3> <br>
   <ul>
-    {% if request.user.profile in course.student.all or object.status_type  == 'Free'  %}
-  <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
-    {% else %}
-  <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' object.id %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
-    {% endif %}
+  <!-- payment logics -->
+
+{% if course.status_type == 'Free' %}
+<!-- For free courses, always display the "Enroll" button -->
+<a href="{% url 'sms:topicslistview' course.id %}">
+  <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
+</a>
+{% else %}
+{% if not related_payments.exists %}
+  <!-- User has not made a payment for this course -->
+  <a style="height: 10px;" class="" href="{% url 'sms:paymentdesc' course.id %}">
+    <button class="btn btn-primary">Make payment to proceed</button>
+  </a>
+{% else %}
+  <!-- User has made a payment for this course -->
+  <a href="{% url 'sms:topicslistview' course.id %}">
+    <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
+  </a>
+{% endif %}
+{% endif %}
+
+{% if related_payments.exists and not payment_success %}
+<!-- Add a hidden input field to hold the payment success flag -->
+
+{% endif %}
+
+<!--end payment logics -->
+
   </ul>
   
 </div>
@@ -662,11 +683,44 @@
 {% endif %} -->
 
 <ul>
-  {% if request.user.profile in course.student.all or object.status_type  == 'Free'  %}
+  <!-- {% if request.user.profile in course.student.all or object.status_type  == 'Free'  %}
 <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary fixed-bottom">Enroll {{ object.title|safe }}</button> </a> 
   {% else %}
 <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' object.id %}"><button class="btn btn-primary fixed-bottom">Make payment to proceed</button> </a> 
   {% endif %}
+  
+  newlogo3 -->
+
+  <!-- payment logics -->
+
+{% if course.status_type == 'Free' %}
+<!-- For free courses, always display the "Enroll" button -->
+<a href="{% url 'sms:topicslistview' course.id %}">
+  <button class="btn btn-primary fixed-bottom">Enroll {{ course.title|safe }}</button>
+</a>
+{% else %}
+{% if not related_payments.exists %}
+  <!-- User has not made a payment for this course -->
+  <a style="height: 10px;" class="" href="{% url 'sms:paymentdesc' course.id %}">
+    <button class="btn btn-primary fixed-bottom">Make payment to proceed</button>
+  </a>
+{% else %}
+  <!-- User has made a payment for this course -->
+  <a href="{% url 'sms:topicslistview' course.id %}">
+    <button class="btn btn-primary fixed-bottom">Enroll {{ course.title|safe }}</button>
+  </a>
+{% endif %}
+{% endif %}
+
+{% if related_payments.exists and not payment_success %}
+<!-- Add a hidden input field to hold the payment success flag -->
+
+
+
+{% endif %}
+
+<!--end payment logics -->
+
 </ul>
 
 
@@ -746,7 +800,7 @@
       setTimeout(function() {
         console.log('Page reloaded - 2nd time');
         window.location.reload();
-      }, 30000);
+      }, 120000);
     }
   }
 </script>

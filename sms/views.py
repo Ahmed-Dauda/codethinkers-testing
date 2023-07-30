@@ -242,7 +242,7 @@ class Homepage1(ListView):
     def get_context_data(self, **kwargs): 
         context = super(Homepage1, self).get_context_data(**kwargs)
         
-        context['students'] = User.objects.all().count()
+        context['students'] = User.objects.all().count() + 100
         context['category'] = Categories.objects.count()
         context['coursecategory'] = Categories.objects.all()
         context['courses'] = Courses.objects.all().count()
@@ -299,7 +299,7 @@ class Homepage2(SuccessMessageMixin, LoginRequiredMixin,ListView):
     def get_context_data(self, **kwargs): 
         context = super(Homepage2, self).get_context_data(**kwargs)
         
-        context['students'] = User.objects.all().count()
+        context['students'] = User.objects.all().count() + 100
         context['category'] = Categories.objects.count()
         context['coursecategory'] = Categories.objects.all()
         context['courses'] = Courses.objects.all().count()
