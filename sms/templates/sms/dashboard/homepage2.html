@@ -497,7 +497,7 @@ p {
 .btn-front {
   display: block; /* To make the button occupy full width */
   width: 100%;
-  max-width: 350px; /* Increase the maximum width for the buttons */
+  max-width: 250px; /* Increase the maximum width for the buttons */
   padding: 10px 20px;
   background-color: #007bff;
   color: #fff;
@@ -509,6 +509,37 @@ p {
 .btn:hover {
   background-color: #0056b3;
 }
+
+/* front page statistics  */
+/* Add your custom styles here */
+.statistics-section {
+  background-color: #f7f7f7;
+  padding: 40px 0;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 20px;
+}
+
+.stat-icon {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.stat-label {
+  font-size: 16px;
+  color: #777;
+}
+
+/* end of the front page statisitc */
+
+/* our partners  */
 
 </style>
 
@@ -533,7 +564,7 @@ p {
         <a href="{% url 'account_login' %}" class="btn-front btn-primary">Join us for Free</a>
       </div>
       <div class="button-container">
-        <a href="{% url 'account_signup' %}" class="btn-front btn-primary ">Register Here</a>
+        <a href="{% url 'account_signup' %}" class="btn-front btn-primary ">Sign Up</a>
       </div> -->
     </div>
 
@@ -551,6 +582,32 @@ p {
 </div>
 
 
+  <!-- partners section  -->
+  
+  <div class="card-bod" style="padding-left: 20px; background-color: rgb(240, 238, 235)">
+   <h3 class="text-center ">Our Partners and Collaborators
+  </h3>
+ 
+ 
+  <section class="partners " >
+ 
+   
+ 
+   {% for partner in partners %}
+ 
+           <!-- <img src=" /static/sms/images/girlavater.webp" width="100%" class="img-fluid" /> -->
+     <img src="{{partner.img_partner.url}}" width="60px" height="60px" class="img-fluid" />
+    
+     {% empty %}
+     <h1 class="card text-center text-danger">no partners available Yet. CHECK LATER</h1>
+ 
+     {% endfor %}
+ 
+ </section>
+ </div>
+
+ <!-- partners section endign -->
+ 
 <!-- page Statistics -->
 <div class="statistics-section">
   <div class="container">
