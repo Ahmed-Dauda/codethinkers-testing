@@ -37,6 +37,7 @@ from sms.views import(
       BlogcommentCreateView,
       PhotoGallery,
       Paymentdesc,
+      PaymentSucess,
    
       
 ) 
@@ -50,6 +51,7 @@ urlpatterns = [
     # new dashboard urls
     path('home', Category.as_view(), name='home'),
     path('paymentdesc/<str:pk>/',  Paymentdesc.as_view(), name='paymentdesc'),
+    path('paymentsucess/<str:pk>/',  PaymentSucess.as_view(), name='paymentsucess'),
     path('table', Table.as_view(), name='table'),
     path('', Homepage1.as_view(), name='homepage'),
     path('homepage2', Homepage2.as_view(), name='homepage2'),
