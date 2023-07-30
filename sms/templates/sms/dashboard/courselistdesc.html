@@ -188,6 +188,8 @@
  
 
 <!-- payment logics -->
+<div style="text-align: center; padding-right: 25px;">
+
 
 {% if course.status_type == 'Free' %}
   <!-- For free courses, always display the "Enroll" button -->
@@ -217,6 +219,7 @@
 
 {% endif %}
 
+</div>
 <!--end payment logics -->
  
       
@@ -556,7 +559,8 @@
 <br>
 <div class="text-center" style="margin: 0 auto;">
   <h3 class="text-center text-danger">Start Learning Today</h3> <br>
-  <ul class="text-center">
+
+  <ul style="text-align: center; padding-right: 25px;" class="text-center">
   <!-- payment logics -->
 
 {% if course.status_type == 'Free' %}
@@ -800,7 +804,7 @@
       setTimeout(function() {
         console.log('Page reloaded - 2nd time');
         window.location.reload();
-      }, 120000);
+      }, 300000);
     }
   }
 </script>
