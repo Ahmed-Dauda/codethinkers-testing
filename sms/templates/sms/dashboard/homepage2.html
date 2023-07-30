@@ -23,18 +23,49 @@ body {
     height: 435px;
     overflow-y: hidden;     
 }
-
+/* end card hover effect */
 .gallery {
-    display: flex;
-    overflow-x: auto;
-    height: 300px;
-    overflow-y: hidden;   
-     
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
+
+.left-column-cat {
+  width: 300px;
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid blue;
+  transition: all 0.3s;
+}
+
+.left-column-cat:hover {
+  transform: scale(1.01);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.text-center.category {
+  margin-top: 0;
+}
+
+.text-left.container {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.images {
+  border-radius: 4px;
+}
+
+.card.text-center.text-danger {
+  margin-top: 20px;
+}
+
+/* end card hover effect */
+
 .beginner {
     display: flex;
     overflow-x: auto;
-    height: 400px;
+    height: 420px;
     overflow-y: hidden;     
 }
 
@@ -428,67 +459,135 @@ FREQUENTLY ASKED QUESTIONS */
   margin: 10px;
 }
 
-
  /* end of ebooks */
+
+/* latest feed */
+/* Add your custom styles here */
+/* Add your custom styles here */
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.image-desktop {
+  max-width: 100%;
+  height: auto;
+  border-radius: 50%; /* Make the image rounded */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+}
+
+/* Hide the image on mobile view */
+@media (max-width: 767px) {
+  .image-desktop {
+    display: none;
+  }
+}
+
+h2 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+p {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.btn-front {
+  display: block; /* To make the button occupy full width */
+  width: 100%;
+  max-width: 350px; /* Increase the maximum width for the buttons */
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+}
+
+.btn:hover {
+  background-color: #0056b3;
+}
+
 </style>
 
-<div class="card bg-dark text-white" style="width: 100%; margin-left: 0px; margin-top: 0px;">
-  <img src="/static/sms/images/landing.jpg" class="card-img" width="100%" height="450px" alt="">
-  <!-- <img src="https://mdbcdn.b-cdn.net/img/new/slids/017.webp" class="card-img" alt="Stony Beach"/> -->
-  <div class="card-img-overlay" style="background-color: rgba(0, 0, 0, 0.3)">
-    <br> <br> <br>
-    <h5 class="card-title">Learn without limits</h5>
-    <p class="card-text">
-      Our  academy provides practical training for different programming languages, suited for both beginners and experienced coders, with real-world projects and portfolio-building opportunities.
-    </p>
-    
-    <p class="card-text"> <div class="header">
-    <br>
-      <!-- <a class="btn" id="btn1" href="{% url 'account_login' %}"> Log In</a>
-      <a class="btn" id="btn1" href="{% url 'account_signup' %}"> Sign Up</a> -->
-      <!-- <button class="btn" id="btn2">Sign Up</button> -->
-  
-  </div></p>
-  </div>
-</div>
 
-
-
-<br> <br> 
 <div class="container">
-  <button class="btn text-center " ><a class="btn text-center text-center"  href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>
+  <div class="row">
 
-</div>
-
-<!-- page Statistics -->
-
-<br> <br> <br>
-      <!-- <h3 class="text-center "> <span>Site Statistics</span> </h3> <hr> -->
-
-      <div  class=" sta">
-
-        <div class="card mb-4 py-3 border-bottom-primary rounded-circle text-center">
-            <div class="card-body">
-              {{category}} Categories
-            </div>
-        </div>
-
-        <div class="card mb-4 py-3 border-bottom-primary rounded-circle text-center">
-          <div class="card-body">
-            {{students}} Students
-          </div>
+    <div class="col-md-6 flex-container">
+      <div class="text-container">
+        <h2>Unleashing Your Coding Potential</h2>
+        <p>
+          Join us at CodeThinkers Academy to unlock your coding potential. 
+          Our diverse range of courses covers web development, app creation, data science, 
+          and more. Learn from expert instructors and stay ahead in this dynamic industry. 
+          Embrace a future of possibilities and 
+          begin your coding journey with us today. Let's code, innovate, and inspire together!
+        </p>
+        
       </div>
 
-      <div class="card mb-4 py-3 border-bottom-primary  rounded-circle text-center">
-        <div class="card-body">
-          {{courses}} Courses
-        </div>
+      <!-- <div  class="button-container">
+        <a href="{% url 'account_login' %}" class="btn-front btn-primary">Join us for Free</a>
+      </div>
+      <div class="button-container">
+        <a href="{% url 'account_signup' %}" class="btn-front btn-primary ">Register Here</a>
+      </div> -->
+    </div>
+
+    <div class="col-md-6">
+      <img src="/static/sms/images/kids.webp" alt="front-image" class="image-desktop">
     </div>
 
   </div>
+</div>
+
+
+<div class="container">
+  <button style="background-color: rgb(235, 183, 192);" class="btn text-center text-white" ><a class="btn text-center text-center"  href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>
+
+</div>
+
+
+<!-- page Statistics -->
+<div class="statistics-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="stat-item">
+          <div class="stat-icon">
+            <i class="fas fa-users"></i> <!-- Use font-awesome icons or other icon libraries -->
+          </div>
+          <div class="stat-number">{{students}}+</div>
+          <div class="stat-label">Students Enrolled</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-item">
+          <div class="stat-icon">
+            <i class="fas fa-list"></i>
+          </div>
+          <div class="stat-number">{{category}}+</div>
+          <div class="stat-label">Categories</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-item">
+          <div class="stat-icon">
+            <i class="fas fa-book"></i>
+          </div>
+          <div class="stat-number">{{courses}}+</div>
+          <div class="stat-label">Courses Offered</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- page animinations -->
-<!-- <div class="container4">
+<div class="container4">
   <div class="accordion" id="faqAccordion">
     {% for faq in faqs %}
     <div class="card bg-primary">
@@ -514,33 +613,11 @@ FREQUENTLY ASKED QUESTIONS */
     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
     {% endfor %}
   </div>
-</div> -->
+</div>
   <!--END OF FAQ-->
 
 <!-- ending of page animination -->
 
-
-  <!-- partners section  -->
- <!-- <br> <br> <br>
- <div class="card-bod">
- <h3 class="text-center text-primary">Our Partners</h3>
-</div>
-
-<br>
- <section class="partners ">
-
-  {% for partner in partners %}
-
-    <img src="{{partner.img_partner.url}}" width="60px" height="60px" class="img-fluid" />
-   
-    {% empty %}
-    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-
-    {% endfor %}
-
-</section> -->
-
-<!-- partners section endign -->
 
 <br> <br> <br>
    <div class="card-body">
@@ -606,7 +683,7 @@ FREQUENTLY ASKED QUESTIONS */
 {% endif %}
 {% endfor %}
   
-<div  class="beginner ">
+<div  class="beginner">
 
 
   {% for obj in beginner %}
@@ -1049,7 +1126,7 @@ FREQUENTLY ASKED QUESTIONS */
 <br> <br> <br>
 <div class="row d-flex justify-content-center">
   <div class="col-md-10 col-xl-8 text-center">
-    <h3 style="color: black; font-weight: bold;"  class="mb-4">Testimonials</h3>
+    <h3 style="color: black; font-weight: bold;"  class="mb-4">What people say about us</h3>
     <p class="mb-4 pb-2 mb-md-5 pb-md-0">
 
     </p>
@@ -1069,7 +1146,8 @@ FREQUENTLY ASKED QUESTIONS */
 
         </div>
         <div class="card-body">
-          <h4 class="mb-4">Maria Smantha</h4>
+          <h6 class="mb-4">Maria Smantha</h6>
+          <img src="https://icon-library.com/images/star-rating-icon/star-rating-icon-21.jpg" width="100px" alt="">
           <hr />
           <p class="dark-grey-text mt-4">
             <i class="fas fa-quote-left pe-2"></i>
@@ -1086,7 +1164,8 @@ FREQUENTLY ASKED QUESTIONS */
           <img src=" /static/sms/images/avater11.png" width="100px" class="rounded-circle img-fluid" />
         </div>
         <div class="card-body">
-          <h4 class="mb-4">Andrew Cudrow</h4>
+          <h6 class="mb-4">Andrew Cudrow</h6>
+          <img src="https://icon-library.com/images/star-rating-icon/star-rating-icon-21.jpg" width="100px" alt="">
           <hr />
           <p class="dark-grey-text mt-4">
             <i class="fas fa-quote-left pe-2"></i>
@@ -1102,7 +1181,8 @@ FREQUENTLY ASKED QUESTIONS */
           <img src=" /static/sms/images/avater2.webp" width="100px" class="rounded-circle img-fluid" />
         </div>
         <div class="card-body">
-          <h4 class="mb-4">Muhammad  Abubakar</h4>
+          <h6 class="mb-4">Muhammad  Abubakar</h6>
+          <img src="https://icon-library.com/images/star-rating-icon/star-rating-icon-21.jpg" width="100px" alt="">
           <hr />
           <p class="dark-grey-text mt-4">
             <i class="fas fa-quote-left pe-2"></i>
@@ -1126,25 +1206,18 @@ FREQUENTLY ASKED QUESTIONS */
   
   <div class="gallery rounded-4 text-center">
     {% for category in gallery %}
-    <div style="border: 1px solid blue;" class="left-column-cat  ">
-        <p  class=" text-center category">
-      
-            {% if category.gallery %}
-            <img class="rounded-4 images" src="{{category.gallery.url}}" width="280px" height="150px" alt="cetagory image">
-            {% endif %}
-            {% if category.title %}
-            <div class="text-left container">{{category.title}}</div>
-            {% endif %}
-            <!-- <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a> -->
-           <!-- <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
-            <div>{{category.created}}</div> <hr>-->
-           
-        </p>
-     
+    <div class="left-column-cat">
+      <p class="text-center category">
+        {% if category.gallery %}
+        <img class="rounded-4 images" src="{{category.gallery.url}}" width="280px" height="150px" alt="category image">
+        {% endif %}
+        {% if category.title %}
+        <div class="text-left container">{{category.title}}</div>
+        {% endif %}
+      </p>
     </div>
-
     {% empty %}
-      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
     {% endfor %}
   </div>
 <!-- END GALLERY-->
@@ -1223,7 +1296,6 @@ FREQUENTLY ASKED QUESTIONS */
   {% endfor %}
 </div>
 <!--end Categories and Courses -->
-
 
 <br> <br> <br>
 
