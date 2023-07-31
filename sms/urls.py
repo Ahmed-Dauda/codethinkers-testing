@@ -38,16 +38,19 @@ from sms.views import(
       PhotoGallery,
       Paymentdesc,
       PaymentSucess,
+      Docdetaillistview,
    
       
 ) 
 
+
 app_name = 'sms'
 
 urlpatterns = [
-  
+    
+
     # path('', Categorieslistview.as_view(), name='categorieslist'),
-        
+    path('pdf_document_detail/<str:pk>/', Docdetaillistview.as_view(), name='pdf_document_detail'),
     # new dashboard urls
     path('home', Category.as_view(), name='home'),
     path('paymentdesc/<str:pk>/',  Paymentdesc.as_view(), name='paymentdesc'),

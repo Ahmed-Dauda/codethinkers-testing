@@ -10,44 +10,12 @@
 <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us  </a>  </button>
 
 <div class="table-responsive container text-center card-body">
-  <table class="table" id=""> 
-     
-    {% for note in cert_note %}
-  <div class="card-header bg-primary text-white">{{note|linebreaksbr}}</div>
-     {% endfor %}
-    <div><a href="{% url 'student:take-exam' %}">Take Exam</a></div><br>
-    <thead>
-      <tr>
-        <th>Names</th>
-        <th>Email</th>
-   
-        <th>Exam Name</th>
-        <th>Max Score</th>
 
-       
-      </tr>
-    </thead>
-   
-   <tbody>
+  
 
-    <tr>
-      {% for t in results %}
-      <td> {{t.student.first_name}} {{t.student.last_name}}</td>
-      <td> {{t.student.user}}</td>
-      <td> {{t.exam}}</td>
-      <td> {{t.marks}}</td>
+  <p>Price: &#8358;{{ c.price }}</p>
 
 
-      
-
-
-
-{% for course in courses %}
-
-
-{% if course == t.exam and t.marks >= course.pass_mark %}
-
-<p style="color: green;">You passed the exam. Congratulations, {{request.user.profile.first_name}}! </p>
 <form id="paymentForm" action="">
   <div class="form-group">
  
@@ -55,7 +23,7 @@
   </div>
   <div class="form-group">
 
-    <input  value = "{{course.course_name.price|safe}}"  type="hidden" id="amount" required />
+    <input  value = "{{c.price|safe}}"  type="hidden" id="amount" required />
   </div>
  
   <div class="form-submit">
@@ -70,41 +38,9 @@
 
    
   {% endif %}
+
 </form>
   <script src="https://js.paystack.co/v1/inline.js"></script>
-
-{% if course.course_name.status_type == 'Premium' or related_payments.exists and course == t.exam %}
-
-<p>{{ hitcount.total_hits}} Certificates printed on this course</p>
-<!-- <p style="color:green">Congratulations, {{t.student.user}} you made it!</p> -->
-<a href="{% url 'student:pdf' course.id %}"> PRINT {{course}} CERTIFICATE</a><br>
-{% else %}
-
-<!-- {% if forloop.last %}
-<h4 style="color:red">Passed mark: {{t.pass_mark}}. You are close to get your Certificate. Please try again</h4>
-{% endif  %} -->
-<!-- 
-<h3> Certificate is for Premium Student.<button class="btn "><a href="https://wa.me/23409031568177"> Contact Us  </a>  </button></h3> -->
-
-{% endif  %}
-
-
-{% else %}
-{% if course == t.exam and t.marks < course.pass_mark  or t.marks == None %}
-<h4 style="color:red">Passed mark: {{course.pass_mark}}. You are close to get your Certificate. Please try again</h4>
-{% endif  %}
-
-{% endif  %} 
-
-{% endfor %}
-
-
-{% endfor %}
-    </tr>
-   
-  </tbody>
-  <hr>
-</table>
 
 
 </div>

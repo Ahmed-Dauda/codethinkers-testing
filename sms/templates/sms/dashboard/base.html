@@ -292,7 +292,7 @@ rel="stylesheet"
                                        <span  class="small text-gray-500">{{alert.created}}</span>
                                        <h6 style = 'color:black; font-weight: bold'> {{alert.title|safe}} </h6> <hr>
                                        <p> {{alert.content}} </p>
-                                       <button class="btn" ><a  href="https://wa.me/23409031568177"> Shop Now </a> </button> 
+                                       <button><a href="{% url 'sms:pdf_document_detail' alert.id %}">{{ alert.title }}</a></button>
                                         </div>
 
                                      <hr>

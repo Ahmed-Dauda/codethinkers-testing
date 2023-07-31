@@ -102,6 +102,32 @@ from django.http import JsonResponse
 from student.models import Payment, Courses
 from django.shortcuts import get_object_or_404
 
+
+from .forms import PDFDocumentForm
+
+def upload_pdf_document(request):
+    if request.method == 'POST':
+        form = PDFDocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('student:pdf_document_list')
+    else:
+        form = PDFDocumentForm()
+    return render(request, 'student/dashboard/upload_pdf_document.html', {'form': form})
+
+
+from django.shortcuts import render, redirect
+from .forms import PDFDocumentForm
+from .models import PDFDocument
+
+
+def pdf_document_list(request):
+    documents = PDFDocument.objects.all()
+    return render(request, 'student/dashboard/pdf_document_list.html', {'documents': documents})
+
+
+
+
 def verify(request, id):
 
     secret_key = settings.PAYSTACK_SECRET_KEY
@@ -169,6 +195,73 @@ def verify(request, id):
     print('ver', data)
     return data
 
+
+# def verify_payment(request, id):
+
+#     secret_key = settings.PAYSTACK_SECRET_KEY
+#     api_url = f'https://api.paystack.co/transaction/verify/{id}'
+#     headers = {
+#         'Authorization': f'Bearer {secret_key}',
+#     }
+
+#     response = requests.get(api_url, headers=headers)
+
+#     if response.status_code == 200:
+#         data = response.json()  # Parse the JSON response
+#         reference = data['data']['reference']
+#         amount = data['data']['amount'] / 100
+#         email = data['data']['customer']['email']
+#         status = data['data']['status']
+#         first_name = request.user.profile.first_name
+#         last_name = request.user.profile.last_name
+
+#         referrer = data['data']['metadata']['referrer'].strip()
+#         print("Referrer URL:", referrer)
+
+#         # Split the referrer URL by '/'
+#         url_parts = referrer.split('/')
+#         print('u', url_parts)
+
+#         # Check if the last part of the URL is a numeric "id"
+#         if url_parts[-2].isdigit():
+#             id_value = url_parts[-2]
+#             print("Extracted ID:", id_value)
+#         else:
+#             id_value = None
+
+#         course = get_object_or_404(Courses, pk=id_value)
+#         print("ccc:", course)
+#         print('ref', reference)
+#         print('amoun', amount)
+#         print('email', email)
+#         print('referrer', referrer)
+#         print('fn', first_name)
+#         print('ln', last_name)
+
+#         if status == 'success':
+#             verified = True
+
+#             # Create the Payment object
+#             payment = Payment.objects.create(
+#                 ref=reference,
+#                 first_name=first_name,
+#                 last_name=last_name,
+#                 payment_user=request.user.profile,
+#                 amount=amount,
+#                 email=email,
+#                 verified=verified
+#             )
+
+#             # Add courses to the payment using the 'set()' method
+#             if course:
+#                 payment.courses.set([course])
+
+#         data = JsonResponse({'reference': reference})
+#     else:
+#         data = JsonResponse({'error': 'Payment verification failed.'}, status=400)
+
+#     print('ver', data)
+#     return data
 
 
 
