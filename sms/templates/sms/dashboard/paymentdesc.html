@@ -226,7 +226,6 @@
   {% endif %}
 </form>
 
-<input type="hidden" id="paymentSuccess" value="true">
 
 
   </div>
@@ -339,51 +338,10 @@ function payWithPaystack(e) {
 
 </script>
 
-<script>
-  function handleSubmit(event) {
-    var amount = document.getElementById('amount').value;
-    var course = document.getElementById('course').value;
-    var email = document.getElementById('email').value;
-    var firstName = document.getElementById('first-name').value;
-    var lastName = document.getElementById('last-name').value;
-    var ref = document.getElementById('ref').value;
-
-    if (!amount || !course || !email || !firstName || !lastName || !ref) {
-      event.preventDefault();
-      alert('Please fill in all required fields.');
-    }
-  }
-</script>
 
 <!-- about the course owner -->
 
 
-
-<script>
-  // Check if the payment success flag is present
-  var paymentSuccessInput = document.getElementById('paymentSuccess');
-  if (paymentSuccessInput && paymentSuccessInput.value === 'true') {
-    // Check if the payment_success session storage is set
-    var paymentSuccessStorage = sessionStorage.getItem('payment_success');
-    if (!paymentSuccessStorage || paymentSuccessStorage === 'true') {
-      // Set the payment_success session storage to false and reload the page after 1 second
-      sessionStorage.setItem('payment_success', 'false');
-      console.log('Page reloading - 1st time');
-      setTimeout(function() {
-        console.log('Page reloaded - 1st time');
-        window.location.reload();
-      }, 1000);
-    } else if (paymentSuccessStorage === 'false') {
-      // Set the payment_success session storage back to true and reload the page again after 5 seconds
-      sessionStorage.setItem('payment_success', 'true');
-      console.log('Page reloading - 2nd time');
-      setTimeout(function() {
-        console.log('Page reloaded - 2nd time');
-        window.location.reload();
-      }, 30000);
-    }
-  }
-</script>
 
   {% endblock %} 
 
