@@ -195,9 +195,6 @@ class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
         course = Courses.objects.get(pk=self.kwargs["pk"])
 
-        student = course.student
-        context['student'] = student
-
         context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
         num_students = 'course.student.count()'
         context['num_students'] = num_students
@@ -239,7 +236,7 @@ class Homepage1(ListView):
     def get_context_data(self, **kwargs): 
         context = super(Homepage1, self).get_context_data(**kwargs)
         
-        context['students'] = User.objects.all().count() + 175
+        context['students'] = User.objects.all().count() + 200
         context['category'] = Categories.objects.count()
         context['coursecategory'] = Categories.objects.all()
         context['courses'] = Courses.objects.all().count()
