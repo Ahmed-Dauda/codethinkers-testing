@@ -467,7 +467,7 @@ class Certdetaillistview(HitCountDetailView,DetailView):
 
     def get_context_data(self,*args , **kwargs ):
         context = super().get_context_data(**kwargs)
-        course = get_object_or_404(QMODEL.Course, pk=self.kwargs['pk'])
+        zcourse = get_object_or_404(QMODEL.Course, pk=self.kwargs['pk'])
         # course=QMODEL.Course.objects.get(id=pk)
         
         courses = QMODEL.Course.objects.all()
@@ -479,8 +479,8 @@ class Certdetaillistview(HitCountDetailView,DetailView):
             return HttpResponseRedirect("account_login")
       
         max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-        results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
-        Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
+        results = Result.objects.filter(exam=zcourse, student = student).order_by('-date')[:1]
+        Result.objects.filter(id__in = Subquery(max_q[1:]), exam=zcourse)
 
         try:
             user_profile =  Profile.objects.filter(user_id = self.request.user) 
@@ -489,11 +489,21 @@ class Certdetaillistview(HitCountDetailView,DetailView):
         
         # context['certificate'] = get_object_or_404(Certificate, code=self.kwargs['pk'], user=self.request.user)
         context['results'] = results
-        context['course'] = course
+        context['course'] = zcourse
         context['st'] = self.request.user
         context['user_profile'] = user_profile
         context['courses'] = courses
         context['cert_note'] = cert_note
+        
+        user = self.request.user.profile
+        courses = Courses.objects.get(pk=self.kwargs["pk"])
+        # Query the Payment model to get all payments related to the user and course
+        related_payments = Payment.objects.filter(payment_user=user, courses=courses)
+        print('sta', zcourse.course_name.status_type)
+
+        context['related_payments'] = related_payments
+        context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
+
         
 
         return context

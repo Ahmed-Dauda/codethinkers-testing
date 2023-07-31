@@ -582,30 +582,6 @@ p {
 </div>
 
 
-  <!-- partners section  -->
-  
-  <div class="card-bod" style="padding-left: 20px; background-color: rgb(240, 238, 235)">
-   <h3 class="text-center ">Our Partners and Collaborators
-  </h3>
- 
- 
-  <section class="partners " >
- 
-   
- 
-   {% for partner in partners %}
- 
-           <!-- <img src=" /static/sms/images/girlavater.webp" width="100%" class="img-fluid" /> -->
-     <img src="{{partner.img_partner.url}}" width="60px" height="60px" class="img-fluid" />
-    
-     {% empty %}
-     <h1 class="card text-center text-danger">no partners available Yet. CHECK LATER</h1>
- 
-     {% endfor %}
- 
- </section>
- </div>
-
  <!-- partners section endign -->
  
 <!-- page Statistics -->
