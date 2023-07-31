@@ -221,6 +221,7 @@ class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
         
         return context
     
+from student.models import PDFDocument
 
 class Homepage1(ListView):
 
@@ -267,15 +268,43 @@ class Homepage1(ListView):
 
         context['popular_course'] =   Courses.objects.all().order_by('-hit_count_generic__hits')[:3] 
     
-
-        context['alerts'] = Alert.objects.order_by('-created')
-        context['alert_count'] = Alert.objects.all().count()
-        context['alert_homes'] = Alert.objects.order_by('-created')[:4] 
-        context['alert_count_homes'] = Alert.objects.order_by('-created')[:4].count() 
+   
+        context['alert_homes']  = PDFDocument.objects.order_by('-created')[:4] 
+        context['alerts']  = PDFDocument.objects.order_by('-created')
+        context['alert_count_homes'] = PDFDocument.objects.order_by('-created')[:4].count() 
+        context['alert_count'] = PDFDocument.objects.all().count()
+        
+        # context['alerts'] = Alert.objects.order_by('-created')
+        # context['alert_count'] = Alert.objects.all().count()
+        # context['alert_homes'] = Alert.objects.order_by('-created')[:4] 
+        # context['alert_count_homes'] = Alert.objects.order_by('-created')[:4].count() 
        
         context['user'] = NewUser.objects.get_queryset().order_by('id')
+        context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
         
         return context
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponse
+
+from student.models import PDFDocument
+
+# def pdf_document_detail(request, document_id):
+#     document = get_object_or_404(PDFDocument, id=document_id)
+
+#     # Check if the request is a download request
+#     if request.GET.get('download'):
+#         # Prepare the response with the PDF file content and set the 'Content-Disposition' header
+#         response = HttpResponse(document.pdf_file, content_type='application/pdf')
+#         response['Content-Disposition'] = f'attachment; filename="{document.title}.pdf"'
+#         return response
+    
+#     context = {
+#         'document':document,
+#         'paystack_public_key':settings.PAYSTACK_PUBLIC_KEY
+#     }
+#     return render(request, 'student/dashboard/pdf_document_detail.html', context=context)
 
 
 from django.contrib.messages.views import SuccessMessageMixin
@@ -509,6 +538,28 @@ class Certdetaillistview(HitCountDetailView,DetailView):
         return context
 
 
+class Docdetaillistview(HitCountDetailView,DetailView):
+    models = PDFDocument
+    template_name = 'sms/dashboard/document.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+     
+    def get_queryset(self):
+        return PDFDocument.objects.all()
+
+    def get_context_data(self,*args , **kwargs ):
+        context = super().get_context_data(**kwargs)
+        c = get_object_or_404(PDFDocument, pk=self.kwargs['pk'])
+        
+
+        context['c'] = c
+        context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
+
+        
+        return context
+
+
+
 from sms.forms import BlogcommentForm
 
 class Blogdetaillistview(HitCountDetailView,DetailView):
@@ -651,6 +702,7 @@ def listing_api(request):
 
 
 
+from student.models import PDFDocument
 
 from django.views.generic import DetailView
 
@@ -679,8 +731,9 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['topics'] = topics
         context['c'] = topics.count()
         context['transcript'] = transcript
-        context['alerts'] = Alert.objects.order_by('-created')
+        # context['alerts'] = Alert.objects.order_by('-created')
         context['alert_count'] = Alert.objects.all().count()
+        context['alerts']  = PDFDocument.objects.order_by('-created')
 
         return context
 

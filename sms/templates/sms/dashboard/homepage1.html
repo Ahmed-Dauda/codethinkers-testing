@@ -1167,8 +1167,9 @@ p {
       <img class="" src="{{ alert.img_ebook.url }}" width="100px" height="130px" alt="{{ obj.desc }}">
       <div class="">
         <h6 style="color: #000000;  padding-right: 3px;" class="card-title">{{ alert.title|safe }}</h6>
-        <p class="card-text"> #{{ alert.price }}</p>
-        <button><a href="https://wa.me/23409031568177">Buy now</a></button>
+        <small>Price: &#8358;{{ alert.price }}</small>
+        <button><a href="{% url 'sms:pdf_document_detail' alert.id %}">{{ alert.title }}</a></button>
+        
       </div>
     </div>
   </div>
