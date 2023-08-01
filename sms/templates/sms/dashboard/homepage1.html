@@ -559,15 +559,19 @@ p {
         </p>
         
       </div>
-
+      
       <div  class="button-container">
+        {% if not users.is_authenticated %}
         <a href="{% url 'account_login' %}" class="btn-front btn-primary">Join us for Free</a>
+        {% endif  %}
       </div>
       <div class="button-container">
+        {% if not users.is_authenticated %}
         <a href="{% url 'account_signup' %}" class="btn-front btn-primary ">Sign Up</a>
+        {% endif  %}
       </div>
     </div>
-
+  
     <div class="col-md-6">
       <img src="/static/sms/images/kids.webp" alt="front-image" class="image-desktop">
     </div>
@@ -678,7 +682,7 @@ p {
 
 <br> <br> <br>
    <div class="card-body">
-    <h3 style="color: black;  font-weight: bold;" >We Offer {{category}} Course's Categories to Suit Your Curiosity</h3>  
+    <h3 style="color: black;  font-weight: bold;" >We Offer {{category}} Course Categories to Suit Your needs</h3>  
    </div>
     
   <div  class="container1 ">
@@ -715,7 +719,7 @@ p {
 <br> <br> 
 <!-- benefits -->
 <div  class="card-body">
-<h3 style="color: black;  font-weight: bold;" >Some Benefit Associated with the Courses:</h3>
+<h3 style="color: black;  font-weight: bold;" >Benefit Associated with the Courses:</h3>
 <ul>
   <li>100% online</li>
   <li>Flexible deadlines</li>
