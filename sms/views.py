@@ -237,7 +237,7 @@ class Homepage1(ListView):
     def get_context_data(self, **kwargs): 
         context = super(Homepage1, self).get_context_data(**kwargs)
         
-        context['students'] = User.objects.all().count() + 200
+        context['students'] = User.objects.all().count() + 1000
         context['category'] = Categories.objects.count()
         context['coursecategory'] = Categories.objects.all()
         context['courses'] = Courses.objects.all().count()
@@ -281,6 +281,7 @@ class Homepage1(ListView):
        
         context['user'] = NewUser.objects.get_queryset().order_by('id')
         context['users']  = self.request.user
+        messages.success(self.request, 'You have successfully logged in.')
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
         
         return context
