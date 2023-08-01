@@ -280,6 +280,7 @@ class Homepage1(ListView):
         # context['alert_count_homes'] = Alert.objects.order_by('-created')[:4].count() 
        
         context['user'] = NewUser.objects.get_queryset().order_by('id')
+        context['users']  = self.request.user
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
         
         return context
