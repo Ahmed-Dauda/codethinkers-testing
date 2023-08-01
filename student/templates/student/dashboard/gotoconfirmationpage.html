@@ -20,39 +20,18 @@
 
 </style>
 
-<div class="center-container">
-  <div class="content-container">
-    <h2>{{ document.title }}</h2>
-    <p>{{ document.description }}</p>
-    <p>Price: &#8358;{{ document.price }}</p>
-    <a href="?download=1">Download PDF</a>
+<br> <br>
+<div class="container">
+  <div class="content-container bg-success text-white">
 
-    <form id="paymentForm" action="">
-        <div class="form-group">
-       
-          <input  value = '{{request.user}}' type="hidden" id="email-address" required />
-        </div>
-        <div class="form-group">
-      
-          <input  value = "{{document.price|safe}}"  type="hidden" id="amount" required />
-        </div>
-       
-        <div class="form-submit">
-         
-        </div>
-      
-        {% if not related_payments.exists %}
-          <!-- User has not made a payment for this course -->
-          <button class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Pay {{course.course_name.price|safe}} to print Certificate</button>
-      
-        {% else %}
-      
-         
-        {% endif %}
-      </form>
-        <script src="https://js.paystack.co/v1/inline.js"></script>
-      
+    <h2>You have purchased {{ document.title }} for the price &#8358;{{ document.price }}</h2>
+   
   </div>
+ 
+</div>
+<br>
+<div class="content-container">
+ <button class="btn "><a href="{% url 'sms:pdfpaymentconfirmation' object.id %}">Go to confirmation page</a></button> 
 </div>
 
 

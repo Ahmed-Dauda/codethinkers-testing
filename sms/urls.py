@@ -38,7 +38,10 @@ from sms.views import(
       PhotoGallery,
       Paymentdesc,
       PaymentSucess,
-      Docdetaillistview,
+      Initiatepdfpayment,
+      gotopdfconfirmpage,
+      pdfpaymentconfirmation,
+      PDFDocumentDetailView
    
       
 ) 
@@ -50,7 +53,13 @@ urlpatterns = [
     
 
     # path('', Categorieslistview.as_view(), name='categorieslist'),
-    path('pdf_document_detail/<str:pk>/', Docdetaillistview.as_view(), name='pdf_document_detail'),
+
+    path('initiatepdfpayment/<int:pk>/', Initiatepdfpayment.as_view(), name='initiatepdfpayment'),
+    # path('pdf_document_detail/<str:pk>/', pdf_document_detail.as_view(), name='pdf_document_detail'),
+    path('pdfpaymentconfirmation/<str:pk>/', pdfpaymentconfirmation.as_view(), name='pdfpaymentconfirmation'),
+    path('pdf_document_detail/<int:pk>/', PDFDocumentDetailView.as_view(), name='pdf_document_detail'),
+    path('gotopdfconfirmpage/<int:pk>/', gotopdfconfirmpage.as_view(), name='gotopdfconfirmpage'),
+
     # new dashboard urls
     path('home', Category.as_view(), name='home'),
     path('paymentdesc/<str:pk>/',  Paymentdesc.as_view(), name='paymentdesc'),
