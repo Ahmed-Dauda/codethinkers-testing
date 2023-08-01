@@ -126,6 +126,29 @@ def pdf_document_list(request):
     return render(request, 'student/dashboard/pdf_document_list.html', {'documents': documents})
 
 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponse
+from .models import PDFDocument
+
+# def pdf_document_detail(request, pk):
+#     document = get_object_or_404(PDFDocument, id=pk)
+
+#     # Check if the request is a download request
+#     if request.GET.get('download'):
+#         # Prepare the response with the PDF file content and set the 'Content-Disposition' header
+#         response = HttpResponse(document.pdf_file, content_type='application/pdf')
+#         response['Content-Disposition'] = f'attachment; filename="{document.title}.pdf"'
+#         return response
+    
+#     docpayment = get_object_or_404(DocPayment, id=pk)
+
+#     context = {
+#         'document':document,
+#         'docpayment':docpayment,
+#         'paystack_public_key':settings.PAYSTACK_PUBLIC_KEY
+#     }
+#     return render(request, 'student/dashboard/pdf_document_detail.html', context=context)
+
 
 
 def verify(request, id):
@@ -195,73 +218,76 @@ def verify(request, id):
     print('ver', data)
     return data
 
+from student.models import PDFDocument, DocPayment
 
-# def verify_payment(request, id):
+def docverify(request, id):
 
-#     secret_key = settings.PAYSTACK_SECRET_KEY
-#     api_url = f'https://api.paystack.co/transaction/verify/{id}'
-#     headers = {
-#         'Authorization': f'Bearer {secret_key}',
-#     }
+    secret_key = settings.PAYSTACK_SECRET_KEY
+    api_url = f'https://api.paystack.co/transaction/verify/{id}'
+    headers = {
+        'Authorization': f'Bearer {secret_key}',
+    }
 
-#     response = requests.get(api_url, headers=headers)
+    response = requests.get(api_url, headers=headers)
 
-#     if response.status_code == 200:
-#         data = response.json()  # Parse the JSON response
-#         reference = data['data']['reference']
-#         amount = data['data']['amount'] / 100
-#         email = data['data']['customer']['email']
-#         status = data['data']['status']
-#         first_name = request.user.profile.first_name
-#         last_name = request.user.profile.last_name
+    if response.status_code == 200:
+        data = response.json()  # Parse the JSON response
+        reference = data['data']['reference']
+        amount = data['data']['amount'] / 100
+        email = data['data']['customer']['email']
+        status = data['data']['status']
+        first_name = request.user.profile.first_name
+        last_name = request.user.profile.last_name
 
-#         referrer = data['data']['metadata']['referrer'].strip()
-#         print("Referrer URL:", referrer)
+        referrer = data['data']['metadata']['referrer'].strip()
+        print("Referrer URL:", referrer)
 
-#         # Split the referrer URL by '/'
-#         url_parts = referrer.split('/')
-#         print('u', url_parts)
+        # Split the referrer URL by '/'
+        url_parts = referrer.split('/')
+        print('u', url_parts)
 
-#         # Check if the last part of the URL is a numeric "id"
-#         if url_parts[-2].isdigit():
-#             id_value = url_parts[-2]
-#             print("Extracted ID:", id_value)
-#         else:
-#             id_value = None
+        # Check if the last part of the URL is a numeric "id"
+        if url_parts[-2].isdigit():
+            id_value = url_parts[-2]
+            print("Extracted ID:", id_value)
+        else:
+            id_value = None
 
-#         course = get_object_or_404(Courses, pk=id_value)
-#         print("ccc:", course)
-#         print('ref', reference)
-#         print('amoun', amount)
-#         print('email', email)
-#         print('referrer', referrer)
-#         print('fn', first_name)
-#         print('ln', last_name)
+        course = get_object_or_404(PDFDocument, pk=id_value)
+        print("ccc:", course)
+        print('ref', reference)
+        print('amoun', amount)
+        print('email', email)
+        print('referrer', referrer)
+        print('fn', first_name)
+        print('ln', last_name)
 
-#         if status == 'success':
-#             verified = True
+        if status == 'success':
+            verified = True
 
-#             # Create the Payment object
-#             payment = Payment.objects.create(
-#                 ref=reference,
-#                 first_name=first_name,
-#                 last_name=last_name,
-#                 payment_user=request.user.profile,
-#                 amount=amount,
-#                 email=email,
-#                 verified=verified
-#             )
+            # Create the Payment object
+            payment = DocPayment.objects.create(
+                ref=reference,
+                first_name=first_name,
+                last_name=last_name,
+                payment_user=request.user.profile,
+                amount=amount,
+                email=email,
+                verified=verified
+            )
 
-#             # Add courses to the payment using the 'set()' method
-#             if course:
-#                 payment.courses.set([course])
+            # Add courses to the payment using the 'set()' method
+            if course:
+                payment.pdfdocument.set([course])
 
-#         data = JsonResponse({'reference': reference})
-#     else:
-#         data = JsonResponse({'error': 'Payment verification failed.'}, status=400)
+        data = JsonResponse({'reference': reference})
+    else:
+        data = JsonResponse({'error': 'Payment verification failed.'}, status=400)
 
-#     print('ver', data)
-#     return data
+    print('ver', data)
+    return data
+
+
 
 
 

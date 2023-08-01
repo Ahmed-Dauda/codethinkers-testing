@@ -111,6 +111,24 @@ class PDFDocument(models.Model):
 
 from django.db import models
 
+class DocPayment(models.Model):
+    payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
+    pdfdocument = models.ManyToManyField(PDFDocument, related_name='docpayments')
+    amount = models.PositiveBigIntegerField(null=True)
+    ref = models.CharField(max_length=250, null=True)
+    first_name = models.CharField(max_length=250, null=True)
+    last_name = models.CharField(max_length=200, null=True)
+    email = models.EmailField(null=True)
+    verified = models.BooleanField(default=False)
+    date_created = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        # Get a comma-separated list of course titles
+        course_titles = ', '.join(course.title for course in self.pdfdocument.all())
+        return f"{self.payment_user} {self.amount} {course_titles}"
+
+
+
 class Payment(models.Model):
     payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
     courses = models.ManyToManyField(Courses, related_name='payments')

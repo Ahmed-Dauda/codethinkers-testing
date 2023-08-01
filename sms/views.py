@@ -290,22 +290,6 @@ from django.http import HttpResponse
 
 from student.models import PDFDocument
 
-# def pdf_document_detail(request, document_id):
-#     document = get_object_or_404(PDFDocument, id=document_id)
-
-#     # Check if the request is a download request
-#     if request.GET.get('download'):
-#         # Prepare the response with the PDF file content and set the 'Content-Disposition' header
-#         response = HttpResponse(document.pdf_file, content_type='application/pdf')
-#         response['Content-Disposition'] = f'attachment; filename="{document.title}.pdf"'
-#         return response
-    
-#     context = {
-#         'document':document,
-#         'paystack_public_key':settings.PAYSTACK_PUBLIC_KEY
-#     }
-#     return render(request, 'student/dashboard/pdf_document_detail.html', context=context)
-
 
 from django.contrib.messages.views import SuccessMessageMixin
 
@@ -537,10 +521,143 @@ class Certdetaillistview(HitCountDetailView,DetailView):
 
         return context
 
+from student.models import DocPayment
 
-class Docdetaillistview(HitCountDetailView,DetailView):
+class pdfpaymentconfirmation(HitCountDetailView, DetailView):
+
     models = PDFDocument
-    template_name = 'sms/dashboard/document.html'
+    template_name = 'student/dashboard/pdfpaymentconfirmation.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+     
+    def get_queryset(self):
+        return PDFDocument.objects.all()
+
+    def get_context_data(self,*args , **kwargs ):
+
+        context = super().get_context_data(**kwargs)
+        document = get_object_or_404(PDFDocument, pk=self.kwargs['pk'])
+        context['document'] = document
+        user = self.request.user.profile
+        # Query the Payment model to get all payments related to the user and course
+        related_payments = DocPayment.objects.filter(payment_user=user, pdfdocument = document)
+        print(related_payments)
+        context['related_payments'] = related_payments
+        context['refs'] = related_payments.values_list('ref', flat=True)
+        
+        enrollment_count = related_payments.count()
+        # Print or use the enrollment_count as needed
+        context['enrollment_count'] = enrollment_count + 100
+    
+        context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
+
+
+        return context
+
+
+
+class gotopdfconfirmpage(HitCountDetailView, DetailView):
+
+    models = PDFDocument
+    template_name = 'student/dashboard/gotoconfirmationpage.html'
+    success_message = 'TestModel successfully updated!'
+    count_hit = True
+     
+    def get_queryset(self):
+        return PDFDocument.objects.all()
+
+    def get_context_data(self,*args , **kwargs ):
+
+        context = super().get_context_data(**kwargs)
+        document = get_object_or_404(PDFDocument, pk=self.kwargs['pk'])
+        context['document'] = document
+        user = self.request.user.profile
+        # Query the Payment model to get all payments related to the user and course
+        related_payments = DocPayment.objects.filter(payment_user=user, pdfdocument = document)
+        print(related_payments)
+        context['related_payments'] = related_payments
+        context['refs'] = related_payments.values_list('ref', flat=True)
+        
+        
+
+
+        return context
+
+
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponse
+from django.views.generic import DetailView
+
+
+class PDFDocumentDetailView(LoginRequiredMixin,DetailView):
+    model = PDFDocument
+    template_name = 'student/dashboard/pdf_document_detail1.html'  # Update with your actual template name
+
+    def get(self, request, *args, **kwargs):
+        document = self.get_object()
+
+        document = get_object_or_404(PDFDocument, pk=self.kwargs['pk'])
+        
+        user = self.request.user.profile
+        # Query the Payment model to get all payments related to the user and course
+        related_payments = DocPayment.objects.filter(payment_user=user, pdfdocument = document)
+     
+        enrollment_count = related_payments.count()
+        # Print or use the enrollment_count as needed
+        enrollment_count = enrollment_count + 100
+
+
+        # Check if the request is a download request
+        if request.GET.get('download'):
+            # Prepare the response with the PDF file content and set the 'Content-Disposition' header
+            response = HttpResponse(document.pdf_file, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{document.title}.pdf"'
+            return response
+        
+        context = {
+            'document': document,
+            'related_payments':related_payments
+            }
+
+        return render(request, self.template_name, context= context)
+
+
+
+# class pdf_document_detail(HitCountDetailView, DetailView):
+
+#     models = PDFDocument
+#     template_name = 'student/dashboard/pdf_document_detail.html'
+#     success_message = 'TestModel successfully updated!'
+#     count_hit = True
+     
+#     def get_queryset(self):
+#         return PDFDocument.objects.all()
+
+#     def get_context_data(self,*args , **kwargs ):
+
+#         context = super().get_context_data(**kwargs)
+#         document = get_object_or_404(PDFDocument, pk=self.kwargs['pk'])
+#         context['document'] = document
+#         user = self.request.user.profile
+#         # Query the Payment model to get all payments related to the user and course
+#         related_payments = DocPayment.objects.filter(payment_user=user, pdfdocument = document)
+#         context['related_payments'] = related_payments
+#         enrollment_count = related_payments.count()
+#         # Print or use the enrollment_count as needed
+#         context['enrollment_count'] = enrollment_count + 100
+
+#         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
+
+        
+#         return context
+
+
+class Initiatepdfpayment(HitCountDetailView,DetailView):
+    models = PDFDocument
+    template_name = 'sms/dashboard/initiatepdfpayment.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
      
@@ -549,10 +666,10 @@ class Docdetaillistview(HitCountDetailView,DetailView):
 
     def get_context_data(self,*args , **kwargs ):
         context = super().get_context_data(**kwargs)
-        c = get_object_or_404(PDFDocument, pk=self.kwargs['pk'])
+        document = get_object_or_404(PDFDocument, pk=self.kwargs['pk'])
         
 
-        context['c'] = c
+        context['document'] = document
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
 
         
@@ -601,17 +718,12 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
         context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
         course = Courses.objects.get(pk=self.kwargs["pk"])
-       
         # context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
         context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
-    
-        # print('nnnnnnnn', num_students)
         prerequisites = course.prerequisites.all()
         context['prerequisites'] = prerequisites
          # Retrieve related courses based on categorie
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
-      
-    
         context['faqs'] = CourseFrequentlyAskQuestions.objects.all().filter(courses_id= course).order_by('id')
         context['courseLearnerReviews'] = CourseLearnerReviews.objects.filter(courses_review_id = course).order_by('id')
         context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
@@ -619,19 +731,14 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['whatyouwillbuild'] =   Whatyouwillbuild.objects.all().filter(courses_id= course).order_by('id')
         context['careeropportunities'] =  CareerOpportunities.objects.all().filter(courses_id= course).order_by('id')
         context['aboutcourseowners'] =  AboutCourseOwner.objects.all().filter(courses_id= course).order_by('id')
-        
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
         context['payments'] = Payment.objects.filter(courses=course).order_by('id')
     
         user = self.request.user.profile
-        
         # Query the Payment model to get all payments related to the user and course
         related_payments = Payment.objects.filter(payment_user=user, courses=course)
-
         context['related_payments'] = related_payments
-        
         enrollment_count = related_payments.count()
-
         # Print or use the enrollment_count as needed
         context['enrollment_count'] = enrollment_count + 100
         print(enrollment_count)
