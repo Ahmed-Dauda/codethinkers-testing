@@ -19,7 +19,7 @@ from sms.models import (Categories, Courses, Topics,
  
  
 from profile import Profile as NewProfile
-
+from django.http import FileResponse
 from hitcount.utils import  get_hitcount_model
 from hitcount.views import HitCountMixin
 
@@ -469,7 +469,7 @@ def Certificates(request,pk):
     return render(request,"sms/dashboard/certificates.html", context)
 
 
-class Certdetaillistview(HitCountDetailView,DetailView):
+class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
     models = QMODEL.Course
     template_name = 'sms/dashboard/certificates.html'
     success_message = 'TestModel successfully updated!'
@@ -523,7 +523,7 @@ class Certdetaillistview(HitCountDetailView,DetailView):
 
 from student.models import DocPayment
 
-class pdfpaymentconfirmation(HitCountDetailView, DetailView):
+class pdfpaymentconfirmation(HitCountDetailView, LoginRequiredMixin, DetailView):
 
     models = PDFDocument
     template_name = 'student/dashboard/pdfpaymentconfirmation.html'
@@ -556,7 +556,7 @@ class pdfpaymentconfirmation(HitCountDetailView, DetailView):
 
 
 
-class gotopdfconfirmpage(HitCountDetailView, DetailView):
+class gotopdfconfirmpage(HitCountDetailView,LoginRequiredMixin, DetailView):
 
     models = PDFDocument
     template_name = 'student/dashboard/gotoconfirmationpage.html'
@@ -585,14 +585,8 @@ class gotopdfconfirmpage(HitCountDetailView, DetailView):
 
 
 
-from django.contrib.auth.mixins import LoginRequiredMixin
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
-from django.views.generic import DetailView
 
 
-from django.http import FileResponse
 
 class PDFDocumentDetailView(LoginRequiredMixin, DetailView):
     model = PDFDocument
@@ -687,7 +681,7 @@ class PDFDocumentDetailView(LoginRequiredMixin, DetailView):
 #         return context
 
 
-class Initiatepdfpayment(HitCountDetailView,DetailView):
+class Initiatepdfpayment(HitCountDetailView,LoginRequiredMixin,DetailView):
     models = PDFDocument
     template_name = 'sms/dashboard/initiatepdfpayment.html'
     success_message = 'TestModel successfully updated!'
