@@ -592,37 +592,69 @@ from django.http import HttpResponse
 from django.views.generic import DetailView
 
 
-class PDFDocumentDetailView(LoginRequiredMixin,DetailView):
+from django.http import FileResponse
+
+class PDFDocumentDetailView(LoginRequiredMixin, DetailView):
     model = PDFDocument
     template_name = 'student/dashboard/pdf_document_detail1.html'  # Update with your actual template name
 
     def get(self, request, *args, **kwargs):
         document = self.get_object()
-
-        document = get_object_or_404(PDFDocument, pk=self.kwargs['pk'])
         
         user = self.request.user.profile
-        # Query the Payment model to get all payments related to the user and course
-        related_payments = DocPayment.objects.filter(payment_user=user, pdfdocument = document)
-     
+        # Query the Payment model to get all payments related to the user and document
+        related_payments = DocPayment.objects.filter(payment_user=user, pdfdocument=document)
         enrollment_count = related_payments.count()
         # Print or use the enrollment_count as needed
-        enrollment_count = enrollment_count + 100
-
+        enrollment_count += 100
 
         # Check if the request is a download request
         if request.GET.get('download'):
-            # Prepare the response with the PDF file content and set the 'Content-Disposition' header
-            response = HttpResponse(document.pdf_file, content_type='application/pdf')
+            # Prepare the response using FileResponse
+            response = FileResponse(document.pdf_file, content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="{document.title}.pdf"'
             return response
         
         context = {
             'document': document,
-            'related_payments':related_payments
-            }
+            'related_payments': related_payments,
+            'enrollment_count': enrollment_count,
+        }
 
-        return render(request, self.template_name, context= context)
+        return render(request, self.template_name, context=context)
+
+
+# class PDFDocumentDetailView(LoginRequiredMixin,DetailView):
+#     model = PDFDocument
+#     template_name = 'student/dashboard/pdf_document_detail1.html'  # Update with your actual template name
+
+#     def get(self, request, *args, **kwargs):
+#         document = self.get_object()
+
+#         document = get_object_or_404(PDFDocument, pk=self.kwargs['pk'])
+        
+#         user = self.request.user.profile
+#         # Query the Payment model to get all payments related to the user and course
+#         related_payments = DocPayment.objects.filter(payment_user=user, pdfdocument = document)
+     
+#         enrollment_count = related_payments.count()
+#         # Print or use the enrollment_count as needed
+#         enrollment_count = enrollment_count + 100
+
+
+#         # Check if the request is a download request
+#         if request.GET.get('download'):
+#             # Prepare the response with the PDF file content and set the 'Content-Disposition' header
+#             response = HttpResponse(document.pdf_file, content_type='application/pdf')
+#             response['Content-Disposition'] = f'attachment; filename="{document.title}.pdf"'
+#             return response
+        
+#         context = {
+#             'document': document,
+#             'related_payments':related_payments
+#             }
+
+#         return render(request, self.template_name, context= context)
 
 
 
