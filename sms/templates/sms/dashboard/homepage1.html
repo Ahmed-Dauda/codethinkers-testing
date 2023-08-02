@@ -788,7 +788,7 @@ p {
           </div>
         <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
         {% if obj.status_type == 'Premium' %}
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe|floatformat:"0g"}}</p> 
         {% else %}
         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
         {% endif %}
@@ -857,8 +857,8 @@ p {
              </div>
            </div>
          <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
-         {% if obj.price %}
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+         {% if obj.status_type == 'Premium' %}
+         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe|floatformat:"0g"}}</p> 
          {% else %}
          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
          {% endif %}
@@ -932,8 +932,8 @@ p {
              </div>
            </div>
          <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
-         {% if obj.price %}
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+         {% if obj.status_type == 'Premium' %}
+         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe|floatformat:"0g"}}</p> 
          {% else %}
          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
          {% endif %}
@@ -1000,8 +1000,8 @@ p {
              </div>
            </div>
          <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
-         {% if obj.price %}
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+         {% if obj.status_type == 'Premium' %}
+         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe|floatformat:"0g"}}</p> 
          {% else %}
          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
          {% endif %}
@@ -1066,8 +1066,8 @@ p {
              </div>
            </div>
          <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
-         {% if obj.price %}
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+         {% if obj.status_type == 'Premium' %}
+         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe|floatformat:"0g"}}</p> 
          {% else %}
          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
          {% endif %}
@@ -1135,8 +1135,8 @@ p {
               </div>
             </div>
           <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
-          {% if obj.price %}
-          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe|floatformat:"0g"}}</p> 
+          {% if obj.status_type == 'Premium' %}
+          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe|floatformat:"0g"}}</p> 
           {% else %}
           <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
           {% endif %}

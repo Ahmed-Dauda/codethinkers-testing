@@ -175,8 +175,8 @@
     <br>
   <h6>{{ object.title|safe }}</h6>
 
-  {% if object.price %}
-  <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  #{{object.price|safe|floatformat:"0g"}}</p> 
+  {% if object.status_type == 'Premium' %}
+  <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  &#8358;{{object.price|safe|floatformat:"0g"}}</p> 
   {% else %}
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}}</p> 
   {% endif %}
@@ -661,8 +661,8 @@
     </div>
 
       <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
-      {% if obj.price %}
-      <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  #{{obj.price|safe}}</p> 
+      {% if obj.status_type == 'Premium' %}
+      <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe}}</p> 
       {% else %}
       <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
       {% endif %}
