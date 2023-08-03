@@ -10,6 +10,17 @@ from sms.models import Comment, Blogcomment
 from users.models import NewUser, BaseUserManager
 from student.models import Payment
 
+
+
+from tinymce.widgets import TinyMCE
+from .models import Topics
+
+# forms.py
+
+from django import forms
+
+
+
 class PaymentForm(ModelForm):
     class Meta:
         model = Payment

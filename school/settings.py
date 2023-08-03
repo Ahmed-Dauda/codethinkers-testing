@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'embed_video',
     'xhtml2pdf',
-    # 'tinymce',
+    'tinymce',
     'django_social_share',
     'import_export',
     
@@ -370,42 +370,57 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # for TinyMCE 
 
+
 TINYMCE_DEFAULT_CONFIG = {
+    'height': 360,
+    'width': 700,
     'cleanup_on_startup': True,
     'custom_undo_redo_levels': 20,
     'selector': 'textarea',
-    
-    # 'theme': 'silver',
-    'skin': 'oxide-dark',
-    "height": 600,
-    'plugins': '''
-   
-            fullscreen codesample insertdatetime media table paste code help wordcount spellchecker
-            advlist  link image charmap print preview anchor searchreplace visualblocks code
-            textcolor save  image media preview codesample contextmenu
-            table code  fullscreen  insertdatetime  nonbreaking
-            contextmenu directionality searchreplace wordcount visualblocks
-            visualchars code fullscreen autolink lists  charmap print  hr
-            anchor pagebreak help paste
-            ''',
-
-    'toolbar1': '''
-            forecolor backcolor permanentpen formatpainter removeformat | pagebreak | charmap emoticons |
-            undo redo |fullscreen | formatselect | bold italic underline | fontselect,
-            fontsizeselect  | alignleft alignright |
-            aligncenter alignjustify | indent outdent | bullist numlist table |
-            | link image media | codesample | preview
-            ''',
-    'toolbar2': '''
-            visualblocks visualchars |
-            charmap hr pagebreak nonbreaking anchor |  code | help
-            ''',
-    'contextmenu': 'formats | link image',
-    'menubar': True,
-    'statusbar': True,
+    'plugins': 'link image preview codesample contextmenu table code',
+    'toolbar': 'undo redo | styleselect | bold italic | link image | codesample | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | code',
+    'theme': 'silver',
 }
 
-TINYMCE_SPELLCHECKER = True
+TINYMCE_JS_URL = 'https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js'
+
+
+# TINYMCE_DEFAULT_CONFIG = {
+#     'cleanup_on_startup': True,
+#     'custom_undo_redo_levels': 20,
+#     'selector': 'textarea',
+    
+#     # 'theme': 'silver',
+#     'skin': 'oxide-dark',
+#     "height": 600,
+#     'plugins': '''
+   
+#             fullscreen codesample insertdatetime media table paste code help wordcount spellchecker
+#             advlist  link image charmap print preview anchor searchreplace visualblocks code
+#             textcolor save  image media preview codesample contextmenu
+#             table code  fullscreen  insertdatetime  nonbreaking
+#             contextmenu directionality searchreplace wordcount visualblocks
+#             visualchars code fullscreen autolink lists  charmap print  hr
+#             anchor pagebreak help paste
+#             ''',
+
+#     'toolbar1': '''
+#             forecolor backcolor permanentpen formatpainter removeformat | pagebreak | charmap emoticons |
+#             undo redo |fullscreen | formatselect | bold italic underline | fontselect,
+#             fontsizeselect  | alignleft alignright |
+#             aligncenter alignjustify | indent outdent | bullist numlist table |
+#             | link image media | codesample | preview
+#             ''',
+#     'toolbar2': '''
+#             visualblocks visualchars |
+#             charmap hr pagebreak nonbreaking anchor |  code | help
+#             ''',
+#     'contextmenu': 'formats | link image',
+#     'menubar': True,
+#     'statusbar': True,
+# }
+
+# TINYMCE_SPELLCHECKER = True
 
 # PAYSTACK_SECRET_KEY = os.environ.get('sk_test_75e53acfea9e04b0c52c3c3c6c46281c844a706a')
 # PAYSTACK_PUBLIC_KEY = os.environ.get('pk_test_72337ad2f9419ff6eb3204519bb884067c075ed8')
@@ -419,16 +434,6 @@ PAYSTACK_PUBLIC_KEY = 'pk_test_72337ad2f9419ff6eb3204519bb884067c075ed8'
 # PAYSTACK_SECRET_KEY = 'sk_live_ecb915cd648ffcea0578361a08ac369122f02754'
 # PAYSTACK_PUBLIC_KEY = 'pk_live_010265c77983e11a700678d34d476b1ce1c48fb1'
 
-# TINYMCE_EXTRA_MEDIA = {
-#     'css': {
-#         'all': [
-           
-#         ],
-#     },
-#     'js': [
-     
-#     ],
-# }
 
 
 # problem of hosting to heroku and solution

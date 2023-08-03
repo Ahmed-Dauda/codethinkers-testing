@@ -34,6 +34,8 @@ admin.site.register(AboutCourseOwner)
 #         model = Gallery
         # fields = ('title',)
 
+
+
 class ArticleAdminResource(resources.ModelResource):
     
     class Meta:
