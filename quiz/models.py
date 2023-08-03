@@ -31,16 +31,18 @@ class Course(models.Model):
 
 from tinymce.models import HTMLField
 
+
 class Question(models.Model):
     course=models.ForeignKey(Course,on_delete=models.CASCADE)
     marks=models.PositiveIntegerField()
     # question= models.TextField( blank=True, null= True)
     question= HTMLField( blank=True, null= True)
-    img_quiz = CloudinaryField('image', blank=True, null= True)
-    option1= HTMLField(max_length=200)
-    option2= HTMLField(max_length=200)
-    option3= HTMLField(max_length=200)
-    option4= HTMLField(max_length=200)
+    img_quiz = CloudinaryField('image', null= True)
+    option1 = HTMLField(max_length=500, null= True)
+    option2 = HTMLField(max_length=500, null= True)
+    option3 = HTMLField(max_length=500, null= True)
+    option4 = HTMLField(max_length=500, null= True)
+
     # option1= models.TextField(max_length=200)
     # option2= models.TextField(max_length=200)
     # option3= models.TextField(max_length=200)
