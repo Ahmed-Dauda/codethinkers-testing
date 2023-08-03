@@ -66,8 +66,8 @@
 <p>Thank you for choosing our service! We hope you enjoy your purchase.</p>
 
 <div  class="text-center">
-    <a class="link" href="{% url 'sms:pdf_document_detail' document.id %}?download=1">Download PDF</a>
-
+    <!-- <a class="link" href="{% url 'sms:pdf_document_detail' document.id %}?download=1">Download PDF</a> -->
+    <a class="link" href="{{ document.pdf_url }}" target="_blank">Download PDF</a>
     <hr>
     <a class="link" href="{% url 'sms:homepage' %}">Return to Homepage</a>
     {% else %}
