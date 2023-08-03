@@ -37,7 +37,7 @@ class Question(models.Model):
     marks=models.PositiveIntegerField()
     # question= models.TextField( blank=True, null= True)
     question= HTMLField( blank=True, null= True)
-    img_quiz = CloudinaryField('image', null= True)
+    img_quiz = CloudinaryField('image', blank=True, null= True)
     option1 = HTMLField(max_length=500, null= True)
     option2 = HTMLField(max_length=500, null= True)
     option3 = HTMLField(max_length=500, null= True)
