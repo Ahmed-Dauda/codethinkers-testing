@@ -173,36 +173,17 @@ class AboutCourseOwner(models.Model):
 
 from django.utils.text import slugify
 
-# class Topics(models.Model):
-    
-#     categories=models.ForeignKey(Categories, on_delete= models.CASCADE)
-#     courses=models.ForeignKey(Courses, on_delete= models.CASCADE) 
-#     title = models.CharField(max_length=500, blank=True, null= True)
-#     transcript = models.TextField(blank=True, null=True)
-#     slug = models.SlugField(unique= True, blank=True, null= True)  # Enforce uniqueness
 
-#     def save(self, *args, **kwargs):
-#         # Generate unique slug if it's not provided
-#         if not self.slug:
-#             self.slug = slugify(self.title)
+from tinymce.models import HTMLField
 
-#         super().save(*args, **kwargs)
+# models.py
 
-#     desc = models.TextField(blank=True, null= True)
-#     img_topic = CloudinaryField('topic image', blank=True, null= True)
-#     video = EmbedVideoField(blank=True, null= True)  # same like models.URLField()
-#     topics_url = models.CharField(max_length=500, blank=True, null= True)
-#     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
-#     updated = models.DateTimeField(auto_now=True, blank=True, null= True) 
-#     id = models.BigAutoField(primary_key=True)
-#     hit_count_generic = GenericRelation(
-#     HitCount, object_id_field='object_pk',
-#     related_query_name='hit_count_generic_relation')
+from tinymce.widgets import TinyMCE
 
-
-#     def __str__(self):
-#         return f'{self.title}-----{self.courses}'
-
+class CustomTinyMCEWidget(TinyMCE):
+    def __init__(self, *args, **kwargs):
+        kwargs['attrs'] = {'cols': '40', 'rows': '4'}  # Set the desired width and height here
+        super().__init__(*args, **kwargs)
 
 
 class Topics(models.Model):
@@ -210,7 +191,8 @@ class Topics(models.Model):
     courses = models.ForeignKey(Courses, on_delete=models.CASCADE) 
     title = models.CharField(max_length=500, blank=True, null=True)
     slug = models.SlugField(unique=True, blank=True, null=True)
-    desc = models.TextField( blank=True, null= True)
+    # desc = models.TextField( blank=True, null= True)
+    desc = HTMLField(null=True)
     transcript = models.TextField(blank=True, null=True)  # New field for transcript
     img_topic = CloudinaryField('topic image', blank=True, null=True)
     video = EmbedVideoField(blank=True, null=True)
