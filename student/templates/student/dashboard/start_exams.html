@@ -39,7 +39,7 @@
 {% if q.img_quiz.url %}
 <div  class="text-center" ><img src="{{q.img_quiz.url}}" width="100%" height="300px" alt=""> </div><br>
 {% endif %}<label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">
-  {{ q.question|striptags|safe }}
+  {{ q.question|safe }}
 </label>
 
   <!-- <p data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.question|safe}}</p>  -->
@@ -48,24 +48,24 @@
   <div class="card-header">
     <fieldset>
   <input  type="radio" name="{{forloop.counter}}" id="{{q.option1}}" name="choose"  value="Option1" required>
- <label for="option1" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left"> {{q.option1|striptags|safe}}</label><br>
+ <label for="option1" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left"> {{q.option1|safe}}</label><br>
   </div>
   <div class="card-header">
   <input  type="radio" name="{{forloop.counter}}" id="{{q.option2}}" name="choose" value="Option2" required>
-  <label for="option2" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option2|striptags|safe}}</label><br>
+  <label for="option2" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option2|safe}}</label><br>
 </div>
 
 {% if q.option3 %}
 <div class="card-header">
   <input  type="radio" name="{{forloop.counter}}" id="{{q.option3}}" name="choose" value="Option3" required>
-  <label for="option3" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option3|striptags|safe}}</label><br> 
+  <label for="option3" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option3|safe}}</label><br> 
 </div>
 {% endif %}
 
 {% if q.option4 %}
 <div class="card-header">
   <input  type="radio" name="{{forloop.counter}}" id="{{q.option4}}" name="choose" value="Option4" required>
-  <label  for="option4" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option4|striptags|safe}}</label><br>
+  <label  for="option4" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option4|safe}}</label><br>
 </div>
 {% endif %}
 <br><br>
