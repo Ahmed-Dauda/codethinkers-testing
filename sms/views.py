@@ -787,8 +787,7 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['careeropportunities'] =  CareerOpportunities.objects.all().filter(courses_id= course).order_by('id')
         context['aboutcourseowners'] =  AboutCourseOwner.objects.all().filter(courses_id= course).order_by('id')
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
-        
-        print(topics_count)
+    
         context['payments'] = Payment.objects.filter(courses=course).order_by('id')
     
         user = self.request.user.profile
