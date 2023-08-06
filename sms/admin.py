@@ -13,6 +13,7 @@ from sms.models import (
     Whatyouwilllearn, 
     CareerOpportunities, Whatyouwillbuild, 
     AboutCourseOwner, 
+    CourseLearnerReviews,
     )
 
 
@@ -21,7 +22,7 @@ admin.site.register(FrequentlyAskQuestions)
 admin.site.register(Partners)
 admin.site.register(CourseFrequentlyAskQuestions)
 admin.site.register(Skillyouwillgain)
-# admin.site.register( CourseLearnerReviews)
+admin.site.register(CourseLearnerReviews)
 admin.site.register(Whatyouwilllearn)
 admin.site.register(CareerOpportunities)
 admin.site.register(Whatyouwillbuild)
