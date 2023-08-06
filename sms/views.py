@@ -224,7 +224,7 @@ class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
 from student.models import PDFDocument
 
 class Homepage1(ListView):
-
+    models = Courses
     template_name = 'sms/dashboard/homepage1.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
@@ -232,7 +232,7 @@ class Homepage1(ListView):
     def get_queryset(self):
        
         # return  Courses.objects.all().select_related('categories').distinct()
-        return  Courses.objects.all()
+         return Courses.objects.annotate(topic_count=Count('topics')) 
     
     def get_context_data(self, **kwargs): 
         context = super(Homepage1, self).get_context_data(**kwargs)
@@ -248,25 +248,54 @@ class Homepage1(ListView):
         context['partners'] = Partners.objects.all()
         context['coursess'] = Courses.objects.all().order_by('created')[:10] 
         context['category_sta'] = Categories.objects.annotate(num_courses=Count('categories'))
-        # context['newprofile'] = NewProfile.objects.all()
+        # course = Courses.objects.get(pk=self.kwargs["pk"])
+        # context['topics_count'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id').count()
+
         context['beginner'] = Courses.objects.filter(categories__name = "BEGINNER")
         context['beginner_count'] = Courses.objects.filter(categories__name = "BEGINNER").count()
+        beginner_courses = Courses.objects.filter(categories__name="BEGINNER")
+        for course in beginner_courses:
+            course.beginner_topic_count = Topics.objects.filter(courses=course).count()
+        context['beginner'] = beginner_courses
 
+     
         context['intermediate'] = Courses.objects.filter(categories__name = "INTERMEDIATE")
         context['intermediate_count'] = Courses.objects.filter(categories__name = "INTERMEDIATE").count()
+        intermediate_courses = Courses.objects.filter(categories__name="INTERMEDIATE")
+        for course in intermediate_courses:
+            course.intermediate_topic_count = Topics.objects.filter(courses=course).count()
+        context['intermediate'] = intermediate_courses
+
 
         context['advanced'] = Courses.objects.filter(categories__name = "ADVANCED")
         context['advanced_count'] = Courses.objects.filter(categories__name = "ADVANCED").count()
+        advanced_courses = Courses.objects.filter(categories__name="ADVANCED")
+        for course in advanced_courses:
+            course.advanced_topic_count = Topics.objects.filter(courses=course).count()
+        context['advanced'] = advanced_courses
 
 
         context['Free_courses'] = Courses.objects.filter(status_type = 'Free')
         context['Free_courses_count'] = Courses.objects.filter(status_type = 'Free').count()
+        Free_courses_courses = Courses.objects.filter(status_type = 'Free')
+        for course in Free_courses_courses:
+            course.Free_courses_topic_count = Topics.objects.filter(courses=course).count()
+        context['Free_courses'] = Free_courses_courses
 
       
-        context['latest_course'] =   Courses.objects.all().order_by('-created')[:5] 
-        context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:5].count()
+        context['latest_course'] =   Courses.objects.all().order_by('-created')[:4] 
+        context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:4].count()
+        latest_course_courses =  Courses.objects.all().order_by('-created')[:4]
+        for course in latest_course_courses:
+            course.latest_course_topic_count = Topics.objects.filter(courses=course).count()
+        context['latest_course'] = latest_course_courses
+
 
         context['popular_course'] =   Courses.objects.all().order_by('-hit_count_generic__hits')[:3] 
+        popular_course_courses =  Courses.objects.all().order_by('-hit_count_generic__hits')[:3]
+        for course in popular_course_courses:
+            course.popular_course_topic_count = Topics.objects.filter(courses=course).count()
+        context['popular_course'] = popular_course_courses
     
    
         context['alert_homes']  = PDFDocument.objects.order_by('-created')[:4] 
@@ -758,6 +787,8 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['careeropportunities'] =  CareerOpportunities.objects.all().filter(courses_id= course).order_by('id')
         context['aboutcourseowners'] =  AboutCourseOwner.objects.all().filter(courses_id= course).order_by('id')
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
+        
+        print(topics_count)
         context['payments'] = Payment.objects.filter(courses=course).order_by('id')
     
         user = self.request.user.profile

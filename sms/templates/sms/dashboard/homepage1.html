@@ -610,7 +610,7 @@ p {
    {% for partner in partners %}
  
            <!-- <img src=" /static/sms/images/girlavater.webp" width="100%" class="img-fluid" /> -->
-     <img src="{{partner.img_partner.url}}" width="60px" height="60px" class="img-fluid" />
+     <img src="{{partner.img_partner.url}}" width="80px" height="80px" class="img-fluid" />
     
      {% empty %}
      <h1 class="card text-center text-danger">no partners available Yet. CHECK LATER</h1>
@@ -742,6 +742,13 @@ p {
 </div>
 <!-- end benefits -->
 
+<hr> 
+ttt
+
+{% for course in beginner %}
+<p>Number of topics in the "BEGINNER" category for "{{ course.title }}": {{ course.beginner_topic_count }}</p>
+{% endfor %}
+
 <br> <br> <br>
  <!--DIFFERENT  COURSES-->
 {% for obj in beginner %}
@@ -754,11 +761,13 @@ p {
 {% endif %}
 {% endfor %}
   
-<div  class="beginner">
 
+<div  class="beginner">
+ 
 
   {% for obj in beginner %}
-
+  
+ 
 
   <a style="height: 10px;" class=""  href="{% url 'sms:courseslistdesc' obj.pk %}">
   <div  class="left-column-cat border ">
@@ -781,7 +790,8 @@ p {
             {% if obj.course_owner %}
             <small class="text-dark">{{obj.course_owner|safe}}</small>
             {% else %}
-            <small class="text-dark">Codethinkers Academy</small>
+            <small class="text-dark">Codethinkers Academy </small>
+            
             {% endif %}
 
             </div>
@@ -792,7 +802,7 @@ p {
         {% else %}
         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
         {% endif %}
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
+        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}  {{ obj.beginner_topic_count }} Modules</small> <br>
         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
       </div>
@@ -851,7 +861,7 @@ p {
              {% if obj.course_owner %}
              <small class="text-dark">{{obj.course_owner|safe}}</small>
              {% else %}
-             <small class="text-dark">Codethinkers Academy</small>
+             <small class="text-dark">Codethinkers Academy  </small>
              {% endif %}
  
              </div>
@@ -862,7 +872,7 @@ p {
          {% else %}
          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
          {% endif %}
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}} {{ obj.intermediate_topic_count }} Modules</small> <br>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
        </div>
@@ -926,7 +936,7 @@ p {
              {% if obj.course_owner %}
              <small class="text-dark">{{obj.course_owner|safe}}</small>
              {% else %}
-             <small class="text-dark">Codethinkers Academy</small>
+             <small class="text-dark">Codethinkers Academy </small>
              {% endif %}
  
              </div>
@@ -937,7 +947,7 @@ p {
          {% else %}
          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
          {% endif %}
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}} {{ obj.advanced_topic_count }} Modules</small> <br>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
        </div>
@@ -994,7 +1004,7 @@ p {
              {% if obj.course_owner %}
              <small class="text-dark">{{obj.course_owner|safe}}</small>
              {% else %}
-             <small class="text-dark">Codethinkers Academy</small>
+             <small class="text-dark">Codethinkers Academy </small>
              {% endif %}
  
              </div>
@@ -1005,7 +1015,7 @@ p {
          {% else %}
          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
          {% endif %}
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}} {{ obj.latest_course_topic_count }} Modules</small> <br>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
        </div>
@@ -1060,7 +1070,7 @@ p {
              {% if obj.course_owner %}
              <small class="text-dark">{{obj.course_owner|safe}}</small>
              {% else %}
-             <small class="text-dark">Codethinkers Academy</small>
+             <small class="text-dark">Codethinkers Academy </small>
              {% endif %}
  
              </div>
@@ -1071,7 +1081,7 @@ p {
          {% else %}
          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
          {% endif %}
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
+         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}} {{ obj.popular_course_topic_count }} Modules</small> <br>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
        </div>
@@ -1129,7 +1139,7 @@ p {
               {% if obj.course_owner %}
               <small class="text-dark">{{obj.course_owner|safe}}</small>
               {% else %}
-              <small class="text-dark">Codethinkers Academy</small>
+              <small class="text-dark">Codethinkers Academy </small>
               {% endif %}
   
               </div>
@@ -1140,7 +1150,7 @@ p {
           {% else %}
           <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
           {% endif %}
-          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
+          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}} {{ obj.Free_courses_topic_count }} Modules</small> <br>
           <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
           <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
         </div>

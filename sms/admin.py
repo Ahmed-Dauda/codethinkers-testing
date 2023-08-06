@@ -13,6 +13,7 @@ from sms.models import (
     Whatyouwilllearn, 
     CareerOpportunities, Whatyouwillbuild, 
     AboutCourseOwner, 
+    CourseLearnerReviews,
     )
 
 
@@ -21,7 +22,7 @@ admin.site.register(FrequentlyAskQuestions)
 admin.site.register(Partners)
 admin.site.register(CourseFrequentlyAskQuestions)
 admin.site.register(Skillyouwillgain)
-# admin.site.register( CourseLearnerReviews)
+admin.site.register(CourseLearnerReviews)
 admin.site.register(Whatyouwilllearn)
 admin.site.register(CareerOpportunities)
 admin.site.register(Whatyouwillbuild)
@@ -33,6 +34,8 @@ admin.site.register(AboutCourseOwner)
 #     class Meta:
 #         model = Gallery
         # fields = ('title',)
+
+
 
 class ArticleAdminResource(resources.ModelResource):
     
@@ -80,7 +83,7 @@ class CategoriesResource(resources.ModelResource):
 class CategoriesAdmin(ImportExportModelAdmin):
     list_display = ['id', 'name', 'desc', 'created']
     list_filter =  ['name']
-    search_fields= ['name']
+    search_fields= ['name', 'desc']
     ordering = ['id']
     
     resource_class = CategoriesResource
@@ -147,16 +150,27 @@ class TopicsResource(resources.ModelResource):
     class Meta:
         model = Topics
         # fields = ('title',)
-               
+
 class TopicsAdmin(ImportExportModelAdmin):
-    list_display = ['id','categories','courses' ,'title','desc' , 'img_topic', 'video', 'topics_url', 'created','updated']
+    list_display = ['id', 'categories', 'courses', 'title', 'desc', 'img_topic', 'video', 'topics_url', 'created', 'updated']
     prepopulated_fields = {"slug": ("title",)}
-    list_filter =  ['id','categories','courses' ,'title', 'topics_url', 'created']
-    search_fields= ['id','categories','courses' ,'title', 'created']
+    list_filter = ['categories', 'courses', 'created']
+    search_fields = ['id', 'title', 'created', 'categories__name', 'courses__title']  # Use double underscore for related fields
     ordering = ['id']
     resource_class = TopicsResource
 
 admin.site.register(Topics, TopicsAdmin)
+
+
+# class TopicsAdmin(ImportExportModelAdmin):
+#     list_display = ['id','categories','courses' ,'title','desc' , 'img_topic', 'video', 'topics_url', 'created','updated']
+#     prepopulated_fields = {"slug": ("title",)}
+#     list_filter =  ['id','categories','courses' ,'title', 'topics_url', 'created']
+#     search_fields= ['id','categories','courses' ,'title', 'created']
+#     ordering = ['id']
+#     resource_class = TopicsResource
+
+# admin.site.register(Topics, TopicsAdmin)
 
 class AlertAdmin(ImportExportModelAdmin):
     list_display = ['id','title','content','created']
