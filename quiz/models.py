@@ -29,15 +29,24 @@ class Course(models.Model):
    def __str__(self):
         return f'{self.course_name}'
 
+from tinymce.models import HTMLField
+
+
 class Question(models.Model):
     course=models.ForeignKey(Course,on_delete=models.CASCADE)
     marks=models.PositiveIntegerField()
-    question= models.TextField( blank=True, null= True)
+    # question= models.TextField( blank=True, null= True)
+    question= HTMLField( blank=True, null= True)
     img_quiz = CloudinaryField('image', blank=True, null= True)
-    option1= models.TextField(max_length=200)
-    option2= models.TextField(max_length=200)
-    option3= models.TextField(max_length=200)
-    option4= models.TextField(max_length=200)
+    option1 = HTMLField(max_length=500, null= True)
+    option2 = HTMLField(max_length=500, null= True)
+    option3 = HTMLField(max_length=500, null= True)
+    option4 = HTMLField(max_length=500, null= True)
+
+    # option1= models.TextField(max_length=200)
+    # option2= models.TextField(max_length=200)
+    # option3= models.TextField(max_length=200)
+    # option4= models.TextField(max_length=200)
     cat=(('Option1','Option1'),('Option2','Option2'),('Option3','Option3'),('Option4','Option4'))
     answer=models.CharField(max_length=200,choices=cat)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
