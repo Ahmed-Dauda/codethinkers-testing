@@ -126,7 +126,7 @@ class CareerOpportunities(models.Model):
 class Skillyouwillgain(models.Model):
     
 
-    title = models.CharField(max_length=900,null=True, blank =True )
+    title = models.TextField(max_length=900,null=True, blank =True )
     courses = models.ForeignKey(Courses, on_delete= models.CASCADE, null= True) 
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
