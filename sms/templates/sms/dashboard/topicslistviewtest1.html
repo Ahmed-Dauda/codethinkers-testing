@@ -89,7 +89,16 @@ table-layout: fixed; // ***********add this
     background-color: yellow;
   }
 
+  .dataTables_wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
+    .dataTables_wrapper .bottom {
+        width: 100%;
+        text-align: center;
+    }
 
 </style>
 
@@ -187,6 +196,20 @@ table-layout: fixed; // ***********add this
 
 <script>
     $(document).ready(function () {
+        $('#example').DataTable({
+            pagingType: 'simple',
+            dom: 'Qfrtip',
+            ordering: false,
+            bPaginate: true,
+            scrollY: '100%',
+            scrollCollapse: true,
+            pageLength: 1,
+            dom: '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
+        });
+    });
+    </script>    
+<!-- <script>
+    $(document).ready(function () {
 $('#example').DataTable({
     pagingType: 'simple',
     dom: 'Qfrtip',
@@ -201,9 +224,7 @@ $('#example').DataTable({
 });
 });
 
-
-
-</script>
+</script> -->
 
 
 <!-- iframe videos -->
