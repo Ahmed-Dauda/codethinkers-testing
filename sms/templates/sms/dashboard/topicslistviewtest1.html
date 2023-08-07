@@ -148,14 +148,14 @@ table-layout: fixed; // ***********add this
 
         
 
-                    <div style="padding-left: 2px;" class="card-body">
-                    <h5>{{topic.title|safe}}</h5> 
-                    <small>
+                    <div style="padding-left: 2px;" class="card-body code-block">
+                    <h4 style="color: black;">{{topic.title|safe}}</h4> 
+                    <small style="color: black;">
                         created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
                     </small> <br>
-
+                    <hr>
                     {% if topic.desc %}
-                    <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.desc|safe}}</label> <br>
+                    <label style="max-width: 100%; overflow-x: hidden;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.desc|safe}}</label> <br>
                     <!-- <p  data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left"style="font-size: 20px;">  {{topic.desc|linebreaksbr|safe}} </p> <br> -->
                     <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
                     {% else %}
@@ -164,6 +164,7 @@ table-layout: fixed; // ***********add this
                
                     {% endif %}
                      </div>
+
                     {% if forloop.last %}
                     <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4> <br>
                     <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
