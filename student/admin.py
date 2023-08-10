@@ -4,6 +4,11 @@ from student.models import Logo, signature, Designcert, PartLogo, Payment,PDFDoc
 # from student.models import Cart,CartItem, Order, OrderItem
 
 from django.contrib import admin
+from django.contrib import admin
+from .models import  Question, Choice
+
+from sms.models import  Topics
+
 
 
 admin.site.register(PDFDocument)
