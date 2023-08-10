@@ -7,10 +7,8 @@ from . import views
 app_name = 'student'
 
 urlpatterns = [
-
-    
-
-      
+    # path('question-list/', views.question_list_view, name='question-list'),
+    # path('question-form/', views.question_form_view, name='question-form'),      
     path('verify/<str:id>/', views.verify,name='verify'),
     path('docverify/<str:id>/', views.docverify,name='docverify'),
     
