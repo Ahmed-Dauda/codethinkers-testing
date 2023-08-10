@@ -133,7 +133,7 @@ class Skillyouwillgain(models.Model):
     # id = models.BigAutoField(primary_key=True)
 
     def __str__(self):
-        return f'{self.title} - {self.courses.title}' 
+        return f'{self.courses.title}' 
 
 class Whatyouwilllearn(models.Model):
     
