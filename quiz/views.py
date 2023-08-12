@@ -28,6 +28,14 @@ from django.shortcuts import redirect, render, get_object_or_404
 from urllib.parse import unquote
 from string import ascii_uppercase  # Import uppercase letters
 
+
+
+from django.contrib.sessions.models import Session
+from django.shortcuts import get_object_or_404, redirect
+from django.http import HttpResponse
+
+
+
 @login_required
 def start_exams_view(request, pk):
     
@@ -36,9 +44,7 @@ def start_exams_view(request, pk):
     q_count = QuestionAssessment.objects.all().filter(course = course).count()
     student = request.user.profile
     results = ResultAssessment.objects.filter(exam = course, student = student).order_by('id')
-   
-
-    paginator = Paginator(questions, 100) # Show 25 contacts per page.
+    paginator = Paginator(questions, 20) # Show 25 contacts per page.
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     letters = list(ascii_uppercase)
@@ -57,7 +63,7 @@ def start_exams_view(request, pk):
     response = render(request, 'quiz/dashboard/start_exams.html', context=context)
     response.set_cookie('course_id', course.id)
     return response
-
+     
 # end of dashboard view
 
 

@@ -9,24 +9,37 @@
     <link rel="stylesheet" type="text/css" href="/static/sms/prism.css">
     <script src="/static/sms/prism.js"> </script>
     
-
+    
        <!-- sweetify -->
        <!-- <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
       <!-- bootstrap link -->
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
       
       <style>
-       .option-label {
-    display: inline-block;
-    margin-right: 15px; /* Add spacing between options */
-  }
+
+
+.quiz {
+  width: 100%;
+  margin-bottom: 10px;
+  display: flex;
+  cursor: pointer;
+  border: 1px solid #ccc; /* Add border to the .quiz container */
+ 
+}
+
+.quiz>* {
+  margin: 10px;
+  overflow-x: hidden;
+}
+
+
       </style>
       
 </head>
 <body>
 
 
-  <button onclick="goBack()" class="btn btn-secondary">Back to Topics</button>
+  <button class = 'text-center' onclick="goBack()" class="btn btn-secondary">Back to Topics</button>
 
   <script>
   function goBack() {
@@ -45,8 +58,8 @@
 <form action="/quiz/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
   {% csrf_token %}
   <input type="hidden" name="csrfmiddlewaretoken" value="C24rUotmdHawVQJL3KrqiWxvti8UffOFYUc8TRbZtLt36AVLdP3jbkzUVe3beRAa">
-    <h1>{{course.course_name}} Quiz</h1><br>
-    <h4>Number of Questions in the Quiz: {{q_count}}</h4>
+    <h4>{{course.course_name}} Quiz</h4><br>
+    <h5>Number of Questions in the Quiz: {{q_count}}</h5>
     <hr>
     <p>pages {{page_obj}}</p>
     
@@ -57,42 +70,54 @@
 
 {% if q.img_quiz.url %}
 <div  class="text-center" ><img src="{{q.img_quiz.url}}" width="100%" height="300px" alt=""> </div><br>
-{% endif %}<label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">
+{% endif %}
+
+<label style="font-size: 18px;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">
   {{ q.question|safe }}
 </label>
 
 
 <h6 style="text-align: right;">[marks {{q.marks}}]</h6>
 
-  <div class="">
-    <fieldset>
+{% if q.option1 %}
+
+<div class="quiz">
   <input  type="radio" name="{{forloop.counter}}" id="{{q.option1}}" name="choose"  value="Option1" required>
- <label for="option1" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left"> {{q.option1|safe}}</label><br>
-  </div>
-  <div class="">
+  <label style="width: 100%;" for="option1" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left"> {{q.option1|safe}}</label><br>
+</div> 
+{% endif %}  
+
+   
+  
+  {% if q.option2 %}
+<div class="quiz">
   <input  type="radio" name="{{forloop.counter}}" id="{{q.option2}}" name="choose" value="Option2" required>
-  <label for="option2" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option2|safe}}</label><br>
+  <label style="width: 100%;" for="option2" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option2|safe}}</label>
 </div>
 
+  {% endif %}
+
+
 {% if q.option3 %}
-<div class="">
+<div class="quiz" >
   <input  type="radio" name="{{forloop.counter}}" id="{{q.option3}}" name="choose" value="Option3" required>
-  <label for="option3" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option3|safe}}</label><br> 
+  <label style="width: 100%;" for="option3" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option3|safe}}</label>
 </div>
 {% endif %}
 
 {% if q.option4 %}
-<div class="">
+<div class="quiz" >
   <input  type="radio" name="{{forloop.counter}}" id="{{q.option4}}" name="choose" value="Option4" required>
-  <label  for="option4" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option4|safe}}</label><br>
+  <label style="width: 100%;"  for="option4" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option4|safe}}</label><br>
 </div>
 {% endif %}
 <br><br>
 {% empty %}
 <h1 class="card text-center text-danger">No Exam Available Yet. CHECK LATER</h1>
   {% endfor %}
-</fieldset>
-  <input onclick="disp()" class="btn btn-primary" type="submit" value="Submit">
+
+  <button onclick="disp()" class="btn btn-primary" type="submit"> Submit </button>
+  <!-- <input onclick="disp()" class="btn btn-primary" type="submit" value="Submit"> -->
    
 
 </div>
@@ -102,7 +127,11 @@
     </div>
 </div>
 
+<!-- pagination area -->
 
+
+
+<!-- end of pagination -->
 
       <script> 
 
@@ -146,7 +175,6 @@
     return false;
 }
 </script>
-<!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script> -->
 
 </script>
 </body>
@@ -175,4 +203,19 @@
 
 </script> 
 
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+  const quizButtons = document.querySelectorAll(".quiz");
+  
+  quizButtons.forEach(button => {
+    button.addEventListener("click", function() {
+      const radioInput = this.querySelector("input[type='radio']");
+      if (radioInput) {
+        radioInput.checked = true;
+      }
+    });
+  });
+});
+
+</script>
 <br><br><br><br><br><br>
