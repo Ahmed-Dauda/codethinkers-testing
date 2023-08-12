@@ -888,7 +888,7 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         #     print("TopicsAssessment topic Name:", ta.course_name)
 
        
-        topics = course.topics_set.all().order_by('-created')
+        topics = course.topics_set.all().order_by('created')
 
 
         topicsa = TopicsAssessment.objects.order_by('id')
