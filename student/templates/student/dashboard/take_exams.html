@@ -48,22 +48,7 @@
 
 <br> <br>
 
-<!-- 
-  <button class = 'text-center' onclick="goBack()" class="btn btn-secondary">Back to Topics</button>
 
-  <script>
-  function goBack() {
-    window.history.back();
-  }
-  </script>
-  
-  <div class="card">
-    <div class="card-header">
-        <h2>Quiz Results</h2>
-        {% for t in results %}
-        <td>Mark: {{ t.marks }} / {{ q_count }}</td>
-    {% endfor %}
-<hr> -->
 
 <form action="/quiz/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
   {% csrf_token %}

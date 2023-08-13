@@ -40,36 +40,54 @@
    
 }
 
+.custom-container {
+  background-color: green; /* Change this to your desired color */
+  color: white;
+  display: inline-block;
+  padding: 5px;
+  margin: 5px; /* Add margin to separate entries */
 
+}
+/* .custom-td {
+  display: inline;
+  padding: 5px;
+  background-color: green; 
+  width: 100%;
+  color: white;
+} */
       </style>
       
 </head>
 <body>
 
 
-  <button class = 'text-center' onclick="goBack()" class="btn btn-secondary">Back to Topics</button>
+  <button style="background-color: red; color: white;"  onclick="goBack()" class="btn btn-secondary">Back to Topics</button>
 
   <script>
   function goBack() {
     window.history.back();
   }
+ 
   </script>
   
   <div class="card">
     <div class="card-header">
         <h2>Quiz Results</h2>
         {% for t in results %}
-        <td>Mark: {{ t.marks }} / {{ q_count }}</td>
-    {% endfor %}
+
+        <div class="custom-container">
+          <span>Score: {{ t.marks }} / {{ q_count }}</span>
+        </div>
+      {% endfor %}
 <hr>
 
 <form action="/quiz/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
   {% csrf_token %}
   <input type="hidden" name="csrfmiddlewaretoken" value="C24rUotmdHawVQJL3KrqiWxvti8UffOFYUc8TRbZtLt36AVLdP3jbkzUVe3beRAa">
-    <h4>{{course.course_name}} Quiz</h4><br>
+    <h4>{{course.course_name}} Quiz</h4>
     <h5>Number of Questions in the Quiz: {{q_count}}</h5>
-    <hr>
-    <p>pages {{page_obj}}</p>
+    <!-- <hr>
+    <p>pages {{page_obj}}</p> -->
     
     <hr>
   {% for q in  page_obj %}
@@ -124,8 +142,12 @@
 <h1 class="card text-center text-danger">No Exam Available Yet. CHECK LATER</h1>
   {% endfor %}
 
-  <button onclick="disp()" class="btn btn-primary" type="submit"> Submit </button>
-  <!-- <input onclick="disp()" class="btn btn-primary" type="submit" value="Submit"> -->
+  <div style="display: flex; justify-content: space-between;">
+    <button onclick="disp()" class="btn btn-primary" type="submit"> Submit </button>
+    <button style="background-color: red; color: white;"  onclick="goBack()" class="btn btn-secondary">Back to Topics</button>
+  
+  </div>
+
    
 
 </div>
