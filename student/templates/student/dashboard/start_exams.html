@@ -72,16 +72,10 @@
   
   <div class="card">
     <div class="card-header">
-        <h2>Quiz Results</h2>
-        {% for t in results %}
-
-        <div class="custom-container">
-          <span>Score: {{ t.marks }} / {{ q_count }}</span>
-        </div>
-      {% endfor %}
+   
 <hr>
 
-<form action="/quiz/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
+<form action="/student/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
   {% csrf_token %}
   <input type="hidden" name="csrfmiddlewaretoken" value="C24rUotmdHawVQJL3KrqiWxvti8UffOFYUc8TRbZtLt36AVLdP3jbkzUVe3beRAa">
     <h4>{{course.course_name}} Quiz</h4>
@@ -98,7 +92,7 @@
 <div  class="text-center" ><img src="{{q.img_quiz.url}}" width="100%" height="300px" alt=""> </div><br>
 {% endif %}
 
-<label style="font-size: 18px;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">
+<label style="font-size: 18px; width: 100%;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">
   {{ q.question|safe }}
 </label>
 
