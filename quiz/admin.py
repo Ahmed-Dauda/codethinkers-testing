@@ -88,7 +88,7 @@ class CourseResource(resources.ModelResource):
     course = fields.Field(
         column_name= 'course',
         attribute='course',
-        widget=ForeignKeyWidget(Course,'course_name') )
+        widget=ForeignKeyWidget(Course, field='course_name__title'))
     
     class Meta:
         model = Question

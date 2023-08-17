@@ -114,13 +114,6 @@ class CoursesAdmin(ImportExportModelAdmin):
 admin.site.register(Courses, CoursesAdmin)
 
 
-# @admin.register(Blogcomment)
-# class blogcommentadmin(admin.ModelAdmin):
-#     list_display = ['id','post','name' ,'content']
-#     # prepopulated_fields = {"slug": ("title",)}
-#     list_filter =  ['post','created','name']
-#     search_fields= ['post','name']
-#     ordering = ['id']
 
 class blogcommentResource(resources.ModelResource):
     
@@ -162,15 +155,6 @@ class TopicsAdmin(ImportExportModelAdmin):
 admin.site.register(Topics, TopicsAdmin)
 
 
-# class TopicsAdmin(ImportExportModelAdmin):
-#     list_display = ['id','categories','courses' ,'title','desc' , 'img_topic', 'video', 'topics_url', 'created','updated']
-#     prepopulated_fields = {"slug": ("title",)}
-#     list_filter =  ['id','categories','courses' ,'title', 'topics_url', 'created']
-#     search_fields= ['id','categories','courses' ,'title', 'created']
-#     ordering = ['id']
-#     resource_class = TopicsResource
-
-# admin.site.register(Topics, TopicsAdmin)
 
 class AlertAdmin(ImportExportModelAdmin):
     list_display = ['id','title','content','created']
