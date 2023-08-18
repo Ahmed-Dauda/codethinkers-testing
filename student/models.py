@@ -1,8 +1,6 @@
 from django.db import models
 from cloudinary.models import CloudinaryField
-# from users.models import NewUser
-# from django.conf import settings
-from cloudinary.models import CloudinaryField
+
 
 
 import secrets
@@ -16,8 +14,29 @@ from django.contrib import messages
 
 # from sms.paystack import Paystack
 
-from django.db import models
+
 from django.contrib.auth.models import User
+
+from django.db import models
+from sms.models import Topics
+
+
+
+class Question(models.Model):
+    topic = models.ForeignKey(Topics, on_delete=models.CASCADE)
+    text = models.TextField()
+
+    def __str__(self):
+        return self.text
+
+class Choice(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    text = models.CharField(max_length=200)
+    is_correct = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.text
+
 
 def generate_certificate_code():
     code_length = 10

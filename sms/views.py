@@ -866,8 +866,9 @@ def listing_api(request):
 
 
 from student.models import PDFDocument
-
+from quiz.models import TopicsAssessment, QuestionAssessment, ResultAssessment
 from django.views.generic import DetailView
+
 
 class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
     model = Courses
@@ -877,59 +878,29 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         course = self.get_object()
-        topics = Topics.objects.filter(courses=course).order_by('id')
+        topic = TopicsAssessment.objects.filter(course_name__title=course).order_by('id')
+        topics_assessment = TopicsAssessment.objects.filter(course_name__title=course.title).order_by('id')
+          
+        
+        # print("Course Title:", course.title)
+        # for ta in TopicsAssessment.objects.all():
+        #     print("TopicsAssessment Course Name Title:", ta.course_name.title)
+        #     print("TopicsAssessment topic Name:", ta.course_name)
 
-        transcript = []
-        for topic in topics:
-            if topic.transcript:
-                transcript_lines = topic.transcript.split('\n')
-                for line in transcript_lines:
-                    line = line.strip()
-                    if '|' in line:
-                        time, text = line.split('|', 1)
-                        transcript.append({'time': time, 'text': text.strip()})
-                    else:
-                        transcript.append({'time': '', 'text': line})
+       
+        topics = course.topics_set.all().order_by('created')
 
+
+        topicsa = TopicsAssessment.objects.order_by('id')
+        print('top', topics)
         context['topics'] = topics
-        context['c'] = topics.count()
-        context['transcript'] = transcript
-        # context['alerts'] = Alert.objects.order_by('-created')
+        context['topicsa'] = topicsa
+        # context['c'] = topics.count()
         context['alert_count'] = Alert.objects.all().count()
         context['alerts']  = PDFDocument.objects.order_by('-created')
 
         return context
 
-
-
-# class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView, ):
-    
-#     models = Courses
-#     template_name = 'sms/dashboard/topicslistviewtest1.html'
-#     count_hit = True
-#     paginate_by = 1
-
-#     def get_queryset(self):
-#         return Courses.objects.get_queryset().order_by('id')
-  
-        
-#     def get_context_data(self, **kwargs):
-        
-#         context = super().get_context_data(**kwargs)
-#         topic = Topics.objects.get_queryset().filter(courses__pk = self.object.id).order_by('id')
-#         c = Topics.objects.filter(courses__pk = self.object.id).count()
-#         paginator = Paginator(topic, 1) # Show 25 contacts per page.
-
-#         page_number = self.request.GET.get('page')
-#         page_obj = paginator.get_page(page_number)
-#         context['page_obj'] = page_obj
-#         context['topics'] = topic
-#         context['c'] = c
-
-#         context['alerts'] = Alert.objects.order_by('-created')
-#         context['alert_count'] = Alert.objects.all().count()
-
-#         return context
 
 
 class UserProfilelistview(LoginRequiredMixin, ListView):

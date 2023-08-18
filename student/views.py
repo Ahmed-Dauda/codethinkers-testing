@@ -57,7 +57,6 @@ from django.conf import settings
 from .models import Payment
 
 from sms.paystack import Paystack
-from django.http import HttpResponse
 import json
 
 from django.http import HttpResponse
@@ -91,12 +90,6 @@ import re
 
 import requests
 from django.conf import settings
-from django.http import JsonResponse
-
-
-
-
-
 
 from django.http import JsonResponse
 from student.models import Payment, Courses
@@ -104,6 +97,14 @@ from django.shortcuts import get_object_or_404
 
 
 from .forms import PDFDocumentForm
+
+
+from django.shortcuts import render, redirect
+
+# from .models import  Question, Choice
+# from sms.models import Topics
+
+
 
 def upload_pdf_document(request):
     if request.method == 'POST':
@@ -130,24 +131,6 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from .models import PDFDocument
 
-# def pdf_document_detail(request, pk):
-#     document = get_object_or_404(PDFDocument, id=pk)
-
-#     # Check if the request is a download request
-#     if request.GET.get('download'):
-#         # Prepare the response with the PDF file content and set the 'Content-Disposition' header
-#         response = HttpResponse(document.pdf_file, content_type='application/pdf')
-#         response['Content-Disposition'] = f'attachment; filename="{document.title}.pdf"'
-#         return response
-    
-#     docpayment = get_object_or_404(DocPayment, id=pk)
-
-#     context = {
-#         'document':document,
-#         'docpayment':docpayment,
-#         'paystack_public_key':settings.PAYSTACK_PUBLIC_KEY
-#     }
-#     return render(request, 'student/dashboard/pdf_document_detail.html', context=context)
 
 
 
@@ -289,9 +272,6 @@ def docverify(request, id):
 
 
 
-
-
-
 # dashboard view
 @login_required
 def take_exams_view(request):
@@ -390,7 +370,6 @@ def check_marks_view(request,pk):
     }
     return render(request,'student/check_marks.html', context)
 
-#
 
 
 from django.shortcuts import render, get_object_or_404

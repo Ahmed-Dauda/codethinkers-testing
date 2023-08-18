@@ -8,35 +8,35 @@ from import_export import fields,resources
 from import_export.widgets import ForeignKeyWidget
 from users.models import Profile
 from quiz.models import (
-    Question, Course, Result, 
+    Question, Course, Result,
+    QuestionAssessment, TopicsAssessment, ResultAssessment, 
    
     )
 # Register your models here.
 admin.site.register(Course)
-# admin.site.register(Question)
-# admin.site.register(Result)
+  
+admin.site.register(TopicsAssessment)
+admin.site.register(QuestionAssessment)
 
-# class CourseResource(resources.ModelResource):
+class ResultAssessmentResource(resources.ModelResource):
     
-#     courses = fields.Field(
-#         column_name= 'student',
-#         attribute='student',
-#         widget=ForeignKeyWidget(Profile,'username') )
+    courses = fields.Field(
+        column_name= 'student',
+        attribute='student',
+        widget=ForeignKeyWidget(Profile,'username') )
     
-#     class Meta:
-#         model = Course
-#         # fields = ('title',)
-               
-# class CourseAdmin(ImportExportModelAdmin):
-#     list_display = ['id','course_name','created']
-#     # prepopulated_fields = {"slug": ("course_name",)}
-#     list_filter =  ['id','course_name','created']
-#     search_fields= ['id','course_name','created']
-#     ordering = ['id']
-#     resource_class = CourseResource
+    class Meta:
+        model = Result
+        # fields = ('title',)
+  
+class ResultAssessmentAdmin(ImportExportModelAdmin):
+    list_display = ['id', 'student', 'exam', 'marks', 'created']
+    list_filter = ['id', 'student', 'exam', 'marks']
+    search_fields = ['id', 'student__first_name', 'student__last_name', 'exam__course_name__title', 'marks', 'created']
+    ordering = ['id']
+    resource_class = ResultAssessmentResource
 
-# admin.site.register(Course, CourseAdmin)
-
+admin.site.register(ResultAssessment, ResultAssessmentAdmin)
 
 
 class ResultResource(resources.ModelResource):
@@ -88,7 +88,7 @@ class CourseResource(resources.ModelResource):
     course = fields.Field(
         column_name= 'course',
         attribute='course',
-        widget=ForeignKeyWidget(Course,'course_name') )
+        widget=ForeignKeyWidget(Course, field='course_name__title'))
     
     class Meta:
         model = Question
