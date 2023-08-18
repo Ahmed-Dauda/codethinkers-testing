@@ -87,6 +87,7 @@ urlpatterns = [
 
     path('courseslistdesc/<pk>/', Courseslistdescview.as_view(), name='courseslistdesc'),
     path('topicslistview/<pk>/', Topicslistview.as_view(), name='topicslistview'),
+    
     # path('topicsdetailview/<slug:slug>/', Topicsdetailview.as_view(), name='topicsdetailview'),
     # path('signupview', signupview.as_view(), name ='signupview'),
     path('feedbackformview', Feedbackformview.as_view(), name ='feedbackformview'),
@@ -107,24 +108,9 @@ urlpatterns = [
     path('terms.json/',views.listing_api, name='terms-api'),
     path("faux",views.AllKeywordsView.as_view(),name="faux"),
 
-    # path('verify/', views.verify_cert, name='verify_cert'),
-
-    # path('verify/<str:certificate_code>/', views.verify_certificate, name='verify_certificate'),
  
 ]
 
-# urlpatterns = [
-#     path(
-#         "terms",
-#         views.KeywordListView.as_view(),
-#         name="terms"),
-#       path(
-#         "terms/<int:page>",
-#         views.listing,
-#         name="terms-by-page"
-#     ),
-#     path('terms.json/',views.listing_api, name='terms-api'),
-# ]
 
 
 

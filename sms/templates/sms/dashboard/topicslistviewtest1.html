@@ -132,6 +132,7 @@ table-layout: fixed; // ***********add this
     </thead>
     <tbody >
         {% for topic in topics %}
+        
         <tr>
             <td >
           
@@ -165,7 +166,15 @@ table-layout: fixed; // ***********add this
                     <hr>
                     {% if topic.desc %}
                     <label style="max-width: 100%; overflow-x: hidden;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.desc|safe}}</label> <br>
-                    <!-- <p  data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left"style="font-size: 20px;">  {{topic.desc|linebreaksbr|safe}} </p> <br> -->
+
+                    {% for t in topicsa %}
+                    {% if topic.title == t.course_name.title %}
+                    
+                    Assess Your Knowledge <a href="{% url 'quiz:start-exam' t.id %}"> {{t.course_name.title}}</a>
+                   {% endif %}
+                   {% endfor %}
+
+                   
                     <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
                     {% else %}
                     <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.coursedesc|safe}}</label>
