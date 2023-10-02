@@ -882,16 +882,9 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         course = self.get_object()
         topic = TopicsAssessment.objects.filter(course_name__title=course).order_by('id')
         topics_assessment = TopicsAssessment.objects.filter(course_name__title=course.title).order_by('id')
-          
         
-        # print("Course Title:", course.title)
-        # for ta in TopicsAssessment.objects.all():
-        #     print("TopicsAssessment Course Name Title:", ta.course_name.title)
-        #     print("TopicsAssessment topic Name:", ta.course_name)
-
        
         topics = course.topics_set.all().order_by('created')
-
 
         topicsa = TopicsAssessment.objects.order_by('id')
         print('top', topics)
@@ -900,6 +893,7 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # context['c'] = topics.count()
         context['alert_count'] = Alert.objects.all().count()
         context['alerts']  = PDFDocument.objects.order_by('-created')
+      
 
         return context
 
