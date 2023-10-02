@@ -14,15 +14,6 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
   <style>
 
-    .dataTables_filter { 
-        display: none; 
-        float: left;
-    }
-    .dataTables_length {
-        display: none;
-        float: left;
-    } 
-
 
 
 img, .videoWrapper{
@@ -77,28 +68,28 @@ table-layout: fixed; // ***********add this
 /*  end video controller css  */
 
 /* transcript */
-.transcriptLine {
-    color: #000;
-}
 
-.transcriptLine.highlight {
-    background-color: yellow;
-}
 
-  .highlight {
-    background-color: yellow;
-  }
-
-  .dataTables_wrapper {
+  .dataTables_wrapper  {
         display: flex;
         flex-direction: column;
         align-items: center;
     }
 
-    .dataTables_wrapper .bottom {
+    /* .dataTables_wrapper .bottom {
         width: 100%;
         text-align: center;
+    } */
+    .dataTables_filter { 
+        display: none; 
+        float: left;
     }
+    .dataTables_length {
+        display: none;
+        float: left;
+    } 
+
+
 
 </style>
 
@@ -107,6 +98,7 @@ table-layout: fixed; // ***********add this
 
   <br>                   
  <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>  <br>
+
 <table  id="example" class="datatable-wide display "  style="width:100%;">
     
     <thead class="">
@@ -184,36 +176,24 @@ table-layout: fixed; // ***********add this
 
 
 <script>
+
+
     $(document).ready(function () {
         $('#example').DataTable({
-            pagingType: 'simple',
+            pagingType: 'simple_numbers',
             dom: 'Qfrtip',
             ordering: false,
             bPaginate: true,
             scrollY: '100%',
             scrollCollapse: true,
             pageLength: 1,
+            stateSave: true,
             dom: '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
         });
     });
-    </script>    
-<!-- <script>
-    $(document).ready(function () {
-$('#example').DataTable({
-    pagingType: 'simple',
-    dom: 'Qfrtip',
-    "ordering": false,
-    "bPaginate":true,
-    // scrollY:'400px',
-    scrollY:'100%',
-    scrollCollapse:true,
-    "pageLength": 1,
-    "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
-    
-});
-});
 
-</script> -->
+
+    </script>    
 
 
 <!-- iframe videos -->
