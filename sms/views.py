@@ -444,6 +444,7 @@ class Admin_result(LoginRequiredMixin, ListView):
 
 from student.models import Certificate
 
+
 def verify_cert(request):
     certificate = get_object_or_404(Certificate, user=request.user)
     # Perform any additional verification logic here
@@ -541,6 +542,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         courses = Courses.objects.get(pk=self.kwargs["pk"])
         # Query the Payment model to get all payments related to the user and course
         related_payments = Payment.objects.filter(payment_user=user, courses=courses)
+        # print('related', related_payments)
         print('sta', zcourse.course_name.status_type)
 
         context['related_payments'] = related_payments
