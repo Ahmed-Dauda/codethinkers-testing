@@ -143,6 +143,7 @@ def verify(request, id):
     }
 
     response = requests.get(api_url, headers=headers)
+    print("res", response)
 
     if response.status_code == 200:
         data = response.json()  # Parse the JSON response
@@ -170,7 +171,7 @@ def verify(request, id):
         course = get_object_or_404(Courses, pk=id_value)
         print("ccc:", course)
         print('ref', reference)
-        print('amoun', amount)
+        print('amount', amount)
         print('email', email)
         print('referrer', referrer)
         print('fn', first_name)

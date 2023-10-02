@@ -549,7 +549,7 @@ p {
 
     <div class="col-md-6 flex-container">
       <div class="text-container">
-        <h2>Unleashing Your Coding Potential</h2>
+        <h1>Unleashing Your Coding Potential</h1>
         <p>
           Join us at CodeThinkers Academy to unlock your coding potential. 
           Our diverse range of courses covers web development, app creation, data science, 
@@ -657,37 +657,6 @@ p {
   </div>
 </div>
 
-<!-- page animinations -->
-<div class="container4">
-  <div class="accordion" id="faqAccordion">
-    {% for faq in faqs %}
-    <div class="card bg-primary">
-
-      <div style="margin: 0 auto;" class="" id="faqHeading{{ faq.id }}">
-        <progress class="mb-0 tex">
-          <p class="" data-toggle="collapse" data-target="#faqCollapse{{ faq.id }}" aria-expanded="true" aria-controls="faqCollapse{{ faq.id }}">
-            {{ faq.title|safe }}
-            <i class="fas fa-chevron-down"></i> 
-          </p>
-        </p>
-      </div>
-
-      <div id="faqCollapse{{ faq.id }}" class="collapse" aria-labelledby="faqHeading{{ faq.id }}" data-parent="#faqAccordion">
-        <div class="card-body">
-          {{ faq.desc|safe }}
-        </div>
-      </div>
-   
-    </div>
-    
-    {% empty %}
-    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-    {% endfor %}
-  </div>
-</div>
-  <!--END OF FAQ-->
-
-<!-- ending of page animination -->
 
 
 <br> <br> <br>
