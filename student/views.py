@@ -104,6 +104,22 @@ from django.shortcuts import render, redirect
 # from .models import  Question, Choice
 # from sms.models import Topics
 
+# views.py
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+
+@csrf_exempt
+def paystack_webhook(request):
+    print(request.body)  # Print the request body to inspect the payload
+    try:
+        payload = json.loads(request.body)
+        event = payload['event']
+        # Rest of your code
+    except json.JSONDecodeError as e:
+        print(f'JSON Decode Error: {str(e)}')
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON payload'}, status=400)
 
 
 def upload_pdf_document(request):
