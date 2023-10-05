@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-
+from django.urls import re_path
 from sms.views import(
     Categorieslistview,
      
@@ -63,6 +63,7 @@ urlpatterns = [
     # new dashboard urls
     path('home', Category.as_view(), name='home'),
     path('paymentdesc/<str:pk>/',  Paymentdesc.as_view(), name='paymentdesc'),
+    # re_path(r'^paymentdesc/(?P<course_name>[-\w]+)/$', Paymentdesc.as_view(), name='paymentdesc'),
     path('paymentsucess/<str:pk>/',  PaymentSucess.as_view(), name='paymentsucess'),
     path('table', Table.as_view(), name='table'),
     path('', Homepage1.as_view(), name='homepage'),

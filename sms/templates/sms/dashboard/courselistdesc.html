@@ -197,17 +197,17 @@
     <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
   </a>
 {% else %}
-  {% if not related_payments.exists %}
-    <!-- User has not made a payment for this course -->
-    <a style="height: 10px;" class="" href="{% url 'sms:paymentdesc' course.id %}">
-      <button class="btn btn-primary">Make payment to proceed</button>
-    </a>
-  {% else %}
-    <!-- User has made a payment for this course -->
+
+{% if related_payments %}
     <a href="{% url 'sms:topicslistview' course.id %}">
-      <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
+        <button class="btn btn-primary">Enroll {{ object.title }}</button>
     </a>
-  {% endif %}
+{% else %}
+    <a style="height: 10px;" class="" href="{% url 'sms:paymentdesc' course.id %}">
+        <button class="btn btn-primary">Make payment to proceed</button>
+    </a>
+{% endif %}
+
 {% endif %}
 
 {% if related_payments.exists and not payment_success %}
