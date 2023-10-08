@@ -241,7 +241,11 @@
       {% else %}
   
       {% endif %}
+<h4 style="color: green;">Enrollment Fee: {{object.price|safe}}</h4>
+      {% if not related_payments.exists %}
 
+      <button class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Pay Now </button>
+    {% else %}
 
 <p>{{enrollment_count}}  students already enrolled </p>
 
@@ -254,7 +258,7 @@
     <input  value = '{{request.user}}' type="hidden" id="email-address" required />
   </div>
   <div class="form-group">
-    <label for="first-name">Enrollment Fee: {{object.price|safe}}</label>
+    <label for="first-name"></label>
     <input  value = "{{object.price|safe}}"  type="hidden" id="amount" required />
   </div>
   <div class="form-group">
@@ -271,10 +275,7 @@
    
   </div>
 
-  {% if not related_payments.exists %}
-
-    <button class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Make Payment </button>
-  {% else %}
+ 
 
     <a href="{% url 'sms:courseslistdesc' course.id %}">
       Start {{ course.title|safe }}
