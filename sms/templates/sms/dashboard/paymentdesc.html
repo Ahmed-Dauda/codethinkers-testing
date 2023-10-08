@@ -242,7 +242,7 @@
   
       {% endif %}
 
-<br> <br>
+
 <p>{{enrollment_count}}  students already enrolled </p>
 
 
@@ -259,11 +259,11 @@
   </div>
   <div class="form-group">
     <label for="first-name">First Name: </label>
-    <input value = "{{request.user.profile.first_name|safe}}" type="hidden"id="first-name" /> {{request.user.profile.first_name}}
+    <input value = "{{request.user.profile.first_name|safe}}" type="hidden"id="first-name" /> 
   </div>
   <div class="form-group">
     <label for="last-name">Last Name: </label>
-    <input value = "{{request.user.profile.last_name}}" type="hidden" id="last-name" /> {{request.user.profile.last_name}}
+    <input value = "{{request.user.profile.last_name}}" type="hidden" id="last-name" /> 
   </div>
 
 
