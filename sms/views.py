@@ -817,7 +817,7 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         topics = course.topics_set.all().order_by('created')
 
         topicsa = TopicsAssessment.objects.order_by('id')
-        print('top', topics)
+        # print('top', topics)
         context['topics'] = topics
         context['topicsa'] = topicsa
         # context['c'] = topics.count()
@@ -848,33 +848,6 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         context['results']= QMODEL.Result.objects.order_by('-marks')
         return context
 # end
-
-
-
-# class Topicsdetailview(LoginRequiredMixin, HitCountDetailView,DetailView):
-    
-#     models = Topics
-#     template_name = 'sms/topicsdetailviewtest.html'
-#     count_hit = True
-    
-#     def get_queryset(self):
-#         return Topics.objects.get_queryset().order_by('id')
-    
-#     def get_context_data(self, **kwargs):
-        
-#         context = super().get_context_data(**kwargs)
-#         topic = Topics.objects.get_queryset().filter(courses__pk = self.object.id).order_by('id')
-#         c = Topics.objects.filter(courses__pk = self.object.id).count()
-#         paginator = Paginator(topic, 1) # Show 25 contacts per page.
-
-#         page_number = self.request.GET.get('page')
-#         page_obj = paginator.get_page(page_number)
-#         context['topics'] = page_obj
-#         context['c'] = c
-
-#         return context
-
-
 
 
 
