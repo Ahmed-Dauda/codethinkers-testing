@@ -126,7 +126,7 @@ table-layout: fixed; // ***********add this
         {% for topic in topics %}
         <tr>
             <td class="text-center">
-                <div style="margin-right: 0px; margin-left: 0px;" class="">
+                <div style="padding-left: 20px; padding-right: 20px;" class="">
                     {% if topic.img_topic %}
                         <img class="img-box" src="{{topic.img_topic.url}}" height="700px" width="100%" alt="topics image">
                     {% else %}
@@ -139,6 +139,7 @@ table-layout: fixed; // ***********add this
                         </div>
                     </div>
                     {% endif %}
+                    <br> <br> <br>
                     <div style="text-align: left;" class=" code-block">
                         <h4 style="color: black;">{{topic.title|safe}}</h4>
                         <small style="color: black;">
