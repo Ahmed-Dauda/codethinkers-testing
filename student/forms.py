@@ -14,7 +14,7 @@ from .models import PDFDocument
 class PDFDocumentForm(forms.ModelForm):
     class Meta:
         model = PDFDocument
-        fields = ['title', 'desc','price' ,'pdf_file']
+        fields = ['title', 'desc','price']
 
 
 

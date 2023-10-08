@@ -71,7 +71,7 @@ class PartLogo(models.Model):
    def __str__(self):
         return f"{self.logo}"
    
-class signature(models.Model):
+class Signature(models.Model):
        
    sign = CloudinaryField('image', blank=True, null= True)
    
@@ -97,23 +97,6 @@ from django.utils import timezone
 
 from sms.models import Courses
 
-# begin;
-# set transaction read write;
-
-#             CREATE TABLE IF NOT EXISTS student_payment (
-#                 id SERIAL PRIMARY KEY,
-#                 payment_user VARCHAR(200),
-#                 amount BIGINT,
-#                 ref VARCHAR(250),
-#                 first_name VARCHAR(250),
-#                 last_name VARCHAR(200),
-#                 email VARCHAR,
-#                 verified BOOLEAN DEFAULT FALSE,
-#                 date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-#             );
-
-# COMMIT;
-
 
 
 from django.db import models
@@ -126,15 +109,50 @@ class PDFDocument(models.Model):
     desc = models.TextField()
     img_ebook = CloudinaryField('Ebook images', blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=0, default='500', max_length=225, blank=True, null=True)
-    pdf_file = models.FileField(upload_to='pdf_documents/')  # Specify the upload directory
+    # pdf_file = models.FileField(upload_to='pdf_documents/')  
     pdf_url = models.URLField(blank=True, null=True)  # Add the URL field for Google Drive PDF link
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.title
+        return  f"{self.title}"
 
 
-from django.db import models
+
+class EbooksPayment(models.Model):
+    payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
+    # courses = models.ManyToManyField(Courses, related_name='ebooks')
+    amount = models.PositiveBigIntegerField(null=True)
+    ref = models.CharField(max_length=250, null=True)
+    first_name = models.CharField(max_length=250, null=True)
+    last_name = models.CharField(max_length=200, null=True)
+    content_type = models.CharField(max_length=200, null=True)
+    email = models.EmailField(null=True)
+    verified = models.BooleanField(default=False)
+    date_created = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        # Get a comma-separated list of course titles
+        # course_titles = ', '.join(course.title for course in self.courses.all())
+        return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount}"
+
+
+class CertificatePayment(models.Model):
+    payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
+    courses = models.ManyToManyField(Courses, related_name='certificates')
+    amount = models.PositiveBigIntegerField(null=True)
+    ref = models.CharField(max_length=250, null=True)
+    first_name = models.CharField(max_length=250, null=True)
+    last_name = models.CharField(max_length=200, null=True)
+    content_type = models.CharField(max_length=200, null=True)
+    email = models.EmailField(null=True)
+    verified = models.BooleanField(default=False)
+    date_created = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        # Get a comma-separated list of course titles
+        course_titles = ', '.join(course.title for course in self.courses.all())
+        return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles}"
+
 
 class DocPayment(models.Model):
     payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
@@ -161,6 +179,7 @@ class Payment(models.Model):
     ref = models.CharField(max_length=250, null=True)
     first_name = models.CharField(max_length=250, null=True)
     last_name = models.CharField(max_length=200, null=True)
+    content_type = models.CharField(max_length=200, null=True)
     email = models.EmailField(null=True)
     verified = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
@@ -168,4 +187,5 @@ class Payment(models.Model):
     def __str__(self):
         # Get a comma-separated list of course titles
         course_titles = ', '.join(course.title for course in self.courses.all())
-        return f"{self.payment_user} {self.amount} {course_titles}"
+        return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles}"
+
