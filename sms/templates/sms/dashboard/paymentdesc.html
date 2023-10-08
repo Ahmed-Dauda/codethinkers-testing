@@ -242,7 +242,7 @@
       {% else %}
   
       {% endif %}
-<h4 style="color: green;">Enrollment Fee: {{object.price|safe}}</h4>
+<h4 style="color: green;">Enrollment Fee: #{{object.price|safe}}</h4>
       {% if not related_payments.exists %}
 
       <button class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Pay Now </button>
