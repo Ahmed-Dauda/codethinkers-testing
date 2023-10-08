@@ -210,7 +210,7 @@
 
 
 
-  <div  style="padding-left: 20px; background-color: rgb(240, 238, 235)" class="">
+  <div  style="padding-left: 10px; padding-right: 10px;background-color: rgb(240, 238, 235)" class="">
     <br> <br>
     <div class="course-owner d-flex ">
       {% if object.course_logo.url %}
@@ -243,15 +243,9 @@
   
       {% endif %}
 <h4 style="color: green;">Enrollment Fee: #{{object.price|safe}}</h4>
-      {% if not related_payments.exists %}
+   
 
-      <button class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Pay Now </button>
-    {% else %}
-
-
-
-
-<form id="paymentForm" action="" method="POST">
+<form id="paymentForm" action="" method="POST" style="margin-top: -40px;">
   {% csrf_token %}
   <div class="form-group">
  
@@ -274,7 +268,10 @@
   <div class="form-submit">
    
   </div>
+  {% if not related_payments.exists %}
 
+  <button style="width: 100%;" class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Pay Now </button>
+{% else %}
  
 
     <a href="{% url 'sms:courseslistdesc' course.id %}">
