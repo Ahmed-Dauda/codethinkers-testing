@@ -17,7 +17,6 @@
   <p>Price: &#8358;{{ document.price }}</p>
  
 
-
 <form id="paymentForm" action="">
   <div class="form-group">
  
@@ -34,11 +33,24 @@
 
   {% if not related_payments.exists %}
     <!-- User has not made a payment for this course -->
-    <button class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Pay Now</button>
+    <button class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Pay Now </button>
 
   {% else %}
 
    
+{% if related_payments %}
+
+<div  class="text-center">
+    <!-- <a class="link" href="{% url 'sms:pdf_document_detail' document.id %}?download=1">Download PDF</a> -->
+    <a class="link" href="{{ document.pdf_url }}" target="_blank">Download PDF</a>
+    <hr>
+    <a class="link" href="{% url 'sms:homepage' %}">Return to Homepage</a>
+    {% else %}
+    
+    <a class="link " href="{% url 'sms:initiatepdfpayment' document.id %}">Make Payment to print your pdf</a>
+    
+    {% endif %}
+
   {% endif %}
 
 </form>
@@ -82,26 +94,26 @@
             $("#ref").val(referenceid);
   
             // Make an http request to cart process
-            $.ajax({
-              type: "GET",
-              url: "/student/docverify/" + referenceid,
-              beforeSend: function () {
-                console.log("Sending request");
-                $(".alert").text("Sending request");
-              },
-              success: function (response) {
-                if (response[3].status == "success") {
-                  // Once transaction completed, redirect to complete page
-                  $(".alert").removeClass("alert-warning");
-                  $(".alert").addClass("alert-success");
-                  $(".alert").text("Transaction verified");
-                  console.log("Transaction verified");
-                  $("form").trigger("reset");
-                } else {
-                  $(".alert").text("Transaction reference not found");
-                }
-              }
-            });
+            // $.ajax({
+            //   type: "GET",
+            //   url: "/student/docverify/" + referenceid,
+              // beforeSend: function () {
+              //   console.log("Sending request");
+              //   $(".alert").text("Sending request");
+              // },
+              // success: function (response) {
+              //   if (response[3].status == "success") {
+              //     // Once transaction completed, redirect to complete page
+              //     $(".alert").removeClass("alert-warning");
+              //     $(".alert").addClass("alert-success");
+              //     $(".alert").text("Transaction verified");
+              //     console.log("Transaction verified");
+              //     $("form").trigger("reset");
+              //   } else {
+              //     $(".alert").text("Transaction reference not found");
+              //   }
+              // }
+            // });
           },
           onClose: function () {
             // Do stuff

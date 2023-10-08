@@ -1156,7 +1156,7 @@ p {
       <div class="">
         <h6 style="color: #000000;  padding-right: 3px;" class="card-title">{{ alert.title|safe }}</h6>
         <small>Price: &#8358;{{ alert.price }}</small>
-        <button><a href="{% url 'sms:initiatepdfpayment' alert.id %}">{{ alert.title }}</a></button>
+        <button><a href="{% url 'sms:ebooks' alert.id %}">{{ alert.title }}</a></button>
         
       </div>
     </div>

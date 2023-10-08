@@ -1,6 +1,6 @@
 import imp
 from django.contrib import admin
-from student.models import Logo, signature, Designcert, PartLogo, Payment,PDFDocument, DocPayment
+from student.models import Logo, Signature, Designcert, PartLogo, Payment,PDFDocument, DocPayment, CertificatePayment, EbooksPayment
 # from student.models import Cart,CartItem, Order, OrderItem
 
 from django.contrib import admin
@@ -12,9 +12,9 @@ from sms.models import  Topics
 
 
 admin.site.register(PDFDocument)
-admin.site.register(DocPayment)
-# admin.site.register(Order)
-# admin.site.register(OrderItem)
+# admin.site.register(DocPayment)
+admin.site.register(CertificatePayment)
+admin.site.register(EbooksPayment)
 
 admin.site.register(Payment)
 
@@ -32,7 +32,7 @@ admin.site.register(PartLogo,  LogoAdmin)
 class SignatureAdmin(admin.ModelAdmin):
     list_display = ("sign",)
 
-admin.site.register(signature,  SignatureAdmin)
+admin.site.register(Signature,  SignatureAdmin)
 
 class DesigncertAdmin(admin.ModelAdmin):
     list_display = ("design",)

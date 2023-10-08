@@ -1,44 +1,35 @@
 from asyncio import constants
 from tokenize import group
 from unittest import result
+from sweetify.views import SweetifySuccessMixin
+from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth import forms
 from django.db import models
+
 from django.db.models import fields
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
-from sms.models import (Categories, Courses, Topics, 
-                        Comment, Blog, Blogcomment,Alert, Gallery,
-                          FrequentlyAskQuestions, Partners, 
-                          CourseFrequentlyAskQuestions, Skillyouwillgain,  
-                          CourseLearnerReviews, 
-                          Whatyouwilllearn,
-                          CareerOpportunities, Whatyouwillbuild,
-                          AboutCourseOwner,
-                         
-                        )
- 
- 
-from profile import Profile as NewProfile
+
+from django.conf import settings
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+
+import uuid
+
 from django.http import FileResponse
 from hitcount.utils import  get_hitcount_model
 from hitcount.views import HitCountMixin
-
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
-from users.models import Profile
-from quiz import models as QMODEL
 from django.core.paginator import Paginator    
 from django.db.models import Count
 import numpy as np
+from django.contrib.auth import logout
 from django.db.models import Max, Subquery, OuterRef
 # from .forms import BlogcommentForm
-from django.shortcuts import get_object_or_404
 
 from django.contrib.auth.decorators import login_required
-from quiz.models import Result, Course
-from users.forms import userprofileform, SimpleSignupForm
 # password reset import
 
-from django.shortcuts import render, redirect
 from django.core.mail import send_mail, BadHeaderError
 from django.http import HttpResponse
 from django.contrib.auth.forms import PasswordResetForm
@@ -49,16 +40,12 @@ from django.utils.http import urlsafe_base64_encode
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.contrib import messages #import messages
+from student.models import PDFDocument
 # end password reset import.
-from users.models import NewUser
-
 # from sms.forms import signupform
 from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
-
-from sms.forms import feedbackform
-
 from django.utils import timezone
 from hitcount.views import HitCountDetailView
 from django.contrib.auth import get_user_model
@@ -67,16 +54,37 @@ User = get_user_model()
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
-
 from django.views.generic import ListView
-from django.http import JsonResponse
-
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 
 
+
+from profile import Profile as NewProfile
+from student.models import EbooksPayment, PDFDocument, Payment, CertificatePayment
+from quiz import models as QMODEL
+from quiz.models import Result, Course
+from users.models import NewUser, Profile
+from users.forms import userprofileform, SimpleSignupForm
+from sms.forms import feedbackform, PaymentForm
+
+from sms.models import (Categories, Courses, Topics, 
+                        Comment, Blog, Blogcomment,Alert, Gallery,
+                          FrequentlyAskQuestions, Partners, 
+                          CourseFrequentlyAskQuestions, Skillyouwillgain,  
+                          CourseLearnerReviews, 
+                          Whatyouwilllearn,
+                          CareerOpportunities, Whatyouwillbuild,
+                          AboutCourseOwner,
+                         
+                        )
+
+
+
+
+
 class Categorieslistview(LoginRequiredMixin, ListView):
-    models = Categories
+    model = Categories
     template_name = 'sms/home.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
@@ -97,7 +105,7 @@ class Categorieslistview(LoginRequiredMixin, ListView):
 # dashboard view
 
 class Category(LoginRequiredMixin, ListView):
-    models = Categories
+    model = Categories
     template_name = 'sms/dashboard/index.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
@@ -106,7 +114,7 @@ class Category(LoginRequiredMixin, ListView):
         return Categories.objects.all()
 
 class Table(LoginRequiredMixin, ListView):
-    models = Categories
+    model = Categories
     template_name = 'sms/dashboard/tables.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
@@ -119,24 +127,13 @@ class Table(LoginRequiredMixin, ListView):
 
         return context
     
-from sms.forms import PaymentForm
-# from student.views import verify_payment
-from django.conf import settings
 
-from student.models import Payment
-
-# from pypaystack import Transaction
-
-from django.http import JsonResponse
-
-# from student.views import verify
-import uuid
 
 
 
 
 class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
-    models = Courses
+    model = Courses
     template_name = 'sms/dashboard/paymentdesc.html'
     count_hit = True
     queryset = Categories.objects.all()
@@ -146,6 +143,7 @@ class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
+        course = get_object_or_404(Courses, pk=self.kwargs["pk"])
      
         context['coursess'] = Courses.objects.all().order_by('created')[:10] 
         context['courses_count'] = Courses.objects.filter(categories__pk=self.object.id).count()
@@ -153,26 +151,23 @@ class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
         course = Courses.objects.get(pk=self.kwargs["pk"])
 
-        context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
+        context['course'] = course
         num_students = 'course.student.count()'
         context['num_students'] = num_students
+
         prerequisites = course.prerequisites.all()
         context['prerequisites'] = prerequisites
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
-        courses = Courses.objects.get(pk=self.kwargs["pk"])
+       
         context['topics'] = Topics.objects.get_queryset().filter(courses_id=course).order_by('id')
         user = self.request.user
-        courses = Courses.objects.get(pk=self.kwargs["pk"])
+       
         # Query the Payment model to get all payments related to the user and course
-        related_payments = Payment.objects.filter(email=user, courses=course)
-
+        related_payments = Payment.objects.filter(email=user, courses=course, amount = course.price)
         context['related_payments'] = related_payments
-  
-
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
         # Get the number of student enrollments for this user and course
         enrollment_count = related_payments.count()
-
         # Print or use the enrollment_count as needed
         context['enrollment_count'] = enrollment_count + 100
         print(enrollment_count)
@@ -180,52 +175,42 @@ class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
         
         return context
     
+
+
 
 class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
-    models = Courses
+    model = Courses
     template_name = 'sms/dashboard/paymentsuccess.html'
     count_hit = True
-    queryset = Categories.objects.all()
-    def get_queryset(self):
-        return Courses.objects.all()
-   
+
     def get_context_data(self, **kwargs):
-
         context = super().get_context_data(**kwargs)
-     
-        context['coursess'] = Courses.objects.all().order_by('created')[:10] 
-        context['courses_count'] = Courses.objects.filter(categories__pk=self.object.id).count()
-        # context['payment_course'] = Courses.objects.filter(payment__reference = payment__reference, request.user.profile=request.user.profile)
+
+        # Fetch the course and related information
+        course = get_object_or_404(Courses, pk=self.kwargs["pk"])
+        context['course'] = course
+        context['coursess'] = Courses.objects.all().order_by('created')[:10]
+        context['courses_count'] = Courses.objects.filter(categories=course.categories).count()
         context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
-        course = Courses.objects.get(pk=self.kwargs["pk"])
+        context['num_students'] = course.student.count()
+        context['prerequisites'] = course.prerequisites.all()
+        context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=course.id)
+        context['topics'] = Topics.objects.filter(courses_id=course.id).order_by('id')
 
-        context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
-        num_students = 'course.student.count()'
-        context['num_students'] = num_students
-        prerequisites = course.prerequisites.all()
-        context['prerequisites'] = prerequisites
-        context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
-        courses = Courses.objects.get(pk=self.kwargs["pk"])
-        context['topics'] = Topics.objects.get_queryset().filter(courses_id=course).order_by('id')
-        user = self.request.user.profile
-        courses = Courses.objects.get(pk=self.kwargs["pk"])
-        # Query the Payment model to get all payments related to the user and course
-        related_payments = Payment.objects.filter(payment_user=user, courses=course)
-
+        # Fetch related payments for the current user and course
+        user_profile = self.request.user.profile
+        related_payments = Payment.objects.filter(payment_user=user_profile, courses=course, amount= course.price)
         context['related_payments'] = related_payments
 
-        context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
-        # Get the number of student enrollments for this user and course
-        enrollment_count = related_payments.count()
+        context['paystack_public_key'] = settings.PAYSTACK_PUBLIC_KEY
 
-        # Print or use the enrollment_count as needed
-        context['enrollment_count'] = enrollment_count + 100
-        print(enrollment_count)
-        
-        
+        # Get the number of student enrollments for this user and course
+        context['enrollment_count'] = related_payments.count() + 100
+
         return context
+
     
-from student.models import PDFDocument
+
 
 class Homepage1(ListView):
     models = Courses
@@ -307,11 +292,6 @@ class Homepage1(ListView):
         context['alert_count_homes'] = PDFDocument.objects.order_by('-created')[:4].count() 
         context['alert_count'] = PDFDocument.objects.all().count()
         
-        # context['alerts'] = Alert.objects.order_by('-created')
-        # context['alert_count'] = Alert.objects.all().count()
-        # context['alert_homes'] = Alert.objects.order_by('-created')[:4] 
-        # context['alert_count_homes'] = Alert.objects.order_by('-created')[:4].count() 
-       
         context['user'] = NewUser.objects.get_queryset().order_by('id')
         context['users']  = self.request.user
         messages.success(self.request, 'You have successfully logged in.')
@@ -321,10 +301,7 @@ class Homepage1(ListView):
 
 
 
-from student.models import PDFDocument
 
-
-from django.contrib.messages.views import SuccessMessageMixin
 
 class Homepage2(SuccessMessageMixin, LoginRequiredMixin,ListView):
 
@@ -399,7 +376,6 @@ class PhotoGallery(ListView):
 
 
 
-from django.contrib.auth import logout
 
 def logout_view(request):
     logout(request)
@@ -484,7 +460,7 @@ def Certificates(request,pk):
     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
 
     # QMODEL.Result.objects.exclude(id = m).delete()
-    user_profile =  Profile.objects.filter(user_id = request.user.id)
+    # user_profile =  Profile.objects.filter(user_id = request.user.id)
 
     # results=QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
     
@@ -492,7 +468,7 @@ def Certificates(request,pk):
         'results':results,
         'course':course,
         'st':request.user,
-        'user_profile':user_profile,
+        'user_profile':student,
         'courses':courses,
         'cert_note':cert_note,
    
@@ -530,7 +506,8 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         Result.objects.filter(id__in = Subquery(max_q[1:]), exam=zcourse)
 
         try:
-            user_profile =  Profile.objects.filter(user_id = self.request.user) 
+            user_profile =  Profile.objects.filter(user_id = self.request.user)
+            print("checking payment user", user_profile)
         except Profile.DoesNotExist:
             return HttpResponseRedirect("account_login")
         
@@ -542,14 +519,18 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         context['courses'] = courses
         context['cert_note'] = cert_note
         
-        user = self.request.user.profile
-        courses = Courses.objects.get(pk=self.kwargs["pk"])
+        # user = self.request.user.profile
+        course = Courses.objects.get(pk=self.kwargs["pk"])
+    
+        user = self.request.user
+        
         # Query the Payment model to get all payments related to the user and course
-        related_payments = Payment.objects.filter(payment_user=user, courses=courses)
-        # print('related', related_payments)
-        print('sta', zcourse.course_name.status_type)
+        related_payments = CertificatePayment.objects.filter(
+            email=user, courses=course ,
+            amount=course.price)
 
         context['related_payments'] = related_payments
+       
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
 
         
@@ -558,6 +539,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
 
 from student.models import DocPayment
 
+# important
 class pdfpaymentconfirmation(HitCountDetailView, LoginRequiredMixin, DetailView):
 
     models = PDFDocument
@@ -590,6 +572,7 @@ class pdfpaymentconfirmation(HitCountDetailView, LoginRequiredMixin, DetailView)
         return context
 
 
+# important
 
 class gotopdfconfirmpage(HitCountDetailView,LoginRequiredMixin, DetailView):
 
@@ -620,19 +603,20 @@ class gotopdfconfirmpage(HitCountDetailView,LoginRequiredMixin, DetailView):
 
 
 
-
+# important
 
 
 class PDFDocumentDetailView(LoginRequiredMixin, DetailView):
-    model = PDFDocument
+    model = Courses
     template_name = 'student/dashboard/pdf_document_detail1.html'  # Update with your actual template name
 
     def get(self, request, *args, **kwargs):
         document = self.get_object()
         
-        user = self.request.user.profile
+        user = self.request.user
+        course = get_object_or_404(Courses, pk=self.kwargs['pk'])
         # Query the Payment model to get all payments related to the user and document
-        related_payments = DocPayment.objects.filter(payment_user=user, pdfdocument=document)
+        related_payments = EbooksPayment.objects.filter(email=user, courses=course, amount=course.price)
         enrollment_count = related_payments.count()
         # Print or use the enrollment_count as needed
         enrollment_count += 100
@@ -653,72 +637,10 @@ class PDFDocumentDetailView(LoginRequiredMixin, DetailView):
         return render(request, self.template_name, context=context)
 
 
-# class PDFDocumentDetailView(LoginRequiredMixin,DetailView):
-#     model = PDFDocument
-#     template_name = 'student/dashboard/pdf_document_detail1.html'  # Update with your actual template name
 
-#     def get(self, request, *args, **kwargs):
-#         document = self.get_object()
-
-#         document = get_object_or_404(PDFDocument, pk=self.kwargs['pk'])
-        
-#         user = self.request.user.profile
-#         # Query the Payment model to get all payments related to the user and course
-#         related_payments = DocPayment.objects.filter(payment_user=user, pdfdocument = document)
-     
-#         enrollment_count = related_payments.count()
-#         # Print or use the enrollment_count as needed
-#         enrollment_count = enrollment_count + 100
-
-
-#         # Check if the request is a download request
-#         if request.GET.get('download'):
-#             # Prepare the response with the PDF file content and set the 'Content-Disposition' header
-#             response = HttpResponse(document.pdf_file, content_type='application/pdf')
-#             response['Content-Disposition'] = f'attachment; filename="{document.title}.pdf"'
-#             return response
-        
-#         context = {
-#             'document': document,
-#             'related_payments':related_payments
-#             }
-
-#         return render(request, self.template_name, context= context)
-
-
-
-# class pdf_document_detail(HitCountDetailView, DetailView):
-
-#     models = PDFDocument
-#     template_name = 'student/dashboard/pdf_document_detail.html'
-#     success_message = 'TestModel successfully updated!'
-#     count_hit = True
-     
-#     def get_queryset(self):
-#         return PDFDocument.objects.all()
-
-#     def get_context_data(self,*args , **kwargs ):
-
-#         context = super().get_context_data(**kwargs)
-#         document = get_object_or_404(PDFDocument, pk=self.kwargs['pk'])
-#         context['document'] = document
-#         user = self.request.user.profile
-#         # Query the Payment model to get all payments related to the user and course
-#         related_payments = DocPayment.objects.filter(payment_user=user, pdfdocument = document)
-#         context['related_payments'] = related_payments
-#         enrollment_count = related_payments.count()
-#         # Print or use the enrollment_count as needed
-#         context['enrollment_count'] = enrollment_count + 100
-
-#         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
-
-        
-#         return context
-
-
-class Initiatepdfpayment(HitCountDetailView,LoginRequiredMixin,DetailView):
+class Ebooks(HitCountDetailView,LoginRequiredMixin,DetailView):
     models = PDFDocument
-    template_name = 'sms/dashboard/initiatepdfpayment.html'
+    template_name = 'student/dashboard/ebooks.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
      
@@ -729,8 +651,13 @@ class Initiatepdfpayment(HitCountDetailView,LoginRequiredMixin,DetailView):
         context = super().get_context_data(**kwargs)
         document = get_object_or_404(PDFDocument, pk=self.kwargs['pk'])
         
-
+        course = PDFDocument.objects.get(pk=self.kwargs["pk"])
         context['document'] = document
+      
+        user = self.request.user
+        related_payments = EbooksPayment.objects.filter(email=user, content_type=course, amount=course.price)
+        # related_payments = Payment.objects.filter(email=user, courses__title=object.title, amount=object.price)
+        context['related_payments'] = related_payments
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
 
         
@@ -764,22 +691,23 @@ class Blogdetaillistview(HitCountDetailView,DetailView):
    
 
 class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
-    models = Courses
+    model = Courses
     template_name = 'sms/dashboard/courselistdesc.html'
     count_hit = True
-    queryset = Categories.objects.all()
+   
+
     def get_queryset(self):
         return Courses.objects.all()
    
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
+        course = self.get_object()  # Retrieve the course
       
-        context['coursess'] = Courses.objects.all().order_by('created')[:10] 
-        context['courses_count'] = Courses.objects.filter(categories__pk = self.object.id).count()
+        context['coursess'] = Courses.objects.all().order_by('created')[:10]
+        context['courses_count'] = Courses.objects.filter(categories__pk=self.object.id).count()
         context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
-        course = Courses.objects.get(pk=self.kwargs["pk"])
-        # context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
+   
         context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
         prerequisites = course.prerequisites.all()
         context['prerequisites'] = prerequisites
@@ -793,11 +721,8 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['careeropportunities'] =  CareerOpportunities.objects.all().filter(courses_id= course).order_by('id')
         context['aboutcourseowners'] =  AboutCourseOwner.objects.all().filter(courses_id= course).order_by('id')
         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
-    
         context['payments'] = Payment.objects.filter(courses=course).order_by('id')
-    
         user = self.request.user
-        
         # Query the Payment model to get all payments related to the user and course
         related_payments = Payment.objects.filter(email=user, courses=course, amount=course.price)
         # related_payments = Payment.objects.filter(email=user, courses__title=object.title, amount=object.price)
@@ -805,10 +730,8 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         enrollment_count = related_payments.count()
         # Print or use the enrollment_count as needed
         context['enrollment_count'] = enrollment_count + 100
-        print('cccc',related_payments)
 
-       
-        
+    
         return context
 
 
@@ -826,8 +749,7 @@ class KeywordListView(ListView):
     ordering = ['created']
     template_name = 'sms/blog_post_list.html'
 
-from django.core.paginator import Paginator
-from django.shortcuts import render
+
 # ...
 def listing(request, page):
     keywords = Courses.objects.all().order_by("created")
@@ -953,7 +875,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
 #         return context
 
 
-from sweetify.views import SweetifySuccessMixin
+
 
 
 class Commentlistview(ListView):
