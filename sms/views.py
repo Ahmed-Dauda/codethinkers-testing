@@ -189,23 +189,23 @@ class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
         # Fetch the course and related information
         course = get_object_or_404(Courses, pk=self.kwargs["pk"])
         context['course'] = course
-        context['coursess'] = Courses.objects.all().order_by('created')[:10]
-        context['courses_count'] = Courses.objects.filter(categories=course.categories).count()
-        context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
-        context['num_students'] = course.student.count()
-        context['prerequisites'] = course.prerequisites.all()
-        context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=course.id)
-        context['topics'] = Topics.objects.filter(courses_id=course.id).order_by('id')
+        # context['coursess'] = Courses.objects.all().order_by('created')[:10]
+        # context['courses_count'] = Courses.objects.filter(categories=course.categories).count()
+        # context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
+        # context['num_students'] = course.student.count()
+        # context['prerequisites'] = course.prerequisites.all()
+        # context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=course.id)
+        # context['topics'] = Topics.objects.filter(courses_id=course.id).order_by('id')
 
         # Fetch related payments for the current user and course
-        user_profile = self.request.user.profile
-        related_payments = Payment.objects.filter(payment_user=user_profile, courses=course, amount= course.price)
-        context['related_payments'] = related_payments
+        # user_profile = self.request.user.profile
+        # related_payments = Payment.objects.filter(payment_user=user_profile, courses=course, amount= course.price)
+        # context['related_payments'] = related_payments
 
-        context['paystack_public_key'] = settings.PAYSTACK_PUBLIC_KEY
+        # context['paystack_public_key'] = settings.PAYSTACK_PUBLIC_KEY
 
-        # Get the number of student enrollments for this user and course
-        context['enrollment_count'] = related_payments.count() + 100
+        # # Get the number of student enrollments for this user and course
+        # context['enrollment_count'] = related_payments.count() + 100
 
         return context
 
