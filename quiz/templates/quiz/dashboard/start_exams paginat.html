@@ -85,7 +85,7 @@ table-layout: fixed; // ***********add this
         </tr>
     </thead>
     <tbody>
-        <form action="/quiz/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data" method="POST">
+        <form id="#frm-example2" action="/quiz/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data" method="POST">
             {% csrf_token %}
             <!-- ... your other form inputs ... -->
             {% for q in  page_obj %}
@@ -130,16 +130,19 @@ table-layout: fixed; // ***********add this
                 </td>
             </tr>
             {% endfor %}
-        
+ <input type="submit" value="Submit Form" class="btn_submit" onclick="submitOrder()" />
+           
         </form>
         
     </tbody>
 
+
+
 </table>
 
-        <input  class="btn btn-primary" type="submit" value="Submit">
-
+        <!-- <input  class="btn btn-primary" type="submit" value="Submit"> -->
 <script>
+
     $(document).ready(function () {
         $('#example').DataTable({
             pagingType: 'simple_numbers',
@@ -151,6 +154,13 @@ table-layout: fixed; // ***********add this
             dom: '<"top"fl<"clear">>rt<"bottom"ip<"clear">>'
         });
     });
+
+    $('#example').dataTable({
+"fnDrawCallback": function() {
+$("input:radio[name=personselect]").click(function(){
+alert("bingo");
+}); }
+});
 </script>
  
 <!-- <script>
@@ -167,10 +177,6 @@ table-layout: fixed; // ***********add this
         });
     });
     </script>     -->
-
-
-
-
 
 
 

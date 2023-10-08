@@ -129,8 +129,10 @@ from student.models import Payment
 
 from django.http import JsonResponse
 
-from student.views import verify
+# from student.views import verify
 import uuid
+
+
 
 
 class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
@@ -159,12 +161,13 @@ class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
         courses = Courses.objects.get(pk=self.kwargs["pk"])
         context['topics'] = Topics.objects.get_queryset().filter(courses_id=course).order_by('id')
-        user = self.request.user.profile
+        user = self.request.user
         courses = Courses.objects.get(pk=self.kwargs["pk"])
         # Query the Payment model to get all payments related to the user and course
-        related_payments = Payment.objects.filter(payment_user=user, courses=course)
+        related_payments = Payment.objects.filter(email=user, courses=course)
 
         context['related_payments'] = related_payments
+  
 
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
         # Get the number of student enrollments for this user and course
@@ -177,6 +180,7 @@ class Paymentdesc(LoginRequiredMixin, HitCountDetailView, DetailView):
         
         return context
     
+
 class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
     models = Courses
     template_name = 'sms/dashboard/paymentsuccess.html'
@@ -444,6 +448,7 @@ class Admin_result(LoginRequiredMixin, ListView):
 
 from student.models import Certificate
 
+
 def verify_cert(request):
     certificate = get_object_or_404(Certificate, user=request.user)
     # Perform any additional verification logic here
@@ -541,6 +546,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         courses = Courses.objects.get(pk=self.kwargs["pk"])
         # Query the Payment model to get all payments related to the user and course
         related_payments = Payment.objects.filter(payment_user=user, courses=courses)
+        # print('related', related_payments)
         print('sta', zcourse.course_name.status_type)
 
         context['related_payments'] = related_payments
@@ -790,14 +796,18 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
     
         context['payments'] = Payment.objects.filter(courses=course).order_by('id')
     
-        user = self.request.user.profile
+        user = self.request.user
+        
         # Query the Payment model to get all payments related to the user and course
-        related_payments = Payment.objects.filter(payment_user=user, courses=course)
+        related_payments = Payment.objects.filter(email=user, courses=course, amount=course.price)
+        # related_payments = Payment.objects.filter(email=user, courses__title=object.title, amount=object.price)
         context['related_payments'] = related_payments
         enrollment_count = related_payments.count()
         # Print or use the enrollment_count as needed
         context['enrollment_count'] = enrollment_count + 100
-        print(enrollment_count)
+        print('cccc',related_payments)
+
+       
         
         return context
 
@@ -880,16 +890,9 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         course = self.get_object()
         topic = TopicsAssessment.objects.filter(course_name__title=course).order_by('id')
         topics_assessment = TopicsAssessment.objects.filter(course_name__title=course.title).order_by('id')
-          
         
-        # print("Course Title:", course.title)
-        # for ta in TopicsAssessment.objects.all():
-        #     print("TopicsAssessment Course Name Title:", ta.course_name.title)
-        #     print("TopicsAssessment topic Name:", ta.course_name)
-
        
         topics = course.topics_set.all().order_by('created')
-
 
         topicsa = TopicsAssessment.objects.order_by('id')
         print('top', topics)
@@ -898,6 +901,7 @@ class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # context['c'] = topics.count()
         context['alert_count'] = Alert.objects.all().count()
         context['alerts']  = PDFDocument.objects.order_by('-created')
+      
 
         return context
 
