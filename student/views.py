@@ -104,6 +104,166 @@ from django.shortcuts import render, redirect
 # from .models import  Question, Choice
 # from sms.models import Topics
 
+# views.py
+
+from django.views.decorators.csrf import csrf_exempt
+
+from django.views.decorators.http import require_POST
+
+from django.db import transaction
+
+
+from django.http import JsonResponse
+import json
+
+import json
+from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.db import transaction
+from .models import Payment, Profile  # Adjust the import based on your actual models
+
+# @csrf_exempt
+# @require_POST
+# @transaction.non_atomic_requests(using='db_name')  # Replace 'db_name' with your actual database name
+# def paystack_webhook(request):
+#     given_token = request.headers.get("x-paystack-signature", "")
+#     if not given_token:
+#         return HttpResponseForbidden("Incorrect token in portal webhook token header.", content_type="text/plain")
+
+#     try:
+#         payload = json.loads(request.body.decode('utf-8'))
+#         print("Decoded payload:", payload)
+
+#         # Check if the event is "charge.success" and has "dedicated_nuban"
+#         event = payload.get('event', '')
+#         if event != 'charge.success':
+#             return JsonResponse({'status': 'error', 'message': 'Invalid event'}, status=400)
+
+#         data = payload.get('data', {})
+#         if 'dedicated_nuban' not in data:
+#             return JsonResponse({'status': 'error', 'message': 'Missing dedicated_nuban'}, status=400)
+
+#         # Extract relevant data from the payload
+#         reference = data['reference']
+#         amount = data['amount']
+#         email = data['customer']['email']
+#         first_name = data['customer']['first_name']
+#         last_name = data['customer']['last_name']
+#         # Extract other necessary data based on your payload structure
+
+#         # Get the user based on the email (assuming email uniquely identifies a user)
+#         user_profile = Profile.objects.get(email=email)
+
+#         # Process the data and save to the database
+#         payment = Payment.objects.create(
+#             payment_user=user_profile,
+#             amount=amount,
+#             ref=reference,
+#             first_name=first_name,
+#             last_name=last_name,
+#             email=email,
+#             verified=True  # Assuming the webhook is only called for successful transactions
+#         )
+
+#         # Add courses to the payment using the 'set()' method if applicable
+#         # courses = ... # Retrieve the relevant courses based on the payload
+#         # payment.courses.set(courses)
+
+#         return JsonResponse({'status': 'success'})
+
+#     except json.JSONDecodeError as e:
+#         print(f'JSON Decode Error: {str(e)}')
+#         return JsonResponse({'status': 'error', 'message': 'Invalid JSON payload'}, status=400)
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+
+
+
+@csrf_exempt
+@require_POST
+@transaction.non_atomic_requests(using='db_name')
+def paystack_webhook(request):
+    # Ensure this is a POST request
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed'}, status=400)
+
+    # Parse the JSON payload from the request
+    try:
+        payload = json.loads(request.body)
+        print("payloadttt", payload)
+    except json.JSONDecodeError as e:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON payload'}, status=400)
+
+    # Extract relevant information from the payload
+    event = payload.get('event')
+    data = payload.get('data')
+
+    # Check the event type
+    if event == 'charge.success':
+        # Extract information from the data
+      
+        verified = True
+        reference = data.get('reference')
+        amount = data.get('amount')/100
+        first_name = data['customer'].get('first_name')
+        last_name = data['customer'].get('last_name')
+        email = data['customer'].get('email')
+      
+       
+        referrer = payload['data']['metadata']['referrer'].strip()
+        # print("Referrer URL:", referrer)
+
+        # Split the referrer URL by '/'
+        url_parts = referrer.split('/')
+        # print('u', url_parts)
+
+        # Check if the last part of the URL is a numeric "id"
+        if url_parts[-2].isdigit():
+            id_value = url_parts[-2]
+            # print("Extracted ID:", id_value)
+        else:
+            id_value = None
+
+        course = get_object_or_404(Courses, pk=id_value)
+        course_amount = course.price
+       
+    
+        # Save this information to the database (you'll need to import your Payment model)
+        # Assuming Payment model has fields: ref, amount, first_name, last_name
+        if amount == course_amount:
+            payment= Payment.objects.create(ref=reference,amount=course_amount, first_name=first_name, last_name=last_name, email=email, verified = verified,)
+        #  Add courses to the payment using the 'set()' method
+        if course:
+            payment.courses.set([course])
+            # print('paymuuuuuseer', user)
+        return JsonResponse({'status': 'success'})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Unsupported event type'}, status=400)
+
+
+# @csrf_exempt
+# @require_POST
+# @transaction.non_atomic_requests(using='db_name')
+# def paystack_webhook(request):
+#     # print("Incoming request body:", request.body.decode('utf-8'))
+#     given_token = request.headers.get("x-paystack-signature", "")
+#     if not given_token:
+#         return HttpResponseForbidden("Incorrect token in portal webhook token header.", content_type = "text/plain", )
+#     try:
+#         payload = json.loads(request.body.decode('utf-8'))
+#         print("Decoded payload:", payload)
+
+#         # Rest of your code to process the payload
+#         # ...
+
+#         return JsonResponse({'status': 'success'})
+#     except json.JSONDecodeError as e:
+#         print(f'JSON Decode Error: {str(e)}')
+#         return JsonResponse({'status': 'error', 'message': 'Invalid JSON payload'}, status=400)
 
 
 def upload_pdf_document(request):
@@ -134,72 +294,66 @@ from .models import PDFDocument
 
 
 
-def verify(request, id):
+# def verify(request, id):
+#     secret_key = settings.PAYSTACK_SECRET_KEY
+#     api_url = f'https://api.paystack.co/transaction/verify/{id}'
+#     headers = {
+#         'Authorization': f'Bearer {secret_key}',
+#     }
 
-    secret_key = settings.PAYSTACK_SECRET_KEY
-    api_url = f'https://api.paystack.co/transaction/verify/{id}'
-    headers = {
-        'Authorization': f'Bearer {secret_key}',
-    }
+#     response = requests.get(api_url, headers=headers)
+#     print("res", response)
 
-    response = requests.get(api_url, headers=headers)
+#     if response.status_code == 200:
+#         data = response.json()  # Parse the JSON response
+#         reference = data['data']['reference']
+#         amount = data['data']['amount'] / 100
+#         email = data['data']['customer']['email']
+#         status = data['data']['status']
+#         first_name = request.user.profile.first_name
+#         last_name = request.user.profile.last_name
 
-    if response.status_code == 200:
-        data = response.json()  # Parse the JSON response
-        reference = data['data']['reference']
-        amount = data['data']['amount'] / 100
-        email = data['data']['customer']['email']
-        status = data['data']['status']
-        first_name = request.user.profile.first_name
-        last_name = request.user.profile.last_name
+#         referrer = data['data']['metadata']['referrer'].strip()
+#         # print("Referrer URL:", referrer)
 
-        referrer = data['data']['metadata']['referrer'].strip()
-        print("Referrer URL:", referrer)
+#         # Split the referrer URL by '/'
+#         url_parts = referrer.split('/')
+#         print('u', url_parts)
 
-        # Split the referrer URL by '/'
-        url_parts = referrer.split('/')
-        print('u', url_parts)
+#         # Check if the last part of the URL is a numeric "id"
+#         if url_parts[-2].isdigit():
+#             id_value = url_parts[-2]
+#             print("Extracted ID:", id_value)
+#         else:
+#             id_value = None
 
-        # Check if the last part of the URL is a numeric "id"
-        if url_parts[-2].isdigit():
-            id_value = url_parts[-2]
-            print("Extracted ID:", id_value)
-        else:
-            id_value = None
+#         course = get_object_or_404(Courses, pk=id_value)
 
-        course = get_object_or_404(Courses, pk=id_value)
-        print("ccc:", course)
-        print('ref', reference)
-        print('amoun', amount)
-        print('email', email)
-        print('referrer', referrer)
-        print('fn', first_name)
-        print('ln', last_name)
+#         if status == 'success':
+#             verified = True
 
-        if status == 'success':
-            verified = True
+#             # Create the Payment object
+#             payment = Payment.objects.create(
+#                 ref=reference,
+#                 first_name=first_name,
+#                 last_name=last_name,
+#                 payment_user=request.user.profile,
+#                 amount=amount,
+#                 email=email,
+#                 verified=verified
+#             )
 
-            # Create the Payment object
-            payment = Payment.objects.create(
-                ref=reference,
-                first_name=first_name,
-                last_name=last_name,
-                payment_user=request.user.profile,
-                amount=amount,
-                email=email,
-                verified=verified
-            )
+#             # Add courses to the payment using the 'set()' method
+#             if course:
+#                 payment.courses.set([course])
 
-            # Add courses to the payment using the 'set()' method
-            if course:
-                payment.courses.set([course])
+#         data = JsonResponse({'reference': reference})
+#     else:
+#         data = JsonResponse({'error': 'Payment verification failed.'}, status=400)
 
-        data = JsonResponse({'reference': reference})
-    else:
-        data = JsonResponse({'error': 'Payment verification failed.'}, status=400)
+#     # print('ver', data)
+#     return data
 
-    print('ver', data)
-    return data
 
 from student.models import PDFDocument, DocPayment
 

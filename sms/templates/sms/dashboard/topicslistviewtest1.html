@@ -14,15 +14,6 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
   <style>
 
-    .dataTables_filter { 
-        display: none; 
-        float: left;
-    }
-    .dataTables_length {
-        display: none;
-        float: left;
-    } 
-
 
 
 img, .videoWrapper{
@@ -77,28 +68,28 @@ table-layout: fixed; // ***********add this
 /*  end video controller css  */
 
 /* transcript */
-.transcriptLine {
-    color: #000;
-}
 
-.transcriptLine.highlight {
-    background-color: yellow;
-}
 
-  .highlight {
-    background-color: yellow;
-  }
-
-  .dataTables_wrapper {
+  .dataTables_wrapper  {
         display: flex;
         flex-direction: column;
         align-items: center;
     }
 
-    .dataTables_wrapper .bottom {
+    /* .dataTables_wrapper .bottom {
         width: 100%;
         text-align: center;
+    } */
+    .dataTables_filter { 
+        display: none; 
+        float: left;
     }
+    .dataTables_length {
+        display: none;
+        float: left;
+    } 
+
+
 
 </style>
 
@@ -107,6 +98,7 @@ table-layout: fixed; // ***********add this
 
   <br>                   
  <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>  <br>
+
 <table  id="example" class="datatable-wide display "  style="width:100%;">
     
     <thead class="">
@@ -115,7 +107,7 @@ table-layout: fixed; // ***********add this
 
                 <h6 style="flex-wrap: wrap;" class="d-flex">
                    
-                    <a href="{% url 'student:take-exam' %}">Take Exam</a>
+                    <!-- <a href="{% url 'student:take-exam' %}">Take Exam</a> -->
                     <p class="">{{c}} Modules </p> 
                     <p>{{ hitcount.total_hits }}  <i class="fas fa-eye"></i></p>
                     <a class="" href="{% url 'sms:feedbackformview' %}">
@@ -130,80 +122,62 @@ table-layout: fixed; // ***********add this
          
         </tr>
     </thead>
-    <tbody >
+    <tbody>
         {% for topic in topics %}
-        
         <tr>
-            <td >
-          
-                <div style="margin-right: 0px; margin-left: 0px;"  class=" bg-white">
-            
-
+            <td class="text-center">
+                <div style="margin-right: 0px; margin-left: 0px;" class="">
                     {% if topic.img_topic %}
-                    <img class="img-box" src="{{topic.img_topic.url}}"  alt="topics image">
+                        <img class="img-box" src="{{topic.img_topic.url}}" height="700px" width="100%" alt="topics image">
                     {% else %}
-
                     {% endif %}
-                
-             
-           
-                                <!-- Add the video player -->
-                        {% if topic.video %}
-                        <div class="video-container">
+                    <!-- Add the video player -->
+                    {% if topic.video %}
+                    <div class="video-container">
                         <div id="myVideo" class="video-wrapper">
                             {% video topic.video|safe class="ratio ratio-16x9" %}
                         </div>
-                        </div>
+                    </div>
+                    {% endif %}
+                    <div style="text-align: left;" class=" code-block">
+                        <h4 style="color: black;">{{topic.title|safe}}</h4>
+                        <small style="color: black;">
+                            created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
+                        </small> <br>
+                        <hr>
+                        {% if topic.desc %}
+                            <label style="max-width: 100%; overflow-x: hidden;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.desc|safe}}</label> <br>
+                            {% for t in topicsa %}
+                            {% if topic.title == t.course_name.title %}
+                                Assess Your Knowledge <a href="{% url 'quiz:start-exam' t.id %}"> {{t.course_name.title}}</a>
+                            {% endif %}
+                            {% endfor %}
+                            <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
+                        {% else %}
+                            <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.coursedesc|safe}}</label>
                         {% endif %}
-
-        
-
-                    <div style="padding-left: 2px;" class="card-body code-block">
-                    <h4 style="color: black;">{{topic.title|safe}}</h4> 
-                    <small style="color: black;">
-                        created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
-                    </small> <br>
-                    <hr>
-                    {% if topic.desc %}
-                    <label style="max-width: 100%; overflow-x: hidden;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.desc|safe}}</label> <br>
-
-                    {% for t in topicsa %}
-                    {% if topic.title == t.course_name.title %}
-                    
-                    Assess Your Knowledge <a href="{% url 'quiz:start-exam' t.id %}"> {{t.course_name.title}}</a>
-                   {% endif %}
-                   {% endfor %}
-
-                   
-                    <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
-                    {% else %}
-                    <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.coursedesc|safe}}</label>
-                    <!-- <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;">{{topic.coursedesc|safe}}</p> -->
-               
-                    {% endif %}
-                     </div>
-
+                    </div>
                     {% if forloop.last %}
-                    <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4> <br>
-                    <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
+                        <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4> <br>
+                        <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
                     {% else %}
-                    <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;"></p>
-               
+                        <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;"></p>
                     {% endif %}
-        
                 </div>
             </td>
-            
         </tr>
         {% empty %}
-        <h3 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h3>
+            <h3 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h3>
         {% endfor %}
     </tbody>
+    
  
 </table>
 
 
 <script>
+
+
     $(document).ready(function () {
         $('#example').DataTable({
             pagingType: 'simple',
@@ -213,27 +187,13 @@ table-layout: fixed; // ***********add this
             scrollY: '100%',
             scrollCollapse: true,
             pageLength: 1,
+            stateSave: true,
             dom: '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
         });
     });
-    </script>    
-<!-- <script>
-    $(document).ready(function () {
-$('#example').DataTable({
-    pagingType: 'simple',
-    dom: 'Qfrtip',
-    "ordering": false,
-    "bPaginate":true,
-    // scrollY:'400px',
-    scrollY:'100%',
-    scrollCollapse:true,
-    "pageLength": 1,
-    "dom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
-    
-});
-});
 
-</script> -->
+
+    </script>    
 
 
 <!-- iframe videos -->

@@ -155,6 +155,54 @@
       display: none;
   }
 
+.payment-form {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.payment-form .form-group {
+  margin-bottom: 15px;
+}
+
+.payment-form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.payment-form .amount {
+  font-weight: bold;
+  color: #2ecc71; /* Green color for the amount */
+}
+
+.payment-form .form-group span {
+  display: inline-block;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.payment-form .form-submit {
+  text-align: center;
+}
+
+.payment-form .form-submit button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  background-color: #3498db;
+  color: #fff;
+  cursor: pointer;
+}
+
+.payment-form .form-submit button:hover {
+  background-color: #2980b9;
+}
 
   
 </style>
@@ -197,25 +245,37 @@
 <br> <br>
 <p>{{enrollment_count}}  students already enrolled </p>
 
-<form id="paymentForm" action="">
+
+
+<form id="paymentForm" action="" method="POST">
+  {% csrf_token %}
   <div class="form-group">
  
     <input  value = '{{request.user}}' type="hidden" id="email-address" required />
   </div>
   <div class="form-group">
-
+    <label for="first-name">Enrollment Fee: {{object.price|safe}}</label>
     <input  value = "{{object.price|safe}}"  type="hidden" id="amount" required />
   </div>
- 
+  <div class="form-group">
+    <label for="first-name">First Name: </label>
+    <input value = "{{request.user.profile.first_name|safe}}" type="hidden"id="first-name" /> {{request.user.profile.first_name}}
+  </div>
+  <div class="form-group">
+    <label for="last-name">Last Name: </label>
+    <input value = "{{request.user.profile.last_name}}" type="hidden" id="last-name" /> {{request.user.profile.last_name}}
+  </div>
+
+
   <div class="form-submit">
    
   </div>
 
   {% if not related_payments.exists %}
-    <!-- User has not made a payment for this course -->
+
     <button class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Make Payment </button>
   {% else %}
-    <!-- User has made a payment for this course -->
+
     <a href="{% url 'sms:courseslistdesc' course.id %}">
       Start {{ course.title|safe }}
     </a>
@@ -277,9 +337,9 @@
 
 <script>
 
+// 'reference': '574117390',
+
 // paystack payment
-
-
 const paymentForm = document.getElementById('paymentForm');
 paymentForm.addEventListener("submit", payWithPaystack, false);
 
@@ -290,49 +350,80 @@ function payWithPaystack(e) {
     key: '{{paystack_public_key}}', // Replace with your public key
     email: document.getElementById("email-address").value,
     amount: document.getElementById("amount").value * 100,
-    ref: ''+Math.floor((Math.random() * 1000000000) + 1), // generates a pseudo-unique reference. Please replace with a reference you generated. Or remove the line entirely so our API will generate one for you
-    // label: "Optional string that replaces customer email"
+    firstname: document.getElementById("first-name").value,
+    lastname: document.getElementById("last-name").value,
     onClose: function(){
       alert('Window closed.');
     },
+    callback: function(response){
     
-         callback: function (response) {
-          // If transaction successful, do this
-          var referenceid = response.reference;
-          window.location.href = "{% url 'sms:paymentsucess' object.id %}"
+      var referenceid = response.reference;
+      window.location.href = "{% url 'sms:paymentsucess' object.id %}"
+    }
+  });
 
-          // Set the referenceid value to the ref hidden input field
-          $("#ref").val(referenceid);
-
-          // Make an http request to cart process
-          $.ajax({
-            type: "GET",
-            url: "/student/verify/" + referenceid,
-            beforeSend: function () {
-              console.log("Sending request");
-              $(".alert").text("Sending request");
-            },
-            success: function (response) {
-              if (response[3].status == "success") {
-                // Once transaction completed, redirect to complete page
-                $(".alert").removeClass("alert-warning");
-                $(".alert").addClass("alert-success");
-                $(".alert").text("Transaction verified");
-                console.log("Transaction verified");
-                $("form").trigger("reset");
-              } else {
-                $(".alert").text("Transaction reference not found");
-              }
-            }
-          });
-        },
-        onClose: function () {
-          // Do stuff
-        }
-      });
-  
   handler.openIframe();
 }
+
+
+// const paymentForm = document.getElementById('paymentForm');
+// paymentForm.addEventListener("submit", payWithPaystack, false);
+
+// function payWithPaystack(e) {
+//   e.preventDefault();
+
+
+//   let handler = PaystackPop.setup({
+//     key: '{{paystack_public_key}}', // Replace with your public key
+//     email: document.getElementById("email-address").value,
+//     amount: document.getElementById("amount").value * 100,
+//     firstname: document.getElementById("first-name").value,
+//     lastname: document.getElementById("last-name").value,
+
+//     ref: ''+Math.floor((Math.random() * 1000000000) + 1), // generates a pseudo-unique reference. Please replace with a reference you generated. Or remove the line entirely so our API will generate one for you
+//     // label: "Optional string that replaces customer email"
+//     onClose: function(){
+//       alert('Window closed.');
+//     },
+    
+//          callback: function (response) {
+//           // If transaction successful, do this
+//           var referenceid = response.reference;
+//           window.location.href = "{% url 'sms:paymentsucess' object.id %}"
+
+//           // Set the referenceid value to the ref hidden input field
+//           $("#ref").val(referenceid);
+
+//           // Make an http request to cart process
+//           $.ajax({
+//             type: "GET",
+//             url: "/student/paystack/webhook/" + referenceid,
+           
+//             beforeSend: function () {
+//               console.log("Sending request");
+//               $(".alert").text("Sending request");
+//             },
+//             success: function (response) {
+//               if (response[3].status == "success") {
+//                 // Once transaction completed, redirect to complete page
+//                 $(".alert").removeClass("alert-warning");
+//                 $(".alert").addClass("alert-success");
+//                 $(".alert").text("Transaction verified");
+//                 console.log("Transaction verified");
+//                 $("form").trigger("reset");
+//               } else {
+//                 $(".alert").text("Transaction reference not found");
+//               }
+//             }
+//           });
+//         },
+//         onClose: function () {
+//           // Do stuff
+//         }
+//       });
+  
+//   handler.openIframe();
+// }
 
 
 

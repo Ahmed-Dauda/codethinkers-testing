@@ -182,7 +182,6 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False 
 EMAIL_HOST_USER = 'techsupport@esteemlearningcentre.com'
-# EMAIL_HOST_USER = 'codethinkersa@gmail.com'
 # EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
 EMAIL_HOST_PASSWORD = 'techSupport@01'
 DEFAULT_FROM_EMAIL = 'techsupport@esteemlearningcentre.com'
@@ -308,21 +307,22 @@ USE_TZ = True
 
 
 # ADDITIONAL SITE SECURITY
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# SECURE_SSL_REDIRECT = True
 
-# SECURE_BROWSER_XSS_FILTER = True
-# X_FRAME_OPTIONS = 'DENY'
-# SECURE_SSL_REDIDERECT = True
-# SECURE_HSTS_SECONDS = 3600
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# SESSION_COOKIES_SECURE = True
-# SECURE_FRAME_DENY = True
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIES_HTTPONLY = True
-# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_SSL_REDIDERECT = True
+SECURE_HSTS_SECONDS = 3600
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SESSION_COOKIES_SECURE = True
+SECURE_FRAME_DENY = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIES_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
@@ -385,54 +385,17 @@ TINYMCE_DEFAULT_CONFIG = {
 TINYMCE_JS_URL = 'https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js'
 
 
-# TINYMCE_DEFAULT_CONFIG = {
-#     'cleanup_on_startup': True,
-#     'custom_undo_redo_levels': 20,
-#     'selector': 'textarea',
-    
-#     # 'theme': 'silver',
-#     'skin': 'oxide-dark',
-#     "height": 600,
-#     'plugins': '''
-   
-#             fullscreen codesample insertdatetime media table paste code help wordcount spellchecker
-#             advlist  link image charmap print preview anchor searchreplace visualblocks code
-#             textcolor save  image media preview codesample contextmenu
-#             table code  fullscreen  insertdatetime  nonbreaking
-#             contextmenu directionality searchreplace wordcount visualblocks
-#             visualchars code fullscreen autolink lists  charmap print  hr
-#             anchor pagebreak help paste
-#             ''',
-
-#     'toolbar1': '''
-#             forecolor backcolor permanentpen formatpainter removeformat | pagebreak | charmap emoticons |
-#             undo redo |fullscreen | formatselect | bold italic underline | fontselect,
-#             fontsizeselect  | alignleft alignright |
-#             aligncenter alignjustify | indent outdent | bullist numlist table |
-#             | link image media | codesample | preview
-#             ''',
-#     'toolbar2': '''
-#             visualblocks visualchars |
-#             charmap hr pagebreak nonbreaking anchor |  code | help
-#             ''',
-#     'contextmenu': 'formats | link image',
-#     'menubar': True,
-#     'statusbar': True,
-# }
-
-# TINYMCE_SPELLCHECKER = True
-
 # PAYSTACK_SECRET_KEY = os.environ.get('sk_test_75e53acfea9e04b0c52c3c3c6c46281c844a706a')
 # PAYSTACK_PUBLIC_KEY = os.environ.get('pk_test_72337ad2f9419ff6eb3204519bb884067c075ed8')
 
 # test api
-PAYSTACK_SECRET_KEY = 'sk_test_75e53acfea9e04b0c52c3c3c6c46281c844a706a'
-PAYSTACK_PUBLIC_KEY = 'pk_test_72337ad2f9419ff6eb3204519bb884067c075ed8'
+# PAYSTACK_SECRET_KEY = 'sk_test_75e53acfea9e04b0c52c3c3c6c46281c844a706a'
+# PAYSTACK_PUBLIC_KEY = 'pk_test_72337ad2f9419ff6eb3204519bb884067c075ed8'
 
 # live api
 
-# PAYSTACK_SECRET_KEY = 'sk_live_ecb915cd648ffcea0578361a08ac369122f02754'
-# PAYSTACK_PUBLIC_KEY = 'pk_live_010265c77983e11a700678d34d476b1ce1c48fb1'
+PAYSTACK_SECRET_KEY = 'sk_live_ecb915cd648ffcea0578361a08ac369122f02754'
+PAYSTACK_PUBLIC_KEY = 'pk_live_010265c77983e11a700678d34d476b1ce1c48fb1'
 
 
 
@@ -455,3 +418,6 @@ PAYSTACK_PUBLIC_KEY = 'pk_test_72337ad2f9419ff6eb3204519bb884067c075ed8'
 # 1. python manage.py makemigrations users
 # 2.  python manage.py migrate users
 
+# using ngov to test webhook
+
+# ngrok http 8000 --host-header=rewrite
