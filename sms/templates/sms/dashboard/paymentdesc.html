@@ -210,7 +210,7 @@
 
 
 
-  <div  style="padding-left: 20px; background-color: rgb(240, 238, 235)" class="">
+  <div  style="padding-left: 10px; padding-right: 10px;background-color: rgb(240, 238, 235)" class="">
     <br> <br>
     <div class="course-owner d-flex ">
       {% if object.course_logo.url %}
@@ -227,6 +227,7 @@
 
   {% if object.price %}
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  #{{object.price|safe|floatformat:"0g"}}</p> 
+  <p>{{enrollment_count}}  students already enrolled </p>
   {% else %}
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}}</p> 
   {% endif %}
@@ -241,40 +242,37 @@
       {% else %}
   
       {% endif %}
+<h4 style="color: green;">Enrollment Fee: #{{object.price|safe}}</h4>
+   
 
-<br> <br>
-<p>{{enrollment_count}}  students already enrolled </p>
-
-
-
-<form id="paymentForm" action="" method="POST">
+<form id="paymentForm" action="" method="POST" style="margin-top: -40px;">
   {% csrf_token %}
   <div class="form-group">
  
     <input  value = '{{request.user}}' type="hidden" id="email-address" required />
   </div>
   <div class="form-group">
-    <label for="first-name">Enrollment Fee: {{object.price|safe}}</label>
+    <label for="first-name"></label>
     <input  value = "{{object.price|safe}}"  type="hidden" id="amount" required />
   </div>
   <div class="form-group">
-    <label for="first-name">First Name: </label>
-    <input value = "{{request.user.profile.first_name|safe}}" type="hidden"id="first-name" /> {{request.user.profile.first_name}}
+   
+    <input value = "{{request.user.profile.first_name|safe}}" type="hidden"id="first-name" /> 
   </div>
   <div class="form-group">
-    <label for="last-name">Last Name: </label>
-    <input value = "{{request.user.profile.last_name}}" type="hidden" id="last-name" /> {{request.user.profile.last_name}}
+
+    <input value = "{{request.user.profile.last_name}}" type="hidden" id="last-name" /> 
   </div>
 
 
   <div class="form-submit">
    
   </div>
-
   {% if not related_payments.exists %}
 
-    <button class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Make Payment </button>
-  {% else %}
+  <button style="width: 100%;" class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Pay Now </button>
+{% else %}
+ 
 
     <a href="{% url 'sms:courseslistdesc' course.id %}">
       Start {{ course.title|safe }}

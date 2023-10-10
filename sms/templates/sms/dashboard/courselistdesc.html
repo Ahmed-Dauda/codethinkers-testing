@@ -160,7 +160,7 @@
 </style>
 
 
-  <div  style="padding-left: 20px; background-color: rgb(240, 238, 235)" class="">
+  <div  style="padding-left: 10px; padding-right: 10px;background-color: rgb(240, 238, 235)" class="">
     <br> <br>
     <div class="course-owner d-flex ">
       {% if object.course_logo.url %}
@@ -177,6 +177,7 @@
 
   {% if object.status_type == 'Premium' %}
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  &#8358;{{object.price|safe|floatformat:"0g"}}</p> 
+  <p>{{enrollment_count}}+ students already enrolled  </p>
   {% else %}
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}}</p> 
   {% endif %}
@@ -203,7 +204,7 @@
         <button class="btn btn-primary">Enroll {{ object.title }}</button>
     </a>
 {% else %}
-    <a style="height: 10px;" class="" href="{% url 'sms:paymentdesc' course.id %}">
+    <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
         <button class="btn btn-primary">Make payment to proceed</button>
     </a>
 {% endif %}
@@ -212,10 +213,9 @@
 
 {% if related_payments.exists and not payment_success %}
 <!-- Add a hidden input field to hold the payment success flag -->
-<div>
-  <p class="" style="color: green;">Payment successful!</p>
-</div>
+
 <input type="hidden" id="paymentSuccess" value="true">
+
 
 {% endif %}
 
@@ -223,28 +223,12 @@
 <!--end payment logics -->
  
       
-  <!-- {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
-  
-    <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
-    {% else %}
-  
-    <a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' object.id %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
-  {% endif %}  -->
+
 <br> <br>
 <!-- <p>{{num_students|floatformat:"0g"}}  students already enrolled </p> -->
-<p>{{enrollment_count}}+ students already enrolled  </p>
+
   </div>
 
-
-
-
-<!-- <ul>
-  {% if request.user.profile in course.student.all or object.status_type  == 'Free'  %}
-<a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
-  {% else %}
-<a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' object.id %}"><button class="btn btn-primary">Make payment to proceed</button> </a> 
-  {% endif %}
-</ul> -->
 
 
 
@@ -455,17 +439,6 @@
 
 
 
-<!-- your_template.html -->
- <!-- ffffffffff 
- {{course_enrollment}} -->
- 
-<!-- <h1>enrollment</h1>
-{% for item in course_enrollment %}
-  <h3>Course: {{ item.course.title }}</h3>
-  <p>Number of Students Enrolled: {{ item.num_students_enrolled }}</p>
-{% endfor %}  -->
-
-
 <br> <br> <br>
 
 <!-- FAQ -->
@@ -571,7 +544,7 @@
 {% else %}
 {% if not related_payments.exists %}
   <!-- User has not made a payment for this course -->
-  <a style="height: 10px;" class="" href="{% url 'sms:paymentdesc' course.id %}">
+  <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
     <button class="btn btn-primary">Make payment to proceed</button>
   </a>
 {% else %}
@@ -679,21 +652,9 @@
 </div>
 <!-- end of related courses -->
 
-<!-- {% if object.student.status_type  == 'Premium' and object.status_type  == 'Premium'  or object.status_type  == 'Free'  %}
-  
-<a class="btn btn-secondary fixed-bottom" href="{% url 'sms:topicslistview' object.id %}">Enroll {{ object.title|safe }}</a>
-{% else %}
-<a class="btn btn-secondary fixed-bottom"  class=""  href="{% url 'sms:paymentdesc' object.id %}">Make payment to proceed </a>
-{% endif %} -->
 
 <ul>
-  <!-- {% if request.user.profile in course.student.all or object.status_type  == 'Free'  %}
-<a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary fixed-bottom">Enroll {{ object.title|safe }}</button> </a> 
-  {% else %}
-<a style="height: 10px;" class=""  href="{% url 'sms:paymentdesc' object.id %}"><button class="btn btn-primary fixed-bottom">Make payment to proceed</button> </a> 
-  {% endif %}
-  
-  newlogo3 -->
+
 
   <!-- payment logics -->
 
@@ -705,7 +666,7 @@
 {% else %}
 {% if not related_payments.exists %}
   <!-- User has not made a payment for this course -->
-  <a style="height: 10px;" class="" href="{% url 'sms:paymentdesc' course.id %}">
+  <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
     <button class="btn btn-primary fixed-bottom">Make payment to proceed</button>
   </a>
 {% else %}
