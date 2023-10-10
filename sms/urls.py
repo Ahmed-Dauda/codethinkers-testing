@@ -41,7 +41,8 @@ from sms.views import(
       Ebooks,
       gotopdfconfirmpage,
       pdfpaymentconfirmation,
-      PDFDocumentDetailView
+      PDFDocumentDetailView,
+      MarkTopicCompleteView
    
       
 ) 
@@ -88,7 +89,8 @@ urlpatterns = [
 
     path('courseslistdesc/<pk>/', Courseslistdescview.as_view(), name='courseslistdesc'),
     path('topicslistview/<pk>/', Topicslistview.as_view(), name='topicslistview'),
-    
+    path('mark_topic_completed/', MarkTopicCompleteView.as_view(), name='mark_topic_completed'),
+
     # path('topicsdetailview/<slug:slug>/', Topicsdetailview.as_view(), name='topicsdetailview'),
     # path('signupview', signupview.as_view(), name ='signupview'),
     path('feedbackformview', Feedbackformview.as_view(), name ='feedbackformview'),

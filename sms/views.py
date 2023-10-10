@@ -5,7 +5,7 @@ from sweetify.views import SweetifySuccessMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth import forms
 from django.db import models
-
+from django.utils.decorators import method_decorator
 from django.db.models import fields
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
@@ -189,23 +189,7 @@ class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
         # Fetch the course and related information
         course = get_object_or_404(Courses, pk=self.kwargs["pk"])
         context['course'] = course
-        # context['coursess'] = Courses.objects.all().order_by('created')[:10]
-        # context['courses_count'] = Courses.objects.filter(categories=course.categories).count()
-        # context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
-        # context['num_students'] = course.student.count()
-        # context['prerequisites'] = course.prerequisites.all()
-        # context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=course.id)
-        # context['topics'] = Topics.objects.filter(courses_id=course.id).order_by('id')
-
-        # Fetch related payments for the current user and course
-        # user_profile = self.request.user.profile
-        # related_payments = Payment.objects.filter(payment_user=user_profile, courses=course, amount= course.price)
-        # context['related_payments'] = related_payments
-
-        # context['paystack_public_key'] = settings.PAYSTACK_PUBLIC_KEY
-
-        # # Get the number of student enrollments for this user and course
-        # context['enrollment_count'] = related_payments.count() + 100
+       
 
         return context
 
@@ -801,32 +785,108 @@ from student.models import PDFDocument
 from quiz.models import TopicsAssessment, QuestionAssessment, ResultAssessment
 from django.views.generic import DetailView
 
+from django.urls import reverse_lazy
+from django.views import View
 
-class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
+class Topicslistview(LoginRequiredMixin, DetailView):
     model = Courses
     template_name = 'sms/dashboard/topicslistviewtest1.html'
-    count_hit = True
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()  # Set the 'object' attribute
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        course = self.get_object()
+        course = self.object  # Access the 'object' attribute
+        topics = course.topics_set.all().order_by('created')
         topic = TopicsAssessment.objects.filter(course_name__title=course).order_by('id')
         topics_assessment = TopicsAssessment.objects.filter(course_name__title=course.title).order_by('id')
-        
-       
-        topics = course.topics_set.all().order_by('created')
-
         topicsa = TopicsAssessment.objects.order_by('id')
-        # print('top', topics)
         context['topics'] = topics
         context['topicsa'] = topicsa
-        # context['c'] = topics.count()
         context['alert_count'] = Alert.objects.all().count()
-        context['alerts']  = PDFDocument.objects.order_by('-created')
-      
+        context['alerts'] = PDFDocument.objects.order_by('-created')
+
+        # Fetch completed topic IDs for the current user
+        completed_topic_ids = []
+        completed_topic_titles = []
+
+        if self.request.user.is_authenticated:
+            profile = get_object_or_404(Profile, user=self.request.user)
+            completed_topic_ids = profile.completed_topics.values_list('id', flat=True)
+            completed_topic_titles = profile.completed_topics.values_list('title', flat=True)
+
+        context['completed_topic_ids'] = completed_topic_ids
+        context['completed_topic_titles'] = completed_topic_titles
+        print("cccccc", completed_topic_ids)
+
 
         return context
 
+
+
+@method_decorator(login_required, name='dispatch')
+class MarkTopicCompleteView(View):
+    def post(self, request):
+        topic_id = request.POST.get('topic_id')
+        if topic_id:
+            topic = get_object_or_404(Topics, id=topic_id)
+            user_profile = request.user.profile
+
+            # Check if the topic is not already marked as completed by the user
+            if topic not in user_profile.completed_topics.all():
+                user_profile.completed_topics.add(topic)
+                user_profile.save()
+                return JsonResponse({'message': f'Topic {topic_id} marked as completed for user {request.user.username}'})
+            else:
+                return JsonResponse({'message': f'Topic {topic_id} is already marked as completed for user {request.user.username}'})
+        else:
+            return JsonResponse({'message': 'Invalid request'}, status=400)
+
+# class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
+#     model = Courses
+#     template_name = 'sms/dashboard/topicslistviewtest1.html'
+#     count_hit = True
+
+
+#     def get(self, request, *args, **kwargs):
+#         self.object = self.get_object()  # Set the 'object' attribute
+#         context = self.get_context_data(object=self.object)
+#         return self.render_to_response(context)
+
+#     def get_context_data(self, **kwargs):
+        
+#         context = super().get_context_data(**kwargs)
+#         course = self.object  # Access the 'object' attribute
+
+#         course = self.get_object()
+#         topics = course.topics_set.all().order_by('created')
+
+#         topic = TopicsAssessment.objects.filter(course_name__title=course).order_by('id')
+#         topics_assessment = TopicsAssessment.objects.filter(course_name__title=course.title).order_by('id')
+      
+#         topicsa = TopicsAssessment.objects.order_by('id')
+#         # print('top', topics)
+#         context['topics'] = topics
+#         context['topicsa'] = topicsa
+#         # context['c'] = topics.count()
+#         context['alert_count'] = Alert.objects.all().count()
+#         context['alerts']  = PDFDocument.objects.order_by('-created')
+
+#         # Add a list of completed topic ids for the current user
+#         completed_topic_ids = []
+#         if self.request.user.is_authenticated:
+#             profile = get_object_or_404(Profile, user=self.request.user)
+#             completed_topic_ids = profile.completed_topics.values_list('id', flat=True)
+
+#         context['completed_topic_ids'] = completed_topic_ids
+#         context['mark_topic_completed'] = self.mark_topic_completed
+
+#         return context
+
+       
 
 
 class UserProfilelistview(LoginRequiredMixin, ListView):
