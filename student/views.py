@@ -89,11 +89,7 @@ def paystack_webhook(request):
         # print("course printed:", course)
         
         course_amount = course.price
-        # print("amount price:", paid_amount)
-        # print("course price:", course.price)
-        # Assuming Payment model has fields: ref, amount, first_name, last_name
-        # if amount == course_amount:
-        # Handle different transaction types
+      
         if content_type == 'course':
             payment = Payment.objects.create(
                 ref=reference,

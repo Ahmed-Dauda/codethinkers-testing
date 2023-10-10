@@ -1,7 +1,7 @@
 from typing import cast
 from django.contrib.contenttypes.fields import GenericRelation
 from django.forms import Widget
-from users.models import Profile 
+from users.models import Profile  # Update this import
 from django.db import models
 from django.db.models.deletion import CASCADE
 from users.models import NewUser
@@ -191,7 +191,10 @@ class Topics(models.Model):
     courses = models.ForeignKey(Courses, on_delete=models.CASCADE) 
     title = models.CharField(max_length=500, blank=True, null=True)
     slug = models.SlugField(unique=True, blank=True, null=True)
-    # desc = models.TextField( blank=True, null= True)
+
+    is_completed = models.BooleanField(default=False)
+    completed_by = models.ManyToManyField('users.Profile', through='CompletedTopics')
+
     desc = HTMLField(null=True)
     transcript = models.TextField(blank=True, null=True)  # New field for transcript
     img_topic = CloudinaryField('topic image', blank=True, null=True)
@@ -214,7 +217,13 @@ class Topics(models.Model):
         return f'{self.title} - {self.courses}'
 
 
+class CompletedTopics(models.Model):
 
+    user= models.ForeignKey(Profile, on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topics, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.user.username} - {self.topic.title}'
 
 class FrequentlyAskQuestions(models.Model):
     
