@@ -38,7 +38,7 @@ from sms.views import(
       PhotoGallery,
       Paymentdesc,
       PaymentSucess,
-      Initiatepdfpayment,
+      Ebooks,
       gotopdfconfirmpage,
       pdfpaymentconfirmation,
       PDFDocumentDetailView
@@ -54,7 +54,7 @@ urlpatterns = [
 
     # path('', Categorieslistview.as_view(), name='categorieslist'),
 
-    path('initiatepdfpayment/<int:pk>/', Initiatepdfpayment.as_view(), name='initiatepdfpayment'),
+    path('ebooks/<int:pk>/', Ebooks.as_view(), name='ebooks'),
     # path('pdf_document_detail/<str:pk>/', pdf_document_detail.as_view(), name='pdf_document_detail'),
     path('pdfpaymentconfirmation/<str:pk>/', pdfpaymentconfirmation.as_view(), name='pdfpaymentconfirmation'),
     path('pdf_document_detail/<int:pk>/', PDFDocumentDetailView.as_view(), name='pdf_document_detail'),
@@ -62,7 +62,7 @@ urlpatterns = [
 
     # new dashboard urls
     path('home', Category.as_view(), name='home'),
-    path('paymentdesc/<str:pk>/',  Paymentdesc.as_view(), name='paymentdesc'),
+    path('course/<str:pk>/',  Paymentdesc.as_view(), name='course'),
     # re_path(r'^paymentdesc/(?P<course_name>[-\w]+)/$', Paymentdesc.as_view(), name='paymentdesc'),
     path('paymentsucess/<str:pk>/',  PaymentSucess.as_view(), name='paymentsucess'),
     path('table', Table.as_view(), name='table'),

@@ -57,7 +57,23 @@
       <li><strong>Transaction ID:</strong> {{ ref }}</li>
     {% endfor %}
   </ul>
-  <a class="link" href="{% url 'sms:pdf_document_detail' object.id %}">Proceed To Download Your PDF</a>
+<!-- Add any other content you want to display for the PDF document details -->
+
+{% if related_payments %}
+<p>Thank you for choosing our service! We hope you enjoy your purchase.</p>
+
+<div  class="text-center">
+    <!-- <a class="link" href="{% url 'sms:pdf_document_detail' document.id %}?download=1">Download PDF</a> -->
+    <a class="link" href="{{ document.pdf_url }}" target="_blank">Download PDF</a>
+    <hr>
+    <a class="link" href="{% url 'sms:homepage' %}">Return to Homepage</a>
+    {% else %}
+    
+    <a class="link " href="{% url 'sms:initiatepdfpayment' document.id %}">Make Payment to print your pdf</a>
+    
+    {% endif %}
+    
+</div>
   <p>For any questions or issues, please contact our customer support at <a class="link" href="mailto:codethinkersa@gmail.com">codethinkersa@gmail.com</a>.</p>
 </div>
 
@@ -66,7 +82,7 @@
 
 
 
-  <script>
+  <!-- <script>
     // Check if the payment success flag is present
     var paymentSuccessInput = document.getElementById('paymentSuccess');
     if (paymentSuccessInput && paymentSuccessInput.value === 'true') {
@@ -90,6 +106,6 @@
         }, 300000);
       }
     }
-  </script>
+  </script> -->
   
 {% endblock %} 
