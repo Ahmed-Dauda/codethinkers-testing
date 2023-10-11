@@ -113,7 +113,18 @@ table-layout: fixed; // *****
   margin-left: 10px; 
 }
 
+/* mark as completed */
 
+.scroll-column {
+      height: 450px; 
+      overflow-y: auto; 
+      border: 1px solid #ccc; 
+      width: 200px;
+    }
+
+    .scroll-column-content {
+      padding: 10px;
+    }
 </style>
 
                <!-- alert -->
@@ -179,7 +190,7 @@ table-layout: fixed; // *****
                             {% endif %}
                             {% endfor %}
                             
-                            <div style="margin-left: 1000px;">
+                            <div style="marin-left: 60%;">
                                 <div>
                                     <button id="complete-button-{{ topic.id }}" onclick="markTopicCompleted({{ topic.id }})">Make Complete</button>
                                     <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
@@ -213,8 +224,8 @@ table-layout: fixed; // *****
  
 </table>
 
-<!-- 
-<div class="scroll-column">
+
+<!-- <div class="scroll-column">
 
     <div id="content-container" class="makecompleted">
         {% for topic in topics %}
@@ -258,7 +269,7 @@ table-layout: fixed; // *****
         Content 2
       </div>
    
-  </div> -->
+  </div>  -->
 
 <!-- topicslistviewtest1.html -->
 <!-- {% for topic in topics %}
@@ -305,6 +316,7 @@ table-layout: fixed; // *****
 
 {% endfor %}
 </div> -->
+
 
 <!-- make completed javascrpts -->
 <script>

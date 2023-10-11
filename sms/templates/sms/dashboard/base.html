@@ -64,42 +64,22 @@
  .nav-item{
     font-size: 30px;
  }
-
-/* CSS */
-/* CSS */
-
-.toggledwidth{
-    width: 200px;
-}
-/* mark as completed */
-/* 
-.scroll-column {
-      height: 450px; 
-      overflow-y: auto; 
-      border: 1px solid #ccc; 
-      width: 200px;
-    }
-
-    .scroll-column-content {
-      padding: 10px;
-    } */
 </style>
- 
-<body id="page-top" class="sidebar-toggled " >
+<body id="page-top" class="sidebar-toggled ">
     
   
     <!-- Page Wrapper -->
-    <div id="wrapper" class="bg-white" >
+    <div id="wrapper" class="bg-white">
 
         <!-- Sidebar -->
-        <ul  class="navbar-nav bg-primary sidebar sidebar-dark accordion toggledwidth toggledg" id="accordionSidebar">
+        <ul  class="navbar-nav bg-primary sidebar sidebar-dark accordion toggled" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'sms:homepage' %}">
                 <div class="sidebar-brand-icon rotate-n-0">
                     <i class="fas fa-home fa-fw "></i>
                 </div>
-                <!-- <div class="sidebar-brand-text mx-3">Codethinkers' Academy <sup></sup></div> -->
+                <div class="sidebar-brand-text mx-3">Codethinkers' Academy <sup></sup></div>
             </a>
 
             <!-- Divider -->
@@ -131,25 +111,7 @@
             <hr class="sidebar-divider">
 
             <!-- Heading -->
-            <!-- HTML -->
-            {% if completed_topic_ids %}
-            <li class="nav-item">
-                <div class="scroll-column">
-                    <div id="content-container" class="makecompleted ">
-                        {% for topic in topics %}
-                            <div class="flex-item bg-white">
-                                <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
-                                    <i class="fas fa-check-circle"></i>
-                                </span>
-                                <hr style="color: brown;">
-                                <span class="">{{ topic.title }}</span> <!-- Apply the border class here -->
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <!-- Add more content here -->
-                </div>
-            </li>
-            {% endif %}
+  
             <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true" aria-controls="collapsePages">
@@ -163,14 +125,7 @@
                         <a class="collapse-item" href="{% url 'student:take-exam' %}">Take Exam</a>
                         <a class="collapse-item" href="{% url 'student:view_result' %}">View Certificate (s)</a>
                         <a class="collapse-item" href="{% url 'sms:admin_result' %}">Overall Exams Score</a>
-                        {% if  completed_topic_ids %}
-                        <p class="collapse-item bg-primary">other Information</p>
-                    
-                        <a class="collapse-item" href="{% url 'sms:table' %}">Table</a>
-                        <a class="collapse-item" href="{% url 'sms:feedbackformview' %}">Feedback</a>
-                        <a class="collapse-item" href="{% url 'sms:bloglistview' %}">Announcement</a>
-                        <a class="collapse-item" href="#faqs">Frequently Asked Questions</a>
-                        {% endif %}
+                
                         <div class="collapse-divider"></div>      
                     </div>
                 </div>
@@ -179,43 +134,30 @@
 
             <!-- Nav Item - Tables -->
             <li class="nav-item">
-                {% if not completed_topic_ids %}
                 <a class="nav-link" href="{% url 'sms:table' %}">
                     <i class="fas fa-fw fa-table"></i>
-                    <span>Tables</span>
-                </a>
-                {% endif %}
+                    <span>Tables</span></a>
             </li>
-
-
-           <!-- Nav Item - Feedback -->
+            <!-- Nav Item - Feedback -->
             <li class="nav-item">
-                {% if not completed_topic_ids %}
                 <a class="nav-link" href="{% url 'sms:feedbackformview' %}">
                     <i class="fas fa-bell fa-fw"></i>
-                    <span>Feedback</span>
-                </a>
-                {% endif %}
+                    <span>Feedback</span></a>
             </li>
 
             <!-- Nav Item - Article Page -->
             <li class="nav-item">
-                {% if not completed_topic_ids %}
                 <a class="nav-link" href="{% url 'sms:bloglistview' %}">
                     <i class="fas fa-book fa-lg "></i>
-                    <span>Article Page</span>
-                </a>
-                {% endif %}
+                    <span>Article Page</span></a>
             </li>
             <!-- Nav Item - FAQS Page -->
             <li class="nav-item">
                 <a class="nav-link" href="#faqs">
-                    {% if not completed_topic_ids %}
                     <i class="fa fa-question-circle fa-lg" aria-hidden="true"></i>
             
                     <span>FAQS</span>
                 </a>
-                {% endif %}
             </li>
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
