@@ -1048,10 +1048,29 @@ class AlertView(ListView):
         return Alert.objects.order_by('-created')
 
     def get_context_data(self, **kwargs):
-
         context = super().get_context_data(**kwargs)
         context['alerts'] = Alert.objects.order_by('-created')
-        context['alert_count'] = Alert.objects.all().count() 
-       
-        return context 
+        context['alert_count'] = Alert.objects.all().count()
+        context['base'] = Alert.objects.all().count()
 
+        # Assuming Courses is a model in your application
+       
+        return context
+
+
+
+class DashboardCourses(LoginRequiredMixin, HitCountDetailView, DetailView):
+    model = Courses
+    template_name = 'sms/dashboard/based.html'
+   
+    def get_queryset(self):
+        return Courses.objects.all()
+   
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+        course = self.get_object()  # Retrieve the course
+      
+        context['coursess'] = Courses.objects.all().order_by('created')
+     
+        return context

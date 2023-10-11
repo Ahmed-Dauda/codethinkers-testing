@@ -89,10 +89,21 @@ table-layout: fixed; // ***********add this
         float: left;
     } 
 
-#content-container{
+
+.makecompleted{
     display: flex;
     flex-wrap: wrap;
+    padding-left: 20px;
 }
+/* Hide the content on mobile view */
+@media (max-width: 767px) {
+    .hide-on-mobile {
+        display: none;
+       
+    }
+}
+
+/* herozontal scroll on mobile view */
 
 </style>
 
@@ -164,7 +175,7 @@ table-layout: fixed; // ***********add this
                     </div>
                     <div style="marin-left: 60%;" >
                         
-                            <button id="complete-button-{{ topic.id }} " onclick="markTopicCompleted({{ topic.id }})">Make as Complete</button>
+                            <button id="complete-button-{{ topic.id }} " onclick="markTopicCompleted({{ topic.id }})">Mark as Complete</button>
                             <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
                               <i style="color: green;" class="fas fa-check-circle"></i>
                             </span>
@@ -189,22 +200,19 @@ table-layout: fixed; // ***********add this
  
 </table>
 {% if completed_topic_ids %}
-           
-                    <div style="padding-left: 20px;" id="content-container" class="makecompleted ">
-                        {% for topic in topics %}
-                            <div class=" bg-white" style=" border: 2px solid black;">
-                                <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
-                                    <i style="color: green;" class="fas fa-check-circle"></i>
-                                </span>
-                                <span  class="">{{ topic.title }}</span> <!-- Apply the border class here -->
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <!-- Add more content here -->
-                
-            
-            {% endif %}
-            
+<div id="content-container" class="makecompleted hide-on-mobile">
+    {% for topic in topics %}
+        <div class="bg-white topic-item">
+            <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
+                <i style="color: green;" class="fas fa-check-circle"></i>
+            </span>
+            <span class="">{{ topic.title }}</span>
+        </div>
+    {% endfor %}
+</div>
+<!-- Add more content here -->
+{% endif %}
+
 
 
 

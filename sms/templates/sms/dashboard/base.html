@@ -110,22 +110,28 @@
             <!-- Divider -->
             <hr class="sidebar-divider">
 
-            <!-- Heading -->
-  
+          
             <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true" aria-controls="collapsePages">
                     <i class="fas fa-fw fa-folder"></i>
-                    <span>Exams</span>
+                    <span>All Available Courses</span>
                 </a>
                 <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Exams Screens:</h6>
+                        <h6 class="collapse-header">Select Your the Courses Below:</h6>
                         
-                        <a class="collapse-item" href="{% url 'student:take-exam' %}">Take Exam</a>
-                        <a class="collapse-item" href="{% url 'student:view_result' %}">View Certificate (s)</a>
-                        <a class="collapse-item" href="{% url 'sms:admin_result' %}">Overall Exams Score</a>
-                
+                        <!-- <a class="collapse-item" href="">Take Exam</a>  -->
+                     
+                        <h3 class="text-center">{{courses_count}}</h3>
+                        {% for course in coursess %}
+                       
+                         <a class="collapse-item" href="{% url 'sms:courseslistdesc' course.pk %}"> {{course.title|safe}}</a>
+                          {% endfor %}
+        
+                        <!-- <a class="collapse-item" href="">View Certificate (s)</a> -->
+                        <!-- <a class="collapse-item" href="{% url 'sms:admin_result' %}">Overall Exams Score</a> -->
+
                         <div class="collapse-divider"></div>      
                     </div>
                 </div>
@@ -133,6 +139,21 @@
             </li>
 
             <!-- Nav Item - Tables -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'student:take-exam' %}">
+                    <i class="fas fa-fw fa-book"></i>
+                    <span>Take Exam</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'student:view_result' %}">
+                    <i class="fas fa-fw fa-book"></i>
+                    <span>View Certificate (s)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'sms:admin_result' %}">
+                    <i class="fas fa-fw fa-book"></i>
+                    <span>Overall Exams Score</span></a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'sms:table' %}">
                     <i class="fas fa-fw fa-table"></i>
@@ -191,6 +212,7 @@
                     <!-- Topbar Search -->
                     <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                         <div class="input-group">
+                            
                             <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
                             <div class="input-group-append">
                                 <button class="btn btn-primary" type="button">
@@ -199,6 +221,11 @@
                             </div>
                         </div>
                     </form>
+                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true" aria-controls="collapsePages">
+                        <i class="fas fa-fw fa-folder"></i>
+                        <span style="font-size: 12; padding-right: 20px;">All Courses</span>
+                    </a>
+                    
 
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto" >
