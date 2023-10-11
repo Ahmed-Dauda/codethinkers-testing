@@ -1072,5 +1072,6 @@ class DashboardCourses(LoginRequiredMixin, HitCountDetailView, DetailView):
         course = self.get_object()  # Retrieve the course
       
         context['coursess'] = Courses.objects.all().order_by('created')
+   
      
         return context

@@ -539,12 +539,66 @@ p {
 
 /* end of the front page statisitc */
 
-/* our partners  */
+/* flip card  */
+.hover-container {
+  display: inline-block;
+  cursor: pointer;
+}
+
+.flip-card {
+  width: 200px; /* Adjust the width as needed */
+  height: 1px;
+  perspective: 1000px;
+  transition: transform 0.3s;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  transform-style: preserve-3d;
+  transition: transform 0.6s;
+}
+
+.hover-container:hover .flip-card {
+  transform: scale(1.1); /* Adjust the scaling factor as needed */
+
+}
+
+.flip-card-front, .flip-card-back {
+  position: absolute;
+  width: 100%;
+  backface-visibility: hidden;
+}
+
+.text {
+  display: block;
+
+  font-size: 16px; /* Adjust the font size as needed */
+  background-color: #f9f9f9; /* Adjust the background color as needed */
+}
 
 </style>
 
+<div class="hover-container" >
+  <div class="flip-card">
+    <div class="flip-card-inner">
+      <div class="flip-card-front">
+        <span  class="text bg-primary text-white">All Courses</span>
+      </div>
+      <div class="flip-card-back">
+        {% for obj in object_list %}
+       <a style="font-size:12px; color: black;" href="{% url 'sms:courseslistdesc' obj.pk %}">  <span class="text"> {{obj.title|safe|title}} </span></a> 
+        {% endfor %}
+       
+      </div>
+    </div>
+  </div>
+</div>
 
-<div class="container">
+
+
+<div  class="container">
   <div class="row">
 
     <div class="col-md-6 flex-container">
