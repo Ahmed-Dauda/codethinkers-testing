@@ -449,7 +449,7 @@ FREQUENTLY ASKED QUESTIONS */
 }
 
 .card-ebooks{
-  width: 300px;
+  width: 450px;
 }
 .card-ebooks:hover {
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
@@ -543,6 +543,8 @@ p {
 .hover-container {
   display: inline-block;
   cursor: pointer;
+  position: relative; /* Make the container relative for absolute positioning inside */
+  z-index: 1;
 }
 
 .flip-card {
@@ -550,6 +552,8 @@ p {
   height: 1px;
   perspective: 1000px;
   transition: transform 0.3s;
+  position: absolute; /* Position the flip card absolutely within the hover container */
+  z-index: 2; 
 }
 
 .flip-card-inner {
@@ -563,6 +567,7 @@ p {
 .hover-container:hover .flip-card {
   transform: scale(1.1); /* Adjust the scaling factor as needed */
 
+
 }
 
 .flip-card-front, .flip-card-back {
@@ -571,6 +576,9 @@ p {
   backface-visibility: hidden;
 }
 
+.flip-card-back {
+  background-color: #f9f9f9; /* Set your desired background color here */
+}
 .text {
   display: block;
 
@@ -586,7 +594,9 @@ p {
         <span  class="text bg-primary text-white">All Courses</span>
       </div>
       <div class="flip-card-back">
+        
         {% for obj in object_list %}
+      
        <a style="font-size:12px; color: white;" href="{% url 'sms:courseslistdesc' obj.pk %}"> <span class="text bg-primary"> {{obj.title|safe|title}} </span></a> 
         {% endfor %}
        
@@ -1205,7 +1215,7 @@ p {
   <div class="card card-ebooks">
     <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
     <div class="card-body child-ebooks">
-      <img class="" src="{{ alert.img_ebook.url }}" width="100px" height="130px" alt="{{ obj.desc }}">
+      <img class="" src="{{ alert.img_ebook.url }}" width="250px" height="250px" alt="{{ obj.desc }}">
       <div class="">
         <h6 style="color: #000000;  padding-right: 3px;" class="card-title">{{ alert.title|safe }}</h6>
         <small>Price: &#8358;{{ alert.price }}</small>
