@@ -140,7 +140,7 @@ table-layout: fixed; // ***********add this
         {% for topic in topics %}
         <tr>
             <td class="text-center">
-                <div style="padding-left: 20px; padding-right: 20px;" class="">
+                <div style="padding-left: 5px; padding-right: 5px;" class="">
                     {% if topic.img_topic %}
                         <img class="img-box" src="{{topic.img_topic.url}}" height="700px" width="100%" alt="topics image">
                     {% else %}
@@ -165,7 +165,7 @@ table-layout: fixed; // ***********add this
                             <label style="max-width: 100%; overflow-x: hidden;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.desc|safe}}</label> <br>
                             {% for t in topicsa %}
                             {% if topic.title == t.course_name.title %}
-                                Assess Your Knowledge <a href="{% url 'quiz:start-exam' t.id %}"> {{t.course_name.title}}</a>
+                            <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge {{t.course_name.title}}</a></button>    
                             {% endif %}
                             {% endfor %}
                             <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
