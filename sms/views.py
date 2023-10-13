@@ -442,12 +442,7 @@ def Certificates(request,pk):
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
-
-    # QMODEL.Result.objects.exclude(id = m).delete()
-    # user_profile =  Profile.objects.filter(user_id = request.user.id)
-
-    # results=QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
-    
+   
     context = {
         'results':results,
         'course':course,
@@ -511,7 +506,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # Query the Payment model to get all payments related to the user and course
         related_payments = CertificatePayment.objects.filter(
             email=user, courses=course ,
-            amount=course.price)
+            amount=course.cert_price)
 
         context['related_payments'] = related_payments
        
