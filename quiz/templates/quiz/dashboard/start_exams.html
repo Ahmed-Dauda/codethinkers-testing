@@ -48,6 +48,22 @@
   margin: 5px; /* Add margin to separate entries */
 
 }
+
+.back-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #f9f9f9; /* Background color for the button */
+  border: 1px solid #ccc; /* Border for the button */
+  border-radius: 5px; /* Rounded corners for the button */
+  text-decoration: none;
+  color: #333; /* Text color */
+  font-size: 16px; /* Font size */
+}
+
+.back-button:hover {
+  background-color: #e0e0e0; /* Background color on hover */
+}
+
 /* .custom-td {
   display: inline;
   padding: 5px;
@@ -60,17 +76,13 @@
 </head>
 <body> 
   
-  <!-- ggg
-  <a href="{% url 'sms:courseslistdesc' course.course_name.id %}">{{course.course_name.id}}</a>
+
   
-  {% for q in  page_obj %}
-
-  tttttttttt <a href="{% url 'sms:courseslistdesc' q.id %}"> {{ q.course.course_name }}</a>
-  {% endfor %} -->
+  
+  <a class="back-button bg-danger text-white" href="{% url 'sms:topicslistview' course.course_name.courses.id %}">Back to Course</a>
 
 
-
-  <button style="background-color: red; color: white;"  onclick="goBack()" class="btn btn-secondary">Back to Topics</button>
+  <!-- <button style="background-color: red; color: white;"  onclick="goBack()" class="btn btn-secondary">Back to Topics</button> -->
 
   <script>
   function goBack() {
@@ -153,8 +165,8 @@
 
   <div style="display: flex; justify-content: space-between;">
     <button onclick="disp()" class="btn btn-primary" type="submit"> Submit </button>
-    <button style="background-color: red; color: white;"  onclick="goBack()" class="btn btn-secondary">Back to Topics</button>
-  
+    <!-- <button style="background-color: red; color: white;"  onclick="goBack()" class="btn btn-secondary">Back to Topics</button>
+   -->
   </div>
 
    

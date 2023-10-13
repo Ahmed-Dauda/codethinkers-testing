@@ -106,10 +106,10 @@ urlpatterns = [
     path('blog/<slug:slug>/blogcommentform/', BlogcommentCreateView.as_view(), name ='blogcommentform'),
     
     # new pagination url
-    path("terms",views.KeywordListView.as_view(),name="terms"),
-    path("terms/<int:page>",views.listing,name="terms-by-page"),
-    path('terms.json/',views.listing_api, name='terms-api'),
-    path("faux",views.AllKeywordsView.as_view(),name="faux"),
+    # path("terms",views.KeywordListView.as_view(),name="terms"),
+    # path("terms/<int:page>",views.listing,name="terms-by-page"),
+    # path('terms.json/',views.listing_api, name='terms-api'),
+    # path("faux",views.AllKeywordsView.as_view(),name="faux"),
 
  
 ]

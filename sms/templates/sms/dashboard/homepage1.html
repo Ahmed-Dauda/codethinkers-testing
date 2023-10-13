@@ -542,7 +542,7 @@ p {
 }
 
 .flip-card {
-  width: 550px; /* Adjust the width as needed */
+  width: 360px; /* Adjust the width as needed */
   height: 0px;
   perspective: 1000px;
   transition: transform 0.3s;
@@ -550,7 +550,12 @@ p {
   z-index: 2; 
   
 }
-
+@media (min-width: 768px) {
+  .flip-card {
+    width: 800px;
+    padding-left: 20px;
+  }
+}
 .flip-card-inner {
   position: relative;
   width: 100%;
@@ -580,6 +585,7 @@ p {
   display: block;
   font-size: 16px; /* Adjust the font size as needed */
   padding-left: 20px;
+
 }
 
 </style>
@@ -592,7 +598,7 @@ p {
       </div>
       <div class="flip-card-back">
 
-        <div class="card">
+        <div  class="card">
         {% for obj in object_list %}
         
             <a class="text text-dark" href="{% url 'sms:courseslistdesc' obj.pk %}"> {{obj.title|safe|title}} </a> <hr>

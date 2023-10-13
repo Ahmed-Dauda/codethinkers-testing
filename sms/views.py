@@ -721,63 +721,63 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
 
 # new pagination
 
-class AllKeywordsView(ListView):
-    paginate_by = 1
-    model = Courses
-    ordering = ['created']
-    template_name = "sms/blog_post_list.html"
+# class AllKeywordsView(ListView):
+#     paginate_by = 1
+#     model = Courses
+#     ordering = ['created']
+#     template_name = "sms/blog_post_list.html"
 
-class KeywordListView(ListView):
-    paginate_by = 1
-    model = Courses
-    ordering = ['created']
-    template_name = 'sms/blog_post_list.html'
+# class KeywordListView(ListView):
+#     paginate_by = 1
+#     model = Courses
+#     ordering = ['created']
+#     template_name = 'sms/blog_post_list.html'
 
 
-# ...
-def listing(request, page):
-    keywords = Courses.objects.all().order_by("created")
-    paginator = Paginator(keywords, per_page=2)
-    page_object = paginator.get_page(page)
-    page_object.adjusted_elided_pages = paginator.get_elided_page_range(page)
+# # ...
+# def listing(request, page):
+#     keywords = Courses.objects.all().order_by("created")
+#     paginator = Paginator(keywords, per_page=2)
+#     page_object = paginator.get_page(page)
+#     page_object.adjusted_elided_pages = paginator.get_elided_page_range(page)
     
-    context = {"page_obj": page_object}
-    return render(request, "sms/blog_post_list.html", context)
+#     context = {"page_obj": page_object}
+#     return render(request, "sms/blog_post_list.html", context)
 
 
-def listing_api(request):
-    page_number = request.GET.get("page", 1)
-    per_page = request.GET.get("per_page", 2)
-    startswith = request.GET.get("startswith", "")
-    keywords = Courses.objects.filter(
-        title__startswith=startswith
-    )
-    paginator = Paginator(keywords, per_page)
-    page_obj = paginator.get_page(page_number)
-    data = [
-        {
-         'title':kw.title,
-         'desc':kw.desc,
-         'course_desc':kw.course_desc,
-         'course_link':kw.course_link,
-         'created':kw.created,
-         'updated':kw.updated,
-        #  'hit_count_generic':kw.hit_count_generic,
+# def listing_api(request):
+#     page_number = request.GET.get("page", 1)
+#     per_page = request.GET.get("per_page", 2)
+#     startswith = request.GET.get("startswith", "")
+#     keywords = Courses.objects.filter(
+#         title__startswith=startswith
+#     )
+#     paginator = Paginator(keywords, per_page)
+#     page_obj = paginator.get_page(page_number)
+#     data = [
+#         {
+#          'title':kw.title,
+#          'desc':kw.desc,
+#          'course_desc':kw.course_desc,
+#          'course_link':kw.course_link,
+#          'created':kw.created,
+#          'updated':kw.updated,
+#         #  'hit_count_generic':kw.hit_count_generic,
         
          
-         } for kw in page_obj.object_list]
+#          } for kw in page_obj.object_list]
     
 
-    payload = {
-        "page": {
-            "current": page_obj.number,
-            "has_next": page_obj.has_next(),
-            "has_previous": page_obj.has_previous(),
-        },
-        "data": data
+#     payload = {
+#         "page": {
+#             "current": page_obj.number,
+#             "has_next": page_obj.has_next(),
+#             "has_previous": page_obj.has_previous(),
+#         },
+#         "data": data
     
-    }
-    return JsonResponse(payload)
+#     }
+#     return JsonResponse(payload)
 
 
 
@@ -811,16 +811,16 @@ class Topicslistview(LoginRequiredMixin, DetailView):
 
         # Fetch completed topic IDs for the current user
         completed_topic_ids = []
-        completed_topic_titles = []
+        # completed_topic_titles = []
 
         if self.request.user.is_authenticated:
             profile = get_object_or_404(Profile, user=self.request.user)
             completed_topic_ids = profile.completed_topics.values_list('id', flat=True)
-            completed_topic_titles = profile.completed_topics.values_list('title', flat=True)
+            # completed_topic_titles = profile.completed_topics.values_list('title', flat=True)
 
         context['completed_topic_ids'] = completed_topic_ids
-        context['completed_topic_titles'] = completed_topic_titles
-        print("cccccc", completed_topic_ids)
+        # context['completed_topic_titles'] = completed_topic_titles
+        # print("cccccc", completed_topic_ids)
 
 
         return context
