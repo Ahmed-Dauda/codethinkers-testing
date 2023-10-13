@@ -59,6 +59,7 @@ class Courses(models.Model):
     course_type = models.CharField(choices=COURSE_TYPE, default='course', max_length=225, blank=True, null=True)
     status_type = models.CharField(choices=PAYMENT_CHOICES, default='Free', max_length=225, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=0, default='500', max_length=225, blank=True, null=True)
+    cert_price = models.DecimalField(max_digits=10, decimal_places=0, default='1000', max_length=225, blank=True, null=True)
     desc = models.TextField(null=True)
     # desc_home = models.TextField(blank=True, null=True)
     # course_desc = models.TextField(blank=True, null=True)
