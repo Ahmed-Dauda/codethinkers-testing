@@ -414,49 +414,42 @@ FREQUENTLY ASKED QUESTIONS */
 .child-ele >*{
   margin: 10px;
 }
+/* ebook section  */
+
 .flex-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
 }
 
-.card-cat{
-  width: 350px;
-  padding-right: 3px;
-}
-.card-cat:hover {
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
-}
-.flex-container >*{
+.card-ebooks {
+  width: 250px;
   margin: 10px;
 }
- /* end of course categories */
 
-  /* ebooks */
-.child-ebooks{
+.card-body {
   display: flex;
-  margin-top: -25px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
-.child-ebooks >*{
-  margin: 10px;
-}
-.flex-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+.image-container img {
+  width: 250px;
+  height: 250px;
 }
 
-.card-ebooks{
-  width: 450px;
+.text-container {
+  padding: 10px;
 }
-.card-ebooks:hover {
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
+
+.text-container h6 {
+  margin-bottom: 5px;
 }
-.flex-container >*{
-  margin: 10px;
+
+.text-container small {
+  display: block;
+  margin-bottom: 5px;
 }
 
  /* end of ebooks */
@@ -549,7 +542,7 @@ p {
 
 .flip-card {
   width: 200px; /* Adjust the width as needed */
-  height: 1px;
+  height: 0px;
   perspective: 1000px;
   transition: transform 0.3s;
   position: absolute; /* Position the flip card absolutely within the hover container */
@@ -581,7 +574,6 @@ p {
 }
 .text {
   display: block;
-
   font-size: 16px; /* Adjust the font size as needed */
 }
 
@@ -594,11 +586,14 @@ p {
         <span  class="text bg-primary text-white">All Courses</span>
       </div>
       <div class="flip-card-back">
-        
+
+        <div class="card">
         {% for obj in object_list %}
+        
+            <a class="text text-dark" href="{% url 'sms:courseslistdesc' obj.pk %}"> {{obj.title|safe|title}} </a> <hr>
       
-       <a style="font-size:12px; color: white;" href="{% url 'sms:courseslistdesc' obj.pk %}"> <span class="text bg-primary"> {{obj.title|safe|title}} </span></a> 
         {% endfor %}
+      </div>
        
       </div>
     </div>
@@ -1204,7 +1199,7 @@ p {
   <!-- ebooks section  -->
   <div class="card-body text-center">
     <div class="">
-  <h3 style="color: red;  font-weight: bold;" > {{alert_count_homes}} Latest Programming E-books Available for You</h3>
+  <h3 style="color: red;  font-weight: bold;" > {{alert_count_homes}} E-books Available for You</h3>
     </div>
   </div>
   <br>
@@ -1216,9 +1211,9 @@ p {
     <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
     <div class="card-body child-ebooks">
       <img class="" src="{{ alert.img_ebook.url }}" width="250px" height="250px" alt="{{ obj.desc }}">
-      <div class="">
-        <h6 style="color: #000000;  padding-right: 3px;" class="card-title">{{ alert.title|safe }}</h6>
-        <small>Price: &#8358;{{ alert.price }}</small>
+      <div class=""> 
+        <h6 style="color: #000000;  padding-right: 3px;" class="card-title">{{ alert.title|safe }}</h6> 
+        <small>Price: &#8358;{{ alert.price }}</small> <br>
         <button><a href="{% url 'sms:ebooks' alert.id %}">{{ alert.title }}</a></button>
         
       </div>
