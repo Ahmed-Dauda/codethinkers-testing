@@ -538,21 +538,24 @@ p {
   cursor: pointer;
   position: relative; /* Make the container relative for absolute positioning inside */
   z-index: 1;
+
 }
 
 .flip-card {
-  width: 200px; /* Adjust the width as needed */
+  width: 550px; /* Adjust the width as needed */
   height: 0px;
   perspective: 1000px;
   transition: transform 0.3s;
   position: absolute; /* Position the flip card absolutely within the hover container */
   z-index: 2; 
+  
 }
 
 .flip-card-inner {
   position: relative;
   width: 100%;
-  text-align: center;
+  text-align: left;
+
   transform-style: preserve-3d;
   transition: transform 0.6s;
 }
@@ -571,10 +574,12 @@ p {
 
 .flip-card-back {
   background-color: #f9f9f9; /* Set your desired background color here */
+
 }
 .text {
   display: block;
   font-size: 16px; /* Adjust the font size as needed */
+  padding-left: 20px;
 }
 
 </style>
@@ -583,7 +588,7 @@ p {
   <div class="flip-card">
     <div class="flip-card-inner">
       <div class="flip-card-front">
-        <span  class="text bg-primary text-white">All Courses</span>
+        <span style="width: 200px;" class="text bg-primary text-white">All Courses</span>
       </div>
       <div class="flip-card-back">
 
