@@ -12,8 +12,15 @@
 <div class="table-responsive container text-center card-body">
   <h2 class="">{{ hitcount.total_hits }} Certificates printed on this course</2> <br> <br>
   <table class="table" id=""> 
-
+    {% for course in courses %}
+    {% if course == t.exam %}
+        {% if t.marks >= course.pass_mark %}
+   
+    {% else %}
     <div><a href="{% url 'student:take-exam' %}">Take Exam</a></div><br>
+       {% endif %}
+    {% endif %}
+    {% endfor %}
     <thead>
       <tr>
         <th>Names</th>
@@ -45,7 +52,7 @@
                                 <input value='{{ request.user }}' type="hidden" id="email-address" required />
                             </div>
                             <div class="form-group">
-                                <input value="{{ course.course_name.price|safe }}" type="hidden" id="amount" required />
+                                <input value="{{ course.cert_price|safe }}" type="hidden" id="amount" required />
                             </div>
                             <div class="form-submit">
                             </div>
@@ -54,7 +61,7 @@
                 
 
             {% if not related_payments.exists %}
-            <button class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Make Payment </button>
+            <button class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()"> Pay #{{ course.cert_price|safe }} Now to Print Certificate</button>
             {% else %}
 
             

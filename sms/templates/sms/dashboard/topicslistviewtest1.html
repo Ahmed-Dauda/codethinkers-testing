@@ -165,7 +165,8 @@ table-layout: fixed; // ***********add this
                             <label style="max-width: 100%; overflow-x: hidden;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.desc|safe}}</label> <br>
                             {% for t in topicsa %}
                             {% if topic.title == t.course_name.title %}
-                            <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge {{t.course_name.title}}</a></button>    
+                            <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge </a></button>  
+                            <!-- <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge {{t.course_name.title}}</a></button>     -->
                             {% endif %}
                             {% endfor %}
                             <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
@@ -180,6 +181,7 @@ table-layout: fixed; // ***********add this
                               <i style="color: green;" class="fas fa-check-circle"></i>
                             </span>
                     </div>
+                    <br>
 
                     {% if forloop.last %}
                         <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4> <br>
@@ -199,6 +201,7 @@ table-layout: fixed; // ***********add this
     
  
 </table>
+
 {% if completed_topic_ids %}
 <div id="content-container" class="makecompleted hide-on-mobile">
     {% for topic in topics %}

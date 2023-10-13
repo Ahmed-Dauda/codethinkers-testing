@@ -71,7 +71,6 @@ class Course(models.Model):
    img_partdesc1 = CloudinaryField('image', blank=True, null= True)
    partdesc2 = models.CharField(max_length=229, blank=True, null= True)
    img_partdesc2 = CloudinaryField('image', blank=True, null= True)
-
    partdesc3 = models.CharField(max_length=225, blank=True, null= True)
    signature = CloudinaryField('signature', blank=True, null= True)
    signby = models.CharField(max_length=229, blank=True, null= True)
@@ -79,7 +78,7 @@ class Course(models.Model):
    question_number = models.PositiveIntegerField()
    total_marks = models.PositiveIntegerField()
    pass_mark = models.PositiveIntegerField(null=True)
-
+   cert_price = models.DecimalField(max_digits=10, decimal_places=0, default='1000', max_length=225, blank=True, null=True)
    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
    id = models.AutoField(primary_key=True)
