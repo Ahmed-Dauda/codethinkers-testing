@@ -41,6 +41,7 @@ def start_exams_view(request, pk):
     
     course = TopicsAssessment.objects.get(id = pk)
     questions = QuestionAssessment.objects.filter(course = course).order_by('id')
+    topics = Topics.objects.all()
     q_count = QuestionAssessment.objects.all().filter(course = course).count()
     student = request.user.profile
     results = ResultAssessment.objects.filter(exam = course, student = student).order_by('id')

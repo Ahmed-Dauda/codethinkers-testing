@@ -58,7 +58,16 @@
       </style>
       
 </head>
-<body>
+<body> 
+  
+  <!-- ggg
+  <a href="{% url 'sms:courseslistdesc' course.course_name.id %}">{{course.course_name.id}}</a>
+  
+  {% for q in  page_obj %}
+
+  tttttttttt <a href="{% url 'sms:courseslistdesc' q.id %}"> {{ q.course.course_name }}</a>
+  {% endfor %} -->
+
 
 
   <button style="background-color: red; color: white;"  onclick="goBack()" class="btn btn-secondary">Back to Topics</button>

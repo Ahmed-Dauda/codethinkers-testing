@@ -175,7 +175,7 @@ table-layout: fixed; // ***********add this
                     </div>
                     <div style="marin-left: 60%;" >
                         
-                            <button id="complete-button-{{ topic.id }} " onclick="markTopicCompleted({{ topic.id }})">Mark as Complete</button>
+                            <button id="complete-button-{{ topic.id }} " onclick="markTopicCompleted({{ topic.id }})">Mark as Completed</button>
                             <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
                               <i style="color: green;" class="fas fa-check-circle"></i>
                             </span>
