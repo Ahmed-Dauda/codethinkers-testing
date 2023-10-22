@@ -169,7 +169,9 @@ table-layout: fixed; // ***********add this
                             <!-- <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge {{t.course_name.title}}</a></button>     -->
                             {% endif %}
                             {% endfor %}
+                            {% if topic.topics_url %}
                             <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
+                            {% endif %}
                         {% else %}
                             <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.coursedesc|safe}}</label>
                         {% endif %}
@@ -205,7 +207,7 @@ table-layout: fixed; // ***********add this
 {% if completed_topic_ids %}
 <div id="content-container" class="makecompleted hide-on-mobile">
     {% for topic in topics %}
-        <div class="bg-white topic-item">
+        <div class="bg-white topic-item" style="border: 2px solid black; margin: 5px;">
             <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
                 <i style="color: green;" class="fas fa-check-circle"></i>
             </span>
