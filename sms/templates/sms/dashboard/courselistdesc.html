@@ -174,10 +174,10 @@
     
     <br>
   <h6>{{ object.title|safe }}</h6>
-
+  <p>{{enrollment_count}}+ students already enrolled  </p>
   {% if object.status_type == 'Premium' %}
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  &#8358;{{object.price|safe|floatformat:"0g"}}</p> 
-  <p>{{enrollment_count}}+ students already enrolled  </p>
+
   {% else %}
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}}</p> 
   {% endif %}
