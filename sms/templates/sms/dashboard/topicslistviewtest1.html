@@ -107,11 +107,48 @@ table-layout: fixed; // ***********add this
 
 </style>
 
- 
+<style>
+
+.app-container {
+  position: relative;
+}
+
+.banner-overlay {
+    position: absolute;
+    width: 100%;
+    height: 130px;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.7) 99%, rgb(0, 0, 0, 1));
+    opacity: 0;
+    top: 0px;
+    left: 0;
+}
+</style>
+
+<br> <br><br>
                <!-- alert -->
+               <!-- <div style="height:351px; width:625px; overflow: hidden;">
+                <iframe height="651" width="625"
+                  src="https://www.youtube.com/embed/eujgoer87Uw?theme=dark&autoplay=1&keyboard=1&autohide=2&cc_load_policy=1&modestbranding=1&fs=0&showinfo=0&rel=0&iv_load_policy=3&mute=0&loop=0?controls=0"
+                  sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation"
+                  style="height:371px; background:#000000; bottom: 61px; position: relative;"
+                  frameborder="0">
+                </iframe>
+              </div> -->
 
   <br>                   
  <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>  <br>
+
+
+
+<!-- embed for youtube video https://www.youtube.com/watch?v=NlOF03DUoWc -->
+<!-- <div class="app-container">
+    <iframe width="560" height="315" src="http://www.youtube.com/embed/NlOF03DUoWc" frameborder="0" allowfullscreen></iframe>
+  
+    <div class="banner-overlay">
+    </div>
+</div> -->
+
+
 
 <table  id="example" class="datatable-wide display "  style="width:100%;">
     
@@ -139,6 +176,7 @@ table-layout: fixed; // ***********add this
     <tbody>
         {% for topic in topics %}
         <tr>
+       
             <td class="text-center">
                 <div style="padding-left: 5px; padding-right: 5px;" class="">
                     {% if topic.img_topic %}
@@ -146,12 +184,39 @@ table-layout: fixed; // ***********add this
                     {% else %}
                     {% endif %}
                     <!-- Add the video player -->
+                    
                     {% if topic.video %}
-                    <div class="video-container">
-                        <div id="myVideo" class="video-wrapper">
+        
+                      
+                    <!-- <div class="video-container">
+                        <div id="myVideo" class="video-wrapper"  sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style=" background:#000000; bottom: 61px; position: relative;">
                             {% video topic.video|safe class="ratio ratio-16x9" %}
                         </div>
-                    </div>
+                    </div> -->
+
+                
+                    <div class="video-container app-container" >
+                        <div  id="myVideo" class="video-wrapper app-container" sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style="background: #000000; bottom: 61px; position: relative;">
+                          <!-- {% video topic.video|safe class="ratio ratio-16x9" %} -->
+                          <br> <br>
+                          <iframe
+                            src="{{ topic.video }}"
+                            frameborder="0"
+                            modestbranding="1"
+                            rel="0"
+                            showinfo="0"
+                            controls="0"
+                            disablekb="1"
+                            >
+                          </iframe>
+
+                          <div class="banner-overlay">
+                        </div>
+
+                        </div>
+                      </div>
+                      
+                    
                     {% endif %}
                     <br> <br> <br>
                     <div style="text-align: left;" class=" code-block">
@@ -330,6 +395,7 @@ table-layout: fixed; // ***********add this
             right: 0,
             cursor: "pointer",
             backgroundColor: "black",
+            opacity:0,
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center",
         };
