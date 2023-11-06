@@ -50,7 +50,8 @@ class Courses(models.Model):
     ]
 
     img_course = CloudinaryField('image', blank=True, null=True)
-    # student = models.ManyToManyField(Profile, blank=True, related_name='courses')
+     # Add a ForeignKey field to represent the course a student is enrolled in.
+   
     prerequisites = models.ManyToManyField('self', blank=True, symmetrical=False)
     categories = models.ForeignKey(Categories, blank=False, default=1, on_delete=models.SET_NULL, related_name='categories', null=True)
     title = models.CharField(max_length=225, blank=True, null=True)
@@ -61,8 +62,6 @@ class Courses(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=0, default='500', max_length=225, blank=True, null=True)
     cert_price = models.DecimalField(max_digits=10, decimal_places=0, default='1000', max_length=225, blank=True, null=True)
     desc = models.TextField(null=True)
-    # desc_home = models.TextField(blank=True, null=True)
-    # course_desc = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
     hit_count_generic = GenericRelation(
