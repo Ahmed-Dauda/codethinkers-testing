@@ -126,7 +126,7 @@ table-layout: fixed; // ***********add this
 .watch-overlay {
     position: absolute;
     width: 200px;
-    height: 130px;
+    height: 170px;
     margin: 380px;
     margin-left: 660px;
     background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(33, 2, 2, 0.7) 99%, rgb(0, 0, 0, 1));
@@ -134,6 +134,23 @@ table-layout: fixed; // ***********add this
     top: 0px;
     left: 0;
 }
+
+
+@media (max-width: 768px) {
+    .watch-overlay {
+        /* Adjust the styles for mobile view */
+        width: 100px; /* Example: Make the overlay full width */
+        height: 150px; /* Adjust the height as needed for responsiveness */
+        margin: 150px; /* Remove margin */
+        margin-left: 260px; /* Remove margin-left */
+        background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(33, 2, 2, 0.7) 99%, rgb(0, 0, 0, 1)); /* Keep the same background */
+        top: 0;
+        left: 0;
+        opacity: 0;
+    }
+}
+
+
 </style>
 
 <br> <br><br>
