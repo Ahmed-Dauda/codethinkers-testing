@@ -472,10 +472,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         zcourse = get_object_or_404(QMODEL.Course, pk=self.kwargs['pk'])
         # course=QMODEL.Course.objects.get(id=pk)
         
-        courses  = QMODEL.Course.objects.all()
-        # courses = Courses.objects.all()
-        # print(ses)
-        print(courses)
+        courses = QMODEL.Course.objects.all()
         cert_note = QMODEL.Certificate_note.objects.all()
         
         try:
@@ -502,9 +499,8 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         context['cert_note'] = cert_note
         
         # user = self.request.user.profile
-        # course = Courses.objects.get(pk=self.kwargs["pk"])
-        course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
-        print("Primary key1:", zcourse)
+        course = Courses.objects.get(pk=self.kwargs["pk"])
+        print("Primary key1:", course.id)
         print("Primary key:", self.kwargs["pk"])
 
     
@@ -519,8 +515,9 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
        
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
 
+        
+
         return context
-    
 
 from student.models import DocPayment
 
