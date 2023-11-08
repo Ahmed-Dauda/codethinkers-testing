@@ -5,7 +5,7 @@ from sweetify.views import SweetifySuccessMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth import forms
 from django.db import models
-
+from django.utils.decorators import method_decorator
 from django.db.models import fields
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
@@ -189,23 +189,7 @@ class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
         # Fetch the course and related information
         course = get_object_or_404(Courses, pk=self.kwargs["pk"])
         context['course'] = course
-        # context['coursess'] = Courses.objects.all().order_by('created')[:10]
-        # context['courses_count'] = Courses.objects.filter(categories=course.categories).count()
-        # context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
-        # context['num_students'] = course.student.count()
-        # context['prerequisites'] = course.prerequisites.all()
-        # context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=course.id)
-        # context['topics'] = Topics.objects.filter(courses_id=course.id).order_by('id')
-
-        # Fetch related payments for the current user and course
-        # user_profile = self.request.user.profile
-        # related_payments = Payment.objects.filter(payment_user=user_profile, courses=course, amount= course.price)
-        # context['related_payments'] = related_payments
-
-        # context['paystack_public_key'] = settings.PAYSTACK_PUBLIC_KEY
-
-        # # Get the number of student enrollments for this user and course
-        # context['enrollment_count'] = related_payments.count() + 100
+       
 
         return context
 
@@ -458,12 +442,7 @@ def Certificates(request,pk):
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
-
-    # QMODEL.Result.objects.exclude(id = m).delete()
-    # user_profile =  Profile.objects.filter(user_id = request.user.id)
-
-    # results=QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
-    
+   
     context = {
         'results':results,
         'course':course,
@@ -527,7 +506,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # Query the Payment model to get all payments related to the user and course
         related_payments = CertificatePayment.objects.filter(
             email=user, courses=course ,
-            amount=course.price)
+            amount=course.cert_price)
 
         context['related_payments'] = related_payments
        
@@ -724,76 +703,82 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['payments'] = Payment.objects.filter(courses=course).order_by('id')
         user = self.request.user
         # Query the Payment model to get all payments related to the user and course
-        related_payments = Payment.objects.filter(email=user, courses=course, amount=course.price)
+        # Query to get the number of students enrolled in the specified course.
+        student_count = Profile.objects.filter(student_course=course).count()
+        print("countss", student_count)
+
+
+        related_payments = Payment.objects.filter(courses=course)
         # related_payments = Payment.objects.filter(email=user, courses__title=object.title, amount=object.price)
         context['related_payments'] = related_payments
         enrollment_count = related_payments.count()
         # Print or use the enrollment_count as needed
         context['enrollment_count'] = enrollment_count + 100
 
-    
+        
+      
         return context
 
 
 # new pagination
 
-class AllKeywordsView(ListView):
-    paginate_by = 1
-    model = Courses
-    ordering = ['created']
-    template_name = "sms/blog_post_list.html"
+# class AllKeywordsView(ListView):
+#     paginate_by = 1
+#     model = Courses
+#     ordering = ['created']
+#     template_name = "sms/blog_post_list.html"
 
-class KeywordListView(ListView):
-    paginate_by = 1
-    model = Courses
-    ordering = ['created']
-    template_name = 'sms/blog_post_list.html'
+# class KeywordListView(ListView):
+#     paginate_by = 1
+#     model = Courses
+#     ordering = ['created']
+#     template_name = 'sms/blog_post_list.html'
 
 
-# ...
-def listing(request, page):
-    keywords = Courses.objects.all().order_by("created")
-    paginator = Paginator(keywords, per_page=2)
-    page_object = paginator.get_page(page)
-    page_object.adjusted_elided_pages = paginator.get_elided_page_range(page)
+# # ...
+# def listing(request, page):
+#     keywords = Courses.objects.all().order_by("created")
+#     paginator = Paginator(keywords, per_page=2)
+#     page_object = paginator.get_page(page)
+#     page_object.adjusted_elided_pages = paginator.get_elided_page_range(page)
     
-    context = {"page_obj": page_object}
-    return render(request, "sms/blog_post_list.html", context)
+#     context = {"page_obj": page_object}
+#     return render(request, "sms/blog_post_list.html", context)
 
 
-def listing_api(request):
-    page_number = request.GET.get("page", 1)
-    per_page = request.GET.get("per_page", 2)
-    startswith = request.GET.get("startswith", "")
-    keywords = Courses.objects.filter(
-        title__startswith=startswith
-    )
-    paginator = Paginator(keywords, per_page)
-    page_obj = paginator.get_page(page_number)
-    data = [
-        {
-         'title':kw.title,
-         'desc':kw.desc,
-         'course_desc':kw.course_desc,
-         'course_link':kw.course_link,
-         'created':kw.created,
-         'updated':kw.updated,
-        #  'hit_count_generic':kw.hit_count_generic,
+# def listing_api(request):
+#     page_number = request.GET.get("page", 1)
+#     per_page = request.GET.get("per_page", 2)
+#     startswith = request.GET.get("startswith", "")
+#     keywords = Courses.objects.filter(
+#         title__startswith=startswith
+#     )
+#     paginator = Paginator(keywords, per_page)
+#     page_obj = paginator.get_page(page_number)
+#     data = [
+#         {
+#          'title':kw.title,
+#          'desc':kw.desc,
+#          'course_desc':kw.course_desc,
+#          'course_link':kw.course_link,
+#          'created':kw.created,
+#          'updated':kw.updated,
+#         #  'hit_count_generic':kw.hit_count_generic,
         
          
-         } for kw in page_obj.object_list]
+#          } for kw in page_obj.object_list]
     
 
-    payload = {
-        "page": {
-            "current": page_obj.number,
-            "has_next": page_obj.has_next(),
-            "has_previous": page_obj.has_previous(),
-        },
-        "data": data
+#     payload = {
+#         "page": {
+#             "current": page_obj.number,
+#             "has_next": page_obj.has_next(),
+#             "has_previous": page_obj.has_previous(),
+#         },
+#         "data": data
     
-    }
-    return JsonResponse(payload)
+#     }
+#     return JsonResponse(payload)
 
 
 
@@ -801,32 +786,108 @@ from student.models import PDFDocument
 from quiz.models import TopicsAssessment, QuestionAssessment, ResultAssessment
 from django.views.generic import DetailView
 
+from django.urls import reverse_lazy
+from django.views import View
 
-class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
+class Topicslistview(LoginRequiredMixin, DetailView):
     model = Courses
     template_name = 'sms/dashboard/topicslistviewtest1.html'
-    count_hit = True
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()  # Set the 'object' attribute
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        course = self.get_object()
+        course = self.object  # Access the 'object' attribute
+        topics = course.topics_set.all().order_by('created')
         topic = TopicsAssessment.objects.filter(course_name__title=course).order_by('id')
         topics_assessment = TopicsAssessment.objects.filter(course_name__title=course.title).order_by('id')
-        
-       
-        topics = course.topics_set.all().order_by('created')
-
         topicsa = TopicsAssessment.objects.order_by('id')
-        # print('top', topics)
         context['topics'] = topics
         context['topicsa'] = topicsa
-        # context['c'] = topics.count()
         context['alert_count'] = Alert.objects.all().count()
-        context['alerts']  = PDFDocument.objects.order_by('-created')
-      
+        context['alerts'] = PDFDocument.objects.order_by('-created')
+
+        # Fetch completed topic IDs for the current user
+        completed_topic_ids = []
+        # completed_topic_titles = []
+
+        if self.request.user.is_authenticated:
+            profile = get_object_or_404(Profile, user=self.request.user)
+            completed_topic_ids = profile.completed_topics.values_list('id', flat=True)
+            # completed_topic_titles = profile.completed_topics.values_list('title', flat=True)
+
+        context['completed_topic_ids'] = completed_topic_ids
+        # context['completed_topic_titles'] = completed_topic_titles
+        # print("cccccc", completed_topic_ids)
+
 
         return context
 
+
+
+@method_decorator(login_required, name='dispatch')
+class MarkTopicCompleteView(View):
+    def post(self, request):
+        topic_id = request.POST.get('topic_id')
+        if topic_id:
+            topic = get_object_or_404(Topics, id=topic_id)
+            user_profile = request.user.profile
+
+            # Check if the topic is not already marked as completed by the user
+            if topic not in user_profile.completed_topics.all():
+                user_profile.completed_topics.add(topic)
+                user_profile.save()
+                return JsonResponse({'message': f'Topic {topic_id} marked as completed for user {request.user.username}'})
+            else:
+                return JsonResponse({'message': f'Topic {topic_id} is already marked as completed for user {request.user.username}'})
+        else:
+            return JsonResponse({'message': 'Invalid request'}, status=400)
+
+# class Topicslistview(LoginRequiredMixin, HitCountDetailView, DetailView):
+#     model = Courses
+#     template_name = 'sms/dashboard/topicslistviewtest1.html'
+#     count_hit = True
+
+
+#     def get(self, request, *args, **kwargs):
+#         self.object = self.get_object()  # Set the 'object' attribute
+#         context = self.get_context_data(object=self.object)
+#         return self.render_to_response(context)
+
+#     def get_context_data(self, **kwargs):
+        
+#         context = super().get_context_data(**kwargs)
+#         course = self.object  # Access the 'object' attribute
+
+#         course = self.get_object()
+#         topics = course.topics_set.all().order_by('created')
+
+#         topic = TopicsAssessment.objects.filter(course_name__title=course).order_by('id')
+#         topics_assessment = TopicsAssessment.objects.filter(course_name__title=course.title).order_by('id')
+      
+#         topicsa = TopicsAssessment.objects.order_by('id')
+#         # print('top', topics)
+#         context['topics'] = topics
+#         context['topicsa'] = topicsa
+#         # context['c'] = topics.count()
+#         context['alert_count'] = Alert.objects.all().count()
+#         context['alerts']  = PDFDocument.objects.order_by('-created')
+
+#         # Add a list of completed topic ids for the current user
+#         completed_topic_ids = []
+#         if self.request.user.is_authenticated:
+#             profile = get_object_or_404(Profile, user=self.request.user)
+#             completed_topic_ids = profile.completed_topics.values_list('id', flat=True)
+
+#         context['completed_topic_ids'] = completed_topic_ids
+#         context['mark_topic_completed'] = self.mark_topic_completed
+
+#         return context
+
+       
 
 
 class UserProfilelistview(LoginRequiredMixin, ListView):
@@ -988,10 +1049,30 @@ class AlertView(ListView):
         return Alert.objects.order_by('-created')
 
     def get_context_data(self, **kwargs):
-
         context = super().get_context_data(**kwargs)
         context['alerts'] = Alert.objects.order_by('-created')
-        context['alert_count'] = Alert.objects.all().count() 
-       
-        return context 
+        context['alert_count'] = Alert.objects.all().count()
+        context['base'] = Alert.objects.all().count()
 
+        # Assuming Courses is a model in your application
+       
+        return context
+
+
+
+class DashboardCourses(LoginRequiredMixin, HitCountDetailView, DetailView):
+    model = Courses
+    template_name = 'sms/dashboard/based.html'
+   
+    def get_queryset(self):
+        return Courses.objects.all()
+   
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+        course = self.get_object()  # Retrieve the course
+      
+        context['coursess'] = Courses.objects.all().order_by('created')
+   
+     
+        return context

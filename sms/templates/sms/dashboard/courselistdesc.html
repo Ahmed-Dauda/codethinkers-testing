@@ -160,7 +160,7 @@
 </style>
 
 
-  <div  style="padding-left: 10px; padding-right: 10px;background-color: rgb(240, 238, 235)" class="">
+  <div  style="padding-left: 20px; padding-right: 20px;background-color: rgb(240, 238, 235)" class="">
     <br> <br>
     <div class="course-owner d-flex ">
       {% if object.course_logo.url %}
@@ -174,10 +174,18 @@
     
     <br>
   <h6>{{ object.title|safe }}</h6>
+  <!-- <p>{{enrollment_count}} + students already enrolled  </p> -->
 
+  <p>
+    {% get_hit_count for object as hit_count %}
+    {{ hit_count|add:100 }} students already enrolled
+  </p>
+  
+
+  <!-- {% get_hit_count for object %}  -->
   {% if object.status_type == 'Premium' %}
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  &#8358;{{object.price|safe|floatformat:"0g"}}</p> 
-  <p>{{enrollment_count}}+ students already enrolled  </p>
+
   {% else %}
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}}</p> 
   {% endif %}
@@ -236,7 +244,7 @@
 
   <h3>About this Course</h3>
 
-  <p class="pl-3">{% get_hit_count for object %} <i class="fas fa-eye"></i> recent views</p>
+  <!-- <p class="pl-3">{% get_hit_count for object %} <i class="fas fa-eye"></i> recent views</p> -->
 
   <p id="myLink" class=" pr-3">{{ object.desc|linebreaksbr|truncatechars:200|safe }}</p>
   

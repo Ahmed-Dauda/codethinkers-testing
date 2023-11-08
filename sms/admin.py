@@ -14,6 +14,7 @@ from sms.models import (
     CareerOpportunities, Whatyouwillbuild, 
     AboutCourseOwner, 
     CourseLearnerReviews,
+    CompletedTopics
     )
 
 
@@ -26,7 +27,7 @@ admin.site.register(CourseLearnerReviews)
 admin.site.register(Whatyouwilllearn)
 admin.site.register(CareerOpportunities)
 admin.site.register(Whatyouwillbuild)
-
+admin.site.register(CompletedTopics)
 admin.site.register(AboutCourseOwner)
 
 # class ArticleAdminResource(resources.ModelResource):

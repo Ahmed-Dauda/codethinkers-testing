@@ -3,7 +3,9 @@
 {% load static %}
 
 
-{% block title %} Codethinkers Software Application Academy. {% endblock %}
+{% block title %} Codethinkers  Academy  {% endblock %}
+
+
 
   {% block content %} 
 
@@ -414,49 +416,42 @@ FREQUENTLY ASKED QUESTIONS */
 .child-ele >*{
   margin: 10px;
 }
+/* ebook section  */
+
 .flex-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
 }
 
-.card-cat{
-  width: 350px;
-  padding-right: 3px;
-}
-.card-cat:hover {
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
-}
-.flex-container >*{
+.card-ebooks {
+  width: 250px;
   margin: 10px;
 }
- /* end of course categories */
 
-  /* ebooks */
-.child-ebooks{
+.card-body {
   display: flex;
-  margin-top: -25px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
-.child-ebooks >*{
-  margin: 10px;
-}
-.flex-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+.image-container img {
+  width: 250px;
+  height: 250px;
 }
 
-.card-ebooks{
-  width: 300px;
+.text-container {
+  padding: 10px;
 }
-.card-ebooks:hover {
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
+
+.text-container h6 {
+  margin-bottom: 5px;
 }
-.flex-container >*{
-  margin: 10px;
+
+.text-container small {
+  display: block;
+  margin-bottom: 5px;
 }
 
  /* end of ebooks */
@@ -539,12 +534,88 @@ p {
 
 /* end of the front page statisitc */
 
-/* our partners  */
+/* flip card  */
+.hover-container {
+  display: inline-block;
+  cursor: pointer;
+  position: relative; /* Make the container relative for absolute positioning inside */
+  z-index: 1;
+
+}
+
+.flip-card {
+  width: 340px; /* Adjust the width as needed */
+  height: 0px;
+  perspective: 1000px;
+  transition: transform 0.3s;
+  position: absolute; /* Position the flip card absolutely within the hover container */
+  z-index: 2; 
+  
+}
+@media (min-width: 768px) {
+  .flip-card {
+    width: 800px;
+    padding-left: 20px;
+  }
+}
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  text-align: left;
+
+  transform-style: preserve-3d;
+  transition: transform 0.6s;
+}
+
+.hover-container:hover .flip-card {
+  transform: scale(1.1); /* Adjust the scaling factor as needed */
+
+
+}
+
+.flip-card-front, .flip-card-back {
+  position: absolute;
+  width: 100%;
+  backface-visibility: hidden;
+}
+
+.flip-card-back {
+  background-color: #f9f9f9; /* Set your desired background color here */
+
+}
+.text {
+  display: block;
+  font-size: 16px; /* Adjust the font size as needed */
+  padding-left: 10px;
+
+}
 
 </style>
 
+<div class="hover-container" style="padding-left: 20px;">
+  <div class="flip-card">
+    <div class="flip-card-inner">
+      <div class="flip-card-front">
+        <span style="width: 200px;" class="text bg-primary text-white">All Courses</span>
+      </div>
+      <div class="flip-card-back">
 
-<div class="container">
+        <div  class="card">
+        {% for obj in object_list %}
+        
+            <a class="text text-dark" href="{% url 'sms:courseslistdesc' obj.pk %}"> {{obj.title|safe|title}} </a> <hr>
+      
+        {% endfor %}
+      </div>
+       
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div  class="container">
   <div class="row">
 
     <div class="col-md-6 flex-container">
@@ -599,8 +670,7 @@ p {
   <!-- partners section  -->
   
   <div class="card-bod" style="padding-left: 20px; background-color: rgb(240, 238, 235)">
-   <h3 class="text-center ">Our Partners and Collaborators
-  </h3>
+   <h3 class="text-center ">Our Partners and Collaborators</h3>
  
  
   <section class="partners " >
@@ -1141,7 +1211,7 @@ p {
   <!-- ebooks section  -->
   <div class="card-body text-center">
     <div class="">
-  <h3 style="color: red;  font-weight: bold;" > {{alert_count_homes}} Latest Programming E-books Available for You</h3>
+  <h3 style="color: red;  font-weight: bold;" > {{alert_count_homes}} E-books Available for You</h3>
     </div>
   </div>
   <br>
@@ -1152,10 +1222,10 @@ p {
   <div class="card card-ebooks">
     <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
     <div class="card-body child-ebooks">
-      <img class="" src="{{ alert.img_ebook.url }}" width="100px" height="130px" alt="{{ obj.desc }}">
-      <div class="">
-        <h6 style="color: #000000;  padding-right: 3px;" class="card-title">{{ alert.title|safe }}</h6>
-        <small>Price: &#8358;{{ alert.price }}</small>
+      <img class="" src="{{ alert.img_ebook.url }}" width="250px" height="250px" alt="{{ obj.desc }}">
+      <div class=""> 
+        <h6 style="color: #000000;  padding-right: 3px;" class="card-title">{{ alert.title|safe }}</h6> 
+        <small>Price: &#8358;{{ alert.price }}</small> <br>
         <button><a href="{% url 'sms:ebooks' alert.id %}">{{ alert.title }}</a></button>
         
       </div>
