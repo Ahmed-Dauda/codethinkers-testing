@@ -220,11 +220,14 @@ table-layout: fixed; // ***********add this
                         <div id="myVideo" class="video-wrapper"  sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style=" background:#000000; bottom: 61px; position: relative;">
                             {% video topic.video|safe class="ratio ratio-16x9" %}
                         </div>
+                       
                     </div> -->
 
-                    <div class="video-container app-container" >
+
+
+                   <div class="video-container app-container" >
                         <div  id="myVideo" class="video-wrapper app-container" sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style="background: #000000; bottom: 61px; position: relative;">
-                          <!-- {% video topic.video|safe class="ratio ratio-16x9" %} -->
+         
                           <br> <br>
                           <iframe
                             src="{{ topic.video }}"
@@ -245,7 +248,7 @@ table-layout: fixed; // ***********add this
 
                         </div>
                       </div>
-                      
+                    
                     
                     {% endif %}
                     
@@ -260,7 +263,7 @@ table-layout: fixed; // ***********add this
                             <label style="max-width: 100%; overflow-x: hidden;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.desc|safe}}</label> <br>
                             {% for t in topicsa %}
                             {% if topic.title == t.course_name.title %}
-                            <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge </a></button>  
+                            <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge </a></button>  <br> <br>
                             <!-- <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge {{t.course_name.title}}</a></button>     -->
                             {% endif %}
                             {% endfor %}
