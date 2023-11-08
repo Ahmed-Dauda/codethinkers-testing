@@ -81,7 +81,8 @@ urlpatterns = [
     
 
     # path('certificates/<pk>/', views.Certificates, name ='certificates'),
-    path('certificates/<pk>/', Certdetaillistview.as_view(), name ='certificates'),
+    path('certificates/<int:pk>/', Certdetaillistview.as_view(), name='certificates'),
+
     path('bloglistview', Bloglistview.as_view(), name ='bloglistview'),
     path('blog/<slug:slug>/', Blogdetaillistview.as_view(), name='blogdetaillistview'),
     
