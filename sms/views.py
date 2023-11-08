@@ -459,7 +459,7 @@ def Certificates(request,pk):
 
 
 class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
-    models = QMODEL.Course
+    model = QMODEL.Course
     template_name = 'sms/dashboard/certificates.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
@@ -500,6 +500,9 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         
         # user = self.request.user.profile
         course = Courses.objects.get(pk=self.kwargs["pk"])
+        print("Primary key1:", course)
+        print("Primary key:", self.kwargs["pk"])
+
     
         user = self.request.user
         
