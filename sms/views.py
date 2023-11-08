@@ -502,7 +502,8 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         context['cert_note'] = cert_note
         
         # user = self.request.user.profile
-        course = Courses.objects.get(pk=self.kwargs["pk"])
+        # course = Courses.objects.get(pk=self.kwargs["pk"])
+        course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
         print("Primary key1:", zcourse)
         print("Primary key:", self.kwargs["pk"])
 
