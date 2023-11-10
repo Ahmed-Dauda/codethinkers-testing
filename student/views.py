@@ -40,18 +40,137 @@ from django.contrib.staticfiles import finders
 
 
 
+# @csrf_exempt
+# @require_POST
+# @transaction.non_atomic_requests(using='db_name')
+# def paystack_webhook(request):
+#     # Ensure this is a POST request
+#     if request.method != 'POST':
+#         return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed'}, status=400)
+
+#     # Parse the JSON payload from the request
+#     try:
+#         payload = json.loads(request.body)
+#         print("payloadttt:", payload)
+#     except json.JSONDecodeError as e:
+#         return JsonResponse({'status': 'error', 'message': 'Invalid JSON payload'}, status=400)
+
+#     # Extract relevant information from the payload
+#     event = payload.get('event')
+#     data = payload.get('data')
+
+#     # Check the event type
+#     if event == 'charge.success':
+#         # Extract information from the data
+#         verified = True
+#         reference = data.get('reference')
+#         paid_amount = data.get('amount') / 100
+#         first_name = data['customer'].get('first_name')
+#         last_name = data['customer'].get('last_name')
+#         email = data['customer'].get('email')
+
+#         referrer = payload['data']['metadata']['referrer'].strip()
+#         print("Referrer URL:", referrer)
+#         print("amount:", paid_amount)
+
+#         # Split the referrer URL by '/'
+#         url_parts = referrer.split('/')
+#         content_type = url_parts[-3]
+#         print("content_type", content_type)
+#         print('url:', url_parts[-3])
+    
+
+#         # Check if the last part of the URL is a numeric "id"
+#         if url_parts[-2].isdigit():
+#             id_value = url_parts[-2]
+#             print("Extracted ID:", id_value)
+#         else:
+#             id_value = None
+
+#         course = get_object_or_404(Courses, pk=id_value)
+#         print("course printed:", course)
+        
+#         course_amount = course.price
+      
+#         if content_type == 'course':
+#             payment = Payment.objects.create(
+#                 ref=reference,
+#                 amount=paid_amount,
+#                 first_name=first_name,
+#                 last_name=last_name,
+#                 email=email,
+#                 verified=verified,
+#                 content_type = content_type
+#             )
+#             # Add courses to the payment using the 'set()' method
+       
+#             if course:
+#                 payment.courses.set([course])
+#                 payment.save()
+               
+#         course = get_object_or_404(Courses, pk=id_value)
+        
+#         if content_type == 'certificates':
+#         # Create an instance of the CertificatePayment model
+#             cert_payment = CertificatePayment(
+#                 ref=reference,
+#                 amount=paid_amount,
+#                 first_name=first_name,
+#                 last_name=last_name,
+#                 email=email,
+#                 verified=verified,
+#                 content_type=content_type
+#             )
+
+#             # Check if the course exists (replace this with the actual condition)
+#             if course:
+#                 # Set courses for the CertificatePayment instance
+#                 cert_payment.courses.set([course])
+#                 cert_payment.save()
+
+#             # Save the CertificatePayment instance to the database
+#             cert_payment.save()
+
+
+#         course = get_object_or_404(PDFDocument, pk=id_value)
+#         if content_type == 'ebooks':
+         
+#             payment = EbooksPayment.objects.create(
+#                 ref=reference,
+#                 amount=paid_amount,
+#                 first_name=first_name,
+#                 last_name=last_name,
+#                 email=email,
+#                 verified=verified,
+#                 content_type = course,
+              
+#             )
+#             # print("", id_value)
+#             # # course = get_object_or_404(PDFDocument, pk=id_value)
+#             # print('pdfcourse', course)
+#             # Add courses to the payment using the 'set()' method
+#             # if course:
+#             #     payment.courses.set([course])
+
+#         return JsonResponse({'status': 'success'})
+#     else:
+#         return JsonResponse({'status': 'error', 'message': 'Unsupported event type'}, status=400)
+
+
 @csrf_exempt
 @require_POST
 @transaction.non_atomic_requests(using='db_name')
 def paystack_webhook(request):
-    # Ensure this is a POST request
+    # ... (existing code)
+
+
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed'}, status=400)
 
     # Parse the JSON payload from the request
     try:
         payload = json.loads(request.body)
-        # print("payloadttt:", payload)
+        print("payloadttt:", payload)
     except json.JSONDecodeError as e:
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON payload'}, status=400)
 
@@ -59,7 +178,7 @@ def paystack_webhook(request):
     event = payload.get('event')
     data = payload.get('data')
 
-    # Check the event type
+     # Check the event type
     if event == 'charge.success':
         # Extract information from the data
         verified = True
@@ -70,81 +189,78 @@ def paystack_webhook(request):
         email = data['customer'].get('email')
 
         referrer = payload['data']['metadata']['referrer'].strip()
-        # print("Referrer URL:", referrer)
+        print("Referrer URL:", referrer)
+        print("amount:", paid_amount)
 
         # Split the referrer URL by '/'
         url_parts = referrer.split('/')
         content_type = url_parts[-3]
-        # print('url:', url_parts[-3])
-    
+        print("content_type", content_type)
+        print('url:', url_parts[-3])
 
-        # Check if the last part of the URL is a numeric "id"
-        if url_parts[-2].isdigit():
-            id_value = url_parts[-2]
-            # print("Extracted ID:", id_value)
-        else:
-            id_value = None
-
-        course = get_object_or_404(Courses, pk=id_value)
-        # print("course printed:", course)
-        
-        course_amount = course.price
-      
-        if content_type == 'course':
-            payment = Payment.objects.create(
-                ref=reference,
-                amount=paid_amount,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                verified=verified,
-                content_type = content_type
-            )
-            # Add courses to the payment using the 'set()' method
-       
-            if course:
-                payment.courses.set([course])
-            
-        if content_type == 'certificates':
-            payment = CertificatePayment.objects.create(
-                ref=reference,
-                amount=paid_amount,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                verified=verified,
-                # content_type = content_type
-            )
-            # Add courses to the payment using the 'set()' method
-            if course:
-                payment.courses.set([course])
-
-
-        course = get_object_or_404(PDFDocument, pk=id_value)
-        if content_type == 'ebooks':
-         
-            payment = EbooksPayment.objects.create(
-                ref=reference,
-                amount=paid_amount,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                verified=verified,
-                content_type = course,
-              
-            )
-            # print("", id_value)
-            # # course = get_object_or_404(PDFDocument, pk=id_value)
-            # print('pdfcourse', course)
-            # Add courses to the payment using the 'set()' method
-            # if course:
-            #     payment.courses.set([course])
-
-        return JsonResponse({'status': 'success'})
+    # Check if the last part of the URL is a numeric "id"
+    if url_parts[-2].isdigit():
+        id_value = url_parts[-2]
+        print("Extracted ID:", id_value)
     else:
-        return JsonResponse({'status': 'error', 'message': 'Unsupported event type'}, status=400)
+        id_value = None
+
+    # Assuming 'Courses' is the model for certificates, adjust as needed
+    course = get_object_or_404(QMODEL.Course, pk=id_value)
+    print("course printed:", course)
+
+    # Check if a similar entry already exists
+    existing_entry = CertificatePayment.objects.filter(
+        ref=reference,
+        amount=paid_amount,
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+        verified=verified,
+        content_type=content_type,
+    ).first()
+
+    if existing_entry:
+        # Skip the update step if no specific updates are needed
+        pass
+    else:
+        # Create a new CertificatePayment instance
+        certpayment = CertificatePayment.objects.create(
+            ref=reference,
+            amount=paid_amount,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            verified=verified,
+            content_type=content_type,
+        )
+        if course:
+            certpayment.courses.set([course.course_name])
 
 
+     
+    # Adjust the model and field names accordingly
+    # certpayment = CertificatePayment.objects.create(
+    #     ref=reference,
+    #     amount=paid_amount,
+    #     first_name=first_name,
+    #     last_name=last_name,
+    #     email=email,
+    #     verified=verified,
+    #     content_type=content_type,
+    # )
+
+    # # Assuming 'courses' is the related name in CertificatePayment model, adjust as needed
+    # if course:
+    #     certpayment.courses.set([course.course_name])
+
+    return JsonResponse({'status': 'success'})
+
+
+
+# next for testing 
+
+# end 
 
 def pdf_document_list(request):
     documents = PDFDocument.objects.all()

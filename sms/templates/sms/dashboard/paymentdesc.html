@@ -336,7 +336,6 @@
 
 <script>
 
-// 'reference': '574117390',
 
 // paystack payment
 const paymentForm = document.getElementById('paymentForm');
@@ -358,6 +357,8 @@ function payWithPaystack(e) {
     
       var referenceid = response.reference;
       window.location.href = "{% url 'sms:paymentsucess' object.id %}"
+   
+      
     }
   });
 
