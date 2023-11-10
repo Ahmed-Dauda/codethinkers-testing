@@ -2,7 +2,7 @@ from django.db import models
 from cloudinary.models import CloudinaryField
 
 
-
+from quiz import models as QMODEL
 import secrets
 from django.conf import settings
 import uuid
@@ -138,7 +138,7 @@ class EbooksPayment(models.Model):
 
 class CertificatePayment(models.Model):
     payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
-    courses = models.ManyToManyField(Courses, related_name='certificates')
+    courses = models.ManyToManyField(Courses ,related_name='certificates')
     amount = models.PositiveBigIntegerField(null=True)
     ref = models.CharField(max_length=250, null=True)
     first_name = models.CharField(max_length=250, null=True)
