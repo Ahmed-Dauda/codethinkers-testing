@@ -102,7 +102,7 @@ IMPORT_EXPORT_USE_TRANSACTIONS = True  # import won’t import only part of the 
 
 # allauth settings
 
-SITE_ID = 1
+SITE_ID = 3
 
 # SOCIALACCOUNT_EMAIL_VERIFIATION = False
 # ACCOUNT_AUTHENTICATION_METHOD ='username_email'
