@@ -70,6 +70,8 @@ INSTALLED_APPS = [
     # 'allauth.socialaccount.providers.twitter',
 ]
 
+BASE_URL = 'https://codethinkers.org'
+
 AUTH_USER_MODEL = 'users.NewUser'
 # Application definition
 AUTHENTICATION_BACKENDS = (
@@ -352,6 +354,8 @@ MEDIA_ROOT =os.path.join(BASE_DIR, 'media')
 # DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Heroku: Update database configuration from $DATABASE_URL.
+
+
 
 import dj_database_url
 # Update database configuration from $DATABASE_URL.
