@@ -31,12 +31,18 @@ class CertificatePaymentResource(resources.ModelResource):
         # fields = ('title',)
 
 class CertificatePaymentAdmin(ImportExportModelAdmin):
-    list_display = ['id','amount', 'ref', 'first_name', 'last_name', 'content_type', 'email', 'verified', 'date_created']
+    list_display = ['id','amount','get_courses_titles' ,'ref', 'first_name', 'last_name', 'content_type', 'email', 'verified', 'date_created']
     # prepopulated_fields = {"courses": ("courses",)}
-    list_filter = ['amount', 'courses', 'ref', 'email','date_created']
-    search_fields = ['id', 'amount', 'date_created', 'email']  # Use double underscore for related fields
+    list_filter = ['amount', 'courses__title', 'ref', 'email','date_created']
+    search_fields = ['id', 'amount', 'courses__title','date_created', 'email']  # Use double underscore for related fields
     ordering = ['amount']
     resource_class = CertificatePaymentResource
+
+    def get_courses_titles(self, obj):
+        # Get a comma-separated list of course titles
+        return ', '.join(course.title for course in obj.courses.all())
+
+    
 
 admin.site.register(CertificatePayment, CertificatePaymentAdmin)
 
