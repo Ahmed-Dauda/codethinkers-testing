@@ -178,7 +178,7 @@ def paystack_webhook(request):
     event = payload.get('event')
     data = payload.get('data')
   
-    print('fffnn', first_name)
+    # print('fffnn', first_name)
      # Check the event type
     if event == 'charge.success':
         # Extract information from the data
