@@ -185,10 +185,10 @@ def paystack_webhook(request):
         verified = True
         reference = data.get('reference')
         paid_amount = data.get('amount') / 100
-        # first_name = data['customer'].get('first_name')
-        # last_name = data['customer'].get('last_name')
-        first_name = request.user.profile.first_name
-        last_name = request.user.profile.last_name
+        first_name = data['customer'].get('first_name')
+        last_name = data['customer'].get('last_name')
+        # first_name = request.user.profile.first_name
+        # last_name = request.user.profile.last_name
         email = data['customer'].get('email')
 
         referrer = payload['data']['metadata']['referrer'].strip()
