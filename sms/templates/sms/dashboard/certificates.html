@@ -47,7 +47,7 @@
                     {% if t.marks >= course.pass_mark %}
                              
     <p style="color: green;font-size: 18px;">Congratulations, {{ request.user.profile.first_name }}, you've successfuly passed the exam!</p>
-                        <form id="paymentForm" action="" method="post">
+                        <form id="paymentForm" action="" method="POST">
                             <div class="form-group">
                                 <input value='{{ request.user }}' type="hidden" id="email-address" required />
                             </div>
@@ -137,30 +137,6 @@ function payWithPaystack(e) {
           var referenceid = response.reference;
           window.location.href = "{% url 'student:view_result' %}"
 
-          // Set the referenceid value to the ref hidden input field
-          // $("#ref").val(referenceid);
-
-          // Make an http request to cart process
-          // $.ajax({
-          //   type: "GET",
-          //   url: "/student/verify/" + referenceid,
-          //   beforeSend: function () {
-          //     console.log("Sending request");
-          //     $(".alert").text("Sending request");
-          //   },
-          //   success: function (response) {
-          //     if (response[3].status == "success") {
-          //       // Once transaction completed, redirect to complete page
-          //       $(".alert").removeClass("alert-warning");
-          //       $(".alert").addClass("alert-success");
-          //       $(".alert").text("Transaction verified");
-          //       console.log("Transaction verified");
-          //       $("form").trigger("reset");
-          //     } else {
-          //       $(".alert").text("Transaction reference not found");
-          //     }
-          //   }
-          // });
         },
         onClose: function () {
           // Do stuff

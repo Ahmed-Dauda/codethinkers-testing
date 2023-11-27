@@ -70,6 +70,8 @@ INSTALLED_APPS = [
     # 'allauth.socialaccount.providers.twitter',
 ]
 
+BASE_URL = 'https://codethinkers.org'
+
 AUTH_USER_MODEL = 'users.NewUser'
 # Application definition
 AUTHENTICATION_BACKENDS = (
@@ -100,7 +102,7 @@ IMPORT_EXPORT_USE_TRANSACTIONS = True  # import won’t import only part of the 
 
 # allauth settings
 
-SITE_ID = 1
+SITE_ID = 2
 
 # SOCIALACCOUNT_EMAIL_VERIFIATION = False
 # ACCOUNT_AUTHENTICATION_METHOD ='username_email'
@@ -353,6 +355,8 @@ MEDIA_ROOT =os.path.join(BASE_DIR, 'media')
 
 # Heroku: Update database configuration from $DATABASE_URL.
 
+
+
 import dj_database_url
 # Update database configuration from $DATABASE_URL.
 
@@ -420,4 +424,6 @@ PAYSTACK_PUBLIC_KEY = 'pk_live_010265c77983e11a700678d34d476b1ce1c48fb1'
 
 # using ngov to test webhook
 
+# change the webhook to a test mode in paystack
+# login to the ngrov website and copy and paste ngrok config add-authtoken 2SL4rhAyqYBNfeHZvWsCan18Pcz_71B7staheJejM8eL6husJ
 # ngrok http 8000 --host-header=rewrite

@@ -459,7 +459,7 @@ def Certificates(request,pk):
 
 
 class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
-    models = QMODEL.Course
+    model = QMODEL.Course
     template_name = 'sms/dashboard/certificates.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
@@ -499,14 +499,20 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         context['cert_note'] = cert_note
         
         # user = self.request.user.profile
-        course = Courses.objects.get(pk=self.kwargs["pk"])
+        # maincourses = Courses.objects.get(pk=self.kwargs["pk"])
+
+        course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
+        print("Primary key1:", course.course_name.cert_price)
+        print("Primary key:", course.course_name.id)
+        print("Primary key3:", courses)
+
     
         user = self.request.user
         
         # Query the Payment model to get all payments related to the user and course
         related_payments = CertificatePayment.objects.filter(
-            email=user, courses=course ,
-            amount=course.cert_price)
+            email=user, courses=course.course_name.id,
+            amount=course.course_name.cert_price)
 
         context['related_payments'] = related_payments
        
