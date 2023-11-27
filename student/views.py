@@ -177,15 +177,18 @@ def paystack_webhook(request):
     # Extract relevant information from the payload
     event = payload.get('event')
     data = payload.get('data')
-
+  
+    print('fffnn', first_name)
      # Check the event type
     if event == 'charge.success':
         # Extract information from the data
         verified = True
         reference = data.get('reference')
         paid_amount = data.get('amount') / 100
-        first_name = data['customer'].get('first_name')
-        last_name = data['customer'].get('last_name')
+        # first_name = data['customer'].get('first_name')
+        # last_name = data['customer'].get('last_name')
+        first_name = request.user.profile.first_name
+        last_name = request.user.profile.last_name
         email = data['customer'].get('email')
 
         referrer = payload['data']['metadata']['referrer'].strip()
