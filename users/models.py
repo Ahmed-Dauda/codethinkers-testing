@@ -177,7 +177,7 @@ from django.db import models
 # NewUser = get_user_model()
 
 class Referrer(models.Model):
-    learner = models.OneToOneField(NewUser, on_delete=models.CASCADE)
+    learner = models.OneToOneField(NewUser, on_delete=models.CASCADE, blank=True, null=True)
     referrer_code = models.CharField(max_length=20, blank=True, null=True)
     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
