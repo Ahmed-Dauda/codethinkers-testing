@@ -62,23 +62,24 @@ admin.site.register(Profile, ProfileAdmin)
 
 
 
-class ReferrerResource(resources.ModelResource):
-    user = fields.Field(
-        column_name='user',
-        attribute='user',
-        widget=ForeignKeyWidget(NewUser, 'email')
-    )
+# class ReferrerResource(resources.ModelResource):
+#     user = fields.Field(
+#         column_name='user',
+#         attribute='user',
+#         widget=ForeignKeyWidget(NewUser, 'email')
+#     )
 
-    class Meta:
-        model = ReferrerProfile
+#     class Meta:
+#         model = ReferrerProfile
 
 
-class ReferrerAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'user', 'referrer']
-    list_filter = ['id', 'user', 'referrer']
-    search_fields = ['id', 'user', 'referrer']
-    ordering = ['id']
+# class ReferrerAdmin(ImportExportModelAdmin):
+#     list_display = ['id', 'user', 'referrer']
+#     list_filter = ['id', 'user', 'referrer']
+#     search_fields = ['id', 'user', 'referrer']
+#     ordering = ['id']
 
-    resource_class = ReferrerResource
+#     resource_class = ReferrerResource
 
-admin.site.register(ReferrerProfile, ReferrerAdmin)
+# admin.site.register(ReferrerProfile, ReferrerAdmin)
+admin.site.register(ReferrerProfile)
