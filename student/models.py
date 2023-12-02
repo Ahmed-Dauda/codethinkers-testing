@@ -138,7 +138,7 @@ class EbooksPayment(models.Model):
 
 class CertificatePayment(models.Model):
     payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
-    courses = models.ManyToManyField(Courses ,related_name='certificates')
+    courses = models.ManyToManyField(Courses ,related_name='certificates',blank=True)
     amount = models.PositiveBigIntegerField(null=True)
     referral_code = models.CharField(max_length=250, null=True, blank=True)
     ref = models.CharField(max_length=250, null=True)
@@ -152,21 +152,26 @@ class CertificatePayment(models.Model):
     def __str__(self):
         # Get a comma-separated list of course titles
         course_titles = ', '.join(course.title for course in self.courses.all())
-        # Get the associated Profile
-        payment_user_profile = self.payment_user
+        return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles}"
 
-        # Initialize referrer_code as None
-        referrer_code = None
+    # def __str__(self):
+    #     # Get a comma-separated list of course titles
+    #     course_titles = ', '.join(course.title for course in self.courses.all())
+    #     # Get the associated Profile
+    #     payment_user_profile = self.payment_user
 
-        # Check if the user has a profile
-        if payment_user_profile:
-            # Check if the profile has a referrer_profile
-            referrer_profile = payment_user_profile.referrer_profile
-            if referrer_profile:
-                # Get the referrer code
-                referrer_code = referrer_profile.referral_code
+    #     # Initialize referrer_code as None
+    #     referrer_code = None
 
-        return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles} - Referrer Code: {referrer_code}"
+    #     # Check if the user has a profile
+    #     if payment_user_profile:
+    #         # Check if the profile has a referrer_profile
+    #         referrer_profile = payment_user_profile.referrer_profile
+    #         if referrer_profile:
+    #             # Get the referrer code
+    #             referrer_code = referrer_profile.referral_code
+
+    #     return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles} - Referrer Code: {referrer_code}"
      
 
 
