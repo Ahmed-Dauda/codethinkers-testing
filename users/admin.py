@@ -3,7 +3,7 @@ from django.contrib import admin
 # Register your models here.
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from users.models import Profile, NewUser
+from users.models import Profile, NewUser, Referrer
 
 from quiz.models import Course, Question, Result
 
@@ -82,4 +82,4 @@ admin.site.register(Profile, ProfileAdmin)
 #     resource_class = ReferrerResource
 
 # admin.site.register(ReferrerProfile, ReferrerAdmin)
-# admin.site.register(ReferrerProfile)
+admin.site.register(Referrer)
