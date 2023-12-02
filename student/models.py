@@ -140,7 +140,7 @@ class CertificatePayment(models.Model):
     payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
     courses = models.ManyToManyField(Courses ,related_name='certificates',blank=True)
     amount = models.PositiveBigIntegerField(null=True)
-    referral_code = models.CharField(max_length=250, null=True, blank=True)
+    # referral_code = models.CharField(max_length=250, null=True, blank=True)
     ref = models.CharField(max_length=250, null=True)
     first_name = models.CharField(max_length=250, null=True)
     last_name = models.CharField(max_length=200, null=True)
