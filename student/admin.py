@@ -23,8 +23,8 @@ admin.site.register(PDFDocument)
 # admin.site.register(ReferrerMentor)
 class ReferrerMentorAdmin(ImportExportModelAdmin):
     list_display = ['id', 'name', 'learner', ' referrer_code', 'referrer', 'referred_students']
-    list_filter = ['id', 'user', 'referrer']
-    search_fields = ['id', 'name', 'referrer']
+    list_filter = ['id', 'name', 'learner', ' referrer_code', 'referrer', 'referred_students']
+    search_fields = ['id', 'name', 'learner', ' referrer_code', 'referrer', 'referred_students']
     ordering = ['id']
 
     resource_class = ReferrerMentor
