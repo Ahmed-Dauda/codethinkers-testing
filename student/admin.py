@@ -12,7 +12,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export import fields,resources
 from import_export.widgets import ForeignKeyWidget
 from django.contrib import admin
-
+from users.models import NewUser
 from .models import  Question, Choice
 
 from sms.models import  Topics
@@ -21,13 +21,24 @@ from sms.models import  Topics
 
 admin.site.register(PDFDocument)
 # admin.site.register(ReferrerMentor)
+
+class ReferrerMentorResource(resources.ModelResource):
+    user = fields.Field(
+        column_name='learner',
+        attribute='learner',
+        widget=ForeignKeyWidget(NewUser, 'learner')
+    )
+
+    class Meta:
+        model = ReferrerMentor
+
 class ReferrerMentorAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'name', 'learner', ' referrer_code', 'referrer', 'referred_students']
-    list_filter = ['id', 'name', 'learner', ' referrer_code', 'referrer', 'referred_students']
-    search_fields = ['id', 'name', 'learner', ' referrer_code', 'referrer', 'referred_students']
+    list_display = ['id', 'name', 'referrer', 'learner']
+    list_filter = ['id', 'name', 'referrer']
+    search_fields = ['id', 'name', 'referrer']
     ordering = ['id']
 
-    resource_class = ReferrerMentor
+    resource_class = ReferrerMentorResource
 
 admin.site.register(ReferrerMentor, ReferrerMentorAdmin)
 
