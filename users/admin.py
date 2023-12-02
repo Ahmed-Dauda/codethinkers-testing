@@ -82,4 +82,4 @@ admin.site.register(Profile, ProfileAdmin)
 #     resource_class = ReferrerResource
 
 # admin.site.register(ReferrerProfile, ReferrerAdmin)
-admin.site.register(ReferrerProfile)
+# admin.site.register(ReferrerProfile)
