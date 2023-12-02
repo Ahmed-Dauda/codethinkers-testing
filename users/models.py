@@ -185,8 +185,8 @@ class ReferrerProfile(models.Model):
     def __str__(self):
         return f'Referrer Profile for {self.user.username}'
 
-    def referred_students_count(self):
-        return self.referred_students.count()
+    # def referred_students_count(self):
+    #     return self.referred_students.count()
 
 
   
