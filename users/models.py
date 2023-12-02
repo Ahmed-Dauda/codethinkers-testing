@@ -67,7 +67,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     def __str__(self):
-        return f'{self.email} {self.referral_code}'
+        return f'{self.email}'
 
  
     class Meta:
