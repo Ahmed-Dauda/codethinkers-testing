@@ -172,9 +172,9 @@ from django.dispatch import receiver
 
 # models.py
 from django.db import models
-from django.contrib.auth import get_user_model
+# from django.contrib.auth import get_user_model
 
-NewUser = get_user_model()
+# NewUser = get_user_model()
 
 class ReferrerProfile(models.Model):
     user = models.OneToOneField(NewUser, on_delete=models.CASCADE)
