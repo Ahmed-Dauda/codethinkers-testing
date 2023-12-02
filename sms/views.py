@@ -347,7 +347,7 @@ class PhotoGallery(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # context['c1'] = Courses.objects.filter(categories__pk = 1)
-        context['students'] = User.objects.all().count()
+        context['students'] = NewUser.objects.all().count()
         context['category'] = Categories.objects.count()
         context['courses'] = Courses.objects.all().count()
        
