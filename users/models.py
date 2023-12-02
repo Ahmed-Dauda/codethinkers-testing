@@ -70,9 +70,9 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
         return f'{self.email}'
 
  
-    class Meta:
-        #  pass
-      db_table = 'auth_user'
+    # class Meta:
+    #      pass
+    #   db_table = 'auth_user'
 
 
 
