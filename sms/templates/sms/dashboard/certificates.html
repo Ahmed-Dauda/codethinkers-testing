@@ -49,7 +49,7 @@
     <p style="color: green;font-size: 18px;">Congratulations, {{ request.user.profile.first_name }}, you've successfuly passed the exam!</p>
                         <form id="paymentForm" action="" method="POST">
                             <div class="form-group">
-                                <input value='{{ request.user }}' type="hidden" id="email-address" required />
+                                <input value='{{ request.user.email}}' type="hidden" id="email-address" required />
                             </div>
                             <div class="form-group">
                                 <input value="{{ course.course_name.cert_price|safe }}" type="hidden" id="amount" required />
@@ -75,9 +75,9 @@
                     {% for payment in related_payments %}
                      
               
-                    {% if payment.content_type == "certificates" and  payment.email == request.user %}
+                    <!-- {% if payment.content_type == "certificates" and  payment.email == request.user.email %}
                     {% for ccourse in payment.courses.all %}
-                    <li>yyyy{{ payment.email }}</li>  g {{ request.user }}
+                    <li>yyyy{{ payment.email }}</li>  g {{ request.user.email }} -->
                
 
                     {% if payment.amount == course.course_name.price  and ccourse.title == course.course_name.title  %}

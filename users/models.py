@@ -47,6 +47,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(max_length=254, unique=True)
     username = models.CharField(max_length=35,  blank=True)
+    referral_code = models.CharField(max_length=225, blank=True)
     phone_number = models.CharField(max_length=254, blank= True)
     first_name = models.CharField(max_length=254, null=True, blank=True)
     last_name = models.CharField(max_length=254, null=True, blank=True)
@@ -66,12 +67,14 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     def __str__(self):
-        return f'{self.email}'
+        return f'{self.email} {self.referral_code}'
 
  
     class Meta:
       db_table = 'auth_user'
-     
+   
+
+
 
 gender_choice = [
   ('Male', 'Male'),
@@ -86,8 +89,8 @@ from django.urls import reverse
 import uuid
 import random
 import string
-
-
+from django.dispatch import receiver
+from django.contrib.auth import get_user_model
 
 
 class Profile(models.Model):
@@ -101,6 +104,7 @@ class Profile(models.Model):
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, unique=True, related_name='profile')
     username = models.CharField(max_length=225, blank=True)
+    referral_code = models.CharField(max_length=225, blank=True)
     completed_topics = models.ManyToManyField('sms.Topics', blank=True)
     student_course = models.ForeignKey('sms.Courses', on_delete=models.SET_NULL, related_name='students', null=True)
     # courses =models.ForeignKey(Courses,blank=False ,default=1, on_delete=models.SET_NULL, related_name='coursesoooo', null= True)
@@ -119,18 +123,78 @@ class Profile(models.Model):
         return reverse('sms:userprofileupdateform', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name} profile'
+        return f'{self.first_name} {self.last_name} {self.referral_code} profile'
 
 
+# def userprofile_receiver(sender, instance, created, *args, **kwargs):
+#     if created:
+#         profile = Profile.objects.create(user=instance, 
+#                                          username=instance.username, 
+#                                          first_name =instance.first_name, 
+#                                          last_name =instance.last_name,
+#                                          countries =instance.countries,
+#                                          referral_code =instance.referral_code
+#                                          )
+@receiver(post_save, sender=get_user_model())
 def userprofile_receiver(sender, instance, created, *args, **kwargs):
     if created:
-        profile = Profile.objects.create(user=instance, 
-                                         username=instance.username, 
-                                         first_name =instance.first_name, 
-                                         last_name =instance.last_name,
-                                         countries =instance.countries
-                                        #  gender =instance.gender
-                                         )
+        Profile.objects.create(
+            user=instance,
+            username=instance.username,
+            first_name=instance.first_name,
+            last_name=instance.last_name,
+            countries=instance.countries,
+            referral_code=instance.referral_code
+        )
 
 post_save.connect(userprofile_receiver, sender=settings.AUTH_USER_MODEL)
 
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+# class ReferrerProfile(models.Model):
+#     user = models.OneToOneField(NewUser, on_delete=models.CASCADE)
+#     referral_code = models.CharField(max_length=20, unique=True, blank=True)
+#     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
+#     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
+
+#     def __str__(self):
+#         return f'Referrer Profile for {self.user.username}'
+
+#     def referred_students_count(self):
+#         return self.referred_students.count()
+
+
+# models.py
+from django.db import models
+from django.contrib.auth import get_user_model
+
+NewUser = get_user_model()
+
+class ReferrerProfile(models.Model):
+    user = models.OneToOneField(NewUser, on_delete=models.CASCADE)
+    referral_code = models.CharField(max_length=20, unique=True, blank=True)
+    referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
+    referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
+
+    def __str__(self):
+        return f'Referrer Profile for {self.user.username}'
+
+    def referred_students_count(self):
+        return self.referred_students.count()
+
+
+  
+# Signal to associate referred students with their referrers
+
+    @receiver(post_save, sender=NewUser)
+    def associate_referrer(sender, instance, created, **kwargs):
+        if created:
+            referral_code = instance.referral_code
+            if referral_code:
+                try:
+                    referrer_profile = ReferrerProfile.objects.get(referral_code=referral_code)
+                    referrer_profile.referred_students.add(instance.profile)
+                except ReferrerProfile.DoesNotExist:
+                    pass

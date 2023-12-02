@@ -101,6 +101,7 @@ class Profile(models.Model):
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, unique=True, related_name='profile')
     username = models.CharField(max_length=225, blank=True)
+    referral_code = models.CharField(max_length=224, blank=True)
     courses =models.ForeignKey(Courses,blank=False ,default=1, on_delete=models.SET_NULL, related_name='coursesoooo', null= True)
     first_name = models.CharField(max_length=225, blank=True, null=True)
     last_name = models.CharField(max_length=225, blank=True, null=True)
@@ -126,8 +127,8 @@ def userprofile_receiver(sender, instance, created, *args, **kwargs):
                                          username=instance.username, 
                                          first_name =instance.first_name, 
                                          last_name =instance.last_name,
-                                         countries =instance.countries
-                                        #  gender =instance.gender
+                                         countries =instance.countries,
+                                         referral_code =instance.referral_code
                                          )
 
 post_save.connect(userprofile_receiver, sender=settings.AUTH_USER_MODEL)
