@@ -51,9 +51,9 @@ class ProfileResource(resources.ModelResource):
         # fields = ('title',)
                
 class ProfileAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'user','username', 'first_name', 'last_name', 'referral_code' ,'gender', 'phone_number', 'countries','pro_img', 'bio', 'created','updated']
-    list_filter =  ['id', 'user','username', 'first_name', 'last_name', 'referral_code' ,'gender' ]
-    search_fields = ['id', 'user__email','user__first_name', 'referral_code' ,'user__last_name', 'username', 'gender']
+    list_display = ['id', 'user','username', 'first_name', 'last_name','gender', 'phone_number', 'countries','pro_img', 'bio', 'created','updated']
+    list_filter =  ['id', 'user','username', 'first_name', 'last_name','gender' ]
+    search_fields = ['id', 'user__email','user__first_name','user__last_name', 'username', 'gender']
     ordering = ['id']
     
     resource_class = ProfileResource
