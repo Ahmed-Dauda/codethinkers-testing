@@ -21,15 +21,15 @@ from sms.models import  Topics
 
 admin.site.register(PDFDocument)
 # admin.site.register(ReferrerMentor)
-# class ReferrerMentorAdmin(ImportExportModelAdmin):
-#     list_display = ['id', 'user', 'referrer']
-#     list_filter = ['id', 'user', 'referrer']
-#     search_fields = ['id', 'user', 'referrer']
-#     ordering = ['id']
+class ReferrerMentorAdmin(ImportExportModelAdmin):
+    list_display = ['id', 'name', 'learner', ' referrer_code', 'referrer', 'referred_students']
+    list_filter = ['id', 'user', 'referrer']
+    search_fields = ['id', 'name', 'referrer']
+    ordering = ['id']
 
-#     resource_class = ReferrerMentor
+    resource_class = ReferrerMentor
 
-# admin.site.register(ReferrerMentor, ReferrerMentorAdmin)
+admin.site.register(ReferrerMentor, ReferrerMentorAdmin)
 
 
 # admin.site.register(CertificatePayment)
