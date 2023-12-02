@@ -29,9 +29,9 @@ class NewUserResource(resources.ModelResource):
         # fields = ('title',)
                
 class NewUserAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'email','username', 'referral_code','phone_number', 'first_name', 'last_name','countries' ,'is_staff', 'is_superuser', 'is_active','last_login', 'date_joined']
-    list_filter =  ['id', 'email','username', 'referral_code','first_name', 'last_login']
-    search_fields = ['id', 'email','username', 'referral_code','first_name', 'last_login']
+    list_display = ['id', 'email','username','phone_number', 'first_name', 'last_name','countries' ,'is_staff', 'is_superuser', 'is_active','last_login', 'date_joined']
+    list_filter =  ['id', 'email','username','first_name', 'last_login']
+    search_fields = ['id', 'email','username', 'first_name', 'last_login']
     ordering = ['id']
     
     resource_class = NewUserResource
