@@ -6,32 +6,24 @@ from django.forms import ModelForm
 from django import forms
 from django.db import models 
 from sms.models import Comment
-# from users.models import NewUser, BaseUserManager, Profile
-
-# class signupform(UserCreationForm):
-#     """docstring for signupform"""
-#     # TODO: write code...
-    
-#     first_name = models.CharField(max_length = 225)
-#     last_name = models.CharField(max_length = 225)
-#     # email = models.EmailField(max_length = 225)
-    
-    
-#     class Meta:
-#         model = NewUser
-#         fields = [
-#             'first_name',
-#             'last_name',
-#             'country',
-#             'email',
-#             'password1',
-#             'password2'
-#             ]
-            
-
 from allauth.account.forms import SignupForm
 from django import forms
 from .models import *
+from users.models import NewUser
+
+# models.py
+
+from django.db import models
+
+# forms.py
+
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from .models import ReferrerProfile
+
+
+
+
 country_choice = [
     ('select country here', 'select country here'),('Nigeria', 'Nigeria'), ('United State', 'United State'), ('Afghanistan', 'Afghanistan'),
     ('Albania', 'Albania'),('Algeria', 'Algeria'), ('Andorra', 'Andorra'), ('Angola', 'Angola'),
@@ -49,20 +41,63 @@ country_choice = [
 
 ]
 
+
 class SimpleSignupForm(SignupForm):
     first_name = forms.CharField(max_length=12, label='First-name')
     last_name  = forms.CharField(max_length=225, label='Last-name')
-    # phone_number = forms.CharField(max_length=12, label='Phone-number')
+    referral_code = forms.CharField(max_length=20, required=False, label='Referral Code')
+    # phone_number = forms.CharField(max_length=225, label='phone number')
     countries = forms.ChoiceField(choices = country_choice, label='Country')
     
     def save(self, request):
         user = super(SimpleSignupForm, self).save(request)
         # user.phone_number = self.cleaned_data['phone_number']
+       
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
         user.countries = self.cleaned_data['countries']
+        user.referral_code  = self.cleaned_data['referral_code']
+        
         user.save()
+        
         return user
+
+
+
+
+
+# forms.py
+# from allauth.account.forms import SignupForm
+# from django import forms
+# from .models import ReferrerProfile  # Assuming you've created a ReferrerProfile model
+
+# class ReferrerSignupForm(SignupForm):
+#     first_name = forms.CharField(max_length=12, label='First-name')
+#     last_name = forms.CharField(max_length=225, label='Last-name')
+#     countries = forms.ChoiceField(choices=country_choice, label='Country')
+#     referral_code = forms.CharField(max_length=20, required=False, label='Referral Code')
+
+#     def save(self, request):
+#         user = super(ReferrerSignupForm, self).save(request)
+#         user.first_name = self.cleaned_data['first_name']
+#         user.last_name = self.cleaned_data['last_name']
+#         user.countries = self.cleaned_data['countries']
+#         user.save()
+
+#         # Process referral code and associate referrer
+#         referral_code = self.cleaned_data.get('referral_code')
+#         if referral_code:
+#             try:
+#                 referrer = ReferrerProfile.objects.get(referral_code=referral_code).user
+#                 user_profile, created = ReferrerProfile.objects.get_or_create(user=user)
+#                 user_profile.referrer = referrer
+#                 user_profile.save()
+#             except ReferrerProfile.DoesNotExist:
+#                 pass
+
+#         return user
+ 
+
 
 # from sms.models import smsform
 

@@ -507,7 +507,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         print("Primary key3:", courses)
 
     
-        user = self.request.user
+        user = self.request.user.email
         
         # Query the Payment model to get all payments related to the user and course
         related_payments = CertificatePayment.objects.filter(

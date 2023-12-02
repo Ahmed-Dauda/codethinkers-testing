@@ -178,7 +178,6 @@ def paystack_webhook(request):
     event = payload.get('event')
     data = payload.get('data')
   
-    # print('fffnn', first_name)
      # Check the event type
     if event == 'charge.success':
         # Extract information from the data
@@ -201,34 +200,21 @@ def paystack_webhook(request):
         print("content_type", content_type)
         print('url:', url_parts[-3])
 
-    # Check if the last part of the URL is a numeric "id"
-    if url_parts[-2].isdigit():
-        id_value = url_parts[-2]
-        print("Extracted ID:", id_value)
-    else:
-        id_value = None
+        # Check if the last part of the URL is a numeric "id"
+        if url_parts[-2].isdigit():
+            id_value = url_parts[-2]
+            print("Extracted ID:", id_value)
+        else:
+            id_value = None
 
-    # Assuming 'Courses' is the model for certificates, adjust as needed
-    course = get_object_or_404(QMODEL.Course, pk=id_value)
-    print("course printed:", course)
+        # Assuming 'Courses' is the model for certificates, adjust as needed
+        course = get_object_or_404(QMODEL.Course, pk=id_value)
+        print("course printed:", course)
+        recode = get_object_or_404(NewUser, email = email)
+        print("course printed: rrrrr", recode.referral_code)
 
-    # Check if a similar entry already exists
-    existing_entry = CertificatePayment.objects.filter(
-        ref=reference,
-        amount=paid_amount,
-        first_name=first_name,
-        last_name=last_name,
-        email=email,
-        verified=verified,
-        content_type=content_type,
-    ).first()
-
-    if existing_entry:
-        # Skip the update step if no specific updates are needed
-        pass
-    else:
-        # Create a new CertificatePayment instance
-        certpayment = CertificatePayment.objects.create(
+        # Check if a similar entry already exists
+        existing_entry = CertificatePayment.objects.filter(
             ref=reference,
             amount=paid_amount,
             first_name=first_name,
@@ -236,9 +222,26 @@ def paystack_webhook(request):
             email=email,
             verified=verified,
             content_type=content_type,
-        )
-        if course:
-            certpayment.courses.set([course.course_name])
+            referral_code = recode.referral_code,
+        ).first()
+
+        if existing_entry:
+            # Skip the update step if no specific updates are needed
+            pass
+        else:
+            # Create a new CertificatePayment instance
+            certpayment = CertificatePayment.objects.create(
+                ref=reference,
+                amount=paid_amount,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                verified=verified,
+                content_type=content_type,
+                referral_code = recode.referral_code,
+            )
+            if course:
+                certpayment.courses.set([course.course_name])
 
 
      
