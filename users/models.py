@@ -192,13 +192,13 @@ class ReferrerProfile(models.Model):
   
 # Signal to associate referred students with their referrers
 
-    @receiver(post_save, sender=NewUser)
-    def associate_referrer(sender, instance, created, **kwargs):
-        if created:
-            referral_code = instance.referral_code
-            if referral_code:
-                try:
-                    referrer_profile = ReferrerProfile.objects.get(referral_code=referral_code)
-                    referrer_profile.referred_students.add(instance.profile)
-                except ReferrerProfile.DoesNotExist:
-                    pass
+    # @receiver(post_save, sender=NewUser)
+    # def associate_referrer(sender, instance, created, **kwargs):
+    #     if created:
+    #         referral_code = instance.referral_code
+    #         if referral_code:
+    #             try:
+    #                 referrer_profile = ReferrerProfile.objects.get(referral_code=referral_code)
+    #                 referrer_profile.referred_students.add(instance.profile)
+    #             except ReferrerProfile.DoesNotExist:
+    #                 pass
