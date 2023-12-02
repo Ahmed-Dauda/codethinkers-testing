@@ -211,6 +211,7 @@ def paystack_webhook(request):
         course = get_object_or_404(QMODEL.Course, pk=id_value)
         print("course printed:", course)
         recode = get_object_or_404(NewUser, email = email)
+        recode = recode.referral_code
         print("course printed: rrrrr", recode.referral_code)
 
         # Check if a similar entry already exists
@@ -222,7 +223,7 @@ def paystack_webhook(request):
             email=email,
             verified=verified,
             content_type=content_type,
-            referral_code = recode.referral_code,
+            referral_code = recode,
         ).first()
 
         if existing_entry:
@@ -238,7 +239,7 @@ def paystack_webhook(request):
                 email=email,
                 verified=verified,
                 content_type=content_type,
-                referral_code = recode.referral_code,
+                referral_code = recode,
             )
             if course:
                 certpayment.courses.set([course.course_name])
