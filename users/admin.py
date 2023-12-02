@@ -3,7 +3,7 @@ from django.contrib import admin
 # Register your models here.
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-# from users.models import Profile, NewUser, ReferrerProfile
+from users.models import Profile, NewUser
 
 from quiz.models import Course, Question, Result
 
