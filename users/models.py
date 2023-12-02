@@ -47,7 +47,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(max_length=254, unique=True)
     username = models.CharField(max_length=35,  blank=True)
-    referral_code = models.CharField(max_length=225, blank=True)
+    referral_code = models.CharField(max_length=225, blank=True, null=True)
     phone_number = models.CharField(max_length=254, blank= True)
     first_name = models.CharField(max_length=254, null=True, blank=True)
     last_name = models.CharField(max_length=254, null=True, blank=True)
@@ -104,7 +104,7 @@ class Profile(models.Model):
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, unique=True, related_name='profile')
     username = models.CharField(max_length=225, blank=True)
-    referral_code = models.CharField(max_length=225, blank=True)
+    referral_code = models.CharField(max_length=225, blank=True, null=True)
     completed_topics = models.ManyToManyField('sms.Topics', blank=True)
     student_course = models.ForeignKey('sms.Courses', on_delete=models.SET_NULL, related_name='students', null=True)
     # courses =models.ForeignKey(Courses,blank=False ,default=1, on_delete=models.SET_NULL, related_name='coursesoooo', null= True)
@@ -174,7 +174,7 @@ NewUser = get_user_model()
 
 class ReferrerProfile(models.Model):
     user = models.OneToOneField(NewUser, on_delete=models.CASCADE)
-    referral_code = models.CharField(max_length=20, unique=True, blank=True)
+    referral_code = models.CharField(max_length=20, blank=True, null=True)
     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
 
