@@ -71,8 +71,8 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
 
  
     class Meta:
-         pass
-      # db_table = 'auth_user'
+        #  pass
+      db_table = 'auth_user'
 
 
 
