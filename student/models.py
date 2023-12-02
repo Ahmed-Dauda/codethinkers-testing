@@ -210,3 +210,13 @@ class Payment(models.Model):
         course_titles = ', '.join(course.title for course in self.courses.all())
         return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles}"
 
+
+class ReferrerMentor(models.Model):
+    name = models.CharField(max_length=20, blank=True, null=True)
+    # learner = models.OneToOneField(NewUser, on_delete=models.CASCADE, blank=True, null=True)
+    referrer_code = models.CharField(max_length=20, blank=True, null=True)
+    # referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
+    # referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
+
+    def __str__(self):
+        return f'Referrer Profile for {self.name}'

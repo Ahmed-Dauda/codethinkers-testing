@@ -1,6 +1,11 @@
 import imp
 from django.contrib import admin
-from student.models import Logo, Signature, Designcert, PartLogo, Payment,PDFDocument, DocPayment, CertificatePayment, EbooksPayment
+from student.models import (Logo, Signature, Designcert, 
+                            PartLogo, Payment,PDFDocument, 
+                            DocPayment, CertificatePayment, 
+                            EbooksPayment, ReferrerMentor
+                            )
+
 # from student.models import Cart,CartItem, Order, OrderItem
 
 from import_export.admin import ImportExportModelAdmin
@@ -15,7 +20,7 @@ from sms.models import  Topics
 
 
 admin.site.register(PDFDocument)
-# admin.site.register(DocPayment)
+admin.site.register(ReferrerMentor)
 
 
 # admin.site.register(CertificatePayment)
