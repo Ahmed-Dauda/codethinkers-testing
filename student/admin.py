@@ -24,23 +24,24 @@ admin.site.register(PDFDocument)
 
 class ReferrerMentorResource(resources.ModelResource):
     user = fields.Field(
-        column_name='learner',
-        attribute='learner',
-        widget=ForeignKeyWidget(NewUser, 'learner')
+        # column_name='referrer',
+        # attribute='referrer',
+        widget=ForeignKeyWidget(NewUser, 'referrer')
     )
 
     class Meta:
         model = ReferrerMentor
 
 class ReferrerMentorAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'name', 'referrer', 'learner']
-    list_filter = ['id', 'name', 'referrer']
-    search_fields = ['id', 'name', 'referrer']
+    list_display = ['id', 'name', 'referrer', 'referrer_code']
+    list_filter = ['id', 'name', 'referrer', 'referrer_code']
+    search_fields = ['id', 'name', 'referrer', 'referrer_code']
     ordering = ['id']
 
     resource_class = ReferrerMentorResource
 
 admin.site.register(ReferrerMentor, ReferrerMentorAdmin)
+
 
 
 # admin.site.register(CertificatePayment)
