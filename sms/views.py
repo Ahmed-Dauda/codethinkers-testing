@@ -186,7 +186,7 @@ class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Fetch the course and related information
+        # Fetch the course and related informations
         course = get_object_or_404(Courses, pk=self.kwargs["pk"])
         context['course'] = course
        
