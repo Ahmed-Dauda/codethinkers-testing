@@ -210,7 +210,7 @@ class Homepage1(ListView):
     def get_context_data(self, **kwargs): 
         context = super(Homepage1, self).get_context_data(**kwargs)
         
-        context['students'] = User.objects.all().count() + 1000
+        context['students'] = NewUser.objects.all().count() + 1000
         context['category'] = Categories.objects.count()
         context['coursecategory'] = Categories.objects.all()
         context['courses'] = Courses.objects.all().count()
