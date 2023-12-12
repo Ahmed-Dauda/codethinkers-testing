@@ -103,7 +103,7 @@ class Profile(models.Model):
   
     ]
 
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, unique=True, related_name='profile')
+    user = models.OneToOneField(NewUser, on_delete=models.CASCADE, unique=True, related_name='profile')
     username = models.CharField(max_length=225, blank=True)
     # referral_code = models.CharField(max_length=225, blank=True, null=True)
     completed_topics = models.ManyToManyField('sms.Topics', blank=True)
@@ -155,17 +155,6 @@ post_save.connect(userprofile_receiver, sender=settings.AUTH_USER_MODEL)
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-# class ReferrerProfile(models.Model):
-#     user = models.OneToOneField(NewUser, on_delete=models.CASCADE)
-#     referral_code = models.CharField(max_length=20, unique=True, blank=True)
-#     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
-#     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
-
-#     def __str__(self):
-#         return f'Referrer Profile for {self.user.username}'
-
-#     def referred_students_count(self):
-#         return self.referred_students.count()
 
 
 # models.py
