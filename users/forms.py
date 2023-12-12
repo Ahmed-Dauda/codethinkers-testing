@@ -42,25 +42,28 @@ country_choice = [
 ]
 
 
+# from django import forms
+# from allauth.account.forms import SignupForm
+
 class SimpleSignupForm(SignupForm):
     first_name = forms.CharField(max_length=12, label='First-name')
-    last_name  = forms.CharField(max_length=225, label='Last-name')
-    referral_code = forms.CharField(max_length=20, required=False, label='Referral Code')
-    # phone_number = forms.CharField(max_length=225, label='phone number')
-    countries = forms.ChoiceField(choices = country_choice, label='Country')
+    last_name = forms.CharField(max_length=225, label='Last-name')
+    # referral_code = forms.CharField(max_length=20, required=False, label='Referral Code')
+    phone_number = forms.CharField(max_length=225, label='Referral Code', widget=forms.TextInput(attrs={'placeholder': 'if available'}),required=False)
+    countries = forms.ChoiceField(choices=country_choice, label='Country')
     
     def save(self, request):
         user = super(SimpleSignupForm, self).save(request)
-        # user.phone_number = self.cleaned_data['phone_number']
-       
+        user.phone_number = self.cleaned_data.get('phone_number', '')  # Use get() to handle the case when phone_number is not provided.
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
         user.countries = self.cleaned_data['countries']
-        user.referral_code  = self.cleaned_data['referral_code']
+        # user.referral_code  = self.cleaned_data['referral_code']
         
         user.save()
         
         return user
+
 
 
 
