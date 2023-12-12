@@ -126,10 +126,6 @@ class Profile(models.Model):
       return f'{self.first_name} {self.last_name}'
 
 
-    # def __str__(self):
-    #     return f'{self.first_name} {self.last_name} {self.referral_code} profile'
-
-
 # def userprofile_receiver(sender, instance, created, *args, **kwargs):
 #     if created:
 #         profile = Profile.objects.create(user=instance, 
@@ -139,6 +135,8 @@ class Profile(models.Model):
 #                                          countries =instance.countries,
 #                                          referral_code =instance.referral_code
 #                                          )
+
+
 @receiver(post_save, sender=get_user_model())
 def userprofile_receiver(sender, instance, created, *args, **kwargs):
     if created:
