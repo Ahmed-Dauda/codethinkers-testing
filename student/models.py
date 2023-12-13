@@ -215,6 +215,7 @@ class Payment(models.Model):
 class ReferrerMentor(models.Model):
     name = models.CharField(max_length=20, blank=True, null=True)
     # learner = models.OneToOneField(NewUser, on_delete=models.CASCADE, blank=True, null=True)
+    courses = models.ManyToManyField(Courses ,related_name='referrercourses',blank=True)
     referrer_code = models.CharField(max_length=20, blank=True, null=True)
     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
