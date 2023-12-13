@@ -392,7 +392,7 @@ TINYMCE_JS_URL = 'https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js'
 # PAYSTACK_SECRET_KEY = os.environ.get('sk_test_75e53acfea9e04b0c52c3c3c6c46281c844a706a')
 # PAYSTACK_PUBLIC_KEY = os.environ.get('pk_test_72337ad2f9419ff6eb3204519bb884067c075ed8')
 
-# test api
+# test apii
 # PAYSTACK_SECRET_KEY = 'sk_test_75e53acfea9e04b0c52c3c3c6c46281c844a706a'
 # PAYSTACK_PUBLIC_KEY = 'pk_test_72337ad2f9419ff6eb3204519bb884067c075ed8'
 
