@@ -57,10 +57,10 @@ class CertificatePaymentResource(resources.ModelResource):
         # fields = ('title',)
 
 class CertificatePaymentAdmin(ImportExportModelAdmin):
-    list_display = ['id','amount','ref', 'first_name', 'last_name', 'content_type', 'email', 'verified', 'date_created']
+    list_display = ['id','amount','ref', 'f_code','first_name', 'last_name', 'content_type', 'email', 'verified', 'date_created']
     # prepopulated_fields = {"courses": ("courses",)}
-    list_filter = ['amount', 'courses__title','ref', 'email','date_created']
-    search_fields = ['id', 'amount', 'courses__title','date_created', 'email']  # Use double underscore for related fields
+    list_filter = ['amount', 'f_code','courses__title','ref', 'email','date_created']
+    search_fields = ['id', 'amount', 'f_code','courses__title','date_created', 'email']  # Use double underscore for related fields
     ordering = ['amount']
     resource_class = CertificatePaymentResource
 

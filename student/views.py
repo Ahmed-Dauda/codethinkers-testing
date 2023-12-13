@@ -223,7 +223,7 @@ def paystack_webhook(request):
             email=email,
             verified=verified,
             content_type=content_type,
-            # referral_code = recode,
+            f_code = recode,
         ).first()
 
         if existing_entry:
@@ -239,7 +239,7 @@ def paystack_webhook(request):
                 email=email,
                 verified=verified,
                 content_type=content_type,
-                # referral_code = recode,
+                f_code = recode,
             )
             if course:
                 certpayment.courses.set([course.course_name])
