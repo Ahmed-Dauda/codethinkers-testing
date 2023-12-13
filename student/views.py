@@ -225,6 +225,8 @@ def paystack_webhook(request):
             content_type=content_type,
             f_code = recode,
         ).first()
+        if course:
+                certpayment.courses.set([course.course_name])
 
         if existing_entry:
             # Skip the update step if no specific updates are needed

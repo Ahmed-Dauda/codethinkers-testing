@@ -55,12 +55,14 @@ class CertificatePaymentResource(resources.ModelResource):
     class Meta:
         model = CertificatePayment
         # fields = ('title',)
+from import_export.admin import ImportExportModelAdmin
+from django.utils.html import format_html
+
 
 class CertificatePaymentAdmin(ImportExportModelAdmin):
-    list_display = ['id','amount','ref', 'f_code','first_name', 'last_name', 'content_type', 'email', 'verified', 'date_created']
-    # prepopulated_fields = {"courses": ("courses",)}
-    list_filter = ['amount', 'f_code','courses__title','ref', 'email','date_created']
-    search_fields = ['id', 'amount', 'f_code','courses__title','date_created', 'email']  # Use double underscore for related fields
+    list_display = ['id', 'amount', 'ref', 'f_code', 'get_courses_titles', 'first_name', 'last_name', 'content_type', 'email', 'verified', 'date_created']
+    list_filter = ['amount', 'f_code', 'courses__title', 'ref', 'email', 'date_created']
+    search_fields = ['id', 'amount', 'f_code', 'courses__title', 'date_created', 'email']
     ordering = ['amount']
     resource_class = CertificatePaymentResource
 
@@ -68,9 +70,25 @@ class CertificatePaymentAdmin(ImportExportModelAdmin):
         # Get a comma-separated list of course titles
         return ', '.join(course.title for course in obj.courses.all())
 
-    
+    get_courses_titles.short_description = 'Courses'  # Set a user-friendly name for the column
 
 admin.site.register(CertificatePayment, CertificatePaymentAdmin)
+
+# class CertificatePaymentAdmin(ImportExportModelAdmin):
+#     list_display = ['id','amount','ref', 'f_code', 'first_name', 'last_name', 'content_type', 'email', 'verified', 'date_created']
+#     # prepopulated_fields = {"courses": ("courses",)}
+#     list_filter = ['amount', 'f_code','courses__title','ref', 'email','date_created']
+#     search_fields = ['id', 'amount', 'f_code','courses__title','date_created', 'email']  # Use double underscore for related fields
+#     ordering = ['amount']
+#     resource_class = CertificatePaymentResource
+
+#     def get_courses_titles(self, obj):
+#         # Get a comma-separated list of course titles
+#         return ', '.join(course.title for course in obj.courses.all())
+
+    
+
+# admin.site.register(CertificatePayment, CertificatePaymentAdmin)
 
 
 admin.site.register(EbooksPayment)
