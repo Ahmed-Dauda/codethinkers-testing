@@ -47,7 +47,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(max_length=254, unique=True)
     username = models.CharField(max_length=35,  blank=True)
-    referral_code = models.CharField(max_length=225, blank=True, null=True)
+    # referral_code = models.CharField(max_length=225, blank=True, null=True)
     phone_number = models.CharField(max_length=254, blank= True)
     first_name = models.CharField(max_length=254, null=True, blank=True)
     last_name = models.CharField(max_length=254, null=True, blank=True)
