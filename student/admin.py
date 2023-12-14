@@ -33,7 +33,7 @@ class ReferrerMentorResource(resources.ModelResource):
         model = ReferrerMentor
 
 class ReferrerMentorAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'name', 'referrer', 'get_f_code_count', 'get_total_amount','referrer_code']
+    list_display = ['id', 'name', 'referrer', 'get_f_code_count', 'get_total_amount','referrer_code', 'date_created']
     list_filter = ['id', 'name', 'referrer', 'referrer_code']
     search_fields = ['id', 'name', 'referrer', 'referrer_code']
     ordering = ['id']
@@ -51,9 +51,9 @@ class ReferrerMentorAdmin(ImportExportModelAdmin):
     get_f_code_count.short_description = 'f_code Count'
 
     def get_total_amount(self, obj):
-        return CertificatePayment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum']
+        return CertificatePayment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum']/2
 
-    get_total_amount.short_description = 'Total Amount'
+    get_total_amount.short_description = 'Total Amount (#)'
 
 
 admin.site.register(ReferrerMentor, ReferrerMentorAdmin)

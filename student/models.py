@@ -215,19 +215,32 @@ class Payment(models.Model):
 from django.db import models
 from django.contrib import admin
 
+from django.db import models
+from django.db.models import Count, Sum
+
 class ReferrerMentor(models.Model):
     name = models.CharField(max_length=20, blank=True, null=True)
     courses = models.ManyToManyField(Courses, related_name='referrercourses', blank=True)
     referrer_code = models.CharField(max_length=20, blank=True, null=True)
-    referred_count = models.ForeignKey(CertificatePayment, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_count')
     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
+    date_created = models.DateTimeField(auto_now_add=True, null=True)
 
-    def get_referred_students_count(self):
+    @property
+    def referred_students_count(self):
         return self.referred_students.count()
 
-    def get_f_code_count(self):
+    @property
+    def f_code_count(self):
         return CertificatePayment.objects.filter(f_code=self.referrer_code).count()
+
+    @property
+    def total_amount(self):
+        return CertificatePayment.objects.filter(f_code=self.referrer_code).aggregate(Sum('amount'))['amount__sum']
+
+    @property
+    def related_payments(self):
+        return CertificatePayment.objects.filter(f_code=self.referrer_code)
 
     def __str__(self):
         return f'Referrer Profile for {self.name}'

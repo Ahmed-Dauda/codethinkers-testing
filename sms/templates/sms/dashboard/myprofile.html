@@ -52,6 +52,94 @@
   </div>
  
   {% endfor %}
+
+  <hr>
+<!-- Assuming your template is myprofile.html -->
+
+
+
+<!-- Assuming your template is myprofile.html -->
+
+<!-- Assuming your template is myprofile.html -->
+
+<!-- Assuming your template is myprofile.html -->
+
+
+
+{% if referrer_mentor %}
+  <!-- Referrer Information -->
+  <h2 style="color: red;">Referrer Information</h2>
+  <table border="1">
+    <tr>
+      <th>Referral Code</th>
+      <th>Referred Students Count</th>
+      <th>F Code Count</th>
+      <th>Total Amount (#)</th>
+    </tr>
+    <tr>
+      <td>{{ referrer_mentor.referrer_code }}</td>
+      <td>{{ referrer_mentor.f_code_count  }}</td>
+      <td>{{ referrer_mentor.f_code_count }}</td>
+      <td>{{ total_amount }}</td>
+    </tr>
+  </table>
+
+  <br>
+  <!-- Referred Students -->
+  <h2>Referred Students</h2>
+  <ul>
+    {% for student in referrer_mentor.referred_students.all %}
+      <li>{{ student.username }}</li>
+    {% endfor %}
+  </ul>
+
+  <!-- Payments and Courses -->
+  <h2>Payments and Courses</h2>
+  <table border="1">
+    <tr>
+      <th>Names</th>
+      <th>Amount (#)</th>
+      <th>Courses</th>
+      <th>Date of Payment</th>
+    </tr>
+    {% for payment in referrer_mentor.related_payments %}
+      <tr>
+        <td>{{ payment.first_name }} {{ payment.last_name }}</td>
+        <td>{{ payment.amount }}</td>
+        <td>{{ payment.courses.all|join:", " }}</td>
+        <td>{{ payment.date_created }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+
+{% else %}
+  <p>You are not a referrer. If you have a referrer, they can provide you with a referral code.</p>
+{% endif %}
+
+
+<!-- {% if referrer_mentor %}
+  <h2 style="color: red;">Referrer Information</h2>
+  <table border="1">
+    <tr>
+      <th>Referral Code</th>
+      <th>Referred Students Count</th>
+      <th>F Code Count</th>
+      <th>Total Amount </th>
+    </tr>
+    <tr>
+      <td>{{ referrer_code }}</td>
+      <td>{{ f_code_count }}</td>
+      <td>{{ f_code_count }}</td>
+      <td>#{{ total_amount }}</td>
+    </tr>
+  </table>
+{% else %}
+  <p>You are not a referrer. If you have a referrer, they can provide you with a referral code.</p>
+{% endif %} -->
+
+<!-- Include other parts of your profile template as needed -->
+
+  <hr>
   </div>
   </div>
   <br><br><br>
