@@ -920,12 +920,19 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
             referred_students_count = referrer_mentor.referred_students_count
             f_code_count = referrer_mentor.f_code_count
             total_amount = referrer_mentor.total_amount/2
-            
+            account_number = referrer_mentor.account_number
+            account_name = referrer_mentor.name
+            bank = referrer_mentor.bank
+            phone_no = referrer_mentor.phone_no
             context['referrer_mentor'] = referrer_mentor
             context['referred_students_count'] = referred_students_count
             context['f_code_count'] = f_code_count
             context['total_amount'] = total_amount
             context['referrer_code'] = referrer_mentor.referrer_code
+            context['account_number'] =  account_number
+            context['account_name'] =  account_name
+            context['phone_no'] =  phone_no
+            context['bank'] =  bank
 
         except ReferrerMentor.DoesNotExist:
             # Handle the case when ReferrerMentor is not found for the user
@@ -934,9 +941,39 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
             context['f_code_count'] = 0
             context['total_amount'] = 0
             context['referrer_code'] = 'Apply'
+            context['account_number'] =  'NIL'
+            context['account_name'] =  'NIL'
+            context['bank'] =  'NIL'
+            context['phone_no'] =  'NIL'
 
         return context
 # end
+
+#update form for referrer mentors
+
+from student.models import ReferrerMentor
+from student.forms import ReferrerMentorUpdateForm
+
+
+# views.py
+from django.shortcuts import render, get_object_or_404
+
+
+def update_referrer_mentor(request, pk):
+    referrer_mentor = get_object_or_404(ReferrerMentor, pk=pk)
+
+    if request.method == 'POST':
+        form = ReferrerMentorUpdateForm(request.POST, instance=referrer_mentor)
+        if form.is_valid():
+            form.save()
+            # Redirect to a success page or do something else
+            return redirect('sms:myprofile')
+    else:
+        form = ReferrerMentorUpdateForm(instance=referrer_mentor)
+
+    return render(request, 'student/dashboard/update_referrer_mentor.html', {'form': form, 'referrer_mentor': referrer_mentor})
+
+#end
 
 # class UserProfilelistview(LoginRequiredMixin, ListView):
 #     models = Profile

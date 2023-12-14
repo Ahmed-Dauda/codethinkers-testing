@@ -64,10 +64,18 @@
 
 <!-- Assuming your template is myprofile.html -->
 
+<!-- Add these fields to your form -->
+<!-- <form method="post" action="{% url 'student:referrer_mentor_detail' pk=referrer_mentor.pk %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Update Account</button>
+</form> -->
 
 
 {% if referrer_mentor %}
   <!-- Referrer Information -->
+  <a href="{% url 'student:referrer_mentor_detail' pk=referrer_mentor.pk %}" target="_blank" rel="noopener noreferrer">Update Account <Details></Details></a>
+
   <h2 style="color: red;">Referrer Information</h2>
   <table border="1">
     <tr>
@@ -75,12 +83,22 @@
       <th>Referred Students Count</th>
       <th>F Code Count</th>
       <th>Total Amount (#)</th>
+      
+      <th>Account Name</th>
+      <th>Account Number</th>
+      <th>Bank</th>
+      <th>Pnone Number</th>
     </tr>
     <tr>
       <td>{{ referrer_mentor.referrer_code }}</td>
       <td>{{ referrer_mentor.f_code_count  }}</td>
       <td>{{ referrer_mentor.f_code_count }}</td>
       <td>{{ total_amount }}</td>
+      
+      <td>{{ account_name }}</td>
+      <td>{{ account_number }}</td>
+      <td>{{ bank }}</td>
+      <td>{{ phone_no }}</td>
     </tr>
   </table>
 
