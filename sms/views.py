@@ -919,7 +919,17 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
             referrer_mentor = ReferrerMentor.objects.get(referrer=self.request.user)
             referred_students_count = referrer_mentor.referred_students_count
             f_code_count = referrer_mentor.f_code_count
-            total_amount = referrer_mentor.total_amount/2
+            # Assuming total_amount is the value you're trying to divide
+
+            # total_amount = referrer_mentor.total_amount/2
+            total_amount = referrer_mentor.total_amount
+
+            if total_amount is not None:
+                total_amount /= 2
+            else:
+                # Handle the case where total_amount is None, if needed
+                pass
+
             account_number = referrer_mentor.account_number
             account_name = referrer_mentor.name
             bank = referrer_mentor.bank
