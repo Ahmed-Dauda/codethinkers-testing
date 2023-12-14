@@ -76,7 +76,7 @@
   <!-- Referrer Information -->
   <a href="{% url 'student:referrer_mentor_detail' pk=referrer_mentor.pk %}" target="_blank" rel="noopener noreferrer">Update Account <Details></Details></a>
 
-  <h3 style="color: green; text-align: center;">Note: Your earining is 50% of the certificates purchased</h3>
+  <h3 style="color: green; text-align: center;">Note: Your earning is 50% of the certificates purchased</h3>
   <h2 style="color: red;">Referrer Information</h2>
   <table border="1">
     <tr>
@@ -103,9 +103,9 @@
     </tr>
   </table>
 
-  <br>
+  <br> <br> <hr>
   <!-- Referred Students -->
-  <h2>Referred Students</h2>
+  <h3 style="color: red;">Referred Students and course(s)</h3>
   <!-- <ul>
     {% for student in referrer_mentor.referred_students.all %}
       <li>{{ student.username }}</li>
@@ -113,7 +113,7 @@
   </ul> -->
 
   <!-- Payments and Courses -->
-  <h2>Payments and Courses</h2>
+  <!-- <h2>Payments and Courses</h2> -->
   <table border="1">
     <tr>
       <th>Names</th>
