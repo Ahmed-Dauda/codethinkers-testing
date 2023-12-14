@@ -7,7 +7,7 @@ from student.models import (Logo, Signature, Designcert,
                             )
 
 # from student.models import Cart,CartItem, Order, OrderItem
-
+from django.db.models import Sum
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields,resources
 from import_export.widgets import ForeignKeyWidget
@@ -33,12 +33,28 @@ class ReferrerMentorResource(resources.ModelResource):
         model = ReferrerMentor
 
 class ReferrerMentorAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'name', 'referrer', 'referrer_code']
+    list_display = ['id', 'name', 'referrer', 'get_f_code_count', 'get_total_amount','referrer_code']
     list_filter = ['id', 'name', 'referrer', 'referrer_code']
     search_fields = ['id', 'name', 'referrer', 'referrer_code']
     ordering = ['id']
 
     resource_class = ReferrerMentorResource
+
+    def get_referred_students_count(self, obj):
+        return obj.referred_students.count()
+
+    get_referred_students_count.short_description = 'Referred Students Count'
+    
+    def get_f_code_count(self, obj):
+        return CertificatePayment.objects.filter(f_code=obj.referrer_code).count()
+
+    get_f_code_count.short_description = 'f_code Count'
+
+    def get_total_amount(self, obj):
+        return CertificatePayment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum']
+
+    get_total_amount.short_description = 'Total Amount'
+
 
 admin.site.register(ReferrerMentor, ReferrerMentorAdmin)
 

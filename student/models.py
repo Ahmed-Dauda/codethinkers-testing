@@ -212,13 +212,49 @@ class Payment(models.Model):
         return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles}"
 
 
+from django.db import models
+from django.contrib import admin
+
 class ReferrerMentor(models.Model):
     name = models.CharField(max_length=20, blank=True, null=True)
-    # learner = models.OneToOneField(NewUser, on_delete=models.CASCADE, blank=True, null=True)
-    courses = models.ManyToManyField(Courses ,related_name='referrercourses',blank=True)
+    courses = models.ManyToManyField(Courses, related_name='referrercourses', blank=True)
     referrer_code = models.CharField(max_length=20, blank=True, null=True)
+    referred_count = models.ForeignKey(CertificatePayment, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_count')
     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
 
+    def get_referred_students_count(self):
+        return self.referred_students.count()
+
+    def get_f_code_count(self):
+        return CertificatePayment.objects.filter(f_code=self.referrer_code).count()
+
     def __str__(self):
         return f'Referrer Profile for {self.name}'
+
+# class ReferrerMentor(models.Model):
+#     name = models.CharField(max_length=20, blank=True, null=True)
+#     courses = models.ManyToManyField(Courses, related_name='referrercourses', blank=True)
+#     referrer_code = models.CharField(max_length=20, blank=True, null=True)
+#     referred_count = models.ForeignKey(CertificatePayment, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_count')
+#     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
+#     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
+
+#     def get_referred_students_count(self):
+#         return self.referred_students.count()
+
+#     def __str__(self):
+#         return f'Referrer Profile for {self.name}'
+
+
+
+# class ReferrerMentor(models.Model):
+#     name = models.CharField(max_length=20, blank=True, null=True)
+#     # learner = models.OneToOneField(NewUser, on_delete=models.CASCADE, blank=True, null=True)
+#     courses = models.ManyToManyField(Courses ,related_name='referrercourses',blank=True)
+#     referrer_code = models.CharField(max_length=20, blank=True, null=True)
+#     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
+#     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
+
+#     def __str__(self):
+#         return f'Referrer Profile for {self.name}'
