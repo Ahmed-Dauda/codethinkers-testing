@@ -51,7 +51,14 @@ class ReferrerMentorAdmin(ImportExportModelAdmin):
     get_f_code_count.short_description = 'f_code Count'
 
     def get_total_amount(self, obj):
-        return CertificatePayment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum']/2
+        total_amount = CertificatePayment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum']
+
+        if total_amount is not None:
+            return total_amount / 2
+        else:
+            return 0  # 
+    
+        # return CertificatePayment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum']/2
 
     get_total_amount.short_description = 'Total Amount (#)'
 
