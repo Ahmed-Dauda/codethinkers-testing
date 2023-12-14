@@ -895,7 +895,9 @@ class MarkTopicCompleteView(View):
 #         return context
 
        
+from student.models import ReferrerMentor
 
+from django.shortcuts import get_object_or_404
 
 class UserProfilelistview(LoginRequiredMixin, ListView):
     models = Profile
@@ -908,14 +910,61 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user_pro = self.request.user
-        context['user_profile'] = Profile.objects.filter(user = self.request.user)
-        course=QMODEL.Course.objects.all()
-        context['courses']=QMODEL.Course.objects.all()
-        # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
-        student = Profile.objects.filter(user_id=self.request.user.id)
-        context['results']= QMODEL.Result.objects.order_by('-marks')
+        context['user_profile'] = Profile.objects.filter(user=self.request.user)
+        context['courses'] = QMODEL.Course.objects.all()
+        context['results'] = QMODEL.Result.objects.order_by('-marks')
+
+        try:
+            # Referrer account
+            referrer_mentor = ReferrerMentor.objects.get(referrer=self.request.user)
+            referred_students_count = referrer_mentor.referred_students_count
+            f_code_count = referrer_mentor.f_code_count
+            total_amount = referrer_mentor.total_amount/2
+            
+            context['referrer_mentor'] = referrer_mentor
+            context['referred_students_count'] = referred_students_count
+            context['f_code_count'] = f_code_count
+            context['total_amount'] = total_amount
+            context['referrer_code'] = referrer_mentor.referrer_code
+
+        except ReferrerMentor.DoesNotExist:
+            # Handle the case when ReferrerMentor is not found for the user
+            context['referrer_mentor'] = 0
+            context['referred_students_count'] = 0
+            context['f_code_count'] = 0
+            context['total_amount'] = 0
+            context['referrer_code'] = 'Apply'
+
         return context
 # end
+
+# class UserProfilelistview(LoginRequiredMixin, ListView):
+#     models = Profile
+#     template_name = 'sms/dashboard/myprofile.html'
+#     count_hit = True
+   
+#     def get_queryset(self):
+#         return Profile.objects.all()
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         user_pro = self.request.user
+#         context['user_profile'] = Profile.objects.filter(user = self.request.user)
+#         course=QMODEL.Course.objects.all()
+#         context['courses']=QMODEL.Course.objects.all()
+#         # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
+#         student = Profile.objects.filter(user_id=self.request.user.id)
+#         context['results']= QMODEL.Result.objects.order_by('-marks')
+
+#         #referrer account
+#         referrer_mentor = ReferrerMentor.objects.get(referrer=self.request.user)
+
+#         referred_students_count = referrer_mentor.referred_students_count
+#         f_code_count = referrer_mentor.f_code_count
+#         total_amount = referrer_mentor.total_amount
+
+#         return context
+# # end
 
 
 
