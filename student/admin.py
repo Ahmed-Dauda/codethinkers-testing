@@ -33,7 +33,7 @@ class ReferrerMentorResource(resources.ModelResource):
         model = ReferrerMentor
 
 class ReferrerMentorAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'name', 'referrer', 'get_f_code_count', 'get_total_amount','referrer_code', 'date_created']
+    list_display = ['id', 'name', 'referrer', 'get_f_code_count', 'get_total_amount','referrer_code', 'account_number','bank','phone_no','date_created']
     list_filter = ['id', 'name', 'referrer', 'referrer_code']
     search_fields = ['id', 'name', 'referrer', 'referrer_code']
     ordering = ['id']

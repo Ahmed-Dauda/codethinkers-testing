@@ -224,6 +224,9 @@ class ReferrerMentor(models.Model):
     referrer_code = models.CharField(max_length=20, blank=True, null=True)
     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
+    account_number = models.CharField(max_length=20, blank=True, null=True)
+    bank = models.CharField(max_length=50, blank=True, null=True)
+    phone_no = models.CharField(max_length=50, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
 
     @property
