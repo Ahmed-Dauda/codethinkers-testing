@@ -14,7 +14,7 @@ from import_export.widgets import ForeignKeyWidget
 from django.contrib import admin
 from users.models import NewUser
 from .models import  Question, Choice
-
+from django.db.models import Q 
 from sms.models import  Topics
 
 
@@ -33,7 +33,10 @@ class ReferrerMentorResource(resources.ModelResource):
         model = ReferrerMentor
 
 class ReferrerMentorAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'name', 'referrer', 'get_f_code_count', 'get_total_amount','referrer_code', 'account_number','bank','phone_no','date_created']
+    list_display = [
+        'id', 'name', 'referrer', 'get_f_code_count', 'get_total_amount',
+        'referrer_code', 'account_number', 'bank', 'phone_no', 'date_created'
+    ]
     list_filter = ['id', 'name', 'referrer', 'referrer_code']
     search_fields = ['id', 'name', 'referrer', 'referrer_code']
     ordering = ['id']
@@ -44,11 +47,12 @@ class ReferrerMentorAdmin(ImportExportModelAdmin):
         return obj.referred_students.count()
 
     get_referred_students_count.short_description = 'Referred Students Count'
-    
+
     def get_f_code_count(self, obj):
         return CertificatePayment.objects.filter(f_code=obj.referrer_code).count()
 
     get_f_code_count.short_description = 'f_code Count'
+
 
     def get_total_amount(self, obj):
         total_amount = CertificatePayment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum']
@@ -57,10 +61,14 @@ class ReferrerMentorAdmin(ImportExportModelAdmin):
             return total_amount / 2
         else:
             return 0  # 
-    
-        # return CertificatePayment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum']/2
 
     get_total_amount.short_description = 'Total Amount (#)'
+
+    def related_payments(self, obj):
+        payments = CertificatePayment.objects.filter(f_code=obj.referrer_code)
+        return ", ".join([f"{payment.amount} ({', '.join(payment.courses.values_list('title', flat=True))})" for payment in payments])
+
+    related_payments.short_description = 'Related Payments'
 
 
 admin.site.register(ReferrerMentor, ReferrerMentorAdmin)

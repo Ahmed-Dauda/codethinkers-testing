@@ -214,7 +214,7 @@ class Payment(models.Model):
 
 from django.db import models
 from django.contrib import admin
-
+from django.db.models import Count, Q
 from django.db import models
 from django.db.models import Count, Sum
 
@@ -232,6 +232,11 @@ class ReferrerMentor(models.Model):
     @property
     def referred_students_count(self):
         return self.referred_students.count()
+    
+    @property
+    def referred_students_phone_numbers(self):
+        return self.referred_students.values_list('phone_number', flat=True)
+    
 
     @property
     def f_code_count(self):
@@ -244,6 +249,8 @@ class ReferrerMentor(models.Model):
     @property
     def related_payments(self):
         return CertificatePayment.objects.filter(f_code=self.referrer_code)
+    
+  
 
     def __str__(self):
         return f'Referrer Profile for {self.name}'
