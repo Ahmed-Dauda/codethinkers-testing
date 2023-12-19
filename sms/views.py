@@ -503,9 +503,9 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # maincourses = Courses.objects.get(pk=self.kwargs["pk"])
 
         course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
-        print("Primary key1:", course.course_name.cert_price)
-        print("Primary key:", course.course_name.id)
-        print("Primary key3:", courses)
+        # print("Primary key1:", course.course_name.cert_price)
+        # print("Primary key:", course.course_name.id)
+        # print("Primary key3:", courses)
 
     
         user = self.request.user.email
@@ -515,7 +515,9 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
             email=user, courses=course.course_name.id,
             amount=course.course_name.cert_price)
 
+
         context['related_payments'] = related_payments
+    
        
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
 
