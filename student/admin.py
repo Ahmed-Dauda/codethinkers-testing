@@ -55,7 +55,7 @@ class ReferrerMentorAdmin(ImportExportModelAdmin):
 
     def Count_of_students_referred(self, obj):
   
-        # Use a list comprehension to get phone numbers, joined by commas
+        # Use a list comprehension to get phone numbers, join by commas
         phone_numbers = NewUser.objects.filter(phone_number=obj.referrer_code)
         # print('phone nu', phone_numbers)
         return len(phone_numbers)
