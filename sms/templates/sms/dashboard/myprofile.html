@@ -81,26 +81,26 @@
   <div style="overflow-x: auto;">
     <table style="border-collapse: collapse; width: 100%;" border="1">
       <tr>
-        <th style="border: 1px solid black;">Referral Code</th>
-        <th style="border: 1px solid black;">Purchased Certificate</th>
-        <th style="border: 1px solid black;">Referred Students Count</th>
-        <th style="border: 1px solid black;">F Code Count</th>
-        <th style="border: 1px solid black;">Total Earnings (#)</th>
-        <th style="border: 1px solid black;">Account Name</th>
-        <th style="border: 1px solid black;">Account Number</th>
-        <th style="border: 1px solid black;">Bank</th>
-        <th style="border: 1px solid black;">Phone Number</th>
+        <th style="border: 1px solid black; text-align: center;">Referral Code</th>
+        <th style="border: 1px solid black; text-align: center;">Purchased Certificate</th>
+        <th style="border: 1px solid black; text-align: center;">Referred Students Count</th>
+        <th style="border: 1px solid black; text-align: center;">F Code Count</th>
+        <th style="border: 1px solid black; text-align: center;">Total Earnings (#)</th>
+        <th style="border: 1px solid black; text-align: center;">Account Name</th>
+        <th style="border: 1px solid black; text-align: center;">Account Number</th>
+        <th style="border: 1px solid black; text-align: center;">Bank</th>
+        <th style="border: 1px solid black; text-align: center;">Phone Number</th>
       </tr>
       <tr>
-        <td style="border: 1px solid black;">{{ referrer_mentor.referrer_code }}</td>
-        <td style="border: 1px solid black;">{{ referrer_mentor.f_code_count  }}</td>
-        <td style="border: 1px solid black;">{{ count_of_students_referred  }}</td>
-        <td style="border: 1px solid black;">{{ referrer_mentor.f_code_count }}</td>
-        <td style="border: 1px solid black;">{{ total_amount }}</td>
-        <td style="border: 1px solid black;">{{ account_name }}</td>
-        <td style="border: 1px solid black;">{{ account_number }}</td>
-        <td style="border: 1px solid black;">{{ bank }}</td>
-        <td style="border: 1px solid black;">{{ phone_no }}</td>
+        <td style="border: 1px solid black; text-align: center;">{{ referrer_mentor.referrer_code }}</td>
+        <td style="border: 1px solid black; text-align: center;">{{ referrer_mentor.f_code_count }}</td>
+        <td style="border: 1px solid black; text-align: center;">{{ count_of_students_referred }}</td>
+        <td style="border: 1px solid black; text-align: center;">{{ referrer_mentor.f_code_count }}</td>
+        <td style="border: 1px solid black; text-align: center;">{{ total_amount }}</td>
+        <td style="border: 1px solid black; text-align: center;">{{ account_name }}</td>
+        <td style="border: 1px solid black; text-align: center;">{{ account_number }}</td>
+        <td style="border: 1px solid black; text-align: center;">{{ bank }}</td>
+        <td style="border: 1px solid black; text-align: center;">{{ phone_no }}</td>
       </tr>
       <!-- Add more rows as needed -->
     </table>
@@ -120,25 +120,26 @@
   <div style="overflow-x: auto;">
     <table style="border-collapse: collapse; width: 100%;" border="1">
       <tr>
-        <th style="border: 1px solid black;">Names</th>
-        <th style="border: 1px solid black;">Amount (#)</th>
-        <th style="border: 1px solid black;">Courses</th>
-        <th style="border: 1px solid black;">Date of Payment</th>
+        <th style="border: 1px solid black; text-align: center;">Names</th>
+        <th style="border: 1px solid black; text-align: center;">Amount (#)</th>
+        <th style="border: 1px solid black; text-align: center;">Courses</th>
+        <th style="border: 1px solid black; text-align: center;">Date of Payment</th>
       </tr>
       {% for payment in referrer_mentor.related_payments %}
         <tr>
-          <td style="border: 1px solid black;">{{ payment.first_name }} {{ payment.last_name }}</td>
-          <td style="border: 1px solid black;">{{ payment.amount }}</td>
-          <td style="border: 1px solid black;">{{ payment.courses.all|join:", " }}</td>
-          <td style="border: 1px solid black;">{{ payment.date_created }}</td>
+          <td style="border: 1px solid black; text-align: center;">{{ payment.first_name }} {{ payment.last_name }}</td>
+          <td style="border: 1px solid black; text-align: center;">{{ payment.amount }}</td>
+          <td style="border: 1px solid black; text-align: center;">{{ payment.courses.all|join:", " }}</td>
+          <td style="border: 1px solid black; text-align: center;">{{ payment.date_created }}</td>
         </tr>
       {% empty %}
         <tr>
-          <td colspan="4" style="border: 1px solid black;">No payments found.</td>
+          <td colspan="4" style="border: 1px solid black; text-align: center;">No payments found.</td>
         </tr>
       {% endfor %}
     </table>
   </div>
+  
   
 {% else %}
   <p>You are not a referrer. If you have a referrer, they can provide you with a referral code.</p>
