@@ -140,6 +140,7 @@ class CertificatePayment(models.Model):
     payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
     courses = models.ManyToManyField(Courses ,related_name='certificates',blank=True)
     amount = models.PositiveBigIntegerField(null=True)
+    # user_association = models.ForeignKey(NewUser, on_delete=models.CASCADE, null=True)
     # referral_code = models.CharField(max_length=250, null=True, blank=True)
     ref = models.CharField(max_length=250, null=True)
     f_code = models.CharField(max_length=250, null=True, blank=True)
@@ -150,6 +151,7 @@ class CertificatePayment(models.Model):
     verified = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
 
+  
     def __str__(self):
         # Get a comma-separated list of course titles
         course_titles = ', '.join(course.title for course in self.courses.all())
@@ -228,7 +230,12 @@ class ReferrerMentor(models.Model):
     bank = models.CharField(max_length=50, blank=True, null=True)
     phone_no = models.CharField(max_length=50, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
-
+    
+    @property
+    def count_of_students_referred(self):
+        phone_numbers = NewUser.objects.filter(phone_number=self.referrer_code)
+        return phone_numbers.count()
+    
     @property
     def referred_students_count(self):
         return self.referred_students.count()
