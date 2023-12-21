@@ -922,6 +922,8 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
             referred_students_count = referrer_mentor.referred_students_count
             f_code_count = referrer_mentor.f_code_count
             # Assuming total_amount is the value you're trying to divide
+            count_of_students_referred = referrer_mentor.count_of_students_referred
+            print('sdd',count_of_students_referred)
 
             # total_amount = referrer_mentor.total_amount/2
             total_amount = referrer_mentor.total_amount
@@ -945,6 +947,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
             context['account_name'] =  account_name
             context['phone_no'] =  phone_no
             context['bank'] =  bank
+            context['count_of_students_referred'] = count_of_students_referred
 
         except ReferrerMentor.DoesNotExist:
             # Handle the case when ReferrerMentor is not found for the user
@@ -957,6 +960,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
             context['account_name'] =  'NIL'
             context['bank'] =  'NIL'
             context['phone_no'] =  'NIL'
+            context['count_of_students_referred'] = 'NIL'
 
         return context
 # end

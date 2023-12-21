@@ -34,7 +34,7 @@ class ReferrerMentorResource(resources.ModelResource):
 
 class ReferrerMentorAdmin(ImportExportModelAdmin):
     list_display = [
-        'id', 'name', 'referrer', 'get_f_code_count', 'get_total_amount',
+        'id', 'name', 'referrer', 'get_f_code_count','Count_of_students_referred' ,'get_total_amount',
         'referrer_code', 'account_number', 'bank', 'phone_no', 'date_created'
     ]
     list_filter = ['id', 'name', 'referrer', 'referrer_code']
@@ -51,7 +51,17 @@ class ReferrerMentorAdmin(ImportExportModelAdmin):
     def get_f_code_count(self, obj):
         return CertificatePayment.objects.filter(f_code=obj.referrer_code).count()
 
-    get_f_code_count.short_description = 'f_code Count'
+    get_f_code_count.short_description = 'Count earnings'
+
+    def Count_of_students_referred(self, obj):
+  
+        # Use a list comprehension to get phone numbers, joined by commas
+        phone_numbers = NewUser.objects.filter(phone_number=obj.referrer_code)
+        # print('phone nu', phone_numbers)
+        return len(phone_numbers)
+
+    Count_of_students_referred.short_description = 'Count of students referred'
+
 
 
     def get_total_amount(self, obj):
