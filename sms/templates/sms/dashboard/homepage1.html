@@ -794,7 +794,7 @@ p {
 <div class="card-body">
   <div class="">
 <h3 style="color: black; font-weight: bold;" >{{beginner_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
-<a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.categories.pk %}">View All Courses</a>
+<a style="height: 10px; color: red;font-size: 20px;" class="" href="{% url 'sms:courseslist' obj.categories.pk %}">View All Courses</a>
 </div>
 </div>
 {% endif %}
@@ -813,7 +813,7 @@ p {
       <!-- <p class=" card rounded-4 category"> -->
       
           {% if obj.img_course %}
-          <img class="rounded images" src="{{obj.img_course.url}}" width="310px" height="300px" alt="cetagory image">
+          <img class="rounded images" src="{{obj.img_course.url}}" width="300px" height="300px" alt="cetagory image">
           <br>
           
           {% endif %}
@@ -879,7 +879,7 @@ p {
  <div class="card-body">
    <div class="">
  <h3 style="color: black; font-weight: bold;" >{{intermediate_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
- <a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.categories.pk %}">View All Courses</a>
+ <a style="height: 10px;color: red class;font-size: 20px;" href="{% url 'sms:courseslist' obj.categories.pk %}">View All Courses</a>
  </div>
  </div>
  {% endif %}
@@ -895,7 +895,7 @@ p {
        <!-- <p class=" card rounded-4 category"> -->
        
            {% if obj.img_course %}
-           <img class="rounded images" src="{{obj.img_course.url}}" width="310px" height="300px" alt="cetagory image">
+           <img class="rounded images" src="{{obj.img_course.url}}" width="300px" height="300px" alt="cetagory image">
            <br>
            
            {% endif %}
@@ -959,7 +959,7 @@ p {
  <div class="card-body">
     <div class="">
  <h3 style="color: black;  font-weight: bold;" >{{advanced_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
- <a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.categories.pk %}">View All Courses</a>
+ <a style="height: 10px;color: red; font-size: 20px;" class="" href="{% url 'sms:courseslist' obj.categories.pk %}">View All Courses</a>
     </div>
  </div>
 
@@ -977,7 +977,7 @@ p {
        <!-- <p class=" card rounded-4 category"> -->
        
            {% if obj.img_course %}
-           <img class="rounded images" src="{{obj.img_course.url}}" width="310px" height="300px" alt="cetagory image">
+           <img class="rounded images" src="{{obj.img_course.url}}" width="300px" height="300px" alt="cetagory image">
            <br>
            
            {% endif %}
@@ -985,7 +985,7 @@ p {
            <div class="d-flex rounded owner">
              <div class="d-flex rounded owner">
                {% if obj.course_logo.url %}
-               <img  class="rounded" src="{{ obj.course_logo.url }}" width="310px"  height="33px" alt=""> <br>
+               <img  class="rounded" src="{{ obj.course_logo.url }}" width="300px"  height="33px" alt=""> <br>
                {% else %}
                <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
              {% endif %}
@@ -1052,7 +1052,7 @@ p {
        <!-- <p class=" card rounded-4 category"> -->
        
            {% if obj.img_course %}
-           <img class="rounded images" src="{{obj.img_course.url}}" width="310px" height="300px" alt="cetagory image">
+           <img class="rounded images" src="{{obj.img_course.url}}" width="300px" height="300px" alt="cetagory image">
            <br>
            
            {% endif %}
@@ -1124,7 +1124,7 @@ p {
        <!-- <p class=" card rounded-4 category"> -->
        
            {% if obj.img_course %}
-           <img class="rounded images" src="{{obj.img_course.url}}" width="310px" height="300px" alt="cetagory image">
+           <img class="rounded images" src="{{obj.img_course.url}}" width="300px" height="300px" alt="cetagory image">
            <br>
            
            {% endif %}
@@ -1199,7 +1199,7 @@ p {
         <!-- <p class=" card rounded-4 category"> -->
         
             {% if obj.img_course %}
-            <img class="rounded images" src="{{obj.img_course.url}}" width="310px" height="300px" alt="cetagory image">
+            <img class="rounded images" src="{{obj.img_course.url}}" width="300px" height="300px" alt="cetagory image">
             <br>
             
             {% endif %}
