@@ -264,8 +264,8 @@ class Homepage1(ListView):
         context['latest_course'] = latest_course_courses
 
 
-        context['popular_course'] =   Courses.objects.all().order_by('-hit_count_generic__hits')[:3] 
-        popular_course_courses =  Courses.objects.all().order_by('-hit_count_generic__hits')[:3]
+        context['popular_course'] =   Courses.objects.all().order_by('-hit_count_generic__hits')[:4] 
+        popular_course_courses =  Courses.objects.all().order_by('-hit_count_generic__hits')[:4]
         for course in popular_course_courses:
             course.popular_course_topic_count = Topics.objects.filter(courses=course).count()
         context['popular_course'] = popular_course_courses
