@@ -229,7 +229,7 @@ class Homepage1(ListView):
         beginner_courses = Courses.objects.filter(categories__name="BEGINNER")
         for course in beginner_courses:
             course.beginner_topic_count = Topics.objects.filter(courses=course).count()
-        context['beginner'] = beginner_courses
+        context['beginner'] = beginner_courses[:4]
 
      
         context['intermediate'] = Courses.objects.filter(categories__name = "INTERMEDIATE")
@@ -237,7 +237,7 @@ class Homepage1(ListView):
         intermediate_courses = Courses.objects.filter(categories__name="INTERMEDIATE")
         for course in intermediate_courses:
             course.intermediate_topic_count = Topics.objects.filter(courses=course).count()
-        context['intermediate'] = intermediate_courses
+        context['intermediate'] = intermediate_courses[:4]
 
 
         context['advanced'] = Courses.objects.filter(categories__name = "ADVANCED")
@@ -245,7 +245,7 @@ class Homepage1(ListView):
         advanced_courses = Courses.objects.filter(categories__name="ADVANCED")
         for course in advanced_courses:
             course.advanced_topic_count = Topics.objects.filter(courses=course).count()
-        context['advanced'] = advanced_courses
+        context['advanced'] = advanced_courses[:4]
 
 
         context['Free_courses'] = Courses.objects.filter(status_type = 'Free')
@@ -253,7 +253,7 @@ class Homepage1(ListView):
         Free_courses_courses = Courses.objects.filter(status_type = 'Free')
         for course in Free_courses_courses:
             course.Free_courses_topic_count = Topics.objects.filter(courses=course).count()
-        context['Free_courses'] = Free_courses_courses
+        context['Free_courses'] = Free_courses_courses[:4]
 
       
         context['latest_course'] =   Courses.objects.all().order_by('-created')[:4] 

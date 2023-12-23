@@ -22,7 +22,7 @@ body {
 .container1 {
     display: flex;
     overflow-x: auto;
-    height: 630px;
+    height: 530px;
     overflow-y: hidden;     
 }
 /* end card hover effect */
@@ -33,7 +33,7 @@ body {
 }
 
 .left-column-cat {
-  width: 300px;
+  width: 100%;
   margin: 10px;
   padding: 10px;
   border: 1px solid blue;
@@ -67,7 +67,8 @@ body {
 .beginner {
     display: flex;
     overflow-x: auto;
-    height: 670px;
+    height: 540px;
+    width: 100%;
     overflow-y: hidden;     
 }
 
@@ -742,7 +743,7 @@ p {
         <!-- <p class=" card rounded-4 category"> -->
         
             {% if category.img_cat %}
-            <img class="rounded images" src="{{category.img_cat.url}}" width="250px" height="450px" alt="cetagory image">
+            <img class="rounded images" src="{{category.img_cat.url}}" width="100%" height="350px" alt="cetagory image">
             <br>
             
             {% endif %}
@@ -790,6 +791,7 @@ p {
 <div class="card-body">
   <div class="">
 <h3 style="color: black; font-weight: bold;" >{{beginner_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
+<a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.categories.pk %}">View All Courses</a>
 </div>
 </div>
 {% endif %}
@@ -808,7 +810,7 @@ p {
       <!-- <p class=" card rounded-4 category"> -->
       
           {% if obj.img_course %}
-          <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="450px" alt="cetagory image">
+          <img class="rounded images" src="{{obj.img_course.url}}" width="100%" height="300px" alt="cetagory image">
           <br>
           
           {% endif %}
@@ -846,9 +848,12 @@ p {
         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
       </div>
+     
       
    
   </div>
+
+
 
 </a>
 
@@ -871,6 +876,7 @@ p {
  <div class="card-body">
    <div class="">
  <h3 style="color: black; font-weight: bold;" >{{intermediate_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
+ <a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.categories.pk %}">View All Courses</a>
  </div>
  </div>
  {% endif %}
@@ -886,7 +892,7 @@ p {
        <!-- <p class=" card rounded-4 category"> -->
        
            {% if obj.img_course %}
-           <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="450px" alt="cetagory image">
+           <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="300px" alt="cetagory image">
            <br>
            
            {% endif %}
@@ -924,7 +930,7 @@ p {
          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
        </div>
            <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>-->
-           <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i>TTTTTTT </p>
+           <!-- <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i>TTTTTTT </p> -->
       
           
      
@@ -950,6 +956,7 @@ p {
  <div class="card-body">
     <div class="">
  <h3 style="color: black;  font-weight: bold;" >{{advanced_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
+ <a style="height: 10px;" class="" href="{% url 'sms:courseslist' obj.categories.pk %}">View All Courses</a>
     </div>
  </div>
 
@@ -967,7 +974,7 @@ p {
        <!-- <p class=" card rounded-4 category"> -->
        
            {% if obj.img_course %}
-           <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="450px" alt="cetagory image">
+           <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="300px" alt="cetagory image">
            <br>
            
            {% endif %}
@@ -1024,6 +1031,7 @@ p {
 
   <div style="margin-bottom: -50px;" class="card-body">
     <h3 style="color: black;  font-weight: bold;" >{{latest_course_count}} Latest Courses on Codethinkers Academy </h3>
+
     <p class="" >Explore our newest programs, focused on delivering in-demand skills.</p> 
   </div>
 
@@ -1041,7 +1049,7 @@ p {
        <!-- <p class=" card rounded-4 category"> -->
        
            {% if obj.img_course %}
-           <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="450px" alt="cetagory image">
+           <img class="rounded images" src="{{obj.img_course.url}}" width="300px" height="300px" alt="cetagory image">
            <br>
            
            {% endif %}
@@ -1113,7 +1121,7 @@ p {
        <!-- <p class=" card rounded-4 category"> -->
        
            {% if obj.img_course %}
-           <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="450px" alt="cetagory image">
+           <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="300px" alt="cetagory image">
            <br>
            
            {% endif %}
@@ -1168,7 +1176,7 @@ p {
  
   <!--FREE DIFFERENT  COURSES-->
   <br> <br> <br>
-
+ 
   <div class="card-body">
     <div class="">
 
@@ -1188,7 +1196,7 @@ p {
         <!-- <p class=" card rounded-4 category"> -->
         
             {% if obj.img_course %}
-            <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="450px" alt="cetagory image">
+            <img class="rounded images" src="{{obj.img_course.url}}" width="250px" height="300px" alt="cetagory image">
             <br>
             
             {% endif %}
@@ -1362,7 +1370,7 @@ p {
     <div class="left-column-cat">
       <p class="text-center category">
         {% if category.gallery %}
-        <img class="rounded-4 images" src="{{category.gallery.url}}" width="280px" height="450px" alt="category image">
+        <img class="rounded-4 images" src="{{category.gallery.url}}" width="280px" height="350px" alt="category image">
         {% endif %}
         {% if category.title %}
         <div class="text-left container">{{category.title}}</div>
