@@ -746,7 +746,7 @@ p {
         <!-- <p class=" card rounded-4 category"> -->
         
             {% if category.img_cat %}
-            <img class="rounded images" src="{{category.img_cat.url}}" width="300px" height="280px" alt="cetagory image">
+            <img class="rounded images" src="{{category.img_cat.url}}" width="300px" height="250px" alt="cetagory image">
             <br>
             
             {% endif %}
@@ -1404,7 +1404,7 @@ p {
         <!-- <p class=" card rounded-4 category"> -->
         
             {% if obj.img_blog %}
-            <img class="rounded images" src="{{obj.img_blog.url}}" width="300px" height="300px" alt="cetagory image">
+            <img class="rounded images" src="{{obj.img_blog.url}}" width="300px" height="280px" alt="cetagory image">
           
             
             {% endif %}
@@ -1418,8 +1418,8 @@ p {
               {% else %}
               <small style="color: black; font-weight: bold;" class="card-text">By {{obj.poster}}</small>
               {% endif %}	
-              <h6  style="color: black; ">{{obj.title|safe}}</h6>
-              <p  style="color: black; ">{{obj.desc|safe|striptags|truncatewords:10}}</p>
+              <h6  style="color: black; font-weight: bold;">{{obj.title|safe}}</h6>
+              <p  style="color: black; ">{{obj.desc|safe|striptags|truncatewords:5}}</p>
 
               <a href="{% url 'sms:blogdetaillistview' obj.slug %}" class="action-news">
                 Find out more
