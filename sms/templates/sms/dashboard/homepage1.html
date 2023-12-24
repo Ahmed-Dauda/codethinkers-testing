@@ -593,7 +593,9 @@ p {
   padding-left: 10px;
 
 }
-
+.view-latest>*{
+  margin: 5px;
+}
 </style>
 
 <div class="hover-container" style="padding-left: 20px;">
@@ -1373,7 +1375,7 @@ p {
     <div class="left-column-cat">
       <p class="text-center category">
         {% if category.gallery %}
-        <img class="rounded-4 images" src="{{category.gallery.url}}" width="300px" height="350px" alt="category image">
+        <img class="rounded-4 images" src="{{category.gallery.url}}" width="300px" height="300px" alt="category image">
         {% endif %}
         {% if category.title %}
         <div class="text-left container">{{category.title}}</div>
@@ -1395,7 +1397,7 @@ p {
   </div>
   </div>
  
-  <div style="height: 520px;"  class="beginner ">
+  <div style="height: 500px;"  class="beginner ">
   
     {% for obj in blogs %}
    
@@ -1411,10 +1413,15 @@ p {
           <div class="pl-2">
            
             <!-- <p style="color: black;">Image source: {{obj.img_source}}</p> -->
-            
-			      <small style="color: black;">{{obj.created|timesince}}</small> <br>
+            <div class="d-flex view-latest">
+			      <p style="color: black;">{{obj.created|timesince}}</p>
+            <p  class="text-center" style="color: black;"> {% get_hit_count for obj %}<i class="fas fa-eye"></i> </p>
+          </div>
             {% if obj.author %}
+           
               <p style="color: black; font-weight: bold;" class="card-text">By {{obj.author}}</p>
+             
+        
               {% else %}
               <small style="color: black; font-weight: bold;" class="card-text">By {{obj.poster}}</small>
               {% endif %}	
