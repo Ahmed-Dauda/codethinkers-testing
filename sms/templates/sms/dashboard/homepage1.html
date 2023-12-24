@@ -1373,7 +1373,7 @@ p {
     <div class="left-column-cat">
       <p class="text-center category">
         {% if category.gallery %}
-        <img class="rounded-4 images" src="{{category.gallery.url}}" width="370px" height="350px" alt="category image">
+        <img class="rounded-4 images" src="{{category.gallery.url}}" width="300px" height="350px" alt="category image">
         {% endif %}
         {% if category.title %}
         <div class="text-left container">{{category.title}}</div>
@@ -1395,7 +1395,7 @@ p {
   </div>
   </div>
  
-  <div style="height: 780px;"  class="beginner ">
+  <div style="height: 520px;"  class="beginner ">
   
     {% for obj in blogs %}
    
@@ -1404,13 +1404,13 @@ p {
         <!-- <p class=" card rounded-4 category"> -->
         
             {% if obj.img_blog %}
-            <img class="rounded images" src="{{obj.img_blog.url}}" width="250px" height="500px" alt="cetagory image">
+            <img class="rounded images" src="{{obj.img_blog.url}}" width="300px" height="300px" alt="cetagory image">
           
             
             {% endif %}
           <div class="pl-2">
            
-            <p style="color: black;">Image source: {{obj.img_source}}</p>
+            <!-- <p style="color: black;">Image source: {{obj.img_source}}</p> -->
             
 			      <small style="color: black;">{{obj.created|timesince}}</small> <br>
             {% if obj.author %}
@@ -1418,7 +1418,7 @@ p {
               {% else %}
               <small style="color: black; font-weight: bold;" class="card-text">By {{obj.poster}}</small>
               {% endif %}	
-              <h3  style="color: black; ">{{obj.title|safe}}</h3>
+              <h6  style="color: black; ">{{obj.title|safe}}</h6>
               <p  style="color: black; ">{{obj.desc|safe|striptags|truncatewords:10}}</p>
 
               <a href="{% url 'sms:blogdetaillistview' obj.slug %}" class="action-news">

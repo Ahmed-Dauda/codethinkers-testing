@@ -253,7 +253,7 @@ class Homepage1(ListView):
         Free_courses_courses = Courses.objects.filter(status_type = 'Free')
         for course in Free_courses_courses:
             course.Free_courses_topic_count = Topics.objects.filter(courses=course).count()
-        context['Free_courses'] = Free_courses_courses[:4]
+        context['Free_courses'] = Free_courses_courses
 
       
         context['latest_course'] =   Courses.objects.all().order_by('-created')[:4] 
