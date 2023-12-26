@@ -40,130 +40,11 @@ from django.contrib.staticfiles import finders
 
 
 
-# @csrf_exempt
-# @require_POST
-# @transaction.non_atomic_requests(using='db_name')
-# def paystack_webhook(request):
-#     # Ensure this is a POST request
-#     if request.method != 'POST':
-#         return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed'}, status=400)
-
-#     # Parse the JSON payload from the request
-#     try:
-#         payload = json.loads(request.body)
-#         print("payloadttt:", payload)
-#     except json.JSONDecodeError as e:
-#         return JsonResponse({'status': 'error', 'message': 'Invalid JSON payload'}, status=400)
-
-#     # Extract relevant information from the payload
-#     event = payload.get('event')
-#     data = payload.get('data')
-
-#     # Check the event type
-#     if event == 'charge.success':
-#         # Extract information from the data
-#         verified = True
-#         reference = data.get('reference')
-#         paid_amount = data.get('amount') / 100
-#         first_name = data['customer'].get('first_name')
-#         last_name = data['customer'].get('last_name')
-#         email = data['customer'].get('email')
-
-#         referrer = payload['data']['metadata']['referrer'].strip()
-#         print("Referrer URL:", referrer)
-#         print("amount:", paid_amount)
-
-#         # Split the referrer URL by '/'
-#         url_parts = referrer.split('/')
-#         content_type = url_parts[-3]
-#         print("content_type", content_type)
-#         print('url:', url_parts[-3])
-    
-
-#         # Check if the last part of the URL is a numeric "id"
-#         if url_parts[-2].isdigit():
-#             id_value = url_parts[-2]
-#             print("Extracted ID:", id_value)
-#         else:
-#             id_value = None
-
-#         course = get_object_or_404(Courses, pk=id_value)
-#         print("course printed:", course)
-        
-#         course_amount = course.price
-      
-#         if content_type == 'course':
-#             payment = Payment.objects.create(
-#                 ref=reference,
-#                 amount=paid_amount,
-#                 first_name=first_name,
-#                 last_name=last_name,
-#                 email=email,
-#                 verified=verified,
-#                 content_type = content_type
-#             )
-#             # Add courses to the payment using the 'set()' method
-       
-#             if course:
-#                 payment.courses.set([course])
-#                 payment.save()
-               
-#         course = get_object_or_404(Courses, pk=id_value)
-        
-#         if content_type == 'certificates':
-#         # Create an instance of the CertificatePayment model
-#             cert_payment = CertificatePayment(
-#                 ref=reference,
-#                 amount=paid_amount,
-#                 first_name=first_name,
-#                 last_name=last_name,
-#                 email=email,
-#                 verified=verified,
-#                 content_type=content_type
-#             )
-
-#             # Check if the course exists (replace this with the actual condition)
-#             if course:
-#                 # Set courses for the CertificatePayment instance
-#                 cert_payment.courses.set([course])
-#                 cert_payment.save()
-
-#             # Save the CertificatePayment instance to the database
-#             cert_payment.save()
-
-
-#         course = get_object_or_404(PDFDocument, pk=id_value)
-#         if content_type == 'ebooks':
-         
-#             payment = EbooksPayment.objects.create(
-#                 ref=reference,
-#                 amount=paid_amount,
-#                 first_name=first_name,
-#                 last_name=last_name,
-#                 email=email,
-#                 verified=verified,
-#                 content_type = course,
-              
-#             )
-#             # print("", id_value)
-#             # # course = get_object_or_404(PDFDocument, pk=id_value)
-#             # print('pdfcourse', course)
-#             # Add courses to the payment using the 'set()' method
-#             # if course:
-#             #     payment.courses.set([course])
-
-#         return JsonResponse({'status': 'success'})
-#     else:
-#         return JsonResponse({'status': 'error', 'message': 'Unsupported event type'}, status=400)
-
-
 @csrf_exempt
 @require_POST
 @transaction.non_atomic_requests(using='db_name')
 def paystack_webhook(request):
-    # ... (existing code)
-
-
+    # Ensure this is a POST request
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed'}, status=400)
 
@@ -177,8 +58,8 @@ def paystack_webhook(request):
     # Extract relevant information from the payload
     event = payload.get('event')
     data = payload.get('data')
-  
-     # Check the event type
+
+    # Check the event type
     if event == 'charge.success':
         # Extract information from the data
         verified = True
@@ -186,8 +67,6 @@ def paystack_webhook(request):
         paid_amount = data.get('amount') / 100
         first_name = data['customer'].get('first_name')
         last_name = data['customer'].get('last_name')
-        # first_name = request.user.profile.first_name
-        # last_name = request.user.profile.last_name
         email = data['customer'].get('email')
 
         referrer = payload['data']['metadata']['referrer'].strip()
@@ -200,6 +79,11 @@ def paystack_webhook(request):
         print("content_type", content_type)
         print('url:', url_parts[-3])
 
+        # retrieving referral codes
+        recode = get_object_or_404(NewUser, email = email)
+        recode = recode.phone_number
+    
+
         # Check if the last part of the URL is a numeric "id"
         if url_parts[-2].isdigit():
             id_value = url_parts[-2]
@@ -207,62 +91,225 @@ def paystack_webhook(request):
         else:
             id_value = None
 
-        # Assuming 'Courses' is the model for certificates, adjust as needed
-        course = get_object_or_404(QMODEL.Course, pk=id_value)
-        print("course printed:", course)
-        recode = get_object_or_404(NewUser, email = email)
-        recode = recode.phone_number
-        print("course printed: rrrrr", recode)
+        
+        # print("course printed:", course)
+        
+        # course_amount = course.price
+      
+        if content_type == 'course':
+            # Assuming id_value is the primary key of the Courses model
+            course = get_object_or_404(Courses, pk=id_value)
 
-        # Check if a similar entry already exists
-        existing_entry = CertificatePayment.objects.filter(
-            ref=reference,
-            amount=paid_amount,
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            verified=verified,
-            content_type=content_type,
-            f_code = recode,
-        ).first()
+            # Check if a Payment with the same reference already exists
+            existing_payment = Payment.objects.filter(ref=reference).first()
+
+            if not existing_payment:
+                # Create a new Payment only if no existing payment is found
+                payment = Payment.objects.create(
+                    ref=reference,
+                    amount=paid_amount,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    verified=verified,
+                    content_type=course,
+                    f_code=recode,
+                )
+
+                # Set courses for the Payment instance
+                # course = get_object_or_404(Courses, pk=id_value)
+                if course:
+                    payment.courses.set([course])
+             
+            else:
+                # Handle the case where a Payment with the same reference already exists
+                # You may want to log, display an error message, or take other actions
+                print(f"Payment with reference {reference} already exists.")
+                            
+            
+        # course = get_object_or_404(Courses, pk=id_value)
+        elif content_type == 'certificates':
+            # Assuming id_value is the primary key of the Course model
+            course = get_object_or_404(Course, pk=id_value)
+
+            # Check if a CertificatePayment with the same reference already exists
+            existing_cert_payment = CertificatePayment.objects.filter(ref=reference).first()
+
+            if not existing_cert_payment:
+                # Create a new CertificatePayment only if no existing payment is found
+                cert_payment = CertificatePayment.objects.create(
+                    ref=reference,
+                    amount=paid_amount,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    verified=verified,
+                    content_type=course,
+                    f_code=recode,
+                )
+
+                # Set courses for the CertificatePayment instance
+                # course = get_object_or_404(Course, pk=id_value)
+                if course:
+                    cert_payment.courses.set([course])
+            else:
+                # Handle the case where a CertificatePayment with the same reference already exists
+                # You may want to log, display an error message, or take other actions
+                print(f"CertificatePayment with reference {reference} already exists.")
+
+        else:
+
+            if content_type == 'ebooks':
+                course = get_object_or_404(PDFDocument, pk=id_value)
+
+                # Check if a payment with the same reference already exists
+                existing_payment = EbooksPayment.objects.filter(ref=reference).first()
+
+                if not existing_payment:
+                    # Create a new payment only if no existing payment is found
+                    epayment = EbooksPayment.objects.create(
+                        ref=reference,
+                        amount=paid_amount,
+                        first_name=first_name,
+                        last_name=last_name,
+                        email=email,
+                        verified=verified,
+                        content_type=course,
+                    )
+
+                    if course:
+                        epayment.courses.set([course])
+                else:
+                    # Handle the case where a payment with the same reference already exists
+                    # You may want to log, display an error message, or take other actions
+                    print(f"Payment with reference {reference} already exists.")
+
+ 
+            # if content_type == 'ebooks':
+            #     course = get_object_or_404(PDFDocument, pk=id_value)
+            
+            #     epayment = EbooksPayment.objects.create(
+            #         ref=reference,
+            #         amount=paid_amount,
+            #         first_name=first_name,
+            #         last_name=last_name,
+            #         email=email,
+            #         verified=verified,
+            #         content_type = course,
+                
+            #     )
+            #     # print("idvalue", id_value)
+            #     course = get_object_or_404(PDFDocument, pk=id_value)
+            #     # print('pdfcourse', course)
+            #     # Add courses to the payment using the 'set()' method
+            #     if course:
+            #         epayment.courses.set([course])
+
+        return JsonResponse({'status': 'success'})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Unsupported event type'}, status=400)
+
+
+
+
+# @csrf_exempt
+# @require_POST
+# @transaction.non_atomic_requests(using='db_name')
+# def paystack_webhook(request):
+#     # ... (existing code)
+
+
+#     if request.method != 'POST':
+#         return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed'}, status=400)
+
+#     # Parse the JSON payload from the request
+#     try:
+#         payload = json.loads(request.body)
+#         print("payloadttt:", payload)
+#     except json.JSONDecodeError as e:
+#         return JsonResponse({'status': 'error', 'message': 'Invalid JSON payload'}, status=400)
+
+#     # Extract relevant information from the payload
+#     event = payload.get('event')
+#     data = payload.get('data')
+  
+#      # Check the event type
+#     if event == 'charge.success':
+#         # Extract information from the data
+#         verified = True
+#         reference = data.get('reference')
+#         paid_amount = data.get('amount') / 100
+#         first_name = data['customer'].get('first_name')
+#         last_name = data['customer'].get('last_name')
+#         # first_name = request.user.profile.first_name
+#         # last_name = request.user.profile.last_name
+#         email = data['customer'].get('email')
+
+#         referrer = payload['data']['metadata']['referrer'].strip()
+#         print("Referrer URL:", referrer)
+#         print("amount:", paid_amount)
+
+#         # Split the referrer URL by '/'
+#         url_parts = referrer.split('/')
+#         content_type = url_parts[-3]
+#         print("content_type", content_type)
+#         print('url:', url_parts[-3])
+
+#         # Check if the last part of the URL is a numeric "id"
+#         if url_parts[-2].isdigit():
+#             id_value = url_parts[-2]
+#             print("Extracted ID:", id_value)
+#         else:
+#             id_value = None
+
+#         # Assuming 'Courses' is the model for certificates, adjust as needed
+#         course = get_object_or_404(QMODEL.Course, pk=id_value)
+#         print("course printed:", course)
+#         recode = get_object_or_404(NewUser, email = email)
+#         recode = recode.phone_number
+#         print("course printed: rrrrr", recode)
+
+#         if content_type == 'ebooks':
+#             print('ebook purchase')
+
+#         else:
+            
+#             print('certificate')
+
+#         # Check if a similar entry already exists
+#         existing_entry = CertificatePayment.objects.filter(
+#             ref=reference,
+#             amount=paid_amount,
+#             first_name=first_name,
+#             last_name=last_name,
+#             email=email,
+#             verified=verified,
+#             content_type=content_type,
+#             f_code = recode,
+#         ).first()
         
 
-        if existing_entry:
-            # Skip the update step if no specific updates are needed
-            pass
-        else:
-            # Create a new CertificatePayment instance
-            certpayment = CertificatePayment.objects.create(
-                ref=reference,
-                amount=paid_amount,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                verified=verified,
-                content_type=content_type,
-                f_code = recode,
-            )
-            if course:
-                certpayment.courses.set([course.course_name])
+#         if existing_entry:
+#             # Skip the update step if no specific updates are needed
+#             pass
+#         else:
+#             # Create a new CertificatePayment instance
+#             certpayment = CertificatePayment.objects.create(
+#                 ref=reference,
+#                 amount=paid_amount,
+#                 first_name=first_name,
+#                 last_name=last_name,
+#                 email=email,
+#                 verified=verified,
+#                 content_type=content_type,
+#                 f_code = recode,
+#             )
+#             if course:
+#                 certpayment.courses.set([course.course_name])
 
+        
 
-     
-    # Adjust the model and field names accordingly
-    # certpayment = CertificatePayment.objects.create(
-    #     ref=reference,
-    #     amount=paid_amount,
-    #     first_name=first_name,
-    #     last_name=last_name,
-    #     email=email,
-    #     verified=verified,
-    #     content_type=content_type,
-    # )
-
-    # # Assuming 'courses' is the related name in CertificatePayment model, adjust as needed
-    # if course:
-    #     certpayment.courses.set([course.course_name])
-
-    return JsonResponse({'status': 'success'})
+#     return JsonResponse({'status': 'success'})
 
 
 
@@ -433,14 +480,6 @@ def check_marks_view(request,pk):
 
 
 
-# def verify_cert(request):
-#     certificate = get_object_or_404(Certificate, user=request.user)
-#     # Perform any additional verification logic here
-
-#     context = {
-#         'certificate': certificate,
-#     }
-#     return render(request, 'student/verify_certificate.html', context)
 
 
 def verify_certificate(request, certificate_code):

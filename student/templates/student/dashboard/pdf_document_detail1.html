@@ -72,7 +72,7 @@
     <a class="link" href="{% url 'sms:homepage' %}">Return to Homepage</a>
     {% else %}
     
-    <a class="link " href="{% url 'sms:initiatepdfpayment' document.id %}">Make Payment to print your pdf</a>
+    <a class="link " href="{% url 'sms:pdf_document_detail' document.id %}">Make Payment to print your pdf</a>
     
     {% endif %}
     

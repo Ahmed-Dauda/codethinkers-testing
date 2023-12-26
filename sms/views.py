@@ -503,20 +503,23 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # maincourses = Courses.objects.get(pk=self.kwargs["pk"])
 
         course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
-        # print("Primary key1:", course.course_name.cert_price)
-        # print("Primary key:", course.course_name.id)
-        # print("Primary key3:", courses)
+        print("course price:", course.course_name.cert_price)
+        print("course id:", course.course_name.id)
+        print("course:", course)
 
-    
+
         user = self.request.user.email
-        
+         
         # Query the Payment model to get all payments related to the user and course
         related_payments = CertificatePayment.objects.filter(
-            email=user, courses=course.course_name.id,
+            email=user, courses=course,
             amount=course.course_name.cert_price)
-
+        # related_payments = CertificatePayment.objects.filter(
+        #     email=user, content_type =coursew.course_name,
+        #     amount=coursew.course_name.cert_price)
 
         context['related_payments'] = related_payments
+
     
        
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
@@ -604,7 +607,7 @@ class PDFDocumentDetailView(LoginRequiredMixin, DetailView):
         user = self.request.user
         course = get_object_or_404(Courses, pk=self.kwargs['pk'])
         # Query the Payment model to get all payments related to the user and document
-        related_payments = EbooksPayment.objects.filter(email=user, courses=course, amount=course.price)
+        related_payments = EbooksPayment.objects.filter(email=user, amount=course.price)
         enrollment_count = related_payments.count()
         # Print or use the enrollment_count as needed
         enrollment_count += 100
