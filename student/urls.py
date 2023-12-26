@@ -1,5 +1,7 @@
 from django.urls import path
 
+from sms.views import update_referrer_mentor
+
 from . import views
 
 
@@ -8,6 +10,9 @@ app_name = 'student'
 
 urlpatterns = [
     path('paystack/webhook/', views.paystack_webhook, name='paystack_webhook'),
+    # URL for updating a referrer mentor
+    path('referrer_mentor_detail/<int:pk>/', update_referrer_mentor, name='referrer_mentor_detail'),
+   
     
     # path('question-list/', views.question_list_view, name='question-list'),
     # path('question-form/', views.question_form_view, name='question-form'),      

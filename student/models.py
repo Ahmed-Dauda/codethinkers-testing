@@ -1,7 +1,7 @@
 from django.db import models
 from cloudinary.models import CloudinaryField
 
-
+from users.models import NewUser
 from quiz import models as QMODEL
 import secrets
 from django.conf import settings
@@ -138,9 +138,12 @@ class EbooksPayment(models.Model):
 
 class CertificatePayment(models.Model):
     payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
-    courses = models.ManyToManyField(Courses ,related_name='certificates')
+    courses = models.ManyToManyField(Courses ,related_name='certificates',blank=True)
     amount = models.PositiveBigIntegerField(null=True)
+    # user_association = models.ForeignKey(NewUser, on_delete=models.CASCADE, null=True)
+    # referral_code = models.CharField(max_length=250, null=True, blank=True)
     ref = models.CharField(max_length=250, null=True)
+    f_code = models.CharField(max_length=250, null=True, blank=True)
     first_name = models.CharField(max_length=250, null=True)
     last_name = models.CharField(max_length=200, null=True)
     content_type = models.CharField(max_length=200, null=True)
@@ -148,10 +151,31 @@ class CertificatePayment(models.Model):
     verified = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
 
+  
     def __str__(self):
         # Get a comma-separated list of course titles
         course_titles = ', '.join(course.title for course in self.courses.all())
         return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles}"
+
+    # def __str__(self):
+    #     # Get a comma-separated list of course titles
+    #     course_titles = ', '.join(course.title for course in self.courses.all())
+    #     # Get the associated Profile
+    #     payment_user_profile = self.payment_user
+
+    #     # Initialize referrer_code as None
+    #     referrer_code = None
+
+    #     # Check if the user has a profile
+    #     if payment_user_profile:
+    #         # Check if the profile has a referrer_profile
+    #         referrer_profile = payment_user_profile.referrer_profile
+    #         if referrer_profile:
+    #             # Get the referrer code
+    #             referrer_code = referrer_profile.referral_code
+
+    #     return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles} - Referrer Code: {referrer_code}"
+     
 
 
 class DocPayment(models.Model):
@@ -189,3 +213,78 @@ class Payment(models.Model):
         course_titles = ', '.join(course.title for course in self.courses.all())
         return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles}"
 
+
+from django.db import models
+from django.contrib import admin
+from django.db.models import Count, Q
+from django.db import models
+from django.db.models import Count, Sum
+
+class ReferrerMentor(models.Model):
+    name = models.CharField(max_length=20, blank=True, null=True)
+    courses = models.ManyToManyField(Courses, related_name='referrercourses', blank=True)
+    referrer_code = models.CharField(max_length=20, blank=True, null=True)
+    referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
+    referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
+    account_number = models.CharField(max_length=20, blank=True, null=True)
+    bank = models.CharField(max_length=50, blank=True, null=True)
+    phone_no = models.CharField(max_length=50, blank=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True, null=True)
+    
+    @property
+    def count_of_students_referred(self):
+        phone_numbers = NewUser.objects.filter(phone_number=self.referrer_code)
+        return phone_numbers.count()
+    
+    @property
+    def referred_students_count(self):
+        return self.referred_students.count()
+    
+    @property
+    def referred_students_phone_numbers(self):
+        return self.referred_students.values_list('phone_number', flat=True)
+    
+
+    @property
+    def f_code_count(self):
+        return CertificatePayment.objects.filter(f_code=self.referrer_code).count()
+
+    @property
+    def total_amount(self):
+        return CertificatePayment.objects.filter(f_code=self.referrer_code).aggregate(Sum('amount'))['amount__sum']
+
+    @property
+    def related_payments(self):
+        return CertificatePayment.objects.filter(f_code=self.referrer_code)
+    
+  
+
+    def __str__(self):
+        return f'Referrer Profile for {self.name}'
+
+# class ReferrerMentor(models.Model):
+#     name = models.CharField(max_length=20, blank=True, null=True)
+#     courses = models.ManyToManyField(Courses, related_name='referrercourses', blank=True)
+#     referrer_code = models.CharField(max_length=20, blank=True, null=True)
+#     referred_count = models.ForeignKey(CertificatePayment, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_count')
+#     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
+#     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
+
+#     def get_referred_students_count(self):
+#         return self.referred_students.count()
+
+#     def __str__(self):
+#         return f'Referrer Profile for {self.name}'
+
+
+
+# class ReferrerMentor(models.Model):
+#     name = models.CharField(max_length=20, blank=True, null=True)
+#     # learner = models.OneToOneField(NewUser, on_delete=models.CASCADE, blank=True, null=True)
+#     courses = models.ManyToManyField(Courses ,related_name='referrercourses',blank=True)
+#     referrer_code = models.CharField(max_length=20, blank=True, null=True)
+#     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
+#     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
+
+#     def __str__(self):
+#         return f'Referrer Profile for {self.name}'

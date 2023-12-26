@@ -9,9 +9,47 @@ from django.conf import settings
 from datetime import date, timedelta
 from quiz import models as QMODEL
 from teacher import models as TMODEL
-from student.models import  Student
+# from student.models import  Student
 from users.models import NewUser
 from users.models import Profile
+
+
+# views.py
+
+# from django.shortcuts import render, redirect
+# from django.contrib.auth.forms import UserCreationForm
+# from .forms import ReferrerSignupForm
+# from .models import ReferrerProfile
+
+# views.py
+
+from django.shortcuts import render, redirect
+from allauth.account.views import SignupView
+from .forms import SimpleSignupForm
+
+
+# views.py
+
+# from allauth.account.views import SignupView
+# from .forms import ReferrerSignupForm
+
+# class ReferrerSignupView(SignupView):
+#     template_name = 'users/registration/register_user.html'  # Update with your template path
+#     form_class = ReferrerSignupForm
+
+#     def form_valid(self, form):
+#         response = super().form_valid(form)
+#         # Your additional logic after a successful signup
+#         return response
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         # Add any additional context data you need
+#         return context
+
+
+
+
 
 def take_exams_view(request):
     course = QMODEL.Course.objects.all()

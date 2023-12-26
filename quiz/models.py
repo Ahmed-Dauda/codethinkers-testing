@@ -3,7 +3,7 @@ from django.db import models
 from users.models import Profile
 from cloudinary.models import CloudinaryField
 from sms.models import Courses as smscourses
-
+from tinymce.models import HTMLField
 from sms.models import Courses, Topics
 
 
@@ -86,7 +86,7 @@ class Course(models.Model):
    def __str__(self):
         return f'{self.course_name.title}'
 
-from tinymce.models import HTMLField
+
 
 
 class Question(models.Model):

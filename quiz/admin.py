@@ -16,7 +16,34 @@ from quiz.models import (
 admin.site.register(Course)
   
 admin.site.register(TopicsAssessment)
-admin.site.register(QuestionAssessment)
+# admin.site.register(QuestionAssessment)
+
+# QuestionAssessment
+
+class QuestionAssessmentResource(resources.ModelResource):
+    
+    course = fields.Field(
+        column_name= 'course',
+        attribute='course',
+        widget=ForeignKeyWidget(Course, field='course_name__title'))
+    
+    class Meta:
+        model = QuestionAssessment
+        # fields = ('title',)
+               
+class QuestionAssessmentAdmin(ImportExportModelAdmin):
+    list_display = ['id','course','marks' ,'question']
+    # prepopulated_fields = {"slug": ("title",)}
+    list_filter =  ['course','marks' ,'question']
+    search_fields= ['id','course__course_name__title','marks' ,'question']
+    ordering = ['id']
+    
+    resource_class = QuestionAssessmentResource
+
+admin.site.register(QuestionAssessment, QuestionAssessmentAdmin)
+
+# ENDQUESTIONASSESSMENT
+
 
 class ResultAssessmentResource(resources.ModelResource):
     
@@ -82,6 +109,7 @@ class CertificateAdmin(ImportExportModelAdmin):
     resource_class = CertificateResource
 
 admin.site.register(Certificate_note, CertificateAdmin)
+
 
 class CourseResource(resources.ModelResource):
     

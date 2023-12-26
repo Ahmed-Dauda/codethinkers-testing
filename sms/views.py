@@ -94,7 +94,7 @@ class Categorieslistview(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['students'] = User.objects.all().count()
+        context['students'] = NewUser.objects.all().count()
         context['category'] = Categories.objects.count()
         context['courses'] = Courses.objects.all().count()
         context['user'] = NewUser.objects.get_queryset().order_by('id')
@@ -123,7 +123,7 @@ class Table(LoginRequiredMixin, ListView):
         return Categories.objects.all()
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['students'] = User.objects.all().count()
+        context['students'] = NewUser.objects.all().count()
 
         return context
     
@@ -186,7 +186,7 @@ class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Fetch the course and related information
+        # Fetch the course and related informations
         course = get_object_or_404(Courses, pk=self.kwargs["pk"])
         context['course'] = course
        
@@ -210,7 +210,7 @@ class Homepage1(ListView):
     def get_context_data(self, **kwargs): 
         context = super(Homepage1, self).get_context_data(**kwargs)
         
-        context['students'] = User.objects.all().count() + 1000
+        context['students'] = NewUser.objects.all().count() + 1000
         context['category'] = Categories.objects.count()
         context['coursecategory'] = Categories.objects.all()
         context['courses'] = Courses.objects.all().count()
@@ -229,7 +229,7 @@ class Homepage1(ListView):
         beginner_courses = Courses.objects.filter(categories__name="BEGINNER")
         for course in beginner_courses:
             course.beginner_topic_count = Topics.objects.filter(courses=course).count()
-        context['beginner'] = beginner_courses
+        context['beginner'] = beginner_courses[:4]
 
      
         context['intermediate'] = Courses.objects.filter(categories__name = "INTERMEDIATE")
@@ -237,7 +237,7 @@ class Homepage1(ListView):
         intermediate_courses = Courses.objects.filter(categories__name="INTERMEDIATE")
         for course in intermediate_courses:
             course.intermediate_topic_count = Topics.objects.filter(courses=course).count()
-        context['intermediate'] = intermediate_courses
+        context['intermediate'] = intermediate_courses[:4]
 
 
         context['advanced'] = Courses.objects.filter(categories__name = "ADVANCED")
@@ -245,7 +245,7 @@ class Homepage1(ListView):
         advanced_courses = Courses.objects.filter(categories__name="ADVANCED")
         for course in advanced_courses:
             course.advanced_topic_count = Topics.objects.filter(courses=course).count()
-        context['advanced'] = advanced_courses
+        context['advanced'] = advanced_courses[:4]
 
 
         context['Free_courses'] = Courses.objects.filter(status_type = 'Free')
@@ -264,8 +264,8 @@ class Homepage1(ListView):
         context['latest_course'] = latest_course_courses
 
 
-        context['popular_course'] =   Courses.objects.all().order_by('-hit_count_generic__hits')[:3] 
-        popular_course_courses =  Courses.objects.all().order_by('-hit_count_generic__hits')[:3]
+        context['popular_course'] =   Courses.objects.all().order_by('-hit_count_generic__hits')[:4] 
+        popular_course_courses =  Courses.objects.all().order_by('-hit_count_generic__hits')[:4]
         for course in popular_course_courses:
             course.popular_course_topic_count = Topics.objects.filter(courses=course).count()
         context['popular_course'] = popular_course_courses
@@ -300,7 +300,8 @@ class Homepage2(SuccessMessageMixin, LoginRequiredMixin,ListView):
     def get_context_data(self, **kwargs): 
         context = super(Homepage2, self).get_context_data(**kwargs)
         
-        context['students'] = User.objects.all().count() + 100
+        context['students'] = NewUser.objects.all().count() + 100
+        
         context['category'] = Categories.objects.count()
         context['coursecategory'] = Categories.objects.all()
         context['courses'] = Courses.objects.all().count()
@@ -347,7 +348,7 @@ class PhotoGallery(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # context['c1'] = Courses.objects.filter(categories__pk = 1)
-        context['students'] = User.objects.all().count()
+        context['students'] = NewUser.objects.all().count()
         context['category'] = Categories.objects.count()
         context['courses'] = Courses.objects.all().count()
        
@@ -502,19 +503,21 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # maincourses = Courses.objects.get(pk=self.kwargs["pk"])
 
         course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
-        print("Primary key1:", course.course_name.cert_price)
-        print("Primary key:", course.course_name.id)
-        print("Primary key3:", courses)
+        # print("Primary key1:", course.course_name.cert_price)
+        # print("Primary key:", course.course_name.id)
+        # print("Primary key3:", courses)
 
     
-        user = self.request.user
+        user = self.request.user.email
         
         # Query the Payment model to get all payments related to the user and course
         related_payments = CertificatePayment.objects.filter(
             email=user, courses=course.course_name.id,
             amount=course.course_name.cert_price)
 
+
         context['related_payments'] = related_payments
+    
        
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
 
@@ -894,7 +897,9 @@ class MarkTopicCompleteView(View):
 #         return context
 
        
+from student.models import ReferrerMentor
 
+from django.shortcuts import get_object_or_404
 
 class UserProfilelistview(LoginRequiredMixin, ListView):
     models = Profile
@@ -907,14 +912,112 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user_pro = self.request.user
-        context['user_profile'] = Profile.objects.filter(user = self.request.user)
-        course=QMODEL.Course.objects.all()
-        context['courses']=QMODEL.Course.objects.all()
-        # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
-        student = Profile.objects.filter(user_id=self.request.user.id)
-        context['results']= QMODEL.Result.objects.order_by('-marks')
+        context['user_profile'] = Profile.objects.filter(user=self.request.user)
+        context['courses'] = QMODEL.Course.objects.all()
+        context['results'] = QMODEL.Result.objects.order_by('-marks')
+
+        try:
+            # Referrer account
+            referrer_mentor = ReferrerMentor.objects.get(referrer=self.request.user)
+            referred_students_count = referrer_mentor.referred_students_count
+            f_code_count = referrer_mentor.f_code_count
+            # Assuming total_amount is the value you're trying to divide
+            count_of_students_referred = referrer_mentor.count_of_students_referred
+            print('sdd',count_of_students_referred)
+
+            # total_amount = referrer_mentor.total_amount/2
+            total_amount = referrer_mentor.total_amount
+
+            if total_amount is not None:
+                total_amount /= 2
+            else:
+                # Handle the case where total_amount is None, if needed
+                pass
+
+            account_number = referrer_mentor.account_number
+            account_name = referrer_mentor.name
+            bank = referrer_mentor.bank
+            phone_no = referrer_mentor.phone_no
+            context['referrer_mentor'] = referrer_mentor
+            context['referred_students_count'] = referred_students_count
+            context['f_code_count'] = f_code_count
+            context['total_amount'] = total_amount
+            context['referrer_code'] = referrer_mentor.referrer_code
+            context['account_number'] =  account_number
+            context['account_name'] =  account_name
+            context['phone_no'] =  phone_no
+            context['bank'] =  bank
+            context['count_of_students_referred'] = count_of_students_referred
+
+        except ReferrerMentor.DoesNotExist:
+            # Handle the case when ReferrerMentor is not found for the user
+            context['referrer_mentor'] = 0
+            context['referred_students_count'] = 0
+            context['f_code_count'] = 0
+            context['total_amount'] = 0
+            context['referrer_code'] = 'Apply'
+            context['account_number'] =  'NIL'
+            context['account_name'] =  'NIL'
+            context['bank'] =  'NIL'
+            context['phone_no'] =  'NIL'
+            context['count_of_students_referred'] = 'NIL'
+
         return context
 # end
+
+#update form for referrer mentors
+
+from student.models import ReferrerMentor
+from student.forms import ReferrerMentorUpdateForm
+
+
+# views.py
+from django.shortcuts import render, get_object_or_404
+
+
+def update_referrer_mentor(request, pk):
+    referrer_mentor = get_object_or_404(ReferrerMentor, pk=pk)
+
+    if request.method == 'POST':
+        form = ReferrerMentorUpdateForm(request.POST, instance=referrer_mentor)
+        if form.is_valid():
+            form.save()
+            # Redirect to a success page or do something else
+            return redirect('sms:myprofile')
+    else:
+        form = ReferrerMentorUpdateForm(instance=referrer_mentor)
+
+    return render(request, 'student/dashboard/update_referrer_mentor.html', {'form': form, 'referrer_mentor': referrer_mentor})
+
+#end
+
+# class UserProfilelistview(LoginRequiredMixin, ListView):
+#     models = Profile
+#     template_name = 'sms/dashboard/myprofile.html'
+#     count_hit = True
+   
+#     def get_queryset(self):
+#         return Profile.objects.all()
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         user_pro = self.request.user
+#         context['user_profile'] = Profile.objects.filter(user = self.request.user)
+#         course=QMODEL.Course.objects.all()
+#         context['courses']=QMODEL.Course.objects.all()
+#         # course= get_object_or_404(QMODEL.Course, pk = kwargs['pk'])
+#         student = Profile.objects.filter(user_id=self.request.user.id)
+#         context['results']= QMODEL.Result.objects.order_by('-marks')
+
+#         #referrer account
+#         referrer_mentor = ReferrerMentor.objects.get(referrer=self.request.user)
+
+#         referred_students_count = referrer_mentor.referred_students_count
+#         f_code_count = referrer_mentor.f_code_count
+#         total_amount = referrer_mentor.total_amount
+
+#         return context
+# # end
 
 
 
