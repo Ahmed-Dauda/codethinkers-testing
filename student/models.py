@@ -208,7 +208,7 @@ class Payment(models.Model):
     first_name = models.CharField(max_length=250, null=True)
     last_name = models.CharField(max_length=200, null=True)
     content_type = models.CharField(max_length=200, null=True)
-    f_code = models.CharField(max_length=200, null=True, blank=True)
+    referral_code = models.CharField(max_length=200, null=True, blank=True)
     email = models.EmailField(null=True)
     verified = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
