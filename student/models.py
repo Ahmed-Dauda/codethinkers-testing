@@ -202,7 +202,7 @@ class DocPayment(models.Model):
 
 class Payment(models.Model):
     payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
-    courses = models.ManyToManyField(Courses, related_name='payments', blank=True, null=True)
+    courses = models.ManyToManyField(Courses, related_name='payments', blank=True)
     amount = models.PositiveBigIntegerField(null=True)
     ref = models.CharField(max_length=250, null=True)
     first_name = models.CharField(max_length=250, null=True)
