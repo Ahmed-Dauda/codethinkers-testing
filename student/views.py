@@ -113,7 +113,7 @@ def paystack_webhook(request):
                     email=email,
                     verified=verified,
                     content_type=course,
-                    f_code=recode,
+                    referral_code=recode,
                 )
 
                 # Set courses for the Payment instance
