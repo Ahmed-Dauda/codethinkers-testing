@@ -504,7 +504,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
 
         course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
         print("course price:", course.course_name.cert_price)
-        print("course id:", course.course_name.id)
+        # print("course id:", course.course_name.id)
         print("course:", course)
 
 
