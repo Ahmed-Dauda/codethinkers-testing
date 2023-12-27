@@ -139,7 +139,7 @@ from quiz.models import Result, Course
 
 class CertificatePayment(models.Model):
     payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
-    courses = models.ManyToManyField(Course,related_name='certificates',blank=True)
+    courses = models.ManyToManyField(Course,related_name='certificates',blank=True, null=True)
     amount = models.PositiveBigIntegerField(null=True)
     # user_association = models.ForeignKey(NewUser, on_delete=models.CASCADE, null=True)
     # referral_code = models.CharField(max_length=250, null=True, blank=True)
@@ -202,7 +202,7 @@ class DocPayment(models.Model):
 
 class Payment(models.Model):
     payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
-    courses = models.ManyToManyField(Courses, related_name='payments')
+    courses = models.ManyToManyField(Courses, related_name='payments', blank=True, null=True)
     amount = models.PositiveBigIntegerField(null=True)
     ref = models.CharField(max_length=250, null=True)
     first_name = models.CharField(max_length=250, null=True)
