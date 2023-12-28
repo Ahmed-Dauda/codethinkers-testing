@@ -125,7 +125,8 @@
         <tr>
           <td style="border: 1px solid black; text-align: center;">{{ payment.first_name }} {{ payment.last_name }}</td>
           <td style="border: 1px solid black; text-align: center;">{{ payment.amount }}</td>
-          <td style="border: 1px solid black; text-align: center;">{{ payment.courses.all|join:", " }} tytyyyy</td>
+          <td style="border: 1px solid black; text-align: center;">{{ payment.content_type }} </td>
+          <!-- <td style="border: 1px solid black; text-align: center;">{{ payment.courses.all|join:", " }} tytyyyy</td> -->
           <td style="border: 1px solid black; text-align: center;">{{ payment.date_created }}</td>
         </tr>
       {% empty %}
