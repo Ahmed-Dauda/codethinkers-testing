@@ -144,7 +144,7 @@ def paystack_webhook(request):
                     last_name=last_name,
                     email=email,
                     verified=verified,
-                    content_type=course,
+                    # content_type=course,
                     f_code=recode,
                 )
 
