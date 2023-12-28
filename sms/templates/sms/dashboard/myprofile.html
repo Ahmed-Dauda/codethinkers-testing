@@ -65,11 +65,7 @@
 <!-- Assuming your template is myprofile.html -->
 
 <!-- Add these fields to your form -->
-<!-- <form method="post" action="{% url 'student:referrer_mentor_detail' pk=referrer_mentor.pk %}">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Update Account</button>
-</form> -->
+
 
 
 {% if referrer_mentor %}
@@ -129,7 +125,7 @@
         <tr>
           <td style="border: 1px solid black; text-align: center;">{{ payment.first_name }} {{ payment.last_name }}</td>
           <td style="border: 1px solid black; text-align: center;">{{ payment.amount }}</td>
-          <td style="border: 1px solid black; text-align: center;">{{ payment.courses.all|join:", " }}</td>
+          <td style="border: 1px solid black; text-align: center;">{{ payment.courses.all|join:", " }} tytyyyy</td>
           <td style="border: 1px solid black; text-align: center;">{{ payment.date_created }}</td>
         </tr>
       {% empty %}
