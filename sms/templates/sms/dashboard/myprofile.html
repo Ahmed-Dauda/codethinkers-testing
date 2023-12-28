@@ -143,25 +143,6 @@
 {% endif %}
 
 
-<!-- {% if referrer_mentor %}
-  <h2 style="color: red;">Referrer Information</h2>
-  <table border="1">
-    <tr>
-      <th>Referral Code</th>
-      <th>Referred Students Count</th>
-      <th>F Code Count</th>
-      <th>Total Amount </th>
-    </tr>
-    <tr>
-      <td>{{ referrer_code }}</td>
-      <td>{{ f_code_count }}</td>
-      <td>{{ f_code_count }}</td>
-      <td>#{{ total_amount }}</td>
-    </tr>
-  </table>
-{% else %}
-  <p>You are not a referrer. If you have a referrer, they can provide you with a referral code.</p>
-{% endif %} -->
 
 <!-- Include other parts of your profile template as needed -->
 
@@ -172,7 +153,7 @@
 <table class="table table-resposive">
   <thead style="background-color: black; color:white">
     <tr>
-      <th scope="col">Id</th>
+    
       <th scope="col">Title</th>
       <th scope="col">Course</th>
       <th scope="col">Pass Mark</th>
@@ -182,7 +163,7 @@
     {% for course in courses %}
     {% if course  and course.pass_mark >= course.constant %}
     <tr>
-      <th scope="row">{{course.id}}</th>
+    
       <td>Check Course Progress</td>
       <td><a href="{% url 'sms:certificates' course.id %}">{{course.course_name}} </a></td>
       <td>{{course.constant}}</td>
