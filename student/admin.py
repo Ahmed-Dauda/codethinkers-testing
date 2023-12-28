@@ -88,10 +88,10 @@ admin.site.register(ReferrerMentor, ReferrerMentorAdmin)
 # admin.site.register(CertificatePayment)
 class CertificatePaymentResource(resources.ModelResource):
     
-    courses = fields.Field(
-        column_name= 'courses',
-        attribute='courses',
-        widget=ForeignKeyWidget(CertificatePayment,'title') )
+    # courses = fields.Field(
+    #     column_name= 'courses',
+    #     attribute='courses',
+    #     widget=ForeignKeyWidget(CertificatePayment,'title') )
     
     class Meta:
         model = CertificatePayment
