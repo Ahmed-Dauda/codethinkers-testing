@@ -101,19 +101,18 @@ from django.utils.html import format_html
 
 
 class CertificatePaymentAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'amount', 'ref', 'f_code','get_courses_titles','first_name','last_name', 'content_type', 'email', 'verified', 'date_created']
+    list_display = ['id', 'amount', 'ref', 'f_code','first_name','last_name', 'content_type', 'email', 'verified', 'date_created']
     list_filter = ['amount', 'f_code', 'content_type', 'ref', 'email', 'date_created']
     search_fields = ['id', 'amount', 'f_code', 'content_type','date_created', 'email']
     ordering = ['amount']
     resource_class = CertificatePaymentResource
 
-    def get_courses_titles(self, obj):
-        # Get a comma-separated list of course titles
-        pass
-        # return obj.content_type
-        # return ', '.join(course  for course in obj.courses.all())
+    # def get_courses_titles(self, obj):
+    #     # Get a comma-separated list of course titles
+    #     return c
+    #     # return ', '.join(course  for course in obj.courses.all())
   
-    get_courses_titles.short_description = 'Courses'  # Set a user-friendly name for the column
+    # get_courses_titles.short_description = 'Courses'  # Set a user-friendly name for the column
 
 admin.site.register(CertificatePayment, CertificatePaymentAdmin)
 
