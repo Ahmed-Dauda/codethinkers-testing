@@ -205,7 +205,7 @@ class Payment(models.Model):
     courses = models.ManyToManyField(Courses, related_name='payments', blank=True)
     amount = models.PositiveBigIntegerField(null=True)
     ref = models.CharField(max_length=250, null=True)
-    first_name = models.CharField(max_length=250, null=True)
+    first_name = models.CharField(max_length=200, null=True)
     last_name = models.CharField(max_length=200, null=True)
     content_type = models.CharField(max_length=200, null=True)
     # referral_code = models.CharField(max_length=200, null=True, blank=True)
