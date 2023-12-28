@@ -504,7 +504,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
 
         course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
         print("course price:", course.course_name.cert_price)
-        # print("course id:", course.course_name.id)
+      
         print("course:", course)
 
 
@@ -512,7 +512,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
          
         # Query the Payment model to get all payments related to the user and course
         related_payments = CertificatePayment.objects.filter(
-            email=user, content_type =course,
+            email=user, 
             amount=course.course_name.cert_price)
         # related_payments = CertificatePayment.objects.filter(
         #     email=user, content_type =coursew.course_name,
