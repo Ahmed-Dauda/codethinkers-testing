@@ -101,7 +101,7 @@ from django.utils.html import format_html
 
 
 class CertificatePaymentAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'amount', 'ref', 'f_code','get_courses_titles','first_name','last_name', 'content_type', 'email', 'verified', 'date_created']
+    list_display = ['id', 'amount', 'ref', 'f_code','first_name','last_name', 'content_type', 'email', 'verified', 'date_created']
     list_filter = ['amount', 'f_code', 'content_type', 'ref', 'email', 'date_created']
     search_fields = ['id', 'amount', 'f_code', 'content_type','date_created', 'email']
     ordering = ['amount']
