@@ -115,7 +115,7 @@ admin.site.register(ReferrerMentor, ReferrerMentorAdmin)
 #     # get_courses_titles.short_description = 'Courses'  # Set a user-friendly name for the column
 
 # admin.site.register(CertificatePayment, CertificatePaymentAdmin)
-
+admin.site.register(CertificatePayment)
 # class CertificatePaymentAdmin(ImportExportModelAdmin):
 #     list_display = ['id','amount','ref', 'f_code', 'first_name', 'last_name', 'content_type', 'email', 'verified', 'date_created']
 #     # prepopulated_fields = {"courses": ("courses",)}
