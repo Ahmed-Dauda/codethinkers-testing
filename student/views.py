@@ -128,34 +128,34 @@ def paystack_webhook(request):
                             
             
         # course = get_object_or_404(Courses, pk=id_value)
-        # elif content_type == 'certificates':
-        #     # Assuming id_value is the primary key of the Course model
-        #     course = get_object_or_404(Course, pk=id_value)
+        elif content_type == 'certificates':
+            # Assuming id_value is the primary key of the Course model
+            course = get_object_or_404(Course, pk=id_value)
 
-        #     # Check if a CertificatePayment with the same reference already exists
-        #     existing_cert_payment = CertificatePayment.objects.filter(ref=reference).first()
+            # Check if a CertificatePayment with the same reference already exists
+            existing_cert_payment = CertificatePayment.objects.filter(ref=reference).first()
 
-        #     if not existing_cert_payment:
-        #         # Create a new CertificatePayment only if no existing payment is found
-        #         cert_payment = CertificatePayment.objects.create(
-        #             ref=reference,
-        #             amount=paid_amount,
-        #             first_name=first_name,
-        #             last_name=last_name,
-        #             email=email,
-        #             verified=verified,
-        #             content_type=course,
-        #             f_code=recode,
-        #         )
+            if not existing_cert_payment:
+                # Create a new CertificatePayment only if no existing payment is found
+                cert_payment = CertificatePayment.objects.create(
+                    ref=reference,
+                    amount=paid_amount,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    verified=verified,
+                    content_type=course,
+                    f_code=recode,
+                )
 
-        #         # Set courses for the CertificatePayment instance
-        #         # course = get_object_or_404(Course, pk=id_value)
-        #         if course:
-        #             cert_payment.courses.set([course])
-        #     else:
-        #         # Handle the case where a CertificatePayment with the same reference already exists
-        #         # You may want to log, display an error message, or take other actions
-        #         print(f"CertificatePayment with reference {reference} already exists.")
+                # Set courses for the CertificatePayment instance
+                # course = get_object_or_404(Course, pk=id_value)
+                if course:
+                    cert_payment.courses.set([course])
+            else:
+                # Handle the case where a CertificatePayment with the same reference already exists
+                # You may want to log, display an error message, or take other actions
+                print(f"CertificatePayment with reference {reference} already exists.")
 
         else:
 
