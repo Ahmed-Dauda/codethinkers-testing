@@ -16,7 +16,7 @@ from users.models import NewUser
 from .models import  Question, Choice
 from django.db.models import Q 
 from sms.models import  Topics
-
+from django.utils.html import format_html
 
 
 admin.site.register(PDFDocument)
@@ -85,37 +85,35 @@ admin.site.register(ReferrerMentor, ReferrerMentorAdmin)
 
 
 
-admin.site.register(CertificatePayment)
-
-# class CertificatePaymentResource(resources.ModelResource):
+# admin.site.register(CertificatePayment)
+class CertificatePaymentResource(resources.ModelResource):
     
-#     courses = fields.Field(
-#         column_name= 'courses',
-#         attribute='courses',
-#         widget=ForeignKeyWidget(CertificatePayment,'title') )
+    courses = fields.Field(
+        column_name= 'courses',
+        attribute='courses',
+        widget=ForeignKeyWidget(CertificatePayment,'title') )
     
-#     class Meta:
-#         model = CertificatePayment
-#         # fields = ('title',)
-# from import_export.admin import ImportExportModelAdmin
-# from django.utils.html import format_html
+    class Meta:
+        model = CertificatePayment
+        # fields = ('title',)
 
 
-# class CertificatePaymentAdmin(ImportExportModelAdmin):
-#     list_display = ['id', 'amount', 'ref', 'f_code','first_name','last_name', 'content_type', 'email', 'verified', 'date_created']
-#     list_filter = ['amount', 'f_code', 'content_type', 'ref', 'email', 'date_created']
-#     search_fields = ['id', 'amount', 'f_code', 'content_type','date_created', 'email']
-#     ordering = ['amount']
-#     resource_class = CertificatePaymentResource
 
-#     def get_courses_titles(self, obj):
-#         # Get a comma-separated list of course titles for the CertificatePayment instance (obj)
-#         course_t = ', '.join(course.course_name for course in obj.courses.all())
-#         return course_t
+class CertificatePaymentAdmin(ImportExportModelAdmin):
+    list_display = ['id', 'amount', 'ref', 'f_code','first_name','last_name', 'content_type', 'email', 'verified', 'date_created']
+    list_filter = ['amount', 'f_code', 'content_type', 'ref', 'email', 'date_created']
+    search_fields = ['id', 'amount', 'f_code', 'content_type','date_created', 'email']
+    ordering = ['amount']
+    resource_class = CertificatePaymentResource
 
-#     get_courses_titles.short_description = 'Courses'  # Set a user-friendly name for the column
+    def get_courses_titles(self, obj):
+        # Get a comma-separated list of course titles for the CertificatePayment instance (obj)
+        course_t = ', '.join(course.course_name for course in obj.courses.all())
+        return course_t
 
-# admin.site.register(CertificatePayment, CertificatePaymentAdmin)
+    get_courses_titles.short_description = 'Courses'  # Set a user-friendly name for the column
+
+admin.site.register(CertificatePayment, CertificatePaymentAdmin)
 
 
 

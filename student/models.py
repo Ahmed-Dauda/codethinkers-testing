@@ -155,10 +155,10 @@ class CertificatePayment(models.Model):
     # def __str__(self):
     #     return self.content_type
 
-    # def __str__(self):
-    # # Get a comma-separated list of course titles
-    #     course_t = ', '.join(course.course_name.title for course in self.courses.all())
-    #     return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_t}"
+    def __str__(self):
+    # Get a comma-separated list of course titles
+        course_t = ', '.join(course.course_name.title for course in self.courses.all())
+        return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_t}"
 
 
 
