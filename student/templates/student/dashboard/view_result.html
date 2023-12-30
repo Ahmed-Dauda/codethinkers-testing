@@ -34,7 +34,7 @@
     {% for item in courses %}
     <div class="left-column-cat card-body text-center category">
         <!-- <img class="card-img" src="{{item.img_course.url}}" > -->
-   
+        <a class="bg-white container" href="{% url 'sms:certificates' item.id %}">{{item}}</a> <hr>
     </div>
     {% empty %}
     <small class="card-text">No Exams Available Yet. CHECK LATER</small>

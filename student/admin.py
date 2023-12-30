@@ -106,12 +106,12 @@ class CertificatePaymentAdmin(ImportExportModelAdmin):
     ordering = ['amount']
     resource_class = CertificatePaymentResource
 
-    def get_courses_titles(self, obj):
-        # Get a comma-separated list of course titles for the CertificatePayment instance (obj)
-        course_t = ', '.join(course.course_name for course in obj.courses.all())
-        return course_t
+    # def get_courses_titles(self, obj):
+    #     # Get a comma-separated list of course titles for the CertificatePayment instance (obj)
+    #     course_t = ', '.join(course.course_name for course in obj.courses.all())
+    #     return course_t
 
-    get_courses_titles.short_description = 'Courses'  # Set a user-friendly name for the column
+    # get_courses_titles.short_description = 'Courses'  # Set a user-friendly name for the column
 
 admin.site.register(CertificatePayment, CertificatePaymentAdmin)
 
