@@ -65,6 +65,7 @@ class ResultAssessment(models.Model):
 
 
 class Course(models.Model):
+
 #    course_name = models.CharField(max_length=50, unique= True)
    course_name = models.ForeignKey(Courses,on_delete=models.CASCADE, blank=True, null= True)
    partdesc1 = models.CharField(max_length=300, blank=True, null= True)

@@ -391,7 +391,8 @@ def pdf_document_list(request):
 # dashboard view
 @login_required
 def take_exams_view(request):
-    course = QMODEL.Course.objects.get_queryset().order_by('id')
+    # course = Course.objects.get_queryset().order_by('id')
+    course = Course.objects.all().order_by('id')
     context = {
         'courses':course
     }
@@ -458,7 +459,7 @@ def calculate_marks_view(request):
 
 @login_required
 def view_result_view(request):
-    courses=QMODEL.Course.objects.get_queryset().order_by('id')
+    courses = Course.objects.get_queryset().order_by('id')
     return render(request,'student/dashboard/view_result.html',{'courses':courses})
 
 
