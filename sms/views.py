@@ -503,7 +503,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # maincourses = Courses.objects.get(pk=self.kwargs["pk"])
 
         course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
-        print("course price:", course.courses.cert_price)
+        print("course price:", course.course_name.cert_price)
       
         print("course:", course)
 
@@ -513,7 +513,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # Query the Payment model to get all payments related to the user and course
         related_payments = CertificatePayment.objects.filter(
             email=user, content_type =course,
-            amount=course.courses.cert_price)
+            amount=course.course_name.cert_price)
         # related_payments = CertificatePayment.objects.filter(
         #     email=user, content_type =coursew.course_name,
         #     amount=coursew.course_name.cert_price)
@@ -814,8 +814,8 @@ class Topicslistview(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         course = self.object  # Access the 'object' attribute
         topics = course.topics_set.all().order_by('created')
-        topic = TopicsAssessment.objects.filter(courses__title=course).order_by('id')
-        topics_assessment = TopicsAssessment.objects.filter(courses__title=course.title).order_by('id')
+        topic = TopicsAssessment.objects.filter(course_name__title=course).order_by('id')
+        topics_assessment = TopicsAssessment.objects.filter(course_name__title=course.title).order_by('id')
         topicsa = TopicsAssessment.objects.order_by('id')
         context['topics'] = topics
         context['topicsa'] = topicsa
