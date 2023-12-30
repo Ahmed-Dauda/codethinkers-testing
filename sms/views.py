@@ -431,8 +431,8 @@ def verify_certificate(request, certificate_code):
 
 @login_required
 def Certificates(request,pk):
-    course=QMODEL.Course.objects.get(id=pk)
-    courses = QMODEL.Course.objects.all()
+    course=Courses.objects.get(id=pk)
+    courses = Courses.objects.all()
     cert_note = QMODEL.Certificate_note.objects.all()
 
     certificate = get_object_or_404(Certificate, code=pk, user=request.user)
