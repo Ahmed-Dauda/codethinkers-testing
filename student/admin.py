@@ -108,7 +108,7 @@ class CertificatePaymentAdmin(ImportExportModelAdmin):
 
     def get_courses_titles(self, obj):
         # Get a comma-separated list of course titles for the CertificatePayment instance (obj)
-        course_t = ', '.join(course.courses for course in obj.courses.all())
+        course_t = ', '.join(course.course_name for course in obj.courses.all())
         return course_t
 
     get_courses_titles.short_description = 'Courses'  # Set a user-friendly name for the column
