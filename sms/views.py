@@ -431,8 +431,8 @@ def verify_certificate(request, certificate_code):
 
 @login_required
 def Certificates(request,pk):
-    course=Courses.objects.get(id=pk)
-    courses = Courses.objects.all()
+    course=QMODEL.Course.objects.get(id=pk)
+    courses = QMODEL.Course.objects.all()
     cert_note = QMODEL.Certificate_note.objects.all()
 
     certificate = get_object_or_404(Certificate, code=pk, user=request.user)
@@ -470,10 +470,10 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
 
     def get_context_data(self,*args , **kwargs ):
         context = super().get_context_data(**kwargs)
-        zcourse = get_object_or_404(QMODEL.Course, pk=self.kwargs['pk'])
+        zcourse = get_object_or_404(Courses, pk=self.kwargs['pk'])
         # course=QMODEL.Course.objects.get(id=pk)
         
-        courses = QMODEL.Course.objects.all()
+        courses = Courses.objects.all()
         cert_note = QMODEL.Certificate_note.objects.all()
         
         try:
@@ -502,10 +502,10 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # user = self.request.user.profile
         # maincourses = Courses.objects.get(pk=self.kwargs["pk"])
 
-        course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
-        print("course price:", course.course_name.cert_price)
+        course = Courses.objects.get(pk=self.kwargs["pk"])
+        # print("course price:", course.course_name.cert_price)
       
-        print("course:", course)
+        # print("course:", course)
 
 
         user = self.request.user.email
@@ -513,7 +513,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # Query the Payment model to get all payments related to the user and course
         related_payments = CertificatePayment.objects.filter(
             email=user, content_type =course,
-            amount=course.course_name.cert_price)
+            amount=course.cert_price)
         # related_payments = CertificatePayment.objects.filter(
         #     email=user, content_type =coursew.course_name,
         #     amount=coursew.course_name.cert_price)
