@@ -471,7 +471,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
     def get_context_data(self,*args , **kwargs ):
         context = super().get_context_data(**kwargs)
         zcourse = get_object_or_404(QMODEL.Course, pk=self.kwargs['pk'])
-        # course=QMODEL.Course.objects.get(id=pk)
+        print('tessss', zcourse)
         
         courses = QMODEL.Course.objects.all()
         cert_note = QMODEL.Certificate_note.objects.all()
@@ -482,8 +482,8 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
             return HttpResponseRedirect("account_login")
       
         max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-        results = Result.objects.filter(exam=zcourse, student = student).order_by('-date')[:1]
-        Result.objects.filter(id__in = Subquery(max_q[1:]), exam=zcourse)
+        results = Result.objects.filter(exam=zcourse.course_name.id, student = student).order_by('-date')[:1]
+        Result.objects.filter(id__in = Subquery(max_q[1:]), exam=zcourse.course_name.id)
 
         try:
             user_profile =  Profile.objects.filter(user_id = self.request.user)
