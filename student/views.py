@@ -392,7 +392,7 @@ def pdf_document_list(request):
 @login_required
 def take_exams_view(request):
     # course = Course.objects.get_queryset().order_by('id')
-    course = Courses.objects.all().order_by('id')
+    course = QMODEL.Course.objects.all().order_by('id')
     context = {
         'courses':course
     }
