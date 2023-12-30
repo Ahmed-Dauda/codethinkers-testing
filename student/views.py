@@ -460,7 +460,7 @@ def calculate_marks_view(request):
 @login_required
 def view_result_view(request):
     courses = Course.objects.get_queryset().order_by('id')
-    print('tsss', courses)
+
     return render(request,'student/dashboard/view_result.html',{'courses':courses})
 
 
