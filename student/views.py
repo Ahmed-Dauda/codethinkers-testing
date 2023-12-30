@@ -459,7 +459,7 @@ def calculate_marks_view(request):
 
 @login_required
 def view_result_view(request):
-    courses = Courses.objects.get_queryset().order_by('id')
+    courses = Course.objects.get_queryset().order_by('id')
     context = {
         'courses':courses
         }
