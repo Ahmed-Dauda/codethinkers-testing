@@ -470,7 +470,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
 
     def get_context_data(self,*args , **kwargs ):
         context = super().get_context_data(**kwargs)
-        zcourse = get_object_or_404(Courses, pk=self.kwargs['pk'])
+        zcourse = get_object_or_404(Course, pk=self.kwargs['pk'])
         # course=QMODEL.Course.objects.get(id=pk)
         
         courses = Courses.objects.all()
