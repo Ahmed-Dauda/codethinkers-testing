@@ -473,7 +473,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         zcourse = get_object_or_404(QMODEL.Course, pk=self.kwargs['pk'])
         print('tessss', zcourse)
         
-        courses = QMODEL.Course.objects.all()
+        courses = Courses.objects.all()
         cert_note = QMODEL.Certificate_note.objects.all()
         
         try:
