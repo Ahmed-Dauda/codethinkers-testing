@@ -460,20 +460,20 @@ def Certificates(request,pk):
 
 
 class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
-    model = Courses
+    model = QMODEL.Course
     template_name = 'sms/dashboard/certificates.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
      
     def get_queryset(self):
-        return Courses.objects.all()
+        return QMODEL.Course.objects.all()
 
     def get_context_data(self,*args , **kwargs ):
         context = super().get_context_data(**kwargs)
-        zcourse = get_object_or_404(Courses, pk=self.kwargs['pk'])
+        zcourse = get_object_or_404(QMODEL.Course, pk=self.kwargs['pk'])
         # course=QMODEL.Course.objects.get(id=pk)
         
-        courses = Courses.objects.all()
+        courses = QMODEL.Course.objects.all()
         cert_note = QMODEL.Certificate_note.objects.all()
         
         try:
@@ -482,7 +482,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
             return HttpResponseRedirect("account_login")
       
         max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-        results = Result.objects.filter(exam=zcourse.id, student = student).order_by('-date')[:1]
+        results = Result.objects.filter(exam=zcourse, student = student).order_by('-date')[:1]
         Result.objects.filter(id__in = Subquery(max_q[1:]), exam=zcourse)
 
         try:
@@ -502,10 +502,10 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # user = self.request.user.profile
         # maincourses = Courses.objects.get(pk=self.kwargs["pk"])
 
-        course = Courses.objects.get(pk=self.kwargs["pk"])
-        # print("course price:", course.course_name.cert_price)
-      
-        # print("course:", course)
+        course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
+        print("course price:", course.course_name.cert_price)
+        # print("course id:", course.course_name.id)
+        print("course:", course)
 
 
         user = self.request.user.email
@@ -513,7 +513,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # Query the Payment model to get all payments related to the user and course
         related_payments = CertificatePayment.objects.filter(
             email=user, content_type =course,
-            amount=course.cert_price)
+            amount=course.course_name.cert_price)
         # related_payments = CertificatePayment.objects.filter(
         #     email=user, content_type =coursew.course_name,
         #     amount=coursew.course_name.cert_price)
