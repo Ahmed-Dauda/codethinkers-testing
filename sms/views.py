@@ -460,13 +460,13 @@ def Certificates(request,pk):
 
 
 class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
-    model = QMODEL.Course
+    model = Courses
     template_name = 'sms/dashboard/certificates.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
      
     def get_queryset(self):
-        return QMODEL.Course.objects.all()
+        return Courses.objects.all()
 
     def get_context_data(self,*args , **kwargs ):
         context = super().get_context_data(**kwargs)
