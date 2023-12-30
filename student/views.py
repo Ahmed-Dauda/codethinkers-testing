@@ -459,9 +459,12 @@ def calculate_marks_view(request):
 
 @login_required
 def view_result_view(request):
-    courses = Course.objects.get_queryset().order_by('id')
+    courses = Courses.objects.get_queryset().order_by('id')
+    context = {
+        'courses':courses
+        }
 
-    return render(request,'student/dashboard/view_result.html',{'courses':courses})
+    return render(request,'student/dashboard/view_result.html', context = context)
 
 
 from django.db.models import Count
