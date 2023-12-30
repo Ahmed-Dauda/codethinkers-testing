@@ -31,15 +31,14 @@
 </h3>
 <div class="container text-center">
 
-    {% for item in courses %}
+  {% for item in courses  %}
     <div class="left-column-cat card-body text-center category">
- 
-       yyyy
+        <a class="bg-white container" href="{% url 'sms:certificates' item.id %}">{{ item.course_name.title }}</a> <hr>
     </div>
-    {% empty %}
+{% empty %}
     <small class="card-text">No Exams Available Yet. CHECK LATER</small>
+{% endfor %}
 
-    {% endfor %}
 </div>
 
 
