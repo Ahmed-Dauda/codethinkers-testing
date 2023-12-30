@@ -70,7 +70,7 @@ class Course(models.Model):
    course_name = models.ForeignKey(Courses,on_delete=models.CASCADE, blank=True, null= True)
    partdesc1 = models.CharField(max_length=300, blank=True, null= True)
    img_partdesc1 = CloudinaryField('image', blank=True, null= True)
-   partdesc2 = models.CharField(max_length=229, blank=True, null= True)
+   partdesc2 = models.CharField(max_length=225, blank=True, null= True)
    img_partdesc2 = CloudinaryField('image', blank=True, null= True)
    partdesc3 = models.CharField(max_length=225, blank=True, null= True)
    signature = CloudinaryField('signature', blank=True, null= True)
