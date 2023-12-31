@@ -476,4 +476,4 @@ PAYSTACK_PUBLIC_KEY = 'pk_live_010265c77983e11a700678d34d476b1ce1c48fb1'
 # COMMIT;  
 
 # step 4
-# python manage.py migrate
+# python manage.py migrate #in the heroku shell
