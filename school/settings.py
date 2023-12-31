@@ -432,3 +432,5 @@ PAYSTACK_PUBLIC_KEY = 'pk_live_010265c77983e11a700678d34d476b1ce1c48fb1'
 # migration folder issues
 
 # if table is referencing deleted column, just remove the table from migration folder
+
+# if makemigration is not recognized, do installation of libraries
