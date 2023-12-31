@@ -438,15 +438,6 @@ PAYSTACK_PUBLIC_KEY = 'pk_live_010265c77983e11a700678d34d476b1ce1c48fb1'
 #ALTER TABLE public.quiz_course DROP COLUMN course_name;
 #ALTER TABLE public.quiz_course ADD COLUMN course_name VARCHAR(50) UNIQUE;
 
-# error 
-#Dataclip Error
-# ERROR:  relation "courses" does not exist
-
-# solution
-#SET search_path TO public;
-
-
-
 
 
 # step 1
