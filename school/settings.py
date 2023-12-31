@@ -434,3 +434,46 @@ PAYSTACK_PUBLIC_KEY = 'pk_live_010265c77983e11a700678d34d476b1ce1c48fb1'
 # if table is referencing deleted column, just remove the table from migration folder
 
 # if makemigration is not recognized, do installation of libraries
+
+#ALTER TABLE public.quiz_course DROP COLUMN course_name;
+#ALTER TABLE public.quiz_course ADD COLUMN course_name VARCHAR(50) UNIQUE;
+
+# error 
+#Dataclip Error
+# ERROR:  relation "courses" does not exist
+
+# solution
+#SET search_path TO public;
+
+
+
+
+
+# step 1
+
+# begin;
+# set transaction read write;
+# ALTER TABLE public.quiz_course
+# ADD COLUMN course_name VARCHAR(500);
+# COMMIT;  
+
+# step 2
+
+# begin;
+# set transaction read write;
+# ALTER TABLE "public"."quiz_course"
+# ALTER COLUMN "course_name" TYPE bigint USING "course_name"::bigint;
+# COMMIT;  
+
+# step 3
+
+# inserting relationships
+
+# begin;
+# set transaction read write;
+# ALTER TABLE "public"."quiz_course"
+# ADD CONSTRAINT "quiz_course_course_name_fkey" FOREIGN KEY ("course_name") REFERENCES "public"."sms_courses" ("id");
+# COMMIT;  
+
+# step 4
+# python manage.py migrate
