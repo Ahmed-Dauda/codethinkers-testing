@@ -508,11 +508,14 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
 
     
         user = self.request.user.email
-        
+        # content_type
         # Query the Payment model to get all payments related to the user and course
         related_payments = CertificatePayment.objects.filter(
             email=user, courses=course.course_name.id,
             amount=course.course_name.cert_price)
+        # related_payments = CertificatePayment.objects.filter(
+        #     email=user, courses=course.course_name.id,
+        #     amount=course.course_name.cert_price)
 
 
         context['related_payments'] = related_payments
