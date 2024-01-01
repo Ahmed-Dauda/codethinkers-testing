@@ -869,6 +869,7 @@ from django.views import View
 class Topicslistview(LoginRequiredMixin, DetailView):
     model = Courses
     template_name = 'sms/dashboard/topicslistviewtest1.html'
+    count_hit = True
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()  # Set the 'object' attribute

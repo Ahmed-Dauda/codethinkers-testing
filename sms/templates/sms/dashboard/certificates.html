@@ -9,7 +9,9 @@
 
 <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us  </a>  </button>
 
+
 <div class="table-responsive container text-center card-body">
+    <div><a href="{% url 'student:take-exam' %}">Take exam if you have not</a></div><br>
   <h2 class="">{{ hitcount.total_hits }} Certificates printed</2> <br> <br>
   <table class="table" id=""> 
     {% for course in courses %}
