@@ -25,8 +25,11 @@
       <tr>
         <th>Names</th>
         <th>Email</th>
+   
         <th>Exam Name</th>
         <th>Max Score</th>
+
+       
       </tr>
     </thead>
    
@@ -101,6 +104,7 @@
                
 
                     {% if payment.amount == course.course_name.price  and ccourse.title == course.course_name.title %}
+                    
                         <p>{{ hitcount.total_hits }} Certificates printed on this course</p>
                         <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
                     {% else %}
@@ -124,6 +128,7 @@
   <hr>
 </table>
 
+
 </div>
 
 <!-- End of Main Content -->
@@ -131,6 +136,8 @@
 
 
 <script>
+
+  
 
 const paymentForm = document.getElementById('paymentForm');
 paymentForm.addEventListener("submit", payWithPaystack, false);
