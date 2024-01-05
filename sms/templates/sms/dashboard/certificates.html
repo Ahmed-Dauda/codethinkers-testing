@@ -71,34 +71,38 @@
             {% endif %}
         {% endif %} -->
 
-            {% if not related_payments.exists %}
-            {% if course.course_name.cert_price %}
-                <button class="btn btn-primary" type="submit" id="purchasebtn" onclick="payWithPaystack()"> Pay #{{course.course_name.cert_price|safe}} Now to Print Certificate</button>
-                {% else %}
-                <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
-            {% endif %}
+        {% if related_payments.exists and course_payments.exists %}
 
+       <!--{% if course.course_name.cert_price or course.course_name.price %}
+            <button class="btn btn-primary" type="submit" id="purchasebtn" onclick="payWithPaystack()"> Pay #{{course.course_name.cert_price|safe}} Now to Print Certificate</button>
+        {% else %}
+            <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
+        {% endif %}
+       
+        {% else %}-->
+
+            {% if related_payments.exists or course_payments.exists %}
+                <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
+
+            {% elif qcourse.course_name.cert_price == None and qcourse.course_name.price == None %}
+            <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
+
+            
             {% else %}
-            {% if related_payments.exists %}
-                <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
+                <button class="btn btn-primary" type="submit" id="purchasebtn" onclick="payWithPaystack()"> Pay #{{course.course_name.cert_price|safe}} Now to Print Certificate</button>
             {% endif %}
+            
+             {% endif %}
+    
 
-           {% endif %}
-        
 
-           
-            {% if course.course_name.cert_price == 0 or course == course.course_name.title %}
-
-          
-           <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
-
-           {% endif %}
                         </form>
                         <script src="https://js.paystack.co/v1/inline.js"></script>
           
 
                     {% else %}
-                        <h4 style="color: red">Passed mark: {{ course.pass_mark }}. You are close to getting your Certificate. Please try again</h4>
+                        <h4 style="color: red">Passed mark is {{ course.pass_mark }}. You are close to getting your Certificate. Please try again</h4>
+                        <a class="nav-link" href="{% url 'student:take-exam' %}"><span>Take Exam</span></a>
                     {% endif %}
                 {% endif %}
             {% endfor %}
