@@ -95,25 +95,7 @@
            {% endif %}
                         </form>
                         <script src="https://js.paystack.co/v1/inline.js"></script>
-                    {% for payment in related_payments %}
-                     
-              
-                    <!-- {% if payment.content_type == "certificates" and  payment.email == request.user.email %}
-                    {% for ccourse in payment.courses.all %}
-                    <li>yyyy{{ payment.email }}</li>  g {{ request.user.email }} -->
-               
-
-                    {% if payment.amount == course.course_name.price  and ccourse.title == course.course_name.title %}
-                    
-                        <p>{{ hitcount.total_hits }} Certificates printed on this course</p>
-                        <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
-                    {% else %}
-                 
-                    {% endif %}
-                    {% endfor %}
-                    {% endif %}
-
-                    {% endfor %}
+          
 
                     {% else %}
                         <h4 style="color: red">Passed mark: {{ course.pass_mark }}. You are close to getting your Certificate. Please try again</h4>
