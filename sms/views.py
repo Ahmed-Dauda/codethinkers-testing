@@ -502,6 +502,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # maincourses = Courses.objects.get(pk=self.kwargs["pk"])
 
         course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
+        context['qcourse'] = course
         # print("Primary key1:", course.course_name.cert_price)
         # print("Primary key:", course.course_name.id)
         # print("course:", course)
@@ -517,7 +518,10 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         #     email=user, courses=course.course_name.id,
         #     amount=course.course_name.cert_price)
 
-
+        course_payments = Payment.objects.filter(email=user, amount=course.course_name.price)
+        # print('course_payments:', course_payments)
+        # print('related_payments:', related_payments)
+        context['course_payments'] = course_payments
         context['related_payments'] = related_payments
     
        
