@@ -28,26 +28,44 @@ from allauth.account.views import SignupView
 from .forms import SimpleSignupForm
 
 
-# views.py
 
-# from allauth.account.views import SignupView
-# from .forms import ReferrerSignupForm
-
-# class ReferrerSignupView(SignupView):
-#     template_name = 'users/registration/register_user.html'  # Update with your template path
-#     form_class = ReferrerSignupForm
-
-#     def form_valid(self, form):
-#         response = super().form_valid(form)
-#         # Your additional logic after a successful signup
-#         return response
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         # Add any additional context data you need
-#         return context
+from django.shortcuts import render
+from django.http import HttpResponse
 
 
+from django.shortcuts import render
+from django.http import HttpResponse
+from allauth.account.views import SignupView
+from .forms import SimpleSignupForm
+
+class ReferralSignupView(SignupView):
+    template_name = 'users/referrer.html'  # Replace with your actual template path
+    form_class = SimpleSignupForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        referral_code = self.kwargs.get('referrer_code', '')
+        context['form'].fields['phone_number'].initial = referral_code
+        return context
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        referral_code = form.cleaned_data.get('phone_number', '')
+        
+        # Perform actions with the referral code, e.g., associate it with the user
+        user = self.request.user  # The user object after signup
+        user.phone_number = referral_code
+        user.save()
+
+        return response
+
+
+# def referral_signup(request, referrer_code):
+#     # Your referral logic goes here
+#     # You can use the referrer_code to identify the referrer and associate it with the signup process
+#     # ...
+
+#     return HttpResponse(f"Referral signup page for referrer {referrer_code}")
 
 
 

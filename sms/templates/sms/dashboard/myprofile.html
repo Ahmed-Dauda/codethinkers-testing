@@ -65,8 +65,13 @@
 <!-- Assuming your template is myprofile.html -->
 
 <!-- Add these fields to your form -->
+ffff {{referrer_mentor.referrer_code }}
 
+<hr>
 
+<a href="{% url 'users:referral_signup' referrer_code=referrer_mentor.referrer_code %}">Share your referral link</a>
+
+<hr>
 
 {% if referrer_mentor %}
   <!-- Referrer Information -->
@@ -102,6 +107,8 @@
     </table>
   </div>
       
+
+
   <br> <br> <hr>
   <!-- Referred Students -->
   <h3 style="color: red;">Referred Students and course(s)</h3>

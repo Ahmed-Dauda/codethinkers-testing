@@ -1,6 +1,8 @@
 from django.db import models
 from cloudinary.models import CloudinaryField
-
+from django.contrib import admin
+from django.db.models import Count, Q
+from django.db.models import Count, Sum
 from users.models import NewUser
 from quiz import models as QMODEL
 import secrets
@@ -9,16 +11,15 @@ import uuid
 import random
 import string
 from django.contrib import messages
-
-
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+from sms.models import Topics
 
 # from sms.paystack import Paystack
 
 
-from django.contrib.auth.models import User
 
-from django.db import models
-from sms.models import Topics
 
 
 
@@ -222,23 +223,24 @@ class Payment(models.Model):
         return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles}"
 
 
-from django.db import models
-from django.contrib import admin
-from django.db.models import Count, Q
-from django.db import models
-from django.db.models import Count, Sum
+from django.urls import reverse
 
 class ReferrerMentor(models.Model):
     name = models.CharField(max_length=20, blank=True, null=True)
     courses = models.ManyToManyField(Courses, related_name='referrercourses', blank=True)
-    referrer_code = models.CharField(max_length=20, blank=True, null=True)
+    referrer_code = models.CharField(max_length=20, blank=True, null=True, unique=True)
+    # referrer_code = models.CharField(max_length=20, blank=True, null=True)
     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
     account_number = models.CharField(max_length=20, blank=True, null=True)
     bank = models.CharField(max_length=50, blank=True, null=True)
     phone_no = models.CharField(max_length=50, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
+
+    def get_referral_url(self):
+        return reverse('referral_signup', args=[str(self.referrer_code)])
     
+
     @property
     def count_of_students_referred(self):
         phone_numbers = NewUser.objects.filter(phone_number=self.referrer_code)
@@ -265,34 +267,12 @@ class ReferrerMentor(models.Model):
     def related_payments(self):
         return CertificatePayment.objects.filter(f_code=self.referrer_code)
     
-  
-
     def __str__(self):
         return f'Referrer Profile for {self.name}'
 
-# class ReferrerMentor(models.Model):
-#     name = models.CharField(max_length=20, blank=True, null=True)
-#     courses = models.ManyToManyField(Courses, related_name='referrercourses', blank=True)
-#     referrer_code = models.CharField(max_length=20, blank=True, null=True)
-#     referred_count = models.ForeignKey(CertificatePayment, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_count')
-#     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
-#     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
-
-#     def get_referred_students_count(self):
-#         return self.referred_students.count()
-
-#     def __str__(self):
-#         return f'Referrer Profile for {self.name}'
-
-
-
-# class ReferrerMentor(models.Model):
-#     name = models.CharField(max_length=20, blank=True, null=True)
-#     # learner = models.OneToOneField(NewUser, on_delete=models.CASCADE, blank=True, null=True)
-#     courses = models.ManyToManyField(Courses ,related_name='referrercourses',blank=True)
-#     referrer_code = models.CharField(max_length=20, blank=True, null=True)
-#     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
-#     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
-
-#     def __str__(self):
-#         return f'Referrer Profile for {self.name}'
+@receiver(pre_save, sender=ReferrerMentor)
+def generate_referrer_code(sender, instance, **kwargs):
+    if not instance.referrer_code:
+        # Generate a unique code using uuid
+        unique_identifier = str(uuid.uuid4().hex)[:10]
+        instance.referrer_code = f"cta{unique_identifier}"
