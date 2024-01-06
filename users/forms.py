@@ -65,6 +65,34 @@ class SimpleSignupForm(SignupForm):
         
         return user
 
+
+# users/forms.py
+from django import forms
+from student.models import ReferrerMentor
+from django.contrib.auth import get_user_model
+
+
+class ReferrerMentorForm(forms.ModelForm):
+    class Meta:
+        model = ReferrerMentor
+        fields = ['name', 'courses', 'phone_no']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Exclude the 'referrer' field from the form
+        if 'referrer' in self.fields:
+            self.fields['referrer'].widget = forms.HiddenInput()
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.referrer_code = self.cleaned_data.get('referrer_code', '')
+        if commit:
+            instance.save()
+        return instance
+
+
+
+
 # from allauth.account.forms import SignupForm
 # from django import forms
 

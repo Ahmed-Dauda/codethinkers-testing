@@ -240,7 +240,6 @@ class ReferrerMentor(models.Model):
     def get_referral_url(self):
         return reverse('referral_signup', args=[str(self.referrer_code)])
     
-
     @property
     def count_of_students_referred(self):
         phone_numbers = NewUser.objects.filter(phone_number=self.referrer_code)
