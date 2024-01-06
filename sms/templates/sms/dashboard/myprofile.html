@@ -65,11 +65,31 @@
 <!-- Assuming your template is myprofile.html -->
 
 <!-- Add these fields to your form -->
-ffff {{referrer_mentor.referrer_code }}
+<!-- <div>
+  <p>Your Referral Link:</p>
+  <a href="{% url 'users:referral_signup' referrer_code=referrer_mentor.referrer_code %}" target="_blank">
+    {% url 'users:referral_signup' referrer_code=referrer_mentor.referrer_code %}
+  </a>
+</div> -->
+<div>
+  <p>Your Referral Link:</p>
+  <div>
+    <input type="text" id="referralLink" value="{{ request.scheme }}://{{ request.get_host }}{% url 'users:referral_signup' referrer_code=referrer_code %}" readonly>
+    <button onclick="copyToClipboard()">Copy</button>
+  </div>
+</div>
 
+<script>
+  function copyToClipboard() {
+    var copyText = document.getElementById("referralLink");
+    copyText.select();
+    document.execCommand("copy");
+    alert("Copied the referral link: " + copyText.value);
+  }
+</script>
 <hr>
 
-<a href="{% url 'users:referral_signup' referrer_code=referrer_mentor.referrer_code %}">Share your referral link</a>
+<!-- <a href="{% url 'users:referral_signup' referrer_code=referrer_mentor.referrer_code %}">Share your referral link</a> -->
 
 <hr>
 
@@ -179,6 +199,7 @@ ffff {{referrer_mentor.referrer_code }}
     {% endfor %}
   </tbody>
 </table>
+
 
 {% endblock %} 
 
