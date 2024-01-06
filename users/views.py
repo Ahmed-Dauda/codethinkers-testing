@@ -62,6 +62,24 @@ class ReferralSignupView(SignupView):
         return response
 
 
+# users/views.py
+from django.shortcuts import render, redirect
+from .forms import ReferrerMentorForm
+
+def become_referrer(request):
+    if request.method == 'POST':
+        form = ReferrerMentorForm(request.POST)
+        if form.is_valid():
+            # Set the referrer field before saving
+            form.instance.referrer = request.user
+            form.save()
+            return redirect('sms:myprofile')  # Redirect to a success page or another URL
+    else:
+        # Initialize the form with the referrer field hidden
+        form = ReferrerMentorForm(initial={'referrer': request.user.pk})
+
+    return render(request, 'users/become_referrer.html', {'form': form})
+
 # def referral_signup(request, referrer_code):
 #     # Your referral logic goes here
 #     # You can use the referrer_code to identify the referrer and associate it with the signup process

@@ -626,6 +626,7 @@ p {
 
     <div class="col-md-6 flex-container">
       <div class="text-container">
+        <a style="font-size: 20px;color: red;" href="{% url 'users:become_referrer' %}">Become a Referrer, Click Here</a>
         <h1>Unleashing Your Coding Potential</h1>
         <p>
           Join us at CodeThinkers Academy to unlock your coding potential. 
@@ -797,6 +798,9 @@ p {
   <div class="">
 <h3 style="color: black; font-weight: bold;" >{{beginner_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
 <a style="height: 10px; color: red;font-size: 20px;" class="" href="{% url 'sms:courseslist' obj.categories.pk %}">View All Courses</a>
+<br>
+
+
 </div>
 </div>
 {% endif %}
