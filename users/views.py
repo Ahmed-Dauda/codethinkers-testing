@@ -14,29 +14,119 @@ from users.models import NewUser
 from users.models import Profile
 
 
-# views.py
-
-# from django.shortcuts import render, redirect
-# from django.contrib.auth.forms import UserCreationForm
-# from .forms import ReferrerSignupForm
-# from .models import ReferrerProfile
 
 # views.py
 
 from django.shortcuts import render, redirect
 from allauth.account.views import SignupView
-from .forms import SimpleSignupForm
-
-
-
-from django.shortcuts import render
+from .forms import SimpleSignupForm, SchoolStudentSignupForm
 from django.http import HttpResponse
 
+from allauth.account.utils import perform_login
+from allauth.socialaccount import signals
+from allauth.socialaccount.adapter import get_adapter
+from allauth.socialaccount.models import SocialAccount
+from allauth.account import app_settings
 
-from django.shortcuts import render
+
+
+
 from django.http import HttpResponse
+
+from django.shortcuts import render, redirect
+
+
+def SchoolStudentView(request):
+    if request.method == 'POST':
+
+        form = SchoolStudentSignupForm(request.POST)
+        if form.is_valid():
+            form.save(request)
+            return redirect('sms:myprofile')  # Redirect to a success page
+    else:
+        form = SchoolStudentSignupForm()
+
+    return render(request, 'users/school_student.html', {'form': form})
+
+from django.views.generic.edit import CreateView
+from .forms import SchoolSignupForm  # Import your form
+from quiz.models import School  # Import your model
+from django.urls import reverse_lazy
+
+class SchoolSignupView(CreateView):
+    template_name = 'users/school_registration.html'  # Replace with your actual template path
+    form_class = SchoolSignupForm
+    model = School
+    success_url = reverse_lazy('success_page')  # Replace with your success page URL or name
+
+    def form_valid(self, form):
+        # You can add any additional logic here before saving the form
+        return super().form_valid(form)
+
+        
+
 from allauth.account.views import SignupView
-from .forms import SimpleSignupForm
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
+# @method_decorator(login_required, name='dispatch')
+# class ReferralSignupView(SignupView):
+#     template_name = 'users/referrer.html'  # Replace with your actual template path
+#     form_class = SimpleSignupForm
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         referral_code = self.kwargs.get('referrer_code', '')
+#         context['form'].fields['phone_number'].initial = referral_code
+#         context['referrer_code'] = self.request.resolver_match.kwargs.get('referrer_code', '')
+#         return context
+
+#     def form_valid(self, form):
+#         response = super().form_valid(form)
+#         referral_code = form.cleaned_data.get('phone_number', '')
+
+#         # Perform actions with the referral code, e.g., associate it with the user
+#         user = self.request.user  # The user object after signup
+#         user.phone_number = referral_code
+#         user.save()
+
+#         return response
+  
+
+from allauth.account.views import SignupView
+
+
+# class ReferralSignupView(SignupView):
+#     template_name = 'users/referrer.html'
+#     form_class = SimpleSignupForm  # Default form class
+
+#     def get_form_class(self):
+#         referral_code = self.kwargs.get('referrer_code', None)
+#         if referral_code:
+#             # If there's a referral code in the URL, use the ReferralSignupForm
+#             return SimpleSignupForm
+#         else:
+#             # Otherwise, use the default form class
+#             return super().get_form_class()
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         referral_code = self.kwargs.get('referrer_code', '')
+#         context['form'].fields['phone_number'].initial = referral_code
+#         context['referrer_code'] = referral_code
+#         return context
+
+#     def form_valid(self, form):
+#         response = super().form_valid(form)
+#         referral_code = form.cleaned_data.get('phone_number', '')
+
+#         # Perform actions with the referral code, e.g., associate it with the user
+#         user = self.request.user  # The user object after signup
+#         user.phone_number = referral_code
+#         user.save()
+
+#         return response
+
 
 class ReferralSignupView(SignupView):
     template_name = 'users/referrer.html'  # Replace with your actual template path
@@ -52,13 +142,12 @@ class ReferralSignupView(SignupView):
     def form_valid(self, form):
         response = super().form_valid(form)
         referral_code = form.cleaned_data.get('phone_number', '')
-        
+
         # Perform actions with the referral code, e.g., associate it with the user
         user = self.request.user  # The user object after signup
         user.phone_number = referral_code
         user.save()
         
-
         return response
 
 

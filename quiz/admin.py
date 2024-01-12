@@ -9,12 +9,12 @@ from import_export.widgets import ForeignKeyWidget
 from users.models import Profile
 from quiz.models import (
     Question, Course, Result,
-    QuestionAssessment, TopicsAssessment, ResultAssessment, 
+    QuestionAssessment, TopicsAssessment, ResultAssessment, School
    
     )
 # Register your models here.
 admin.site.register(Course)
-  
+admin.site.register(School)
 admin.site.register(TopicsAssessment)
 # admin.site.register(QuestionAssessment)
 

@@ -1,6 +1,6 @@
 from django.db import models
 # from student.models import Student
-from users.models import Profile
+from users.models import Profile, NewUser
 from cloudinary.models import CloudinaryField
 from sms.models import Courses as smscourses
 from tinymce.models import HTMLField
@@ -15,7 +15,6 @@ class TopicsAssessment(models.Model):
    question_number = models.PositiveIntegerField()
    total_marks = models.PositiveIntegerField()
    pass_mark = models.PositiveIntegerField(null=True)
-
    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
    id = models.AutoField(primary_key=True)
@@ -63,11 +62,25 @@ class ResultAssessment(models.Model):
 
 # end
 
+class School(models.Model):
+    name = models.CharField(max_length=255)
+    school_name = models.CharField(max_length=255)
+    portfolio = models.CharField(max_length=255, blank=True, null= True)
+    logo = CloudinaryField('school_logos')
+    principal_signature = CloudinaryField('principal_signatures')
+    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
 
+    def __str__(self):
+        return f"{self.school_name}"
+
+
+    
 class Course(models.Model):
 
 #    course_name = models.CharField(max_length=50, unique= True)
    course_name = models.ForeignKey(Courses,on_delete=models.CASCADE, blank=True, null= True)
+   school = models.ForeignKey(School, on_delete=models.SET_NULL, blank=True, null=True)
    partdesc1 = models.CharField(max_length=300, blank=True, null= True)
    img_partdesc1 = CloudinaryField('image', blank=True, null= True)
    partdesc2 = models.CharField(max_length=225, blank=True, null= True)
@@ -83,11 +96,34 @@ class Course(models.Model):
    created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
    id = models.AutoField(primary_key=True)
+
+#    def get_student_info_for_certificate(self, student):
+#         # Retrieve information based on the student's school
+#         if student.school:
+#             school_info = {
+#                 'school_name': student.school.school_name,
+#                 'logo_url': student.school.logo.url,
+#                 'signature_url': student.school.principal_signature.url,
+#                 # Add more fields as needed
+#             }
+#             return school_info
+#         return None
    
    def __str__(self):
         return f'{self.course_name}'
 
+# class Student(models.Model):
+#     user = models.OneToOneField(Profile, on_delete=models.CASCADE, blank=True, null=True)
+#     school = models.ForeignKey(School, on_delete=models.SET_NULL, blank=True, null=True)
+#     name = models.CharField(max_length=255)
+#     admission_no = models.CharField(max_length=20, unique=True)
+#     date_of_birth = models.DateField()
+#     address = models.CharField(max_length=255)
+#     # course = models.ForeignKey(Course, on_delete=models.SET_NULL, blank=True, null=True)
 
+#     def __str__(self):
+#         school_name = getattr(self.school, 'school_name', '')
+#         return f'{self.name} - {self.school.school_name} {self.id}'
 
 
 class Question(models.Model):
@@ -128,10 +164,10 @@ class Result(models.Model):
 class Certificate_note(models.Model):
     
     note = models.TextField(blank=True, null= True)
-    
     created = models.DateTimeField(auto_now_add=True, blank=True, null= True)
     id = models.AutoField(primary_key=True)
     
     def __str__(self):
         return f"{self.note}"
+
 

@@ -498,44 +498,151 @@ def verify_certificate(request, certificate_code):
     }
     return render(request, 'student/verify_certificate.html', context)
 
+
 # download pdf id view
+# @login_required
+# def pdf_id_view(request, *args, **kwargs):
+
+#     course=QMODEL.Course.objects.all()
+#     student = Profile.objects.get(user_id=request.user.id)
+#     date = datetime.now()
+#     logo = Logo.objects.all() 
+#     sign = Signature.objects.all()  # Corrected import
+#     design = Designcert.objects.all()
+#     pk = kwargs.get('pk')
+#     posts = get_list_or_404(course, pk= pk)
+#     user_profile =  Profile.objects.filter(user_id = request.user)
+
+#     template_path = 'student/dashboard/certificatepdf.html'
+
+#     students =QMODEL.Student.objects.all()
+#     # List to store school names
+#     # school_student = get_object_or_404(QMODEL.Student, user=request.user.profile)
+#     # Now you can get the associated school for this student
+#     user_newuser = get_object_or_404(NewUser, email=request.user)
+#     # if user_newuser.school:
+#     #     context['school_name'] = user_newuser.school.school_name
+
+#     associated_school =user_newuser.school
+#     # Check if there is an associated school
+#     if associated_school:
+#         school_name = associated_school.school_name
+#         principal_name = associated_school.name
+#         portfolio = associated_school.portfolio
+#         school_logo = associated_school.logo
+#         school_sign = associated_school.principal_signature
+#         student_name = student.first_name
+
+#         print('principal_name', principal_name)
+#         print('portfolio', portfolio)
+#         print('school_name',school_name)
+#         print('school_logo',school_logo)
+#         print('school_sign',school_sign)
+#         print('student_name', student_name)
+#         student
+#     else:
+#         print("No associated school for this student.")
+
+ 
+
+#     context = {
+#         'results': posts,
+#         'student':student,
+#         'date':date,
+#         'course':posts,
+#         'logo':logo,
+#         'sign':sign,
+#         'design':design,
+#         # school
+#         'school_name':school_name,
+#         'school_logo':school_logo,
+#         'school_sign':school_sign,
+#         'principal_name':principal_name,
+#         'portfolio':portfolio,
+        
+#         }
+    
+#     response = HttpResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
+#     # find the template and render it.
+#     template = get_template(template_path)
+#     html = template.render(context)
+
+#     # create a pdf
+#     pisa_status = pisa.CreatePDF(
+#        html, dest=response)
+#     # if error then show some funny view
+#     if pisa_status.err:
+#        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+   
+   
+#     return response
+    
 @login_required
 def pdf_id_view(request, *args, **kwargs):
-
-    course=QMODEL.Course.objects.all()
+    course = QMODEL.Course.objects.all()
     student = Profile.objects.get(user_id=request.user.id)
     date = datetime.now()
-    logo = Logo.objects.all() 
-    sign = Signature.objects.all()  # Corrected import
+    logo = Logo.objects.all()
+    sign = Signature.objects.all()
     design = Designcert.objects.all()
     pk = kwargs.get('pk')
-    posts = get_list_or_404(course, pk= pk)
-    user_profile =  Profile.objects.filter(user_id = request.user)
+    posts = get_list_or_404(course, pk=pk)
+    user_profile = Profile.objects.filter(user_id=request.user)
+
     template_path = 'student/dashboard/certificatepdf.html'
+
+    # students = QMODEL.Student.objects.all()
+
+    # Initialize variables with default values
+    school_name = ''
+    principal_name = ''
+    portfolio = ''
+    school_logo = ''
+    school_sign = ''
+    # student_name = student.first_name
+
+    # Now you can get the associated school for this student
+    user_newuser = get_object_or_404(NewUser, email=request.user)
+
+    associated_school = user_newuser.school
+
+    # Check if there is an associated school
+    if associated_school:
+        school_name = associated_school.school_name
+        principal_name = associated_school.name
+        portfolio = associated_school.portfolio
+        school_logo = associated_school.logo
+        school_sign = associated_school.principal_signature
+
     context = {
         'results': posts,
-        'student':student,
-        'date':date,
-        'course':posts,
-        'logo':logo,
-        'sign':sign,
-        'design':design,
-        
-        }
-    
+        'student': student,
+        'date': date,
+        'course': posts,
+        'logo': logo,
+        'sign': sign,
+        'design': design,
+        # school
+        'school_name': school_name,
+        'school_logo': school_logo,
+        'school_sign': school_sign,
+        'principal_name': principal_name,
+        'portfolio': portfolio,
+    }
+
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
+
     # find the template and render it.
     template = get_template(template_path)
     html = template.render(context)
 
     # create a pdf
-    pisa_status = pisa.CreatePDF(
-       html, dest=response)
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    
     # if error then show some funny view
     if pisa_status.err:
-       return HttpResponse('We had some errors <pre>' + html + '</pre>')
-   
-   
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+
     return response
-    
