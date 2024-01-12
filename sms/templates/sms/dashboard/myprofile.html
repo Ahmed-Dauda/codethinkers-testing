@@ -25,14 +25,13 @@
       <div class="uppercase profile-stat-title"> <p>Sex : {{ profile.gender}}</p></div>
       <div class="uppercase profile-stat-title"> <p>username : {{ profile.username}}</p></div>
       
-      
-     
+ 
   </div>
   
   <div class="col-md-4 col-sm-4 col-xs-6">
       <div class="uppercase profile-stat-title"><p>Email : {{ profile.user}}</p></div>
       <div class="uppercase profile-stat-text">  <p>Country : {{ profile.countries}}</p></div>
-     
+      <button  class="btn text-center text-white" ><a class="btn btn-primary text-center"  href="https://wa.me/23409031568177"> Customer Support</a>  </button>
     
   </div>
   
@@ -52,8 +51,15 @@
   </div>
  
   {% endfor %}
-
+  
   <hr>
+
+
+  {% if school_name %}
+  <p style="color: red;">School Name: {{ school_name }}</p>
+  {% endif %}
+
+
 <!-- Assuming your template is myprofile.html -->
 
 
@@ -65,21 +71,29 @@
 <!-- Assuming your template is myprofile.html -->
 
 <!-- Add these fields to your form -->
-<!-- <div>
-  <p>Your Referral Link:</p>
-  <a href="{% url 'users:referral_signup' referrer_code=referrer_mentor.referrer_code %}" target="_blank">
-    {% url 'users:referral_signup' referrer_code=referrer_mentor.referrer_code %}
-  </a>
-</div> -->
+<!-- <h1>{{referrer_mentor}}</h1> -->
+
+<h1 style="color: red;">Referral Details</h1>
 <div>
-  <p>Your Referral Link:</p>
+  {% if referrer_mentor == 0 %}
+ <h3><a href="{% url 'users:become_referrer' %}">Become a Referrer, Click Here</a></h3> 
+  {% else %}
   <div>
+    <p>Your Referral Link:</p>
     <input type="text" id="referralLink" value="{{ request.scheme }}://{{ request.get_host }}{% url 'users:referral_signup' referrer_code=referrer_code %}" readonly>
     <button onclick="copyToClipboard()">Copy</button>
   </div>
+  {% endif  %}
 </div>
 
 <script>
+//   function copyToClipboard() {
+//   var copyText = document.getElementById("referralLink");
+//   copyText.setSelectionRange(0, copyText.value.length);
+//   document.execCommand("copy");
+//   alert("Copied the referral link: " + copyText.value);
+// }
+
   function copyToClipboard() {
     var copyText = document.getElementById("referralLink");
     copyText.select();
@@ -89,9 +103,6 @@
 </script>
 <hr>
 
-<!-- <a href="{% url 'users:referral_signup' referrer_code=referrer_mentor.referrer_code %}">Share your referral link</a> -->
-
-<hr>
 
 {% if referrer_mentor %}
   <!-- Referrer Information -->

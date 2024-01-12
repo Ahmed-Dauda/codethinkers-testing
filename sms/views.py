@@ -457,6 +457,7 @@ def Certificates(request,pk):
     
     return render(request,"sms/dashboard/certificates.html", context)
 
+from quiz.models import School
 
 class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
     model = QMODEL.Course
@@ -507,7 +508,6 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # print("Primary key:", course.course_name.id)
         # print("course:", course)
 
-    
         user = self.request.user.email
         # content_type
         # Query the Payment model to get all payments related to the user and course
@@ -523,11 +523,8 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         # print('related_payments:', related_payments)
         context['course_payments'] = course_payments
         context['related_payments'] = related_payments
-    
-       
-        context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
 
-        
+        context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
 
         return context
 
@@ -977,7 +974,7 @@ from student.models import ReferrerMentor
 
 from django.shortcuts import get_object_or_404
 
-class UserProfilelistview(ListView):
+class UserProfilelistview(LoginRequiredMixin, ListView):
     model = Profile
     template_name = 'sms/dashboard/myprofile.html'
     count_hit = True
@@ -985,16 +982,24 @@ class UserProfilelistview(ListView):
     def get_queryset(self):
         return Profile.objects.all()
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_pro = self.request.user
-        context['user_profile'] = Profile.objects.filter(user=self.request.user)
+        context['user_profile'] = Profile.objects.filter(user_id=self.request.user.id)
+        
+        # user_profile = get_object_or_404(NewUser, email=self.request.user)
+        # print('profile', get_object_or_404(Profile, user_id=self.request.user.id))
+        # Include school name if it exists in the user's profile
+        user_newuser = get_object_or_404(NewUser, email=self.request.user)
+        if user_newuser.school:
+            context['school_name'] = user_newuser.school.school_name
+
         context['courses'] = QMODEL.Course.objects.all()
         context['results'] = QMODEL.Result.objects.order_by('-marks')
 
         try:
             # Referrer account
-            referrer_mentors = ReferrerMentor.objects.filter(referrer=self.request.user)
+            referrer_mentors = ReferrerMentor.objects.filter(referrer=self.request.user.id)
             
             if referrer_mentors.exists():
                 # Retrieve the latest ReferrerMentor instance
@@ -1046,6 +1051,7 @@ class UserProfilelistview(ListView):
             pass
 
         return context
+
 
 # class UserProfilelistview(LoginRequiredMixin, ListView):
 #     models = Profile
@@ -1211,7 +1217,7 @@ class UserProfileForm(LoginRequiredMixin, CreateView):
 
 class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
     models = Profile
-    fields = '__all__'
+    fields = ['first_name', 'last_name', 'gender', 'phone_number', 'countries', 'pro_img', 'bio']
     template_name = 'sms/userprofileupdateform.html'
     success_message = 'TestModel successfully updated!'
     success_url= reverse_lazy('sms:myprofile')

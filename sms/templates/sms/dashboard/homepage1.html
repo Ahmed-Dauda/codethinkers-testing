@@ -598,6 +598,35 @@ p {
 }
 </style>
 
+<!-- school campaign css -->
+<style>
+
+  .cta-button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 1.2em;
+      color: #fff;
+      background-color: #007bff;
+      text-decoration: none;
+      border-radius: 5px;
+  }
+
+  .cta-button:hover {
+      background-color: #0056b3;
+  }
+
+  .benefits {
+      margin-top: 30px;
+  }
+
+  .benefits h2 {
+      color: #007bff;
+  }
+
+</style>
+
+<!--end of  school campaign css -->
+
 <div class="hover-container" style="padding-left: 20px;">
   <div class="flip-card">
     <div class="flip-card-inner">
@@ -1511,7 +1540,33 @@ p {
 </div>
 <br>
 
+<hr>
 
+<div style="padding: 0px 20px 0px 20px;" class="card-bod">
+  <h2>Empower Schools and Organizations with our New Program!</h2>
+
+
+<div class="te">
+  <h4>Unlock a World of Learning Opportunities for Your School or Organization</h4>
+  <p>Experience the next level of education with our cutting-edge courses in the New Program, tailored for schools and organizations. From in-depth content to practical skills, we have it all.</p>
+  <p>Don't miss out on this opportunity to enhance the knowledge and skills of your students or members.</p>
+
+  <a href="{% url 'users:school_signup' %}" class="cta-button">Sign Up Now</a>
+
+  <div class="benefits">
+      <h2>Benefits for Schools and Organizations</h2>
+      <ul class="">
+          <li>Customized Certificates of Completion with your School or Organization Logo</li>
+          <li>Inclusion of Head's Signature and Name on Certificates</li>
+          <li>Option to Add Portfolio Information on Certificates</li>
+          <li>Effortless Management – We Handle It All!</li>
+      </ul>
+  </div>
+</div>
+
+
+</div>
+<hr>
 
 <script>
 

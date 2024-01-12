@@ -3,17 +3,21 @@ from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from django.db import models 
 from django.forms import ModelForm
-from django import forms
-from django.db import models 
+
+
+from student.models import ReferrerMentor
+from django.contrib.auth import get_user_model
+
+
 from sms.models import Comment
 from allauth.account.forms import SignupForm
-from django import forms
+
 from .models import *
 from users.models import NewUser
 
 # models.py
 
-from django.db import models
+
 
 # forms.py
 
@@ -45,6 +49,31 @@ country_choice = [
 from django import forms
 from allauth.account.forms import SignupForm
 
+from quiz.models import School
+
+# class SchoolStudentForm(SignupForm):
+#     first_name = forms.CharField(max_length=12, label='First Name 1')
+#     last_name = forms.CharField(max_length=50, label='Last Name')
+#     referral_code = forms.CharField(max_length=20, required=False, label='Referral Code')
+#     phone_number = forms.CharField(max_length=225, widget=forms.HiddenInput(), required=False)
+#     countries = forms.ChoiceField(choices=country_choice, label='Country')
+#     school = forms.CharField(max_length=100, label='School')  # Add the school field
+    
+#     def save(self, request):
+#         user = super(SchoolStudentForm, self).save(request)
+#         user.phone_number = self.cleaned_data.get('phone_number', '')
+#         user.first_name = self.cleaned_data['first_name 1']
+#         user.last_name = self.cleaned_data['last_name']
+#         user.countries = self.cleaned_data['countries']
+#         user.referral_code = self.cleaned_data.get('referral_code', '')
+#         user.school = self.cleaned_data.get('school', '')  # Handle the school field
+        
+#         user.save()
+        
+#         return user
+    
+
+
 class SimpleSignupForm(SignupForm):
     first_name = forms.CharField(max_length=12, label='First-name')
     last_name = forms.CharField(max_length=225, label='Last-name')
@@ -66,16 +95,42 @@ class SimpleSignupForm(SignupForm):
         return user
 
 
-# users/forms.py
-from django import forms
-from student.models import ReferrerMentor
-from django.contrib.auth import get_user_model
+
+class SchoolStudentSignupForm(SignupForm):
+    first_name = forms.CharField(max_length=222, label='First-name')
+    last_name = forms.CharField(max_length=225, label='Last-name')
+    phone_number = forms.CharField(max_length=225, widget=forms.HiddenInput(), required=False)
+    admission_no = forms.CharField(max_length=50, label='Aadmission Number')
+    student_class = forms.CharField(label='Student Class', )
+    countries = forms.ChoiceField(choices=country_choice, label='Country')
+    school = forms.ModelChoiceField(queryset=School.objects.all(), label='School', required=True)
+   
+    def save(self, request):
+        user = super(SchoolStudentSignupForm, self).save(request)
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        user.phone_number = self.cleaned_data.get('phone_number', '')
+        user.admission_no = self.cleaned_data['admission_no']
+        user.student_class = self.cleaned_data['student_class']
+        user.countries = self.cleaned_data['countries']
+        user.school = self.cleaned_data['school']
+        
+        user.save()
+        
+        return user
+
+
+class SchoolSignupForm(forms.ModelForm):
+    class Meta:
+        model = School
+        fields = "__all__"
+
 
 
 class ReferrerMentorForm(forms.ModelForm):
     class Meta:
         model = ReferrerMentor
-        fields = ['name', 'courses', 'phone_no']
+        fields = ['name', 'phone_no']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -92,75 +147,6 @@ class ReferrerMentorForm(forms.ModelForm):
 
 
 
-
-# from allauth.account.forms import SignupForm
-# from django import forms
-
-# class SimpleSignupForm(SignupForm):
-#     first_name = forms.CharField(max_length=12, label='First-name')
-#     last_name = forms.CharField(max_length=225, label='Last-name')
-#     # phone_number = forms.CharField(max_length=225, widget=forms.HiddenInput(), required=False)
-#     phone_number = forms.CharField(max_length=225, label='Referral Code', widget=forms.TextInput(attrs={'placeholder': 'if available'}), required=False)
-#     countries = forms.ChoiceField(choices=country_choice, label='Country')
-#     # referral_code = forms.CharField(max_length=20, widget=forms.HiddenInput(), required=False)
-    
-#     def save(self, request):
-#         user = super(SimpleSignupForm, self).save(request)
-#         user.first_name = self.cleaned_data['first_name']
-#         user.last_name = self.cleaned_data['last_name']
-#         user.countries = self.cleaned_data['countries']
-        
-#         # Retrieve the referral code from the form data
-#         referral_code = self.cleaned_data.get('phone_number', '')
-        
-#         # If a referral code is provided, you can handle it here
-#         if referral_code:
-#             # Perform actions with the referral code, e.g., associate it with the user
-#             # user.referral_code = referral_code
-            
-#             pass
-        
-#         user.save()
-        
-#         return user
-
-
-
-
-# forms.py
-# from allauth.account.forms import SignupForm
-# from django import forms
-# from .models import ReferrerProfile  # Assuming you've created a ReferrerProfile model
-
-# class ReferrerSignupForm(SignupForm):
-#     first_name = forms.CharField(max_length=12, label='First-name')
-#     last_name = forms.CharField(max_length=225, label='Last-name')
-#     countries = forms.ChoiceField(choices=country_choice, label='Country')
-#     referral_code = forms.CharField(max_length=20, required=False, label='Referral Code')
-
-#     def save(self, request):
-#         user = super(ReferrerSignupForm, self).save(request)
-#         user.first_name = self.cleaned_data['first_name']
-#         user.last_name = self.cleaned_data['last_name']
-#         user.countries = self.cleaned_data['countries']
-#         user.save()
-
-#         # Process referral code and associate referrer
-#         referral_code = self.cleaned_data.get('referral_code')
-#         if referral_code:
-#             try:
-#                 referrer = ReferrerProfile.objects.get(referral_code=referral_code).user
-#                 user_profile, created = ReferrerProfile.objects.get_or_create(user=user)
-#                 user_profile.referrer = referrer
-#                 user_profile.save()
-#             except ReferrerProfile.DoesNotExist:
-#                 pass
-
-#         return user
- 
-
-
-# from sms.models import smsform
 
 class smspostform(ModelForm):
     class Meta:

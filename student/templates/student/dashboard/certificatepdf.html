@@ -27,8 +27,9 @@
     }
     
       @page {
-        /* background-image: url('https://i.ibb.co/Pmr5djp/Blue-Orange-Elegant-Company-Certificate-Landscape-13.png'); */
-        background-image: url('https://i.ibb.co/dbJbXzZ/Copy-of-Blue-Orange-Elegant-Company-Certificate-Landscape-3.png');
+        
+        background-image: url('https://i.ibb.co/MBzdyQ8/certificate2.png');
+        /* background-image: url('https://i.ibb.co/dbJbXzZ/Copy-of-Blue-Orange-Elegant-Company-Certificate-Landscape-3.png'); */
         background-object-position:0px 0px;
         background-width: 100%;
         background-height: 100%;
@@ -76,6 +77,10 @@
   
 }
 
+.dark-signature {
+            filter: brightness(50%);
+            padding: 50px;
+        }
     </style>
 </head>
 <body>
@@ -102,6 +107,17 @@
 {% endif %}
 {% endfor %}
 </div>
+
+<!-- beginning of school information -->
+
+{% if school_logo %}
+<img style="width: 300px; height: 300px;border-radius: 50%; object-fit: cover;" src="{{ school_logo.url }}" alt="school logo">
+{% endif %}
+{% if school_name %}
+<span style="color: rgb(42, 39, 239);font-size:75px; font-weight: bold" class="flex-item">{{school_name|upper }}</span>
+ {% endif %}
+
+
 
 <div class="flex-item">
   {% for c in course %} 
@@ -172,7 +188,7 @@
            {% if part.partdesc3 %} <br>
            <span style="font-size:90px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
            {% else %}
-           <span style="font-size:35px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
+           <span style="font-size:80px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
            {% endif %}
            {% endfor %}
 
@@ -180,9 +196,13 @@
            <br><br>
            <span style="font-size:70px;color:rgb(17, 18, 18);">
           <i style="font-size: 70px;">
-          {% for part in course %} 
+          {% for part in course %}
+
+          
+
            {% if part.partdesc3 %} </br>
-          {{part.partdesc3}}   
+          {{part.partdesc3}}  
+
            {% endif %}
            {% endfor %}
           </i>
@@ -200,7 +220,7 @@
          
 
           
-
+          {% if not school_sign %}
             {% for c in  course %}
             {% if c.signature %}
             <br> 
@@ -210,13 +230,31 @@
             <p style="font-size:90px;" class="flex-item">{{c.signby_portfolio }}</p>
 
             {% else %}
-            <img  src="https://i.ibb.co/5sMd74C/ahmedsignature-1-removebg-preview.png" alt="" >   <br>
+            <br>
+            <img src="https://i.ibb.co/jrYnKvS/signature33.png" height ="270px" alt="" class="dark-signature"> <br>
+            <!-- <img  src="https://i.ibb.co/5sMd74C/ahmedsignature-1-removebg-preview.png" alt="" >-->
             <span > ______________________________________________ </span> <br>  <br>
-
-            <p style="font-size:50px;" class="flex-item"> Global Director, Codethinkers' Academy </p> 
-            <a style="font-size:20px;" href="https://codethinkers.org/"> Visit Academy</a>
+        
+            <p style="font-size:40px;" class="flex-item"> Global Director, Codethinkers' Academy </p> 
+            <a style="font-size:30px;" href="https://codethinkers.org/"> Visit Academy</a>
             {% endif %}
             {% endfor %}
+
+            {% endif %}
+
+            <!-- signature -->
+
+            {% if school_sign %}
+            <br> 
+            <img style="" src="{{school_sign.url}}" alt="" > <br>
+            <span >  ______________________________________________________________ </span> <br>  <br>
+            <p style="font-size:60px;" class="flex-item">{{principal_name }}, {{portfolio }}</p>
+            <a style="font-size:30px;" href="https://codethinkers.org/"> Visit Academy</a> <br><br>
+        
+
+            {% else %}
+      
+            {% endif %}
 
             
        
