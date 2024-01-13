@@ -789,11 +789,12 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # Query the Payment model to get all payments related to the user and course
         # Query to get the number of students enrolled in the specified course.
         student_count = Profile.objects.filter(student_course=course).count()
-        print("countss", student_count)
+        # print("countss", student_count)
+        print('price',course.price)
 
 
-        related_payments = Payment.objects.filter(courses=course)
-        # related_payments = Payment.objects.filter(email=user, courses__title=object.title, amount=object.price)
+        # related_payments = Payment.objects.filter(courses=course)
+        related_payments = Payment.objects.filter(email=user, courses=course, amount=course.price)
         context['related_payments'] = related_payments
         enrollment_count = related_payments.count()
         # Print or use the enrollment_count as needed

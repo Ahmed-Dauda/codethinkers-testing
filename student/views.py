@@ -101,6 +101,9 @@ def paystack_webhook(request):
             course = get_object_or_404(Courses, pk=id_value)
 
             # Check if a Payment with the same reference already exists
+            # user_newuser = get_object_or_404(NewUser, email=request.user)
+            # print("user_newuser", user_newuser)
+            user = Profile.objects.get(id=course.id)
             existing_payment = Payment.objects.filter(ref=reference).first()
 
             if not existing_payment:
@@ -113,6 +116,7 @@ def paystack_webhook(request):
                     email=email,
                     verified=verified,
                     content_type=course,
+                    payment_user=user,
                     
                 )
 
