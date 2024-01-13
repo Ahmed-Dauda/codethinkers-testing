@@ -514,6 +514,12 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         user = self.request.user.email
         # content_type
         # Query the Payment model to get all payments related to the user and course
+        user_newuser = get_object_or_404(NewUser, email=self.request.user)
+        if user_newuser.school:
+            context['school_name'] = user_newuser.school.school_name
+            # school_name = user_newuser.school.school_name
+            # print('school', school_name)
+
         related_payments = CertificatePayment.objects.filter(
             email=user, courses=course,
             amount=course.course_name.cert_price)
@@ -790,10 +796,15 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # Query to get the number of students enrolled in the specified course.
         student_count = Profile.objects.filter(student_course=course).count()
         # print("countss", student_count)
-        print('price',course.price)
+        # print('price',course.price)
 
 
         # related_payments = Payment.objects.filter(courses=course)
+        user_newuser = get_object_or_404(NewUser, email=self.request.user)
+        if user_newuser.school:
+            context['school_name'] = user_newuser.school.school_name
+            # print('payment school',user_newuser.school.school_name)
+
         related_payments = Payment.objects.filter(email=user, courses=course, amount=course.price)
         context['related_payments'] = related_payments
         enrollment_count = related_payments.count()
