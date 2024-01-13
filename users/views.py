@@ -54,14 +54,29 @@ from quiz.models import School  # Import your model
 from django.urls import reverse_lazy
 
 class SchoolSignupView(CreateView):
-    template_name = 'users/school_registration.html'  # Replace with your actual template path
+    template_name = 'users/school_registration.html'
     form_class = SchoolSignupForm
-    model = School
-    success_url = reverse_lazy('success_page')  # Replace with your success page URL or name
+    model = School  # Set the model attribute to specify the model to be used
+    success_url = reverse_lazy('sms:myprofile')
+
+    def get_queryset(self):
+        # Return an empty queryset
+        return School.objects.none()
 
     def form_valid(self, form):
-        # You can add any additional logic here before saving the form
-        return super().form_valid(form)
+        # Additional logic before saving the form data (if needed)
+        # ...
+
+        # Save the form data to the database
+        response = super().form_valid(form)
+
+        # Additional logic after saving the form data (if needed)
+        # ...
+
+        return response
+
+
+
 
         
 
