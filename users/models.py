@@ -127,6 +127,8 @@ class Profile(models.Model):
     def __str__(self):
       return f'{self.first_name} {self.last_name}'
 
+
+
 @receiver(post_save, sender=get_user_model())
 def userprofile_receiver(sender, instance, created, *args, **kwargs):
     if created:
