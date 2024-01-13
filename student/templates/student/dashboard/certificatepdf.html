@@ -159,7 +159,7 @@
            {% endif %}
            {% endfor %}
           </i>
-           <br><br><br>
+           <br>
            <span style="font-size:70px; color:rgb(86, 15, 218);"><i>on  {{date|date:"D d M Y"}}</i></span><br> <br> <br> <br>
            {% for part in course %} 
            {% if part.partdesc3 %} <br>
@@ -176,7 +176,7 @@
            {% if part.partdesc3 %} <br><br>
            <span style="font-size:110px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
            {% else %}
-           <span style="font-size:100px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
+           <span style="font-size:40px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
           
            {% endif %}
            {% endfor %}
@@ -188,7 +188,7 @@
            {% if part.partdesc3 %} <br>
            <span style="font-size:60px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
            {% else %}
-           <span style="font-size:60px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
+           <span style="font-size:50px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
            {% endif %}
            {% endfor %}
 
