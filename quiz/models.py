@@ -66,8 +66,8 @@ class School(models.Model):
     name = models.CharField(max_length=255)
     school_name = models.CharField(max_length=255)
     portfolio = models.CharField(max_length=255, blank=True, null= True)
-    logo = CloudinaryField('school_logos')
-    principal_signature = CloudinaryField('principal_signatures')
+    logo = CloudinaryField('school_logos', blank=True, null= True)
+    principal_signature = CloudinaryField('principal_signatures', blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
 

@@ -645,7 +645,7 @@ p {
   }
 
   .popup-image {
-      width: 300px; /* Set your preferred width */
+      width: 100%; /* Set your preferred width */
       height: 200px; /* Set your preferred height */
       object-fit: cover; /* Maintain aspect ratio while filling the container */
       display: none;
@@ -704,9 +704,7 @@ ff -->
     <div class="col-md-6 flex-container">
       <div class="text-container">
 <br>
-bb
 
-<!-- Popup container -->
 <!-- Popup container -->
 <div id="popup-container">
   <!-- Image carousel -->
@@ -730,75 +728,8 @@ bb
   </div>
 </div>
 
-<!-- JavaScript to control the popup carousel -->
-<!-- JavaScript to control the popup carousel -->
-<script>
-  var currentImageIndex = 0;
 
-  // Display the popup
-  function openPopup() {
-      document.getElementById('popup-container').style.display = 'block';
-      updateDescription();
-  }
 
-  // Close the popup
-  function closePopup() {
-      document.getElementById('popup-container').style.display = 'none';
-  }
-
-  // Show the previous image in the carousel
-  function prevImage() {
-      var images = document.getElementsByClassName('popup-image');
-      if (currentImageIndex > 0) {
-          currentImageIndex--;
-      } else {
-          currentImageIndex = images.length - 1;
-      }
-      updateImage();
-      updateDescription();
-  }
-
-  // Show the next image in the carousel
-  function nextImage() {
-      var images = document.getElementsByClassName('popup-image');
-      if (currentImageIndex < images.length - 1) {
-          currentImageIndex++;
-      } else {
-          currentImageIndex = 0;
-      }
-      updateImage();
-      updateDescription();
-  }
-
-  // Update the displayed image
-  function updateImage() {
-      var images = document.getElementsByClassName('popup-image');
-      for (var i = 0; i < images.length; i++) {
-          if (i === currentImageIndex) {
-              images[i].classList.add('active');
-          } else {
-              images[i].classList.remove('active');
-          }
-      }
-  }
-
-  // Update the displayed description
-  function updateDescription() {
-      var descriptions = document.getElementsByClassName('desc');
-      for (var i = 0; i < descriptions.length; i++) {
-          if (i === currentImageIndex) {
-              descriptions[i].style.display = 'block';
-          } else {
-              descriptions[i].style.display = 'none';
-          }
-      }
-  }
-
-  // Open the popup when the page loads
-  setTimeout(openPopup, 1000); // Adjust the delay as needed
-</script>
-
-bb
 
         <!-- <a style="font-size: 20px;color: red;" href="{% url 'users:become_referrer' %}">Become a Referrer, Click Here</a> -->
         <h1>Unleashing Your Coding Potential</h1>
@@ -1747,6 +1678,75 @@ items.forEach((el) => {
   setTimeout(() => {
     flashContainer.style.display = 'none';
   }, 5000);
+</script>
+
+
+<!-- JavaScript to control the popup carousel -->
+<!-- JavaScript to control the popup carousel -->
+<script>
+  var currentImageIndex = 0;
+
+  // Display the popup
+  function openPopup() {
+      document.getElementById('popup-container').style.display = 'block';
+      updateDescription();
+  }
+
+  // Close the popup
+  function closePopup() {
+      document.getElementById('popup-container').style.display = 'none';
+  }
+
+  // Show the previous image in the carousel
+  function prevImage() {
+      var images = document.getElementsByClassName('popup-image');
+      if (currentImageIndex > 0) {
+          currentImageIndex--;
+      } else {
+          currentImageIndex = images.length - 1;
+      }
+      updateImage();
+      updateDescription();
+  }
+
+  // Show the next image in the carousel
+  function nextImage() {
+      var images = document.getElementsByClassName('popup-image');
+      if (currentImageIndex < images.length - 1) {
+          currentImageIndex++;
+      } else {
+          currentImageIndex = 0;
+      }
+      updateImage();
+      updateDescription();
+  }
+
+  // Update the displayed image
+  function updateImage() {
+      var images = document.getElementsByClassName('popup-image');
+      for (var i = 0; i < images.length; i++) {
+          if (i === currentImageIndex) {
+              images[i].classList.add('active');
+          } else {
+              images[i].classList.remove('active');
+          }
+      }
+  }
+
+  // Update the displayed description
+  function updateDescription() {
+      var descriptions = document.getElementsByClassName('desc');
+      for (var i = 0; i < descriptions.length; i++) {
+          if (i === currentImageIndex) {
+              descriptions[i].style.display = 'block';
+          } else {
+              descriptions[i].style.display = 'none';
+          }
+      }
+  }
+
+  // Open the popup when the page loads
+  setTimeout(openPopup, 1000); // Adjust the delay as needed
 </script>
 
 

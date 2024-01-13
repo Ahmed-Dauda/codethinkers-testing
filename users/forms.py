@@ -120,10 +120,27 @@ class SchoolStudentSignupForm(SignupForm):
         return user
 
 
+
 class SchoolSignupForm(forms.ModelForm):
     class Meta:
         model = School
         fields = "__all__"
+
+    def clean_logo(self):
+        logo = self.cleaned_data.get('logo')
+
+        # Perform additional validation for the logo field if needed
+        # For example, check if the file is an image, meets certain size requirements, etc.
+
+        return logo
+
+    def clean_principal_signature(self):
+        principal_signature = self.cleaned_data.get('principal_signature')
+
+        # Perform additional validation for the principal_signature field if needed
+
+        return principal_signature
+
 
 
 
