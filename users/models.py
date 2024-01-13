@@ -137,7 +137,7 @@ def userprofile_receiver(sender, instance, created, *args, **kwargs):
             last_name=instance.last_name,
             countries=instance.countries,
             # referral_code=instance.referral_code,
-            school=instance.school,
+            # school=instance.school,
         )
 
 post_save.connect(userprofile_receiver, sender=settings.AUTH_USER_MODEL)
