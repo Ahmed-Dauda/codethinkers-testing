@@ -32,7 +32,11 @@
       <div class="uppercase profile-stat-title"><p>Email : {{ profile.user}}</p></div>
       <div class="uppercase profile-stat-text">  <p>Country : {{ profile.countries}}</p></div>
       <button  class="btn text-center text-white" ><a class="btn btn-primary text-center"  href="https://wa.me/23409031568177"> Customer Support</a>  </button>
-    
+     
+      {% if request.user.is_superuser %}
+          <a style="font-size: 20px; color: red;" href="{% url 'users:schoolstudentview' %}">School Student View</a>
+      {% endif %}
+      
   </div>
   
   <div class="col-md-4 col-sm-4 col-xs-6">
@@ -102,7 +106,6 @@
   }
 </script>
 <hr>
-
 
 {% if referrer_mentor %}
   <!-- Referrer Information -->
