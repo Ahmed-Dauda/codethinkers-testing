@@ -186,9 +186,9 @@
            <i >
            {% for part in course %} 
            {% if part.partdesc3 %} <br>
-           <span style="font-size:90px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
+           <span style="font-size:60px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
            {% else %}
-           <span style="font-size:80px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
+           <span style="font-size:60px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
            {% endif %}
            {% endfor %}
 
@@ -230,7 +230,7 @@
             <p style="font-size:90px;" class="flex-item">{{c.signby_portfolio }}</p>
 
             {% else %}
-            <br>
+            <br> <br>
             <img src="https://i.ibb.co/jrYnKvS/signature33.png" height ="270px" alt="" class="dark-signature"> <br>
             <!-- <img  src="https://i.ibb.co/5sMd74C/ahmedsignature-1-removebg-preview.png" alt="" >-->
             <span > ______________________________________________ </span> <br>  <br>
@@ -245,7 +245,7 @@
             <!-- signature -->
 
             {% if school_sign %}
-            <br> 
+            <br> <br> 
             <img style="" src="{{school_sign.url}}" alt="" > <br>
             <span >  ______________________________________________________________ </span> <br>  <br>
             <p style="font-size:60px;" class="flex-item">{{principal_name }}, {{portfolio }}</p>
