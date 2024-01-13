@@ -194,7 +194,7 @@ class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
         return context
 
     
-
+from student.models import AdvertisementImage
 
 class Homepage1(ListView):
     models = Courses
@@ -279,6 +279,9 @@ class Homepage1(ListView):
         context['user'] = NewUser.objects.get_queryset().order_by('id')
         context['users']  = self.request.user
         messages.success(self.request, 'You have successfully logged in.')
+        
+        # advert
+        context['advertisement_images']  = self.request.user= AdvertisementImage.objects.all()
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
         
         return context

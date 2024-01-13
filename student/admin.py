@@ -17,10 +17,14 @@ from .models import  Question, Choice
 from django.db.models import Q 
 from sms.models import  Topics
 from django.utils.html import format_html
-
+from .models import AdvertisementImage
 
 admin.site.register(PDFDocument)
-# admin.site.register(ReferrerMentor)
+
+class AdvertisementImageAdmin(admin.ModelAdmin):
+    list_display = ('id', 'image', 'desc')
+
+admin.site.register(AdvertisementImage, AdvertisementImageAdmin)
 
 class ReferrerMentorResource(resources.ModelResource):
     user = fields.Field(
