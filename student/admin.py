@@ -17,10 +17,14 @@ from .models import  Question, Choice
 from django.db.models import Q 
 from sms.models import  Topics
 from django.utils.html import format_html
-
+from .models import AdvertisementImage
 
 admin.site.register(PDFDocument)
-# admin.site.register(ReferrerMentor)
+
+class AdvertisementImageAdmin(admin.ModelAdmin):
+    list_display = ('id', 'image', 'desc')
+
+admin.site.register(AdvertisementImage, AdvertisementImageAdmin)
 
 class ReferrerMentorResource(resources.ModelResource):
     user = fields.Field(
@@ -123,7 +127,21 @@ admin.site.register(CertificatePayment, CertificatePaymentAdmin)
 
 admin.site.register(EbooksPayment)
 
-admin.site.register(Payment)
+# admin.site.register(Payment)
+from django.contrib import admin
+from .models import Payment
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('payment_user', 'content_type', 'amount', 'get_course_titles', 'verified', 'date_created')
+    list_filter = ('content_type', 'verified', 'date_created')
+    search_fields = ('payment_user__user__username', 'content_type', 'amount', 'courses__title')
+
+    def get_course_titles(self, obj):
+        return ', '.join(course.title for course in obj.courses.all())
+
+    get_course_titles.short_description = 'Courses'
+
 
 # Register your models here.
 class LogoAdmin(admin.ModelAdmin):

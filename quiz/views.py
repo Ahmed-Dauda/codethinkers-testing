@@ -6,7 +6,7 @@ from users.models import Profile
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max, Subquery, OuterRef
-from quiz.models import TopicsAssessment, QuestionAssessment, ResultAssessment
+from quiz.models import TopicsAssessment, QuestionAssessment, ResultAssessment, Course
 from django.http import HttpResponseRedirect
 
 @login_required
@@ -130,3 +130,82 @@ def check_marks_view(request,pk):
 
 # end
 
+# views.py
+
+from django.shortcuts import render, redirect
+# from .forms import StudentRegistrationForm
+
+# def register_student(request):
+#     if request.method == 'POST':
+#         form = StudentRegistrationForm(request.user, request.POST)
+#         if form.is_valid():
+#             form.save()
+#             # return redirect('quiz:school_dashboard')
+#     else:
+#         form = StudentRegistrationForm()
+
+#     return render(request, 'quiz/dashboard/student_registration.html', {'form': form})
+
+
+# def school_dashboard(request, pk):
+
+#         # Example usage (in a view or wherever you generate the certificate)
+#     course = Course.objects.get(pk=pk)  # Replace with the actual course instance
+#     student = Student.objects.get(pk=pk)  # Replace with the actual student instance
+#     # Get the relevant information for the certificate
+#     student_info = course.get_student_info_for_certificate(student)
+
+#     # Now you can use student_info in your certificate generation logic
+#     if student_info:
+#         school_name = student_info['school_name']
+#         logo_url = student_info['logo_url']
+#         signature_url = student_info['signature_url']
+#         # Add more fields as needed
+ 
+#     context = {
+#         'course': course,
+#         'student': student,
+#         'student_info': student_info,
+#     }
+#     # context =  {
+#     #     'school_name': school_name,
+#     #     'logo_url': logo_url,
+#     #     'signature_url': signature_url,
+#     #     }
+
+#     return render(request, 'quiz/dashboard/school_dashboard.html', context)
+# from django.shortcuts import render
+# from .models import Course
+# from .models import Student
+
+# from .models import Student
+
+# def get_student_for_user(user):
+#     try:
+#         # Assuming there is a one-to-one relationship between User and Student
+#         return Student.objects.get(user=user.profile)
+#     except Student.DoesNotExist:
+#         return None
+
+
+# def school_dashboard(request, course_id):
+#     # Assuming you have a function to get the current student based on the logged-in user
+#     student = get_student_for_user(request.user)
+
+#     if student:
+#         course = get_object_or_404(Course, id=course_id)
+
+#         # Get the relevant information for the certificate
+#         student_info = course.get_student_info_for_certificate(student)
+
+#         # Pass the information to the template
+#         context = {
+#             'course': course,
+#             'student': student,
+#             'student_info': student_info,
+#         }
+
+#         return render(request, 'quiz/dashboard/school_dashboard.html', context)
+#     else:
+#         # Handle the case where the user is not associated with a student
+#         return render(request, 'error_template.html', {'error_message': 'User is not associated with a student'})

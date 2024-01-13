@@ -598,6 +598,71 @@ p {
 }
 </style>
 
+<!-- school campaign css -->
+<style>
+
+  .cta-button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 1.2em;
+      color: #fff;
+      background-color: #007bff;
+      text-decoration: none;
+      border-radius: 5px;
+  }
+
+  .cta-button:hover {
+      background-color: #0056b3;
+  }
+
+  .benefits {
+      margin-top: 30px;
+  }
+
+  .benefits h2 {
+      color: #007bff;
+  }
+
+</style>
+
+<!--end of  school campaign css -->
+
+<!-- popup  -->
+
+<style>
+  /* Add your styles here */
+  #popup-container {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      background-color: white;
+      border: 2px solid red;
+      z-index: 9999;
+      text-align: center;
+  }
+
+  .popup-image {
+      width: 100%; /* Set your preferred width */
+      height: 200px; /* Set your preferred height */
+      object-fit: cover; /* Maintain aspect ratio while filling the container */
+      display: none;
+  }
+
+  .popup-image.active {
+      display: block;
+  }
+
+  .popup-controls {
+      margin-top: 10px;
+  }
+</style>
+
+<!-- end of popup -->
+
+
 <div class="hover-container" style="padding-left: 20px;">
   <div class="flip-card">
     <div class="flip-card-inner">
@@ -619,14 +684,54 @@ p {
   </div>
 </div>
 
-
+<!-- ff
+       
+        <div id="popup">
+          <p>Refer & Earn 50% commission on the certificates purchased by the referee.</p>
+          <p>
+              <a href="{% url 'users:become_referrer' %}">Become a Referrer, Click Here</a>
+             
+          </p>
+          <button onclick="closePopup()">Close</button>
+        </div>
+        
+        <div id="overlay"></div>
+ff -->
 
 <div  class="container">
   <div class="row">
 
     <div class="col-md-6 flex-container">
       <div class="text-container">
-        <a style="font-size: 20px;color: red;" href="{% url 'users:become_referrer' %}">Become a Referrer, Click Here</a>
+<br>
+
+<!-- Popup container -->
+<div id="popup-container">
+  <!-- Image carousel -->
+  {% for image in advertisement_images %}
+      <img class="popup-image {% if forloop.first %}active{% endif %}" src="{{ image.image.url }}" alt="Advertisement Image {{ forloop.counter }}">
+      <div class="desc">
+        <p> {{ image.desc }}</p>
+          {% if image.link %}
+              <a href="{{ image.link }}">Click Here to Start</a>
+          {% else %}
+             
+          {% endif %}
+      </div>
+  {% endfor %}
+
+  <!-- Navigation controls -->
+  <div class="popup-controls">
+      <button onclick="prevImage()">Previous</button>
+      <button onclick="nextImage()">Next</button>
+      <button onclick="closePopup()">Close</button>
+  </div>
+</div>
+
+
+
+
+        <!-- <a style="font-size: 20px;color: red;" href="{% url 'users:become_referrer' %}">Become a Referrer, Click Here</a> -->
         <h1>Unleashing Your Coding Potential</h1>
         <p>
           Join us at CodeThinkers Academy to unlock your coding potential. 
@@ -1511,7 +1616,33 @@ p {
 </div>
 <br>
 
+<hr>
 
+<div style="padding: 0px 20px 0px 20px;" class="card-bod">
+  <h2>Empower Schools and Organizations with our New Program!</h2>
+
+
+<div class="te">
+  <h4>Unlock a World of Learning Opportunities for Your School or Organization</h4>
+  <p>Experience the next level of education with our cutting-edge courses in the New Program, tailored for schools and organizations. From in-depth content to practical skills, we have it all.</p>
+  <p>Don't miss out on this opportunity to enhance the knowledge and skills of your students or members.</p>
+
+  <a href="{% url 'users:school_signup' %}" class="cta-button">Sign Up Now</a>
+
+  <div class="benefits">
+      <h2>Benefits for Schools and Organizations</h2>
+      <ul class="">
+          <li>Customized Certificates of Completion with your School or Organization Logo</li>
+          <li>Inclusion of Head's Signature and Name on Certificates</li>
+          <li>Option to Add Portfolio Information on Certificates</li>
+          <li>Effortless Management – We Handle It All!</li>
+      </ul>
+  </div>
+</div>
+
+
+</div>
+<hr>
 
 <script>
 
@@ -1547,6 +1678,75 @@ items.forEach((el) => {
   setTimeout(() => {
     flashContainer.style.display = 'none';
   }, 5000);
+</script>
+
+
+<!-- JavaScript to control the popup carousel -->
+<!-- JavaScript to control the popup carousel -->
+<script>
+  var currentImageIndex = 0;
+
+  // Display the popup
+  function openPopup() {
+      document.getElementById('popup-container').style.display = 'block';
+      updateDescription();
+  }
+
+  // Close the popup
+  function closePopup() {
+      document.getElementById('popup-container').style.display = 'none';
+  }
+
+  // Show the previous image in the carousel
+  function prevImage() {
+      var images = document.getElementsByClassName('popup-image');
+      if (currentImageIndex > 0) {
+          currentImageIndex--;
+      } else {
+          currentImageIndex = images.length - 1;
+      }
+      updateImage();
+      updateDescription();
+  }
+
+  // Show the next image in the carousel
+  function nextImage() {
+      var images = document.getElementsByClassName('popup-image');
+      if (currentImageIndex < images.length - 1) {
+          currentImageIndex++;
+      } else {
+          currentImageIndex = 0;
+      }
+      updateImage();
+      updateDescription();
+  }
+
+  // Update the displayed image
+  function updateImage() {
+      var images = document.getElementsByClassName('popup-image');
+      for (var i = 0; i < images.length; i++) {
+          if (i === currentImageIndex) {
+              images[i].classList.add('active');
+          } else {
+              images[i].classList.remove('active');
+          }
+      }
+  }
+
+  // Update the displayed description
+  function updateDescription() {
+      var descriptions = document.getElementsByClassName('desc');
+      for (var i = 0; i < descriptions.length; i++) {
+          if (i === currentImageIndex) {
+              descriptions[i].style.display = 'block';
+          } else {
+              descriptions[i].style.display = 'none';
+          }
+      }
+  }
+
+  // Open the popup when the page loads
+  setTimeout(openPopup, 1000); // Adjust the delay as needed
 </script>
 
 

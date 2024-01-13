@@ -224,6 +224,7 @@ class Payment(models.Model):
 
 
 from django.urls import reverse
+from django import forms
 
 class ReferrerMentor(models.Model):
     name = models.CharField(max_length=20, blank=True, null=True)
@@ -275,3 +276,14 @@ def generate_referrer_code(sender, instance, **kwargs):
         # Generate a unique code using uuid
         unique_identifier = str(uuid.uuid4().hex)[:10]
         instance.referrer_code = f"cta{unique_identifier}"
+
+
+
+class AdvertisementImage(models.Model):
+    # img_ebook = CloudinaryField('Ebook images', blank=True, null=True)
+    image =CloudinaryField('advertisement_images', blank=True, null=True)
+    desc = models.TextField(blank=True, null=True)
+    link = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Image {self.id}"
