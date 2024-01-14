@@ -594,7 +594,7 @@ def pdf_id_view(request, *args, **kwargs):
     posts = get_list_or_404(course, pk=pk)
     user_profile = Profile.objects.filter(user_id=request.user)
 
-    template_path = 'student/dashboard/certificatepdf.html'
+    template_path = 'student/dashboard/certificatepdf_testing.html'
 
     # students = QMODEL.Student.objects.all()
 
