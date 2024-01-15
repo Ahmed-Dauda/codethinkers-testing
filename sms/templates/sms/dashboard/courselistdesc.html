@@ -207,7 +207,7 @@
   </a>
 {% else %}
 
-{% if related_payments %}
+{% if related_payments or school_name %}
     <a href="{% url 'sms:topicslistview' course.id %}">
         <button class="btn btn-primary">Enroll {{ object.title }}</button>
     </a>

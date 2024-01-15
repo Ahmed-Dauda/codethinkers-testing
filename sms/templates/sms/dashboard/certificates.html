@@ -81,10 +81,10 @@
        
         {% else %}-->
 
-            {% if related_payments.exists or course_payments.exists %}
+            {% if related_payments.exists or course_payments.exists or school_name %}
                 <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
 
-            {% elif qcourse.course_name.cert_price == None and qcourse.course_name.price == None %}
+            {% elif qcourse.course_name.cert_price == None and qcourse.course_name.price == None or school_name %}
             <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
 
             
