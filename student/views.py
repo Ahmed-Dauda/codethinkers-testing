@@ -214,112 +214,152 @@ def paystack_webhook(request):
         return JsonResponse({'status': 'error', 'message': 'Unsupported event type'}, status=400)
 
 
-
-
-# @csrf_exempt
-# @require_POST
-# @transaction.non_atomic_requests(using='db_name')
-# def paystack_webhook(request):
-#     # ... (existing code)
-
-
-#     if request.method != 'POST':
-#         return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed'}, status=400)
-
-#     # Parse the JSON payload from the request
-#     try:
-#         payload = json.loads(request.body)
-#         print("payloadttt:", payload)
-#     except json.JSONDecodeError as e:
-#         return JsonResponse({'status': 'error', 'message': 'Invalid JSON payload'}, status=400)
-
-#     # Extract relevant information from the payload
-#     event = payload.get('event')
-#     data = payload.get('data')
-  
-#      # Check the event type
-#     if event == 'charge.success':
-#         # Extract information from the data
-#         verified = True
-#         reference = data.get('reference')
-#         paid_amount = data.get('amount') / 100
-#         first_name = data['customer'].get('first_name')
-#         last_name = data['customer'].get('last_name')
-#         # first_name = request.user.profile.first_name
-#         # last_name = request.user.profile.last_name
-#         email = data['customer'].get('email')
-
-#         referrer = payload['data']['metadata']['referrer'].strip()
-#         print("Referrer URL:", referrer)
-#         print("amount:", paid_amount)
-
-#         # Split the referrer URL by '/'
-#         url_parts = referrer.split('/')
-#         content_type = url_parts[-3]
-#         print("content_type", content_type)
-#         print('url:', url_parts[-3])
-
-#         # Check if the last part of the URL is a numeric "id"
-#         if url_parts[-2].isdigit():
-#             id_value = url_parts[-2]
-#             print("Extracted ID:", id_value)
-#         else:
-#             id_value = None
-
-#         # Assuming 'Courses' is the model for certificates, adjust as needed
-#         course = get_object_or_404(QMODEL.Course, pk=id_value)
-#         print("course printed:", course)
-#         recode = get_object_or_404(NewUser, email = email)
-#         recode = recode.phone_number
-#         print("course printed: rrrrr", recode)
-
-#         if content_type == 'ebooks':
-#             print('ebook purchase')
-
-#         else:
-            
-#             print('certificate')
-
-#         # Check if a similar entry already exists
-#         existing_entry = CertificatePayment.objects.filter(
-#             ref=reference,
-#             amount=paid_amount,
-#             first_name=first_name,
-#             last_name=last_name,
-#             email=email,
-#             verified=verified,
-#             content_type=content_type,
-#             f_code = recode,
-#         ).first()
-        
-
-#         if existing_entry:
-#             # Skip the update step if no specific updates are needed
-#             pass
-#         else:
-#             # Create a new CertificatePayment instance
-#             certpayment = CertificatePayment.objects.create(
-#                 ref=reference,
-#                 amount=paid_amount,
-#                 first_name=first_name,
-#                 last_name=last_name,
-#                 email=email,
-#                 verified=verified,
-#                 content_type=content_type,
-#                 f_code = recode,
-#             )
-#             if course:
-#                 certpayment.courses.set([course.course_name])
-
-        
-
-#     return JsonResponse({'status': 'success'})
-
-
-
-# next for testing 
-
 # end 
+    
+# views.py
+
+
+""" import requests
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import ReferrerMentor, WithdrawalRequest
+
+# Define the process_paystack_withdrawal function
+def process_paystack_withdrawal(customer_id, amount):
+    # Use Paystack API to initiate withdrawal
+    # Replace 'your_paystack_secret_key' with your actual Paystack secret key
+
+    paystack_secret_key = settings.PAYSTACK_SECRET_KEY
+
+    withdrawal_url = 'https://api.paystack.co/transfer'
+    
+    headers = {
+        'Authorization': f'Bearer {paystack_secret_key}',
+        'Content-Type': 'application/json',
+    }
+
+    payload = {
+        'source': 'balance',
+        'amount': int(amount) * 100,  # Paystack uses amount in kobo (multiply by 100)
+        'recipient': customer_id,
+    }
+
+    response = requests.post(withdrawal_url, json=payload, headers=headers)
+    return response.json()
+
+
+def withdrawal_request(request):
+    if request.method == 'POST':
+        referrer = ReferrerMentor.objects.filter(referrer=request.user.id).first()
+
+        if not referrer:
+            messages.error(request, 'Referrer not found.')
+            return redirect('sms:myprofile')
+
+        if not referrer.can_withdraw():
+            messages.error(request, 'Withdrawal request cannot be processed. Check your balance or request status.')
+            return redirect('sms:myprofile')
+
+        if not referrer.has_paystack_customer_id():
+            messages.error(request, 'Withdrawal request cannot be processed. Paystack integration is not set up for this referrer.')
+            return redirect('sms:myprofile')
+
+        amount = request.POST.get('amount')
+
+        # Create withdrawal request
+        withdrawal = WithdrawalRequest.objects.create(referrer=referrer, amount=amount, status='pending')
+        referrer.withdrawal_request_status = 'pending'
+        referrer.save()
+
+        # Process withdrawal using Paystack API
+        paystack_response = process_paystack_withdrawal(referrer.paystack_customer_id, amount)
+
+        if paystack_response.get('status') == 'success':
+            # Payment was successful
+            messages.success(request, 'Withdrawal request submitted successfully.')
+        else:
+            # Payment failed
+            withdrawal.status = 'rejected'
+            withdrawal.save()
+            messages.error(request, f'Withdrawal request failed: {paystack_response.get("message")}')
+
+        return redirect('sms:myprofile')  # Redirect to the dashboard or wherever is appropriate
+
+    return render(request, 'student/dashboard/withdrawal_form.html')
+
+ """
+# def withdrawal_request(request):
+#     if request.method == 'POST':
+#         referrer = ReferrerMentor.objects.filter(referrer=request.user.id).first()
+
+#         if referrer and referrer.can_withdraw() and referrer.has_paystack_customer_id():
+#             amount = request.POST.get('amount')
+
+#             # Create withdrawal request
+#             withdrawal = WithdrawalRequest.objects.create(referrer=referrer, amount=amount, status='pending')
+#             referrer.withdrawal_request_status = 'pending'
+#             referrer.save()
+
+#             # Process withdrawal using Paystack API
+#             paystack_response = process_paystack_withdrawal(referrer.paystack_customer_id, amount)
+
+#             if paystack_response.get('status') == 'success':
+#                 # Payment was successful
+#                 messages.success(request, 'Withdrawal request submitted successfully.')
+#             else:
+#                 # Payment failed
+#                 withdrawal.status = 'rejected'
+#                 withdrawal.save()
+#                 messages.error(request, f'Withdrawal request failed: {paystack_response.get("message")}')
+
+#         else:
+#             messages.error(request, 'Withdrawal request cannot be processed. Check your balance, request status, or Paystack integration.')
+
+#         return redirect('sms:myprofile')  # Redirect to the dashboard or wherever is appropriate
+
+#     return render(request, 'student/dashboard/withdrawal_form.html')
+
+
+# def process_paystack_withdrawal(customer_id, amount):
+#     # Use Paystack API to initiate withdrawal
+#     # Replace 'your_paystack_secret_key' with your actual Paystack secret key
+#     paystack_secret_key = settings.PAYSTACK_PUBLIC_KEY
+#     withdrawal_url = 'https://api.paystack.co/transfer'
+    
+#     headers = {
+#         'Authorization': f'Bearer {paystack_secret_key}',
+#         'Content-Type': 'application/json',
+#     }
+
+#     payload = {
+#         'source': 'balance',
+#         'amount': int(amount) * 100,  # Paystack uses amount in kobo (multiply by 100)
+#         'recipient': customer_id,
+#     }
+
+#     response = requests.post(withdrawal_url, json=payload, headers=headers)
+#     return response.json()
+
+
+# def withdrawal_request(request):
+#     if request.method == 'POST':
+#         # Assuming there's only one ReferrerMentor per user, if not, adjust accordingly
+#         referrer = ReferrerMentor.objects.filter(referrer=request.user.id).first()
+
+#         if referrer and referrer.can_withdraw():
+#             amount = request.POST.get('amount')
+#             withdrawal = WithdrawalRequest.objects.create(referrer=referrer, amount=amount, status='pending')
+#             referrer.withdrawal_request_status = 'pending'
+#             referrer.save()
+#             messages.success(request, 'Withdrawal request submitted successfully.')
+#         else:
+#             messages.error(request, 'Withdrawal request cannot be processed. Check your balance or request status.')
+
+#         return redirect('sms:myprofile')  # Redirect to the dashboard or wherever is appropriate
+
+#     return render(request, 'student/dashboard/withdrawal_form.html')
+
+
 
 def pdf_document_list(request):
     documents = PDFDocument.objects.all()

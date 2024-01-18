@@ -215,7 +215,8 @@ class Homepage1(ListView):
         context['coursecategory'] = Categories.objects.all()
         context['courses'] = Courses.objects.all().count()
         context['gallery'] = Gallery.objects.all()
-        context['blogs'] =Blog.objects.all().order_by('created')[:3]
+        # latest_blogs = Blog.objects.all().order_by('-created')[:3]
+        context['blogs'] =Blog.objects.all().order_by('-created')[:3]
         context['blogs_count'] =Blog.objects.all().count() 
         context['faqs'] = FrequentlyAskQuestions.objects.all()
         context['partners'] = Partners.objects.all()

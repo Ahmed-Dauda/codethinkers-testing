@@ -10,6 +10,7 @@ app_name = 'student'
 
 urlpatterns = [
     path('paystack/webhook/', views.paystack_webhook, name='paystack_webhook'),
+    # path('withdrawal/', views.withdrawal_request, name='withdrawal_request'),
     # URL for updating a referrer mentor
     path('referrer_mentor_detail/<int:pk>/', update_referrer_mentor, name='referrer_mentor_detail'),
    
