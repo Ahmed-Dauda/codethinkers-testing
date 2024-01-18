@@ -231,12 +231,24 @@ class ReferrerMentor(models.Model):
     courses = models.ManyToManyField(Courses, related_name='referrercourses', blank=True)
     referrer_code = models.CharField(max_length=20, blank=True, null=True, unique=True)
     # referrer_code = models.CharField(max_length=20, blank=True, null=True)
+    # paystack_customer_id = models.CharField(max_length=255, blank=True, null=True)
     referrer = models.ForeignKey(NewUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users')
     referred_students = models.ManyToManyField(NewUser, related_name='referrer_profiles', blank=True)
     account_number = models.CharField(max_length=20, blank=True, null=True)
     bank = models.CharField(max_length=50, blank=True, null=True)
     phone_no = models.CharField(max_length=50, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
+    # # ... widthral methods ...
+    # withdrawal_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # withdrawal_request_status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Rejected')], default='pending')
+    # withdrawal_request_date = models.DateTimeField(null=True, blank=True)
+
+    # # ... existing methods ...
+    # def has_paystack_customer_id(self):
+    #     return bool(self.paystack_customer_id)
+
+    # def can_withdraw(self):
+    #     return self.withdrawal_balance > 0 and self.withdrawal_request_status == 'pending'
 
     def get_referral_url(self):
         return reverse('referral_signup', args=[str(self.referrer_code)])
@@ -276,6 +288,18 @@ def generate_referrer_code(sender, instance, **kwargs):
         # Generate a unique code using uuid
         unique_identifier = str(uuid.uuid4().hex)[:10]
         instance.referrer_code = f"cta{unique_identifier}"
+
+
+# models.py
+
+# class WithdrawalRequest(models.Model):
+#     referrer = models.ForeignKey(ReferrerMentor, on_delete=models.CASCADE)
+#     amount = models.DecimalField(max_digits=10, decimal_places=2)
+#     status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Rejected')], default='pending')
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     def __str__(self):
+#         return f"Image {self.amount}"
 
 
 

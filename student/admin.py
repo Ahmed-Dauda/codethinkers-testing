@@ -20,6 +20,7 @@ from django.utils.html import format_html
 from .models import AdvertisementImage
 
 admin.site.register(PDFDocument)
+# admin.site.register(WithdrawalRequest)
 
 class AdvertisementImageAdmin(admin.ModelAdmin):
     list_display = ('id', 'image', 'desc')
