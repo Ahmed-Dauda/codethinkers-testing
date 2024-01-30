@@ -280,6 +280,10 @@ class Homepage1(ListView):
         context['user'] = NewUser.objects.get_queryset().order_by('id')
         context['users']  = self.request.user
         messages.success(self.request, 'You have successfully logged in.')
+
+        user_newuser = get_object_or_404(NewUser, email=self.request.user)
+        if user_newuser.school:
+            context['school_name'] = user_newuser.school.school_name
         
         # advert
         context['advertisement_images']  = self.request.user= AdvertisementImage.objects.all()

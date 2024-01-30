@@ -183,11 +183,16 @@
   
 
   <!-- {% get_hit_count for object %}  -->
+  {% if school_name %}
+  <h4>Premium</h4>
+  {% else %}
   {% if object.status_type == 'Premium' %}
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  &#8358;{{object.price|safe|floatformat:"0g"}}</p> 
 
   {% else %}
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}}</p> 
+  {% endif %}
+
   {% endif %}
   <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.categories.name|safe|title}} level</small> <br>
   <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.course_type|safe}}</small>
@@ -642,11 +647,14 @@
     </div>
 
       <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
+     
       {% if obj.status_type == 'Premium' %}
+     
       <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe}}</p> 
       {% else %}
       <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
       {% endif %}
+     
       <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
       <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
       <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
