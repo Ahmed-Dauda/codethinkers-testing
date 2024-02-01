@@ -54,7 +54,7 @@
       <div class="uppercase profile-stat-text"> <a href="{{ profile.get_absolute_url }}"> Edit Profile</a></div>
   </div>
  
-  {% endfor %}
+
   
   <hr>
 
@@ -66,15 +66,47 @@
 
 <!-- Assuming your template is myprofile.html -->
 
+<h3 class="text-center">Completed Courses</h3>
 
+<!-- 
+rr {{profile.user.profile}} - {{request.user.profile}}rr -->
+
+{% for t in results %}
+{% for course in courses %}
+
+    {% if course == t.exam %}
+        {% if t.marks >= course.pass_mark %}
+        {% if profile.user.profile ==  t.student  %}
+
+        {% for paymentcourse in payment_courses %}
+        {% if paymentcourse ==  course or school_name %}
+        <div class="card" style="display: flex; flex-direction: column; align-items: center;">
+          <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{ course }}</a>
+          <!-- Other content within the flex container -->
+      </div>
+      
+       
+        {% endif %}
+        {% endfor %}
+
+        {% endif %}
+        {% endif %}
+    {% endif %}
+
+
+{% endfor %}
+{% endfor %}
+<!-- end of user_profile forloop -->
+{% endfor %}
+
+<hr>
+<!-- {% if qcourse.course_name.cert_price == None and qcourse.course_name.price == None or school_name %}
+<a href="#"> PRINT {{ course }} CERTIFICATE</a><br>
+{% endif %} -->
 
 <!-- Assuming your template is myprofile.html -->
 
-<!-- Assuming your template is myprofile.html -->
 
-<!-- Assuming your template is myprofile.html -->
-
-<!-- Add these fields to your form -->
 <!-- <h1>{{referrer_mentor}}</h1> -->
 
 <h1 style="color: red;">Referral Details</h1>

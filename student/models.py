@@ -97,9 +97,6 @@ from django.utils import timezone
 
 
 from sms.models import Courses
-
-
-
 from django.db import models
 from cloudinary.models import CloudinaryField
 
