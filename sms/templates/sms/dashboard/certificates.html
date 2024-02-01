@@ -87,12 +87,11 @@
             {% elif qcourse.course_name.cert_price == None and qcourse.course_name.price == None or school_name %}
             <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
 
-            
             {% else %}
                 <button class="btn btn-primary" type="submit" id="purchasebtn" onclick="payWithPaystack()"> Pay #{{course.course_name.cert_price|safe}} Now to Print Certificate</button>
             {% endif %}
             
-             {% endif %}
+            {% endif %}
     
 
 

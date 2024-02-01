@@ -9,7 +9,7 @@ from django.utils.decorators import method_decorator
 from django.db.models import fields
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
-
+from student.models import ReferrerMentor
 from django.conf import settings
 from django.http import JsonResponse
 from django.core.paginator import Paginator
@@ -57,9 +57,6 @@ import cloudinary.api
 from django.views.generic import ListView
 from django.http import JsonResponse
 from django.core.paginator import Paginator
-
-
-
 from profile import Profile as NewProfile
 from student.models import EbooksPayment, PDFDocument, Payment, CertificatePayment
 from quiz import models as QMODEL
@@ -78,9 +75,6 @@ from sms.models import (Categories, Courses, Topics,
                           AboutCourseOwner,
                          
                         )
-
-
-
 
 
 class Categorieslistview(LoginRequiredMixin, ListView):
@@ -478,7 +472,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
     template_name = 'sms/dashboard/certificates.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
-     
+    
     def get_queryset(self):
         return QMODEL.Course.objects.all()
 
@@ -489,7 +483,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         
         courses = QMODEL.Course.objects.all()
         cert_note = QMODEL.Certificate_note.objects.all()
-        
+
         try:
             student = Profile.objects.get(user_id=self.request.user.id) 
         except Profile.DoesNotExist:
@@ -994,11 +988,8 @@ class MarkTopicCompleteView(View):
 #         context['mark_topic_completed'] = self.mark_topic_completed
 
 #         return context
+    
 
-       
-from student.models import ReferrerMentor
-
-from django.shortcuts import get_object_or_404
 
 class UserProfilelistview(LoginRequiredMixin, ListView):
     model = Profile
@@ -1011,18 +1002,29 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['user_profile'] = Profile.objects.filter(user_id=self.request.user.id)
+        user_profile = Profile.objects.filter(user_id=self.request.user.id)
+        context['user_profile'] = user_profile
         
-        # user_profile = get_object_or_404(NewUser, email=self.request.user)
-        # print('profile', get_object_or_404(Profile, user_id=self.request.user.id))
         # Include school name if it exists in the user's profile
         user_newuser = get_object_or_404(NewUser, email=self.request.user)
         if user_newuser.school:
             context['school_name'] = user_newuser.school.school_name
 
+        
         context['courses'] = QMODEL.Course.objects.all()
-        context['results'] = QMODEL.Result.objects.order_by('-marks')
+        context['results'] = Result.objects.all()
+        user = self.request.user.email
+        related_payments = CertificatePayment.objects.filter(email=user)
+        context['related_payments'] = related_payments
 
+        profile_courses = related_payments.first()  # Adjust this based on your actual model structure
+        # Fetch the courses related to the user profile
+        payment_courses = profile_courses.courses.all()
+        context['payment_courses'] = payment_courses
+
+        # email=user, courses=course,
+        #     amount=course.course_name.cert_price
+   
         try:
             # Referrer account
             referrer_mentors = ReferrerMentor.objects.filter(referrer=self.request.user.id)
@@ -1078,69 +1080,6 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
 
         return context
 
-
-# class UserProfilelistview(LoginRequiredMixin, ListView):
-#     models = Profile
-#     template_name = 'sms/dashboard/myprofile.html'
-#     count_hit = True
-   
-#     def get_queryset(self):
-#         return Profile.objects.all()
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         user_pro = self.request.user
-#         context['user_profile'] = Profile.objects.filter(user=self.request.user)
-#         context['courses'] = QMODEL.Course.objects.all()
-#         context['results'] = QMODEL.Result.objects.order_by('-marks')
-
-#         try:
-#             # Referrer account
-#             referrer_mentor = ReferrerMentor.objects.get(referrer=self.request.user)
-#             referred_students_count = referrer_mentor.referred_students_count
-#             f_code_count = referrer_mentor.f_code_count
-#             # Assuming total_amount is the value you're trying to divide
-#             count_of_students_referred = referrer_mentor.count_of_students_referred
-#             print('sdd',count_of_students_referred)
-
-#             # total_amount = referrer_mentor.total_amount/2
-#             total_amount = referrer_mentor.total_amount
-
-#             if total_amount is not None:
-#                 total_amount /= 2
-#             else:
-#                 # Handle the case where total_amount is None, if needed
-#                 pass
-
-#             account_number = referrer_mentor.account_number
-#             account_name = referrer_mentor.name
-#             bank = referrer_mentor.bank
-#             phone_no = referrer_mentor.phone_no
-#             context['referrer_mentor'] = referrer_mentor
-#             context['referred_students_count'] = referred_students_count
-#             context['f_code_count'] = f_code_count
-#             context['total_amount'] = total_amount
-#             context['referrer_code'] = referrer_mentor.referrer_code
-#             context['account_number'] =  account_number
-#             context['account_name'] =  account_name
-#             context['phone_no'] =  phone_no
-#             context['bank'] =  bank
-#             context['count_of_students_referred'] = count_of_students_referred
-
-#         except ReferrerMentor.DoesNotExist:
-#             # Handle the case when ReferrerMentor is not found for the user
-#             context['referrer_mentor'] = 0
-#             context['referred_students_count'] = 0
-#             context['f_code_count'] = 0
-#             context['total_amount'] = 0
-#             context['referrer_code'] = 'Apply'
-#             context['account_number'] =  'NIL'
-#             context['account_name'] =  'NIL'
-#             context['bank'] =  'NIL'
-#             context['phone_no'] =  'NIL'
-#             context['count_of_students_referred'] = 'NIL'
-
-#         return context
 # end
 
 #update form for referrer mentors

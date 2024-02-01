@@ -97,17 +97,6 @@ class Course(models.Model):
    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
    id = models.AutoField(primary_key=True)
 
-#    def get_student_info_for_certificate(self, student):
-#         # Retrieve information based on the student's school
-#         if student.school:
-#             school_info = {
-#                 'school_name': student.school.school_name,
-#                 'logo_url': student.school.logo.url,
-#                 'signature_url': student.school.principal_signature.url,
-#                 # Add more fields as needed
-#             }
-#             return school_info
-#         return None
    
    def __str__(self):
         return f'{self.course_name}'
