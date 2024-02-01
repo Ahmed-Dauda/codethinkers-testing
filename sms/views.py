@@ -281,10 +281,16 @@ class Homepage1(ListView):
         context['users']  = self.request.user
         messages.success(self.request, 'You have successfully logged in.')
 
-        user_newuser = get_object_or_404(NewUser, email=self.request.user)
-        if user_newuser.school:
-            context['school_name'] = user_newuser.school.school_name
-        
+        # user_newuser = get_object_or_404(NewUser, email=self.request.user)
+        # if user_newuser.school:
+        #     context['school_name'] = user_newuser.school.school_name
+        if self.request.user.is_authenticated:
+            user_newuser = get_object_or_404(NewUser, email=self.request.user)
+            # rest of your code
+        else:
+            pass
+            # handle the case when the user is not authenticated
+
         # advert
         context['advertisement_images']  = self.request.user= AdvertisementImage.objects.all()
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY

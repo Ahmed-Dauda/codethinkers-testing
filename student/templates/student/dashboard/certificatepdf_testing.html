@@ -111,13 +111,13 @@
 <!-- beginning of school information -->
 
 {% if school_logo %}
-<br>
-<img style="width: 300px; height: 300px;border-radius: 50%; object-fit: cover;" src="{{ school_logo.url }}" alt="school logo">
+<br> <br>
+<span style="color: rgb(42, 39, 239);font-size:65px; font-weight: bold" class="flex-item">{{school_name|upper }}</span>
 {% endif %}
 {% if school_name %}
-<span style="color: rgb(42, 39, 239);font-size:75px; font-weight: bold" class="flex-item">{{school_name|upper }}</span>
- {% endif %}
+<img style="width: 300px; height: 300px;border-radius: 50%; padding: 50px;object-fit: cover;" src="{{ school_logo.url }}" alt="school logo">
 
+ {% endif %}
 
 
 <div class="flex-item">
@@ -139,11 +139,11 @@
 <i >
           {% for part in course %} 
            {% if part.partdesc3 %} <br>
-           <span style="font-size:210px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
+           <span style="font-size:180px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
            <br> <br> <br>
          
            {% else %}
-           <span style="font-size:110px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
+           <span style="font-size:80px; font-weight:bold;color:rgb(17, 18, 18);">Certificate of Completion</span>
            {% endif %}
            {% endfor %}
           </i>
@@ -154,20 +154,20 @@
            <i >
            {% for part in course %} 
            {% if part.partdesc3 %} <br>
-           <span style="font-size:130px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span>
+           <span style="font-size:100px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span>
            {% else %}
-           <span style="font-size:90px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span> 
+           <span style="font-size:70px;color:rgb(17, 18, 18);"><i>This is to certify that</i></span> 
            {% endif %}
            {% endfor %}
           </i>
            <br><br> <br> <br>
-           <span style="font-size:70px; color:rgb(86, 15, 218);"><i>on  {{date|date:"D d M Y"}}</i></span><br> <br> <br> <br>
+           <span style="font-size:50px; color:rgb(86, 15, 218);"><i>on  {{date|date:"D d M Y"}}</i></span><br> <br> <br> <br>
            {% for part in course %} 
            {% if part.partdesc3 %} <br>
-           <span style="font-size:150px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/> <br/><br/>
+           <span style="font-size:150px;color:rgb(42, 39, 239)"><b>{{student.first_name|title }} {{student.last_name|title}}</b></span><br/><br/><br/> <br/><br/>
 
            {% else %}
-           <span style="font-size:60px;color:rgb(42, 39, 239)"><b>{{student.first_name|upper }} {{student.last_name|upper}}</b></span><br/><br/><br/> <br/><br/>
+           <span style="font-size:70px;color:rgb(42, 39, 239); font-weight: bold;"><b>{{student.first_name|title }} {{student.last_name|title}}</b></span><br/><br/><br/> <br/><br/>
            {% endif %}
            {% endfor %}
           </i>
@@ -177,7 +177,7 @@
            {% if part.partdesc3 %} <br><br>
            <span style="font-size:110px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
            {% else %}
-           <span style="font-size:50px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
+           <span style="font-size:40px;color: rgb(17, 18, 18);"><i>has successfully completed the course</i></span> <br/><br/><br> <br>
           
            {% endif %}
            {% endfor %}
@@ -187,9 +187,9 @@
            <i >
            {% for part in course %} 
            {% if part.partdesc3 %} <br>
-           <span style="font-size:60px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
+           <span style="font-size:40px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
            {% else %}
-           <span style="font-size:70px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
+           <span style="font-size:40px;color:rgb(42, 39, 239); font-weight: bold;">{{name|upper}}</span> <br><br>
            {% endif %}
            {% endfor %}
 
