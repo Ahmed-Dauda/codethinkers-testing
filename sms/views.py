@@ -1003,7 +1003,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         user_profile = Profile.objects.filter(user_id=self.request.user.id)
         context['user_profile'] = user_profile
-        
+
         # Include school name if it exists in the user's profile
         print("self.request.user", self.request.user)
         user_newuser = get_object_or_404(NewUser, email=self.request.user)
@@ -1015,8 +1015,8 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         context['results'] = Result.objects.all()
         user = self.request.user.email
         # related_payments = CertificatePayment.objects.all(email=user)
-        related_payments = CertificatePayment.objects.all()
-        context['related_payments'] = related_payments
+        # cert_payments = CertificatePayment.objects.all()
+        context['cert_payments'] = CertificatePayment.objects.all()
 
         try:
             # Referrer account
