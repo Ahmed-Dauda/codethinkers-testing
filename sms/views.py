@@ -1015,6 +1015,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         context['courses'] = QMODEL.Course.objects.all()
         context['results'] = Result.objects.all()
         user = self.request.user.email
+        # related_payments = CertificatePayment.objects.all(email=user)
         related_payments = CertificatePayment.objects.all()
         context['related_payments'] = related_payments
 
