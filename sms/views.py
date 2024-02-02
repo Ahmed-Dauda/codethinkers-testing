@@ -999,7 +999,6 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return Profile.objects.all()
 
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user_profile = Profile.objects.filter(user_id=self.request.user.id)
@@ -1019,14 +1018,6 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         related_payments = CertificatePayment.objects.all()
         context['related_payments'] = related_payments
 
-        profile_courses = related_payments.first()  # Adjust this based on your actual model structure
-        # Fetch the courses related to the user profile
-        payment_courses = profile_courses.courses.all()
-        context['payment_courses'] = payment_courses
-
-        # email=user, courses=course,
-        #     amount=course.course_name.cert_price
-   
         try:
             # Referrer account
             referrer_mentors = ReferrerMentor.objects.filter(referrer=self.request.user.id)
