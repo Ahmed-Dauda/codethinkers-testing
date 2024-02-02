@@ -1017,6 +1017,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         # related_payments = CertificatePayment.objects.all(email=user)
         # cert_payments = CertificatePayment.objects.all()
         context['cert_payments'] = CertificatePayment.objects.all()
+        context['course_payments'] = Payment.objects.all()
 
         try:
             # Referrer account

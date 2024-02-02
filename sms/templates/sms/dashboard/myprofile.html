@@ -93,29 +93,27 @@
 
        {% for cert in cert_payments %}
        {% for certcourse in cert.courses.all %}
+
       rr {{cert.amount }} - {{course.course_name.cert_price}}
-       {% if cert.email ==  request.user.email and  certcourse == course and cert.amount == course.course_name.cert_price %}
-      <h1 style="color: red;">{{cert }}</h1>
-      {% endif %}
-       {% endfor %}
-       {% endfor %}
 
-      {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
-      
-      {% for cert in cert_payments %}
-      {% for certcourse in cert.courses.all %}
-      {% if cert.email ==  request.user.email and  certcourse == course and cert.amount == course.course_name.cert_price %}
+       {% if cert.email ==  request.user.email and  certcourse == course and cert.amount == course.course_name.cert_price or school_name %}
+       <div class="card" style="display: flex; flex-direction: column; align-items: center;">
+        <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{ course }}</a>
+      </div>
+   
 
+      {% elif course.course_name.cert_price == None and course.course_name.price == None or school_name %}
         <div class="card" style="display: flex; flex-direction: column; align-items: center;">
           <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{ course }}</a>
         </div>
-        {% endif %}
-       {% endfor %}
-       {% endfor %}
-
+        {% else %}
+       <h3>No course completed</h3>
       {% endif %}
+      
+     
+      {% endfor %}
+      {% endfor %}
    
-
         {% endif %}
         {% endif %}
     {% endif %}
