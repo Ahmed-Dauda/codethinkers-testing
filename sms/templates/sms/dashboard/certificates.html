@@ -73,14 +73,6 @@
 
         {% if related_payments.exists and course_payments.exists %}
 
-       <!--{% if course.course_name.cert_price or course.course_name.price %}
-            <button class="btn btn-primary" type="submit" id="purchasebtn" onclick="payWithPaystack()"> Pay #{{course.course_name.cert_price|safe}} Now to Print Certificate</button>
-        {% else %}
-            <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
-        {% endif %}
-       
-        {% else %}-->
-
             {% if related_payments.exists or course_payments.exists or school_name %}
                 <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
 
