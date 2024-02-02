@@ -98,11 +98,10 @@
         {% if profile.user.profile ==  t.student  %}
 
         {% for paymentcourse in payment_courses %}
-        {% if paymentcourse ==  course or school_name %}
+        {% if school_name %}
         <div class="card" style="display: flex; flex-direction: column; align-items: center;">
           <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{ course }}</a>
-         
-      </div>
+        </div>
         {% endif %}
         {% endfor %}
 
