@@ -1006,6 +1006,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         context['user_profile'] = user_profile
         
         # Include school name if it exists in the user's profile
+        print("self.request.user", self.request.user)
         user_newuser = get_object_or_404(NewUser, email=self.request.user)
         if user_newuser.school:
             context['school_name'] = user_newuser.school.school_name
@@ -1014,7 +1015,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         context['courses'] = QMODEL.Course.objects.all()
         context['results'] = Result.objects.all()
         user = self.request.user.email
-        related_payments = CertificatePayment.objects.filter(email=user)
+        related_payments = CertificatePayment.objects.all()
         context['related_payments'] = related_payments
 
         profile_courses = related_payments.first()  # Adjust this based on your actual model structure
