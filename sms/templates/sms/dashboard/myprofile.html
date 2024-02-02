@@ -68,7 +68,7 @@
 
 <h3 class="text-center">Completed Courses</h3>
 
-{% for t in results %}
+<!-- {% for t in results %}
 {% for course in courses %}
 
     {% if course == t.exam %}
@@ -78,7 +78,7 @@
      
         <div class="card" style="display: flex; flex-direction: column; align-items: center;">
           <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{ course }}</a>
-          <!-- Other content within the flex container -->
+      
       </div>
     
 
@@ -88,9 +88,9 @@
 
 
 {% endfor %}
-{% endfor %}
+{% endfor %} -->
 
-<!-- {% for t in results %}
+{% for t in results %}
 {% for course in courses %}
 
     {% if course == t.exam %}
@@ -112,7 +112,7 @@
 
 
 {% endfor %}
-{% endfor %} -->
+{% endfor %}
 <!-- end of user_profile forloop -->
 {% endfor %}
 
