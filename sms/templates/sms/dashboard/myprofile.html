@@ -94,7 +94,7 @@
        {% for cert in cert_payments %}
        {% for certcourse in cert.courses.all %}
 
-      rr {{cert.amount }} - {{course.course_name.cert_price}}
+      <!-- rr {{cert.amount }} - {{course.course_name.cert_price}} -->
 
        {% if cert.email ==  request.user.email and  certcourse == course and cert.amount == course.course_name.cert_price or school_name %}
        <div class="card" style="display: flex; flex-direction: column; align-items: center;">
