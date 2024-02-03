@@ -1016,8 +1016,27 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         user = self.request.user.email
         # related_payments = CertificatePayment.objects.all(email=user)
         # cert_payments = CertificatePayment.objects.all()
-        context['cert_payments'] = CertificatePayment.objects.all()
+        # context['cert_payments'] = CertificatePayment.objects.all()
         context['course_payments'] = Payment.objects.all()
+        
+        # Fetch related courses for the user's profile
+        # user_courses = user_profile.student_course.all()
+        # context['user_courses'] = user_courses
+
+        # Fetch related certificates for the user's profile
+        # user_certificates = CertificatePayment.objects.filter(email=user)
+        # context['user_certificates'] = user_certificates
+
+        # Fetch the amount from CertificatePayment instances
+        certificate_data = CertificatePayment.objects.filter(email=user)
+        for cd in certificate_data:
+            context['cert_amount'] = cd.amount
+            context['cert_email'] = cd.email
+            context['certificate_data'] = certificate_data
+            print('cccc', cd)
+            print('amount', cd.amount)
+
+
 
         try:
             # Referrer account

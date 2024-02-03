@@ -75,9 +75,21 @@
         {% if t.marks >= course.pass_mark %}
         {% if profile.user.profile ==  t.student  %}
         {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
+  
         <div class="card" style="display: flex; flex-direction: column; align-items: center;">
           <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{ course }}</a>
       </div>
+      {% else %}
+      {% for certcourses in certificate_data %}
+      {% for certcourse in certcourses.courses.all %}
+      {% if certcourse == course %}
+      <div class="card" style="display: flex; flex-direction: column; align-items: center;">
+      <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{certcourse}}</a>
+    </div>
+     {% endif %}
+      
+      {% endfor %}
+      {% endfor %}
       {% endif %}
         {% endif %}
         {% endif %}
@@ -85,6 +97,31 @@
 
 {% endfor %}
 {% endfor %}
+<hr>
+<!-- Assuming 'user' is the user's email -->
+ggggggggggggg
+<!-- your_template.html -->
+<!-- your_template.html -->
+<h2>User Certificates</h2>
+
+{% for certcourses in certificate_data %}
+{% for certcourse in certcourses.courses.all %}
+
+{{certcourse}}
+
+{% endfor %}
+{% endfor %}
+
+<p>Certificate email: {{ cert_email}}</p>
+<p>Certificate Amount: {{ cert_amount}}</p>
+ttttttttt{{request.user.email}}
+
+
+
+
+
+
+
 <hr>
 {% for t in results %}
 {% for course in courses %}
