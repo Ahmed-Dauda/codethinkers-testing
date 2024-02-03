@@ -1029,6 +1029,8 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
 
         # Fetch the amount from CertificatePayment instances
         certificate_data = CertificatePayment.objects.filter(email=user)
+        context['certificate_data'] = certificate_data
+        
         for cd in certificate_data:
             context['cert_amount'] = cd.amount
             context['cert_email'] = cd.email

@@ -79,14 +79,15 @@
         <div class="card" style="display: flex; flex-direction: column; align-items: center;">
           <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{ course }}</a>
       </div>
+
       {% else %}
       {% for certcourses in certificate_data %}
       {% for certcourse in certcourses.courses.all %}
-      {% if certcourse == course %}
+      {% if certcourse == course and  cert_email ==  request.user.email and certcourses.amount == course.course_name.cert_price or school_name %}
       <div class="card" style="display: flex; flex-direction: column; align-items: center;">
       <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{certcourse}}</a>
     </div>
-     {% endif %}
+      {% endif %}
       
       {% endfor %}
       {% endfor %}
@@ -106,14 +107,15 @@ ggggggggggggg
 
 {% for certcourses in certificate_data %}
 {% for certcourse in certcourses.courses.all %}
-
+<h1>aaaa {{certcourses.amount}}</h1>
 {{certcourse}}
 
 {% endfor %}
 {% endfor %}
 
-<p>Certificate email: {{ cert_email}}</p>
-<p>Certificate Amount: {{ cert_amount}}</p>
+<p>Certificate email: {{ cert_email }}</p>
+<p>Certificate Amount: {{ cert_amount }}</p>
+
 ttttttttt{{request.user.email}}
 
 
