@@ -1005,7 +1005,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         context['user_profile'] = user_profile
 
         # Include school name if it exists in the user's profile
-        print("self.request.user", self.request.user)
+        # print("self.request.user", self.request.user)
         user_newuser = get_object_or_404(NewUser, email=self.request.user)
         if user_newuser.school:
             context['school_name'] = user_newuser.school.school_name
@@ -1017,7 +1017,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         # related_payments = CertificatePayment.objects.all(email=user)
         # cert_payments = CertificatePayment.objects.all()
         # context['cert_payments'] = CertificatePayment.objects.all()
-        context['course_payments'] = Payment.objects.all()
+        
         
         # Fetch related courses for the user's profile
         # user_courses = user_profile.student_course.all()
@@ -1030,11 +1030,15 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         # Fetch the amount from CertificatePayment instances
         certificate_data = CertificatePayment.objects.filter(email=user)
         context['certificate_data'] = certificate_data
-        
-        for cd in certificate_data:
+
+        course_payments = Payment.objects.filter(email=user)
+        context['course_payments'] = course_payments
+        print("cp",course_payments)
+
+        for cd in course_payments:
             context['cert_amount'] = cd.amount
             context['cert_email'] = cd.email
-            context['certificate_data'] = certificate_data
+            
             print('cccc', cd)
             print('amount', cd.amount)
 

@@ -66,6 +66,8 @@
 
 <!-- Assuming your template is myprofile.html -->
 
+
+<!-- free and paid cert-->
 <h3 class="text-center">Completed Courses</h3>
 
 {% for t in results %}
@@ -76,16 +78,19 @@
         {% if profile.user.profile ==  t.student  %}
         {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
   
-        <div class="card" style="display: flex; flex-direction: column; align-items: center;">
-          <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{ course }}</a>
+        <div class="card" style="display: flex; align-items: center;">
+            {{ course }}
+          <a class="" href="{% url 'student:pdf' course.id %}">Download</a>
       </div>
 
       {% else %}
       {% for certcourses in certificate_data %}
       {% for certcourse in certcourses.courses.all %}
+
       {% if certcourse == course and  cert_email ==  request.user.email and certcourses.amount == course.course_name.cert_price or school_name %}
       <div class="card" style="display: flex; flex-direction: column; align-items: center;">
-      <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{certcourse}}</a>
+        {{certcourse}}
+      <a class="d-flex" href="{% url 'student:pdf' course.id %}">Download</a>
     </div>
       {% endif %}
       
@@ -98,33 +103,28 @@
 
 {% endfor %}
 {% endfor %}
+<!-- end free and paid cert-->
+
 <hr>
 <!-- Assuming 'user' is the user's email -->
-ggggggggggggg
-<!-- your_template.html -->
-<!-- your_template.html -->
-<h2>User Certificates</h2>
 
-{% for certcourses in certificate_data %}
-{% for certcourse in certcourses.courses.all %}
-<h1>aaaa {{certcourses.amount}}</h1>
-{{certcourse}}
+
+<h2>User payment info</h2>
+
+{% for coursepayment in course_payments %}
+{% for coursepaymentcourse in coursepayment.courses.all %}
+<h1>course amount{{coursepayment.amount}}</h1>
+ <h3>payment course {{coursepaymentcourse }}</h3>
 
 {% endfor %}
 {% endfor %}
-
-<p>Certificate email: {{ cert_email }}</p>
+<hr>
+<!-- <p>Certificate email: {{ cert_email }}</p>
 <p>Certificate Amount: {{ cert_amount }}</p>
 
-ttttttttt{{request.user.email}}
+ttttttttt{{request.user.email}} -->
 
 
-
-
-
-
-
-<hr>
 {% for t in results %}
 {% for course in courses %}
 
