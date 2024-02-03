@@ -68,28 +68,55 @@
 
 <h3 class="text-center">Completed Courses</h3>
 
+<!-- {% for t in results %}
+{% for course in courses %}
 
+    {% if course == t.exam %}
+        {% if t.marks >= course.pass_mark %}
+        {% if profile.user.profile ==  t.student  %}
+        <div class="card" style="display: flex; flex-direction: column; align-items: center;">
+          <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{ course }}</a>
+      </div>
+        {% endif %}
+        {% endif %}
+    {% endif %}
+
+{% endfor %}
+{% endfor %} -->
 
 {% for t in results %}
 {% for course in courses %}
 
     {% if course == t.exam %}
         {% if t.marks >= course.pass_mark %}
-        {% if profile.user.profile ==  t.student  %}
-
- 
-   
-      {% endif %}
-    
-
         {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
         <div class="card" style="display: flex; flex-direction: column; align-items: center;">
-          <a class="d-flex" href="{% url 'student:pdf' course.id %}">tt{{ course }}</a>
+          <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{ course }}</a>
         </div>
-   
-      {% endif %}
+        {% endif %}
 
+        
+        {% if profile.user.profile ==  t.student  %}
+
+       {% for cert in cert_payments %}
+       {% for certcourse in cert.courses.all %}
+
+      <!-- rr {{cert.amount }} - {{course.course_name.cert_price}} -->
+
+       {% if cert.email ==  request.user.email and  certcourse == course and cert.amount == course.course_name.cert_price or school_name %}
+       <div class="card" style="display: flex; flex-direction: column; align-items: center;">
+        <a class="d-flex" href="{% url 'student:pdf' course.id %}">ee{{ course }}</a>
+      </div>
+   
+
+
+      {% endif %}
       
+     
+      {% endfor %}
+      {% endfor %}
+   
+        {% endif %}
         {% endif %}
     {% endif %}
 
@@ -100,7 +127,6 @@
 
 
 {% endfor %}
-
 
 <hr>
 <!-- {% if qcourse.course_name.cert_price == None and qcourse.course_name.price == None or school_name %}
