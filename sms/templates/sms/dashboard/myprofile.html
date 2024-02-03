@@ -74,9 +74,11 @@
     {% if course == t.exam %}
         {% if t.marks >= course.pass_mark %}
         {% if profile.user.profile ==  t.student  %}
+        {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
         <div class="card" style="display: flex; flex-direction: column; align-items: center;">
           <a class="d-flex" href="{% url 'student:pdf' course.id %}">{{ course }}</a>
       </div>
+      {% endif %}
         {% endif %}
         {% endif %}
     {% endif %}
