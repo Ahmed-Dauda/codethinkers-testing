@@ -77,17 +77,6 @@
         {% if t.marks >= course.pass_mark %}
         {% if profile.user.profile ==  t.student  %}
 
- 
-   
-      {% endif %}
-    
-
-        {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
-        <div class="card" style="display: flex; flex-direction: column; align-items: center;">
-          <a class="d-flex" href="{% url 'student:pdf' course.id %}">tt{{ course }}</a>
-        </div>
-        {% else %}
-       <!-- <h3>No course completed</h3> -->
        {% for cert in cert_payments %}
        {% for certcourse in cert.courses.all %}
       <!-- rr {{cert.amount }} - {{course.course_name.cert_price}} -->
@@ -98,6 +87,15 @@
       {% endif %}
       {% endfor %}
       {% endfor %}
+   
+      {% endif %}
+    
+
+        {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
+        <div class="card" style="display: flex; flex-direction: column; align-items: center;">
+          <a class="d-flex" href="{% url 'student:pdf' course.id %}">tt{{ course }}</a>
+        </div>
+   
       {% endif %}
 
       
