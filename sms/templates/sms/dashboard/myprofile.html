@@ -87,13 +87,27 @@
       {% for certcourses in certificate_data %}
       {% for certcourse in certcourses.courses.all %}
 
-      {% if certcourse == course and  cert_email ==  request.user.email and certcourses.amount == course.course_name.cert_price or school_name %}
+     {% if certcourse  == course and  cert_email ==  request.user.email and certcourses.amount == course.course_name.cert_price or school_name %}
       <div class="card" style="display: flex; flex-direction: column; align-items: center;">
         {{certcourse}}
       <a class="d-flex" href="{% url 'student:pdf' course.id %}">Download</a>
     </div>
-      {% endif %}
-      
+
+    {% for coursepayment in course_payments %}
+    {% for coursepaymentcourse in coursepayment.courses.all %}
+
+    <div class="card" style="display: flex; flex-direction: column; align-items: center;">
+      {{coursepaymentcourse}}
+    <a class="d-flex" href="{% url 'student:pdf' coursepaymentcourse.id %}">Download</a>
+  </div>
+    <!-- <h3>payment course {{coursepaymentcourse }}</h3> -->
+    {% endfor %}
+    {% endfor %}
+
+
+    {% endif %}
+
+
       {% endfor %}
       {% endfor %}
       {% endif %}
@@ -106,26 +120,10 @@
 <!-- end free and paid cert-->
 
 <hr>
-<!-- Assuming 'user' is the user's email -->
 
 
-<h2>User payment info</h2>
 
-{% for coursepayment in course_payments %}
-{% for coursepaymentcourse in coursepayment.courses.all %}
-<h1>course amount{{coursepayment.amount}}</h1>
- <h3>payment course {{coursepaymentcourse }}</h3>
-
-{% endfor %}
-{% endfor %}
-<hr>
-<!-- <p>Certificate email: {{ cert_email }}</p>
-<p>Certificate Amount: {{ cert_amount }}</p>
-
-ttttttttt{{request.user.email}} -->
-
-
-{% for t in results %}
+<!-- {% for t in results %}
 {% for course in courses %}
 
     {% if course == t.exam %}
@@ -137,19 +135,15 @@ ttttttttt{{request.user.email}} -->
         {% endif %}
 
         
-        {% if profile.user.profile ==  t.student  %}
+       {% if profile.user.profile ==  t.student  %}
 
        {% for cert in cert_payments %}
        {% for certcourse in cert.courses.all %}
-
-      <!-- rr {{cert.amount }} - {{course.course_name.cert_price}} -->
 
        {% if cert.email ==  request.user.email and  certcourse == course and cert.amount == course.course_name.cert_price or school_name %}
        <div class="card" style="display: flex; flex-direction: column; align-items: center;">
         <a class="d-flex" href="{% url 'student:pdf' course.id %}">ee{{ course }}</a>
       </div>
-   
-
 
       {% endif %}
       
@@ -163,13 +157,13 @@ ttttttttt{{request.user.email}} -->
 
 
 {% endfor %}
-{% endfor %}
+{% endfor %} -->
 <!-- end of user_profile forloop -->
 
 
 {% endfor %}
 
-<hr>
+<!-- <hr> -->
 <!-- {% if qcourse.course_name.cert_price == None and qcourse.course_name.price == None or school_name %}
 <a href="#"> PRINT {{ course }} CERTIFICATE</a><br>
 {% endif %} -->
@@ -318,4 +312,3 @@ ttttttttt{{request.user.email}} -->
 
 
 {% endblock %} 
-

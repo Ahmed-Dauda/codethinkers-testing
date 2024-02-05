@@ -1031,16 +1031,33 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         certificate_data = CertificatePayment.objects.filter(email=user)
         context['certificate_data'] = certificate_data
 
+        # Assuming you have a CertificatePayment model with a 'courses' field
+        all_certificate_courses = Course.objects.filter(certificates__isnull=False)
+        context['all_certificate_courses'] = all_certificate_courses
+        # print("all_certificate_courses", all_certificate_courses)
+
+        for cerpaymentcourse in all_certificate_courses:
+            context['cerpaymentcourse'] = cerpaymentcourse
+            print("certpaycourse", cerpaymentcourse)
+
+        for cd in certificate_data:
+            context['cert_email'] = cd.email
+            # print('amount', cd.amount)
+
         course_payments = Payment.objects.filter(email=user)
         context['course_payments'] = course_payments
         print("cp",course_payments)
 
-        for cd in course_payments:
-            context['cert_amount'] = cd.amount
-            context['cert_email'] = cd.email
-            
-            print('cccc', cd)
-            print('amount', cd.amount)
+        # Extracting the list of courses from course_payments
+        course_list = [course for payment in course_payments for course in payment.courses.all()]
+        for paymentcourse in course_list:
+            context['paymentcourse'] = paymentcourse
+            print("paymentcourse", paymentcourse)
+
+        for paymentdata in course_payments:
+            context['payment_email'] = paymentdata.email
+            context['payment_amount'] = paymentdata.amount
+            print('amount', paymentdata.amount)
 
 
 
