@@ -93,18 +93,6 @@
       <a class="d-flex" href="{% url 'student:pdf' course.id %}">Download</a>
     </div>
 
-    {% for coursepayment in course_payments %}
-    {% for coursepaymentcourse in coursepayment.courses.all %}
-
-    <div class="card" style="display: flex; flex-direction: column; align-items: center;">
-      {{coursepaymentcourse}}
-    <a class="d-flex" href="{% url 'student:pdf' coursepaymentcourse.id %}">Download</a>
-  </div>
-    <!-- <h3>payment course {{coursepaymentcourse }}</h3> -->
-    {% endfor %}
-    {% endfor %}
-
-
     {% endif %}
 
 
@@ -118,7 +106,17 @@
 {% endfor %}
 {% endfor %}
 <!-- end free and paid cert-->
+<hr>
+{% for coursepayment in course_payments %}
+    {% for coursepaymentcourse in coursepayment.courses.all %}
 
+    <div class="card" style="display: flex; flex-direction: column; align-items: center;">
+      {{coursepaymentcourse}}
+    <a class="d-flex" href="{% url 'student:pdf' coursepaymentcourse.id %}">payment Download</a>
+  </div>
+    <!-- <h3>payment course {{coursepaymentcourse }}</h3> -->
+    {% endfor %}
+    {% endfor %}
 <hr>
 
 
