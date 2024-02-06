@@ -54,10 +54,7 @@
       <div class="uppercase profile-stat-text"> <a href="{{ profile.get_absolute_url }}"> Edit Profile</a></div>
   </div>
  
-
-  
   <hr>
-
 
   {% if school_name %}
   <p style="color: red;">School Name: {{ school_name }}</p>
@@ -65,7 +62,6 @@
 
 
 <!-- Assuming your template is myprofile.html -->
-
 
 <!-- free and paid cert-->
 <h3 class="text-center">Completed Courses</h3>
@@ -76,40 +72,44 @@
     {% if course == t.exam %}
         {% if t.marks >= course.pass_mark %}
         {% if profile.user.profile ==  t.student  %}
+
         {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
-  
         <div class="card" style="display: flex; align-items: center;">
             {{ course }}
-          <a class="" href="{% url 'student:pdf' course.id %}">Download</a>
+          <a class="" href="{% url 'student:pdf' course.id %}">free Download</a>
       </div>
-
-      {% else %}
-      {% for certcourses in certificate_data %}
-      {% for certcourse in certcourses.courses.all %}
-
-     {% if certcourse  == course and  cert_email ==  request.user.email and certcourses.amount == course.course_name.cert_price or school_name %}
-      <div class="card" style="display: flex; flex-direction: column; align-items: center;">
-        {{certcourse}}
-      <a class="d-flex" href="{% url 'student:pdf' course.id %}">Download</a>
-    </div>
-
-    {% endif %}
+        {% endif %}
 
 
-      {% endfor %}
-      {% endfor %}
+
       {% endif %}
-        {% endif %}
-        {% endif %}
+      {% endif %}
+      {% endif %}
+      {% endfor %}
+      {% endfor %}
+
+<!-- end free and paid cert-->
+
+    <hr style="color: red;">
+    {% for certcourses in certificate_data %}
+    {% for certcourse in certcourses.courses.all %}
+    {% for course in courses %}
+
+<!-- <h1>cer{{certcourse}} == {{course}}</h1> -->
+    {% if certcourse  == course and  cert_email ==  request.user.email and certcourses.amount == course.course_name.cert_price or school_name %}
+    <div class="card" style="display: flex; flex-direction: column; align-items: center;">
+      {{certcourse}}
+    <a class="d-flex" href="{% url 'student:pdf' course.id %}">cert Download</a>
+    </div>
     {% endif %}
 
-{% endfor %}
-{% endfor %}
-<!-- end free and paid cert-->
-<hr>
-{% for coursepayment in course_payments %}
+    {% endfor %}
+    {% endfor %}
+    {% endfor %}
+  <hr style="color: red;">
+    {% for coursepayment in course_payments %}
     {% for coursepaymentcourse in coursepayment.courses.all %}
-
+    
     <div class="card" style="display: flex; flex-direction: column; align-items: center;">
       {{coursepaymentcourse}}
     <a class="d-flex" href="{% url 'student:pdf' coursepaymentcourse.id %}">payment Download</a>
@@ -117,7 +117,7 @@
     <!-- <h3>payment course {{coursepaymentcourse }}</h3> -->
     {% endfor %}
     {% endfor %}
-<hr>
+
 
 
 
