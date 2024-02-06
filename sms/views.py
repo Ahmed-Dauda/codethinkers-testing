@@ -512,9 +512,6 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
 
         course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
         context['qcourse'] = course
-        # print("Primary key1:", course.course_name.cert_price)
-        # print("Primary key:", course.course_name.id)
-        # print("course:", course)
 
         user = self.request.user.email
         # content_type
@@ -528,13 +525,9 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         related_payments = CertificatePayment.objects.filter(
             email=user, courses=course,
             amount=course.course_name.cert_price)
-        # related_payments = CertificatePayment.objects.filter(
-        #     email=user, courses=course.course_name.id,
-        #     amount=course.course_name.cert_price)
 
         course_payments = Payment.objects.filter(email=user, amount=course.course_name.price)
-        # print('course_payments:', course_payments)
-        # print('related_payments:', related_payments)
+
         context['course_payments'] = course_payments
         context['related_payments'] = related_payments
 
@@ -1017,13 +1010,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         # related_payments = CertificatePayment.objects.all(email=user)
         # cert_payments = CertificatePayment.objects.all()
         # context['cert_payments'] = CertificatePayment.objects.all()
-        
-        
-        # Fetch related courses for the user's profile
-        # user_courses = user_profile.student_course.all()
-        # context['user_courses'] = user_courses
 
-        # Fetch related certificates for the user's profile
         # user_certificates = CertificatePayment.objects.filter(email=user)
         # context['user_certificates'] = user_certificates
 
