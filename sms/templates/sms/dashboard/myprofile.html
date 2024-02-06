@@ -6,6 +6,7 @@
 {% block title %} My Profile {% endblock %}
 
 
+
 {% block content %} 
 
  
@@ -91,21 +92,51 @@
 <!-- end free and paid cert-->
 
     <hr style="color: red;">
+    {% for result in results %}
+    {% if forloop.first %}
+        {% for course in courses %}
+            {% if result.marks >= course.pass_mark %}
+                {% with found=False %}
+                    {% for certcourses in certificate_data %}
+                        {% for certcourse in certcourses.courses.all %}
+                            {% if certcourse == course and cert_email == request.user.email and certcourses.amount == course.course_name.cert_price or school_name %}
+                                {% if not found %}
+                                    <div class="card" style="display: flex; flex-direction: column; align-items: center;">
+                                        {{ certcourse }} {# Apply the unique filter here #}
+                                        <a class="d-flex" href="{% url 'student:pdf' course.id %}">cert Download</a>
+                                    </div>
+                                    {% with found=True %}
+                                    {% endwith %}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                {% endwith %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+{% endfor %}
+
+    <!-- {% for course in courses %}
+    {% for t in results %}
     {% for certcourses in certificate_data %}
     {% for certcourse in certcourses.courses.all %}
-    {% for course in courses %}
-
-<!-- <h1>cer{{certcourse}} == {{course}}</h1> -->
+ 
+   {% if t.marks >= course.pass_mark %}
     {% if certcourse  == course and  cert_email ==  request.user.email and certcourses.amount == course.course_name.cert_price or school_name %}
     <div class="card" style="display: flex; flex-direction: column; align-items: center;">
       {{certcourse}}
     <a class="d-flex" href="{% url 'student:pdf' course.id %}">cert Download</a>
     </div>
+
     {% endif %}
+  {% endif %}
 
     {% endfor %}
     {% endfor %}
     {% endfor %}
+    {% endfor %} -->
+
   <hr style="color: red;">
     {% for coursepayment in course_payments %}
     {% for coursepaymentcourse in coursepayment.courses.all %}
@@ -161,12 +192,6 @@
 
 {% endfor %}
 
-<!-- <hr> -->
-<!-- {% if qcourse.course_name.cert_price == None and qcourse.course_name.price == None or school_name %}
-<a href="#"> PRINT {{ course }} CERTIFICATE</a><br>
-{% endif %} -->
-
-<!-- Assuming your template is myprofile.html -->
 
 
 <!-- <h1>{{referrer_mentor}}</h1> -->
