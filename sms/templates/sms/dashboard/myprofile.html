@@ -95,24 +95,23 @@
     {% for result in results %}
     {% if forloop.first %}
         {% for course in courses %}
-            {% if result.marks >= course.pass_mark %}
-                {% with found=False %}
-                    {% for certcourses in certificate_data %}
-                        {% for certcourse in certcourses.courses.all %}
-                            {% if certcourse == course and cert_email == request.user.email and certcourses.amount == course.course_name.cert_price or school_name %}
-                                {% if not found %}
-                                    <div class="card" style="display: flex; flex-direction: column; align-items: center;">
-                                        {{ certcourse }} {# Apply the unique filter here #}
-                                        <a class="d-flex" href="{% url 'student:pdf' course.id %}">cert Download</a>
-                                    </div>
-                                    {% with found=True %}
-                                    {% endwith %}
-                                {% endif %}
-                            {% endif %}
-                        {% endfor %}
+            
+                {% for certcourses in certificate_data %}
+                    {% for certcourse in certcourses.courses.all %}
+                    {% if result.marks >= course.pass_mark %}
+
+                    {% if certcourse == course and cert_email == request.user.email and certcourses.amount == course.course_name.cert_price or school_name %}
+                      
+                      <div class="card" style="display: flex; flex-direction: column; align-items: center;">
+                          {{ certcourse }} {# Apply the unique filter here #}
+                          <a class="d-flex" href="{% url 'student:pdf' course.id %}">certtttt Download</a>
+                      </div>
+                      
+                    {% endif %}
+                    {% endif %}
                     {% endfor %}
-                {% endwith %}
-            {% endif %}
+                {% endfor %}
+            
         {% endfor %}
     {% endif %}
 {% endfor %}
