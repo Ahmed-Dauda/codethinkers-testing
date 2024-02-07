@@ -69,9 +69,10 @@
 
 {% for t in results %}
 {% for course in courses %}
-
+<!-- <h1> {{ course.course_name }} - {{ course.course_name.price }}</h1> -->
     {% if course == t.exam %}
         {% if t.marks >= course.pass_mark %}
+        
         {% if profile.user.profile ==  t.student  %}
 
         {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
@@ -79,10 +80,59 @@
             {{ course }}
           <a class="" href="{% url 'student:pdf' course.id %}">free Download</a>
       </div>
+      
+      {% else %}
+  
+<!-- <h1> {{ payment_amount }} - {{ course.course_name.price }}</h1> -->
+         {% if payment_amount == course.course_name.price %}
+            <div class="card" style="display: flex; flex-direction: column; align-items: center;">
+                {{ paymentcourse }}
+                <a class="d-flex" href="{% url 'student:pdf' course.id %}">pay Download</a>
+            </div>
+          {% endif %}
+      {% endif %}
+
+
+    {% with certificate_payments=course.certificates.all %}
+        {% if certificate_payments %}
+    
+                {% for certificate_payment in certificate_payments %}
+                {% for certificate_pay in certificate_payment.courses.all %}
+                {% if course.course_name.cert_price == certificate_payment.amount and certificate_pay == course or school_name %}
+                    <!-- <li>list {{ certificate_payment.amount }} {{ certificate_payment.email }} {{certificate_pay}}</li> -->
+                    <!-- Display other details of CertificatePayment as needed -->
+                    <div class="card" style="display: flex; align-items: center;">
+                      {{certificate_pay}}
+                    <a class="" href="{% url 'student:pdf' certificate_pay.id %}">cert Download</a>
+                   </div>
+                    {% endif %}
+                {% endfor %}
+                {% endfor %}
+       
+        {% else %}
+       
         {% endif %}
+    {% endwith %}
 
+<!-- ggggggggggg
 
+{% for course in courses %}
 
+    {% with course_payments=course.course_name.all %}
+        {% if course_payments %}
+            <ul>
+                {% for payment in course_payments %}
+                    <li>pp {{ payment }}</li>
+             
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No Payments found for this course.</p>
+        {% endif %}
+    {% endwith %}
+{% endfor %}
+
+ggggggggggggg -->
       {% endif %}
       {% endif %}
       {% endif %}
@@ -91,8 +141,8 @@
 
 <!-- end free and paid cert-->
 
-    <hr style="color: red;">
-    {% for result in results %}
+
+    <!-- {% for result in results %}
     {% if forloop.first %}
         {% for course in courses %}
             
@@ -114,7 +164,7 @@
             
         {% endfor %}
     {% endif %}
-{% endfor %}
+{% endfor %} -->
 
     <!-- {% for course in courses %}
     {% for t in results %}
@@ -136,17 +186,7 @@
     {% endfor %}
     {% endfor %} -->
 
-  <hr style="color: red;">
-    {% for coursepayment in course_payments %}
-    {% for coursepaymentcourse in coursepayment.courses.all %}
-    
-    <div class="card" style="display: flex; flex-direction: column; align-items: center;">
-      {{coursepaymentcourse}}
-    <a class="d-flex" href="{% url 'student:pdf' coursepaymentcourse.id %}">payment Download</a>
-  </div>
-    <!-- <h3>payment course {{coursepaymentcourse }}</h3> -->
-    {% endfor %}
-    {% endfor %}
+
 
 
 
