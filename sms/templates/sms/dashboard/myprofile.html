@@ -81,12 +81,12 @@
           <a class="" href="{% url 'student:pdf' course.id %}">free Download</a>
       </div>
       
-      {% else %}
+      <!-- {% else %} -->
   
 <!-- <h1> {{  t.marks }} - {{course.pass_mark }}</h1> -->
     {% if t.marks >= course.pass_mark %}
 
-         {% if payment_amount == course.course_name.price %}
+         {% if payment_amount == course.course_name.price and t.marks >= course.pass_mark %}
             <div class="card" style="display: flex; flex-direction: column; align-items: center;">
                 {{ paymentcourse }}
                 <a class="d-flex" href="{% url 'student:pdf' course.id %}">pay Download</a>
