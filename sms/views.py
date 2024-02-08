@@ -1006,6 +1006,20 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         
         context['courses'] = QMODEL.Course.objects.all()
         context['results'] = Result.objects.all()
+
+
+        # Subquery to get the maximum marks for each combination of student_id and exam_id
+        max_marks_subquery = Result.objects.filter(student_id=OuterRef('student_id'),
+            exam_id=OuterRef('exam_id')
+        ).order_by('-marks').values('marks')[:1]
+        # Query to filter results based on the maximum marks
+        results = Result.objects.filter(marks=Subquery(max_marks_subquery)).order_by('-date')[:1]
+        # Extracting the maximum marks
+        max_marks = results.first().marks if results.exists() else None
+        context['Max_Marks'] = max_marks
+        print("Maximum Marks:", max_marks)
+
+      
         user = self.request.user.email
         # related_payments = CertificatePayment.objects.all(email=user)
         # cert_payments = CertificatePayment.objects.all()
