@@ -1017,7 +1017,8 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         # Extracting the maximum marks
         max_marks = results.first().marks if results.exists() else None
         context['Max_Marks'] = max_marks
-        print("Maximum Marks:", max_marks)
+        context['Max_exam'] = results.first().exam
+        print("Maximum Marks:", results.first().exam)
 
       
         user = self.request.user.email
