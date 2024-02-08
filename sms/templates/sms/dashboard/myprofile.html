@@ -105,7 +105,7 @@
                     {% if Max_Marks >= course.pass_mark %}
                     {% if Max_Marks == t.marks %}
                     <div class="card" style="display: flex; align-items: center;">
-                      {{Max_exam}}
+                      {{certificate_pay}}
                     <a class="" href="{% url 'student:pdf' certificate_pay.id %}">cert Download</a>
                    </div>
                    {% endif %}
