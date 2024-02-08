@@ -102,10 +102,10 @@
                 {% for certificate_pay in certificate_payment.courses.all %}
                 {% if course.course_name.cert_price == certificate_payment.amount and certificate_pay == course or school_name %}
                   
-                    {% if t.marks >= course.pass_mark %}
+                    {% if Max_Marks >= course.pass_mark %}
                     {% if Max_Marks == t.marks %}
                     <div class="card" style="display: flex; align-items: center;">
-                      {{t.exam}}
+                      {{Max_exam}}
                     <a class="" href="{% url 'student:pdf' certificate_pay.id %}">cert Download</a>
                    </div>
                    {% endif %}
