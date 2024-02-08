@@ -93,32 +93,34 @@
           {% endif %}
     {% endif %}
 
-    
 
-    {% with certificate_payments=course.certificates.all %}
-        {% if certificate_payments %}
     
-                {% for certificate_payment in certificate_payments %}
+                <!-- {% for certificate_payment in certificate_payments %}
                 {% for certificate_pay in certificate_payment.courses.all %}
                 {% if course.course_name.cert_price == certificate_payment.amount and certificate_pay == course or school_name %}
-                  
-                    {% if Max_Marks >= course.pass_mark %}
-                    {% if Max_Marks == t.marks %}
+                <h1>r{{certificate_pay}}</h1> 
+                    {% if t.marks >= course.pass_mark %}
+                    {% for m in mx %}
+                    
+                    {% if m == certificate_pay %}
+                    <h1>{{certificate_pay}}</h1> 
+                    {% endif %}
+
+                    {% endfor %}
                     <div class="card" style="display: flex; align-items: center;">
                       {{certificate_pay}}
                     <a class="" href="{% url 'student:pdf' certificate_pay.id %}">cert Download</a>
                    </div>
-                   {% endif %}
+              
                     {% endif %}
                     
                     {% endif %}
                 {% endfor %}
-                {% endfor %}
+                {% endfor %} -->
        
         {% else %}
        
-        {% endif %}
-    {% endwith %}
+    
 
 <!-- ggggggggggg
 
@@ -147,6 +149,15 @@ ggggggggggggg -->
 
 <!-- end free and paid cert-->
 
+
+{% for certificate_payment in certificate_payments %}
+{% for certificate_pay in certificate_payment.courses.all %}
+<div class="card" style="display: flex; align-items: center;">
+  {{certificate_pay}}
+<a class="" href="{% url 'student:pdf' certificate_pay.id %}">cert Download</a>
+</div>
+{% endfor %}
+{% endfor %}
 
     <!-- {% for result in results %}
     {% if forloop.first %}

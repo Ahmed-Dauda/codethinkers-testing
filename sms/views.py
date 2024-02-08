@@ -1007,18 +1007,25 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         context['courses'] = QMODEL.Course.objects.all()
         context['results'] = Result.objects.all()
 
-
-        # Subquery to get the maximum marks for each combination of student_id and exam_id
-        max_marks_subquery = Result.objects.filter(student_id=OuterRef('student_id'),
+        # Subquery to get the maximum marks for each course
+        max_marks_subquery = Result.objects.filter(
             exam_id=OuterRef('exam_id')
         ).order_by('-marks').values('marks')[:1]
-        # Query to filter results based on the maximum marks
-        results = Result.objects.filter(marks=Subquery(max_marks_subquery)).order_by('-date')[:1]
-        # Extracting the maximum marks
-        max_marks = results.first().marks if results.exists() else None
-        context['Max_Marks'] = max_marks
-        context['Max_exam'] = results.first().exam
-        print("Maximum Marks:", results.first().exam)
+
+        # Query to filter results based on the maximum marks for each course
+        results = Result.objects.filter(
+            marks=Subquery(max_marks_subquery)
+        ).order_by('exam_id', '-date')
+
+        # Dictionary to store the maximum marks for each course
+        max_marks_dict = {}
+
+        for result in results:
+            max_marks_dict[result.exam] = result.marks
+
+        print("Maximum Marks for Each Course:", max_marks_dict)
+        context['mx'] = max_marks_dict
+
 
       
         user = self.request.user.email
@@ -1030,7 +1037,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         # context['user_certificates'] = user_certificates
 
         # Fetch the amount from CertificatePayment instances
-        # certificate_data = CertificatePayment.objects.filter(email=user)
+        context['certificate_payments']= CertificatePayment.objects.filter(email=user)
         # context['certificate_data'] = certificate_data
 
         # Assuming you have a CertificatePayment model with a 'courses' field
