@@ -172,28 +172,7 @@
     {% endfor %}
 {% endfor %}
 
-tttttttttttttttttttttt
-{% for zcourse in courses %}
-    {% for payment in payments %}
-        {% for course in payment.courses.all %}
-            {% if course.title|lower == zcourse|lower %}
-                
-                {% for result in results %}
-                    {% if result.exam == zcourse %}
-                        {% if result.marks >= zcourse.pass_mark %}
-                            <div class="card" style="display: flex; align-items: center;">
-                                {{ zcourse }}
-                                <a class="" href="{% url 'student:pdf' zcourse.id %}">payment Download</a>
-                            </div>
-                        {% endif %}
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-        {% endfor %}
-    {% endfor %}
-{% endfor %}
 
-tttttttttttttttttttt
 <hr>
 <br>
 
