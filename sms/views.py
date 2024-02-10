@@ -1016,18 +1016,20 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         results = Result.objects.filter(
             marks=Subquery(max_marks_subquery)
         ).order_by('exam_id', '-date')
+        context['new_results'] = results
+        context['all_courses'] = Course.objects.all()
 
         # Dictionary to store the maximum marks for each course
         max_marks_dict = {}
 
         for result in results:
             max_marks_dict[result.exam] = result.marks
+            print("Maximum Marks :", result.marks)
+            
 
         print("Maximum Marks for Each Course:", max_marks_dict)
         context['mx'] = max_marks_dict
 
-
-      
         user = self.request.user.email
         # related_payments = CertificatePayment.objects.all(email=user)
         # cert_payments = CertificatePayment.objects.all()
@@ -1053,20 +1055,20 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         #     context['cert_email'] = cd.email
             # print('amount', cd.amount)
 
-        course_payments = Payment.objects.filter(email=user)
-        context['course_payments'] = course_payments
-        print("cp",course_payments)
+        payments = Payment.objects.all()
+        context['payments'] = payments
+        print("cp",payments)
 
         # Extracting the list of courses from course_payments
-        course_list = [course for payment in course_payments for course in payment.courses.all()]
-        for paymentcourse in course_list:
-            context['paymentcourse'] = paymentcourse
-            print("paymentcourse", paymentcourse)
+        # course_list = [course for payment in course_payments for course in payment.courses.all()]
+        # for paymentcourse in course_list:
+        #     context['paymentcourse'] = paymentcourse
+        #     print("paymentcourse", paymentcourse)
 
-        for paymentdata in course_payments:
-            context['payment_email'] = paymentdata.email
-            context['payment_amount'] = paymentdata.amount
-            print('amount', paymentdata.amount)
+        # for paymentdata in course_payments:
+        #     context['payment_email'] = paymentdata.email
+        #     context['payment_amount'] = paymentdata.amount
+        #     print('amount', paymentdata.amount)
 
 
 

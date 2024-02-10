@@ -93,13 +93,10 @@
             {% endif %}
             
              {% endif %}
-    
-
 
                         </form>
                         <script src="https://js.paystack.co/v1/inline.js"></script>
           
-
                     {% else %}
                         <h4 style="color: red">Passed mark is {{ course.pass_mark }}. You are close to getting your Certificate. Please try again</h4>
                         <a class="nav-link" href="{% url 'student:take-exam' %}"><span>Take Exam</span></a>
