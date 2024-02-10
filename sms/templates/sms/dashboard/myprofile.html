@@ -155,8 +155,7 @@
 {% for zcourse in courses %}
     {% for payment in payments %}
         {% for course in payment.courses.all %}
-            {% if course.title|lower == zcourse|lower %}
-                
+            {% if course.title|lower == zcourse|lower %}  
                 {% for result in results %}
                     {% if result.exam == zcourse %}
                         {% if result.marks >= zcourse.pass_mark %}

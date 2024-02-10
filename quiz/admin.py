@@ -80,7 +80,7 @@ class ResultResource(resources.ModelResource):
 class ResultAdmin(ImportExportModelAdmin):
     list_display = ['id', 'student', 'exam', 'marks', 'created']
     list_filter = ['id', 'student', 'exam', 'marks']
-    search_fields = ['id', 'student__first_name', 'student__last_name', 'exam__course_name__title', 'marks', 'created']
+    search_fields = ['student__first_name', 'student__last_name', 'exam__course_name__title', 'marks', 'created']
     ordering = ['id']
     resource_class = ResultResource
 
@@ -126,7 +126,7 @@ class CourseAdmin(ImportExportModelAdmin):
     list_display = ['id','course','marks' ,'question']
     # prepopulated_fields = {"slug": ("title",)}
     list_filter =  ['course','marks' ,'question']
-    search_fields= ['id','course__course_name__title','marks' ,'question']
+    search_fields= ['course__course_name__title','marks' ,'question']
     ordering = ['id']
     
     resource_class = CourseResource
