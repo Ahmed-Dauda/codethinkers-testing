@@ -1055,7 +1055,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         #     context['cert_email'] = cd.email
             # print('amount', cd.amount)
 
-        payments = Payment.objects.all()
+        payments = Payment.objects.filter(email=user)
         context['payments'] = payments
         print("cp",payments)
 
