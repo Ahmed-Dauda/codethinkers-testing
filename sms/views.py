@@ -1005,8 +1005,9 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
 
         
         context['courses'] = QMODEL.Course.objects.all()
-        context['results'] = Result.objects.all()
-
+        context['results'] =  Result.objects.filter(student=self.request.user.profile)
+        print("users", self.request.user.profile)
+        print("users2", Result.objects.filter(student=self.request.user.profile))
         # Subquery to get the maximum marks for each course
         max_marks_subquery = Result.objects.filter(
             exam_id=OuterRef('exam_id')
