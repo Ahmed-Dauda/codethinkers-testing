@@ -160,7 +160,7 @@ admin.site.register(Topics, TopicsAdmin)
 class AlertAdmin(ImportExportModelAdmin):
     list_display = ['id','title','content','created']
 
-    list_filter =  ['id','title','content','created']
+    list_filter =  ['title','content','created']
     search_fields= ['id','title','content','created']
     ordering = ['id']
 
