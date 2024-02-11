@@ -76,7 +76,7 @@
   {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
         <div class="" style="display: flex; align-items: center;">
             {{ course }}
-          <a style="margin: 10px;" class="" href="{% url 'student:pdf' course.id %}">free test Download</a>
+          <a style="margin: 10px;" class="" href="{% url 'student:pdf' course.id %}">Download</a>
       </div>   
   {% endif %}
     <!-- <li>Course: {{ course_max_marks.exam__course_name__title }}, Maximum Marks: {{ course_max_marks.max_marks }}</li> -->
@@ -126,7 +126,7 @@
 {% for certificate_pay in certificate_payment.courses.all %}
 <div class="" style="display: flex; align-items: center;">
   {{certificate_pay}}
-<a style="margin: 10px;" class="" href="{% url 'student:pdf' certificate_pay.id %}">cert Download</a>
+<a style="margin: 10px;" class="" href="{% url 'student:pdf' certificate_pay.id %}">Download</a>
 </div>
 {% endfor %}
 {% endfor %}
@@ -144,11 +144,10 @@
                         <!-- <h1>{{course|lower}} == {{course_max_marks.exam__course_name__title|lower }}</h1>  -->
                          {% if zcourse|lower == course_max_marks.exam__course_name__title|lower %}
                          {% if course_max_marks.max_marks >= zcourse.pass_mark %}
-
                         {% if payment.amount == zcourse.course_name.price %}
                             <div class="" style="display: flex; align-items: center;">
                                 {{ zcourse }}
-                                <a style="margin: 10px;" class="" href="{% url 'student:pdf' zcourse.id %}">payment Download</a>
+                                <a style="margin: 10px;" class="" href="{% url 'student:pdf' zcourse.id %}">Download</a>
                             </div>
                         {% endif %}
                         {% endif %}
