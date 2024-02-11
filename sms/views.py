@@ -275,9 +275,9 @@ class Homepage1(ListView):
         context['users']  = self.request.user
         messages.success(self.request, 'You have successfully logged in.')
 
-        # user_newuser = get_object_or_404(NewUser, email=self.request.user)
-        # if user_newuser.school:
-        #     context['school_name'] = user_newuser.school.school_name
+        user_newuser = get_object_or_404(NewUser, email=self.request.user)
+        if user_newuser.school:
+            context['school_name'] = user_newuser.school.school_name
         if self.request.user.is_authenticated:
             user_newuser = get_object_or_404(NewUser, email=self.request.user)
             # rest of your code
@@ -793,15 +793,16 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # Query the Payment model to get all payments related to the user and course
         # Query to get the number of students enrolled in the specified course.
         student_count = Profile.objects.filter(student_course=course).count()
-        # print("countss", student_count)
-        # print('price',course.price)
 
-
+        # Get all schools associated with the specific course
+        associated_schools = course.schools.all()
+        context['associated_schools'] = associated_schools
+        print('associated_schools',associated_schools)
         # related_payments = Payment.objects.filter(courses=course)
         user_newuser = get_object_or_404(NewUser, email=self.request.user)
         if user_newuser.school:
             context['school_name'] = user_newuser.school.school_name
-            # print('payment school',user_newuser.school.school_name)
+
 
         related_payments = Payment.objects.filter(email=user, courses=course, amount=course.price)
         context['related_payments'] = related_payments
@@ -809,8 +810,6 @@ class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
         # Print or use the enrollment_count as needed
         context['enrollment_count'] = enrollment_count + 100
 
-        
-      
         return context
 
 
@@ -1006,30 +1005,34 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         
         context['courses'] = QMODEL.Course.objects.all()
         context['results'] =  Result.objects.filter(student=self.request.user.profile)
-        print("users", self.request.user.profile)
-        print("users2", Result.objects.filter(student=self.request.user.profile))
+        results =  Result.objects.filter(student=self.request.user.profile)
+        # max_marks_per_course = results.values('exam__course_name').annotate(max_marks=Max('marks'))
+        max_marks_per_course = results.values('exam__course_name__title').annotate(max_marks=Max('marks'))
+        context['max_marks_per_course'] = max_marks_per_course
+        # print("maximun v", max_marks_per_course)
+        # print("users2", Result.objects.filter(student=self.request.user.profile))
         # Subquery to get the maximum marks for each course
-        max_marks_subquery = Result.objects.filter(
-            exam_id=OuterRef('exam_id')
-        ).order_by('-marks').values('marks')[:1]
+        # max_marks_subquery = Result.objects.filter(
+        #     exam_id=OuterRef('exam_id')
+        # ).order_by('-marks').values('marks')[:1]
 
         # Query to filter results based on the maximum marks for each course
-        results = Result.objects.filter(
-            marks=Subquery(max_marks_subquery)
-        ).order_by('exam_id', '-date')
-        context['new_results'] = results
-        context['all_courses'] = Course.objects.all()
+        # results = Result.objects.filter(
+        #     marks=Subquery(max_marks_subquery)
+        # ).order_by('exam_id', '-date')
+        # context['new_results'] = results
+        # context['all_courses'] = Course.objects.all()
 
         # Dictionary to store the maximum marks for each course
-        max_marks_dict = {}
+        # max_marks_dict = {}
 
-        for result in results:
-            max_marks_dict[result.exam] = result.marks
-            print("Maximum Marks :", result.marks)
+        # for result in results:
+        #     max_marks_dict[result.exam] = result.marks
+        #     print("Maximum Marks :", result.marks)
             
 
-        print("Maximum Marks for Each Course:", max_marks_dict)
-        context['mx'] = max_marks_dict
+        # print("Maximum Marks for Each Course:", max_marks_dict)
+        # context['mx'] = max_marks_dict
 
         user = self.request.user.email
         # related_payments = CertificatePayment.objects.all(email=user)
@@ -1058,7 +1061,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
 
         payments = Payment.objects.filter(email=user)
         context['payments'] = payments
-        print("cp",payments)
+        # print("cp",payments)
 
         # Extracting the list of courses from course_payments
         # course_list = [course for payment in course_payments for course in payment.courses.all()]

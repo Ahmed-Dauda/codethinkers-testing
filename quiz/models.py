@@ -80,7 +80,8 @@ class Course(models.Model):
 
 #    course_name = models.CharField(max_length=50, unique= True)
    course_name = models.ForeignKey(Courses,on_delete=models.CASCADE, blank=True, null= True)
-   school = models.ForeignKey(School, on_delete=models.SET_NULL, blank=True, null=True)
+#    school = models.ForeignKey(School, on_delete=models.SET_NULL, blank=True, null=True)
+#    schools = models.ManyToManyField(School , related_name='courses', blank=True)
    partdesc1 = models.CharField(max_length=300, blank=True, null= True)
    img_partdesc1 = CloudinaryField('image', blank=True, null= True)
    partdesc2 = models.CharField(max_length=225, blank=True, null= True)
