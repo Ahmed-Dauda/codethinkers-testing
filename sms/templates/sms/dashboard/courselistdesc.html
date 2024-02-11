@@ -204,25 +204,72 @@
 <!-- payment logics -->
 <div style="text-align: center; padding-right: 25px;">
 
-
-{% if course.status_type == 'Free' %}
+  {% if course.status_type == 'Free' %}
   <!-- For free courses, always display the "Enroll" button -->
   <a href="{% url 'sms:topicslistview' course.id %}">
     <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
   </a>
+{% elif related_payments %}
+  <!-- If there are related payments -->
+  <a href="{% url 'sms:topicslistview' course.id %}">
+    <button class="btn btn-primary">Enroll {{ object.title }}</button>
+  </a>
+{% elif associated_schools %}
+  <!-- If there are associated schools -->
+  {% for school in associated_schools %}
+    {% if school.school_name == school_name %}
+      <!-- Inside the loop, check if the school name matches -->
+      <a href="{% url 'sms:topicslistview' course.id %}">
+        <button class="btn btn-primary">Enroll {{ object.title }}</button>
+      </a>
+      {% else %}
+      <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
+        <button class="btn btn-primary">Make payment to proceed</button>
+       </a>
+    {% endif %}
+  {% endfor %}
 {% else %}
+  <!-- For cases other than free courses, related payments, and associated schools -->
+  <!-- Add your logic here -->
+  <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
+    <button class="btn btn-primary">Make payment to proceed</button>
+   </a>
+{% endif %}
 
-{% if related_payments or school_name %}
+
+
+<!-- {% if course.status_type == 'Free' %}
+
+  <a href="{% url 'sms:topicslistview' course.id %}">
+    <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
+  </a>
+
+{% endif %}
+
+{% for school in associated_schools %}
+{% if school.school_name  == school_name %}
+    <a href="{% url 'sms:topicslistview' course.id %}">
+        <button class="btn btn-primary">Enroll {{ object.title }}</button>
+    </a>
+{% endif %}
+{% endfor %}
+
+{% if related_payments %}
     <a href="{% url 'sms:topicslistview' course.id %}">
         <button class="btn btn-primary">Enroll {{ object.title }}</button>
     </a>
 {% else %}
+{% if  school.school_name   %}
+   
+    {% else %}
     <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
-        <button class="btn btn-primary">Make payment to proceed</button>
-    </a>
-{% endif %}
+      <button class="btn btn-primary">Make payment to proceed</button>
+  </a>
+    {% endif %}
+{% endif %} -->
 
-{% endif %}
+
+
 
 {% if related_payments.exists and not payment_success %}
 <!-- Add a hidden input field to hold the payment success flag -->

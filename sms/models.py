@@ -51,7 +51,7 @@ class Courses(models.Model):
 
     img_course = CloudinaryField('image', blank=True, null=True)
      # Add a ForeignKey field to represent the course a student is enrolled in.
-   
+    schools = models.ManyToManyField("quiz.School" , related_name='courses', blank=True)
     prerequisites = models.ManyToManyField('self', blank=True, symmetrical=False)
     categories = models.ForeignKey(Categories, blank=False, default=1, on_delete=models.SET_NULL, related_name='categories', null=True)
     title = models.CharField(max_length=225, blank=True, null=True)
@@ -154,7 +154,6 @@ class Whatyouwillbuild(models.Model):
     created = models.DateTimeField(auto_now_add=True,blank=True, null= True)
     updated = models.DateTimeField(auto_now=True, blank=True, null= True)
     # id = models.BigAutoField(primary_key=True)
-
     def __str__(self):
         return f'{self.desc} {self.courses.title}' 
 
