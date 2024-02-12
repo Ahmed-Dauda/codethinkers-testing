@@ -275,16 +275,23 @@ class Homepage1(ListView):
         context['users']  = self.request.user
         messages.success(self.request, 'You have successfully logged in.')
 
-        user_newuser = get_object_or_404(NewUser, email=self.request.user)
-        if user_newuser.school:
-            context['school_name'] = user_newuser.school.school_name
+        # user_newuser = get_object_or_404(NewUser, email=self.request.user)
+        # if user_newuser.school:
+        #     context['school_name'] = user_newuser.school.school_name
+        # if self.request.user.is_authenticated:
+        #     user_newuser = get_object_or_404(NewUser, email=self.request.user)
+        #     # rest of your code
+        # else:
+        #     pass
+        #     # handle the case when the user is not authenticated
         if self.request.user.is_authenticated:
-            user_newuser = get_object_or_404(NewUser, email=self.request.user)
-            # rest of your code
+            user_newuser = get_object_or_404(NewUser, email=self.request.user.email)
+            if user_newuser.school:
+                context['school_name'] = user_newuser.school.school_name
+            # Rest of your code goes here
         else:
+            # Handle the case when the user is not authenticated
             pass
-            # handle the case when the user is not authenticated
-
         # advert
         context['advertisement_images']  = self.request.user= AdvertisementImage.objects.all()
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
@@ -516,12 +523,18 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         user = self.request.user.email
         # content_type
         # Query the Payment model to get all payments related to the user and course
-        user_newuser = get_object_or_404(NewUser, email=self.request.user)
-        if user_newuser.school:
-            context['school_name'] = user_newuser.school.school_name
-            # school_name = user_newuser.school.school_name
-            # print('school', school_name)
-
+        # user_newuser = get_object_or_404(NewUser, email=self.request.user)
+        # if user_newuser.school:
+        #     context['school_name'] = user_newuser.school.school_name
+           
+        if self.request.user.is_authenticated:
+            user_newuser = get_object_or_404(NewUser, email=self.request.user.email)
+            if user_newuser.school:
+                context['school_name'] = user_newuser.school.school_name
+            # Rest of your code goes here
+        else:
+            # Handle the case when the user is not authenticated
+            pass
         related_payments = CertificatePayment.objects.filter(
             email=user, courses=course,
             amount=course.course_name.cert_price)
