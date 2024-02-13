@@ -95,6 +95,12 @@ table-layout: fixed; // ***********add this
     flex-wrap: wrap;
     padding-left: 20px;
 }
+
+.sidebar{
+    
+    flex-wrap: wrap;
+
+}
 /* Hide the content on mobile view */
 @media (max-width: 767px) {
     .hide-on-mobile {
@@ -150,22 +156,92 @@ table-layout: fixed; // ***********add this
     }
 }
 
+/* herozontal scroll  */
+.video-list-container {
+  display: flex;
+  position: relative;
+}
+
+.video-container {
+  flex: 1;
+}
+
+.video-wrapper {
+  background: #000000;
+  position: relative;
+  margin-right: 20px; /* Adjust spacing between video and list */
+}
+
+.scrollable-list {
+
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  overflow-y: auto;
+  max-height: 80%;
+  width: 300px; /* Adjust the width as needed */
+  background-color: #f0f0f0; /* Optional: Add a background color to the list container */
+  border-left: 1px solid #ccc; /* Optional: Add a border to visually separate the video and list */
+}
+
+.scrollable-list ul {
+ 
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.scrollable-list ul li {
+
+  margin-bottom: 10px; /* Adjust spacing between list items */
+  padding: 5px; /* Optional: Add padding to list items for better readability */
+}
+
+.text{
+    padding-left: 300px; 
+    padding-right: 5px;
+}
+/* Media query for mobile devices */
+@media (max-width: 768px) {
+    .text {
+        padding-left: 5px; /* Adjust padding-left for mobile view */
+    }
+}
+
+/* Media query for tablet devices */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .text {
+        padding-left: 5px; /* Adjust padding-left for tablet view */
+    }
+}
+/* Default styles */
+.scrollable-list {
+  display: block; /* Show the scrollable list by default */
+}
+
+/* Media query for mobile devices */
+@media (max-width: 768px) {
+  .scrollable-list {
+    display: none; /* Hide the scrollable list on mobile devices */
+  }
+}
+
+/* Media query for tablet devices */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .scrollable-list {
+    display: none; /* Hide the scrollable list on tablet devices */
+  }
+}
+/* end of scrollable-list */
 
 </style>
 
-<br> <br><br>
-               <!-- alert -->
-               <!-- <div style="height:351px; width:625px; overflow: hidden;"> -->
-                <!-- <iframe height="651" width="625"
-                  src="https://www.youtube.com/embed/eujgoer87Uw?theme=dark&autoplay=1&keyboard=1&autohide=2&cc_load_policy=1&modestbranding=1&fs=0&showinfo=0&rel=0&iv_load_policy=3&mute=0&loop=0?controls=0"
-                  sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation"
-                  style="height:371px; background:#000000; bottom: 61px; position: relative;"
-                  frameborder="0">
-                </iframe>
-              </div> -->
 
-  <br>                   
- <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>  <br>
+<div style="text-align: center;">
+    <button class="btn"><a href="https://wa.me/23409031568177">Contact Us For Personal Tutoring</a></button>
+  </div>
+                    
+ <!-- <button class="btn "><a  href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>  -->
 
 
 
@@ -176,7 +252,6 @@ table-layout: fixed; // ***********add this
     <div class="banner-overlay">
     </div>
 </div> -->
-
 
 
 <table  id="example" class="datatable-wide display "  style="width:100%;">
@@ -207,25 +282,28 @@ table-layout: fixed; // ***********add this
         <tr>
        
             <td class="text-center">
-                <div style="padding-left: 5px; padding-right: 5px;" class="">
+                <div style="" class="text">
+                    <br> <br>
                     {% if topic.img_topic %}
                         <img class="img-box" src="{{topic.img_topic.url}}" height="700px" width="100%" alt="topics image">
                     {% else %}
                     {% endif %}
                     <!-- Add the video player -->
-                    
                     {% if topic.video %}
-                      
-                    <!-- <div class="video-container">
-                        <div id="myVideo" class="video-wrapper"  sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style=" background:#000000; bottom: 61px; position: relative;">
-                            {% video topic.video|safe class="ratio ratio-16x9" %}
+                        <div class="video-list-container">
+                        <div class="video-container">
+                            <div id="myVideo" class="video-wrapper" sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation">
+                            <iframe src="{{ topic.video }}" frameborder="0" modestbranding="1" rel="0" showinfo="0" controls="0" disablekb="1"></iframe>
+                            </div>
                         </div>
-                       
-                    </div> -->
+                        
+                        </div>
+                        {% endif %}
 
-
-
-                   <div class="video-container app-container" >
+                        
+                    <!-- {% if topic.video %}
+                      
+                   <div  class="video-container app-container" >
                         <div  id="myVideo" class="video-wrapper app-container" sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style="background: #000000; bottom: 61px; position: relative;">
          
                           <br> <br>
@@ -250,8 +328,8 @@ table-layout: fixed; // ***********add this
                       </div>
                     
                     
-                    {% endif %}
-                    
+                    {% endif %} -->
+                   <br><br>
                     <div style="text-align: left;" class=" code-block">
                         <h4 style="color: black;">{{topic.title|title|safe}}</h4>
                         <small style="color: black;">
@@ -274,13 +352,13 @@ table-layout: fixed; // ***********add this
                             <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.coursedesc|safe}}</label>
                         {% endif %}
                     </div>
-                    <div style="marin-left: 60%;" >
+                    <!-- <div style="marin-left: 60%;" >
                         
                             <button id="complete-button-{{ topic.id }} " onclick="markTopicCompleted({{ topic.id }})">Mark as Completed</button>
                             <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
                               <i style="color: green;" class="fas fa-check-circle"></i>
                             </span>
-                    </div>
+                    </div> -->
                     <br>
 
                     {% if forloop.last %}
@@ -317,7 +395,29 @@ table-layout: fixed; // ***********add this
 {% endif %}
 
 
+<div style="" class="scrollable-list">
+    <div class="close-button">&times;</div>
+    <ul>
 
+        <!-- Add more content here -->
+    {% if completed_topic_ids %}
+    <div style="padding: 50px;" id="content-container" class="hide-on-mobile">
+        {% for topic in topics %}
+            <div class="bg-white topic-item" style="border: 2px solid black; margin: 5px;">
+                <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
+                    <i style="color: green;" class="fas fa-check-circle"></i>
+                </span>
+                <span class="">{{ topic.title }}</span>
+            </div>
+        {% endfor %}
+    </div>
+    <!-- Add more content here -->
+    {% endif %}
+    
+    
+    <!-- Add more list items as needed -->
+    </ul>
+</div>
 
             
 <!-- page refresh  -->
