@@ -10,8 +10,8 @@
     <script src="/static/sms/prism.js"> </script>
     
     
-       <!-- sweetify -->
-       <!-- <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
+       <!-- bootsrap back arrow-->
+       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">    
       <!-- bootstrap link -->
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
       
@@ -40,15 +40,6 @@
    
 }
 
-.custom-container {
-  background-color: green; /* Change this to your desired color */
-  color: white;
-  display: inline-block;
-  padding: 5px;
-  margin: 5px; /* Add margin to separate entries */
-
-}
-
 .back-button {
   display: inline-block;
   padding: 10px 20px;
@@ -64,22 +55,16 @@
   background-color: #e0e0e0; /* Background color on hover */
 }
 
-/* .custom-td {
-  display: inline;
-  padding: 5px;
-  background-color: green; 
-  width: 100%;
-  color: white;
-} */
       </style>
       
 </head>
 <body> 
-  
 
+  <a class="back-button" href="{% url 'sms:topicslistview' course.course_name.courses.id %}" style="font-size: 24px;">
+    <span class="bi bi-arrow-left"></span>
+  </a>
   
-  
-  <a class="back-button bg-danger text-white" href="{% url 'sms:topicslistview' course.course_name.courses.id %}">Back to Course</a>
+  <!-- <a class="back-button bg-danger text-white" href="{% url 'sms:topicslistview' course.course_name.courses.id %}">Back to Course</a> -->
 
 
   <!-- <button style="background-color: red; color: white;"  onclick="goBack()" class="btn btn-secondary">Back to Topics</button> -->
@@ -93,12 +78,22 @@
   
   <div class="card">
     <div class="card-header">
-        <h2>Quiz Results</h2>
+      <!-- <h1>tttttttttt{{ course.pass_mark }}</h1>  -->         
+        <h2>Quiz Results</h2>    
         {% for t in results %}
 
-        <div class="custom-container">
+        <div class="card-body">
           <span>Score: {{ t.marks }} / {{ q_count }}</span>
+          {% if t.marks >= course.pass_mark  %}
+            <p style="color: green;">Congratulations! You have passed the assessment benchmark <span class="bi bi-emoji-smile"></span></p>
+            <a class="" href="{% url 'sms:topicslistview' course.course_name.courses.id %}" style="font-size: 24px;">
+              <span class="bi bi-arrow-left"></span>
+            </a>
+          {% else %}
+            <p style="color: red;">Unfortunately, you did not pass this assessment. Don't be discouraged!.Keep practicing and try again! <span class="bi bi-emoji-sad"></span></p>
+          {% endif %}
         </div>
+        
       {% endfor %}
 <hr>
 

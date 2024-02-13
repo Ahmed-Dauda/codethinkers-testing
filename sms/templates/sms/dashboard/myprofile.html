@@ -77,10 +77,12 @@
   {% if course_max_marks.max_marks >= course.pass_mark %}
 
   {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
-        <div class="" style="display: flex; align-items: center;">
-            {{ course }}
+        <div class="" style="display: flex; align-items: center;font-weight: bold;">
+           {{ course }}
           <a style="margin: 10px;" class="" href="{% url 'student:pdf' course.id %}">Download</a>
-      </div>   
+         
+      </div>
+      <p style="">&#10004; Great Work! You have passed all requirements and can view your course certificate now.</p>   
   {% endif %}
     <!-- <li>Course: {{ course_max_marks.exam__course_name__title }}, Maximum Marks: {{ course_max_marks.max_marks }}</li> -->
 
@@ -127,10 +129,11 @@
 
 {% for certificate_payment in certificate_payments %}
 {% for certificate_pay in certificate_payment.courses.all %}
-<div class="" style="display: flex; align-items: center;">
+<div class="" style="display: flex; align-items: center;font-weight: bold;">
   {{certificate_pay}}
 <a style="margin: 10px;" class="" href="{% url 'student:pdf' certificate_pay.id %}">Download</a>
 </div>
+<p style="">&#10004; Great Work! You have passed all requirements and can view your course certificate now.</p>   
 {% endfor %}
 {% endfor %}
 
@@ -148,10 +151,11 @@
                          {% if zcourse|lower == course_max_marks.exam__course_name__title|lower %}
                          {% if course_max_marks.max_marks >= zcourse.pass_mark %}
                         {% if payment.amount == zcourse.course_name.price %}
-                            <div class="" style="display: flex; align-items: center;">
+                            <div class="" style="display: flex; align-items: center;font-weight: bold;">
                                 {{ zcourse }}
                                 <a style="margin: 10px;" class="" href="{% url 'student:pdf' zcourse.id %}">Download</a>
                             </div>
+                            <p style="">&#10004; Great Work! You have passed all requirements and can view your course certificate now.</p>   
                         {% endif %}
                         {% endif %}
                     {% endif %}
