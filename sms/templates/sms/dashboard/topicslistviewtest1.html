@@ -253,7 +253,7 @@ table-layout: fixed; // ***********add this
                     {% endif %}
                     
                     <div style="text-align: left;" class=" code-block">
-                        <h4 style="color: black;">{{topic.title|safe}}</h4>
+                        <h4 style="color: black;">{{topic.title|title|safe}}</h4>
                         <small style="color: black;">
                             created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
                         </small> <br>
