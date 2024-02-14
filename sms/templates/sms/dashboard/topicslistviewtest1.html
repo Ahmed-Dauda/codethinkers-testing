@@ -173,13 +173,13 @@ table-layout: fixed; // ***********add this
 }
 
 .scrollable-list {
-
+padding-left: 0px;
   position: fixed;
   top: 0;
   bottom: 0;
   overflow-y: auto;
   max-height: 80%;
-  width: 300px; /* Adjust the width as needed */
+  width: 250px; /* Adjust the width as needed */
   background-color: #f0f0f0; /* Optional: Add a background color to the list container */
   border-left: 1px solid #ccc; /* Optional: Add a border to visually separate the video and list */
 }
@@ -199,7 +199,7 @@ table-layout: fixed; // ***********add this
 
 .text{
     padding-left: 300px; 
-    padding-right: 5px;
+    padding-right: 100px;
 }
 /* Media query for mobile devices */
 @media (max-width: 768px) {
@@ -254,7 +254,7 @@ table-layout: fixed; // ***********add this
 </div> -->
 
 
-<table  id="example" class="datatable-wide display "  style="width:100%;">
+<table  id="example" class="datatable-wide display card-body"  style="width:100%;">
     
     <thead class="">
         <tr>
@@ -352,13 +352,13 @@ table-layout: fixed; // ***********add this
                             <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.coursedesc|safe}}</label>
                         {% endif %}
                     </div>
-                    <!-- <div style="marin-left: 60%;" >
+                    <div style="marin-left: 60%;" >
                         
                             <button id="complete-button-{{ topic.id }} " onclick="markTopicCompleted({{ topic.id }})">Mark as Completed</button>
                             <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
                               <i style="color: green;" class="fas fa-check-circle"></i>
                             </span>
-                    </div> -->
+                    </div>
                     <br>
 
                     {% if forloop.last %}
@@ -380,7 +380,7 @@ table-layout: fixed; // ***********add this
  
 </table>
 
-{% if completed_topic_ids %}
+<!-- {% if completed_topic_ids %}
 <div id="content-container" class="makecompleted hide-on-mobile">
     {% for topic in topics %}
         <div class="bg-white topic-item" style="border: 2px solid black; margin: 5px;">
@@ -391,8 +391,8 @@ table-layout: fixed; // ***********add this
         </div>
     {% endfor %}
 </div>
-<!-- Add more content here -->
-{% endif %}
+
+{% endif %} -->
 
 
 <div style="" class="scrollable-list">
@@ -400,26 +400,41 @@ table-layout: fixed; // ***********add this
     <ul>
 
         <!-- Add more content here -->
+        <br><br>
     {% if completed_topic_ids %}
-    <div style="padding: 50px;" id="content-container" class="hide-on-mobile">
+    <div style="padding: 50px;padding-right: 20px;" id="content-container" class="makecomleted hide-on-mobile">
         {% for topic in topics %}
             <div class="bg-white topic-item" style="border: 2px solid black; margin: 5px;">
                 <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
                     <i style="color: green;" class="fas fa-check-circle"></i>
                 </span>
                 <span class="">{{ topic.title }}</span>
+                <!-- <a href="{% url 'sms:topicslistview' topic.id %}">{{ topic.title }}</a> -->
             </div>
         {% endfor %}
     </div>
     <!-- Add more content here -->
     {% endif %}
     
-    
+    <li>Item 2</li>
+    <li>Item 3</li>
+    <li>Item 1</li>
+    <li>Item 2</li>
+    <li>Item 3</li>
+    <li>Item 3</li>
+    <li>Item 1</li>
+    <li>Item 2</li>
+    <li>Item 3</li>
+    <li>Item 1</li>
+    <li>Item 2</li>
+    <li>Item 3</li>
     <!-- Add more list items as needed -->
     </ul>
 </div>
 
-            
+
+
+        
 <!-- page refresh  -->
 <script>
     function reloadContent() {
@@ -488,7 +503,22 @@ table-layout: fixed; // ***********add this
 
 
     </script>    
+<script>
+    // Get the total number of topics from Django template variable
+    var totalTopics = {{ topics|length }};
 
+    // Get the pagination container
+    var paginationContainer = document.getElementById('pagination-container');
+
+    // Generate pagination links
+    var paginationHTML = '';
+    for (var i = 1; i <= Math.ceil(totalTopics / 10); i++) { // Assuming each page shows 10 topics
+        paginationHTML += '<a href="?page=' + i + '">' + i + '</a>';
+    }
+
+    // Insert pagination links into the pagination container
+    paginationContainer.innerHTML = paginationHTML;
+</script>
 
 <!-- iframe videos -->
 
