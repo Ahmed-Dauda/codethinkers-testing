@@ -265,13 +265,9 @@ padding-left: 0px;
                     <!-- <a href="{% url 'student:take-exam' %}">Take Exam</a> -->
                     <p class="">{{c}} Modules </p> 
                     <!-- <p>{{ hitcount.total_hits }}  <i class="fas fa-eye"></i></p> -->
-                    <a class="" href="{% url 'sms:feedbackformview' %}">
-                      
+                    <a class="" href="{% url 'sms:feedbackformview' %}">                
                         <i class="fas fa-bell fa-fw"></i>
-
                         <span>Feedback</span></a>
-                       
-             
                 </h6>
             </th>
          
@@ -283,14 +279,51 @@ padding-left: 0px;
        
             <td class="text-center">
                 <div style="" class="text">
-                    <br> <br>
+                    <br> 
                     {% if topic.img_topic %}
                         <img class="img-box" src="{{topic.img_topic.url}}" height="700px" width="100%" alt="topics image">
                     {% else %}
                     {% endif %}
                     <!-- Add the video player -->
                     {% if topic.video %}
-                        <div class="video-list-container">
+                      
+                    <!-- <div class="video-container">
+                        <div id="myVideo" class="video-wrapper"  sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style=" background:#000000; bottom: 61px; position: relative;">
+                            {% video topic.video|safe class="ratio ratio-16x9" %}
+                        </div>
+                       
+                    </div> -->
+
+
+
+                   <div class="video-container app-container" >
+                        <div  id="myVideo" class="video-wrapper app-container" sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style="background: #000000; bottom: 61px; position: relative;">
+         
+                          <br> <br>
+                          <iframe
+                            src="{{ topic.video }}"
+                            frameborder="0"
+                            modestbranding="1"
+                            rel="0"
+                            showinfo="0"
+                            controls="0"
+                            disablekb="1"
+                            >
+                          </iframe>
+
+                          <div class="banner-overlay">
+                        </div>
+
+                        <div class="watch-overlay">
+                        </div>
+
+                        </div>
+                      </div>
+                    
+                    
+                    {% endif %}
+                    <!-- {% if topic.video %}
+                        <div style="margin: -40px;" class="video-list-container">
                         <div class="video-container">
                             <div id="myVideo" class="video-wrapper" sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation">
                             <iframe src="{{ topic.video }}" frameborder="0" modestbranding="1" rel="0" showinfo="0" controls="0" disablekb="1"></iframe>
@@ -298,7 +331,7 @@ padding-left: 0px;
                         </div>
                         
                         </div>
-                        {% endif %}
+                        {% endif %} -->
 
                         
                     <!-- {% if topic.video %}
@@ -329,7 +362,7 @@ padding-left: 0px;
                     
                     
                     {% endif %} -->
-                   <br><br>
+               
                     <div style="text-align: left;" class=" code-block">
                         <h4 style="color: black;">{{topic.title|title|safe}}</h4>
                         <small style="color: black;">
