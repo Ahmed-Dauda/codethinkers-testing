@@ -95,19 +95,13 @@ table-layout: fixed; // ***********add this
     flex-wrap: wrap;
     padding-left: 20px;
 }
-
-.sidebar{
-    
-    flex-wrap: wrap;
-
-}
 /* Hide the content on mobile view */
-@media (max-width: 767px) {
+/* @media (max-width: 767px) {
     .hide-on-mobile {
         display: none;
        
     }
-}
+} */
 
 /* herozontal scroll on mobile view */
 
@@ -156,94 +150,34 @@ table-layout: fixed; // ***********add this
     }
 }
 
-/* herozontal scroll  */
-.video-list-container {
-  display: flex;
-  position: relative;
-}
-
-.video-container {
-  flex: 1;
-}
-
-.video-wrapper {
-  background: #000000;
-  position: relative;
-  margin-right: 20px; /* Adjust spacing between video and list */
-}
-
-.scrollable-list {
-padding-left: 0px;
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  overflow-y: auto;
-  max-height: 80%;
-  width: 250px; /* Adjust the width as needed */
-  background-color: #f0f0f0; /* Optional: Add a background color to the list container */
-  border-left: 1px solid #ccc; /* Optional: Add a border to visually separate the video and list */
-}
-
-.scrollable-list ul {
- 
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.scrollable-list ul li {
-
-  margin-bottom: 10px; /* Adjust spacing between list items */
-  padding: 5px; /* Optional: Add padding to list items for better readability */
-}
-
-.tbodycontents{
-    padding-left: 300px; 
-    padding-right: 100px;
-}
-/* Media query for mobile devices */
-@media (max-width: 768px) {
-    .tbodycontents {
-        padding-left: 5px; /* Adjust padding-left for mobile view */
-    }
-}
-
-/* Media query for tablet devices */
-@media (min-width: 768px) and (max-width: 1024px) {
-    .tbodycontents {
-        padding-left: 5px; /* Adjust padding-left for tablet view */
-    }
-}
-/* Default styles */
-.scrollable-list {
-  display: block; /* Show the scrollable list by default */
-}
-
-/* Media query for mobile devices */
-@media (max-width: 768px) {
-  .scrollable-list {
-    display: none; /* Hide the scrollable list on mobile devices */
-  }
-}
-
-/* Media query for tablet devices */
-@media (min-width: 768px) and (max-width: 1024px) {
-  .scrollable-list {
-    display: none; /* Hide the scrollable list on tablet devices */
-  }
-}
-/* end of scrollable-list */
 
 </style>
 
+               <!-- alert -->
+               <!-- <div style="height:351px; width:625px; overflow: hidden;"> -->
+                <!-- <iframe height="651" width="625"
+                  src="https://www.youtube.com/embed/eujgoer87Uw?theme=dark&autoplay=1&keyboard=1&autohide=2&cc_load_policy=1&modestbranding=1&fs=0&showinfo=0&rel=0&iv_load_policy=3&mute=0&loop=0?controls=0"
+                  sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation"
+                  style="height:371px; background:#000000; bottom: 61px; position: relative;"
+                  frameborder="0">
+                </iframe>
+              </div> -->
 
-<div style="text-align: center;">
-    <button class="btn"><a href="https://wa.me/23409031568177">Contact Us For Personal Tutoring</a></button>
+  <br>                   
+ 
+  {% if completed_topic_ids %}
+  <div id="content-container" class="makecompleted hide-on-mobile">
+      {% for topic in topics %}
+          <div class="bg-white topic-item" style="border: 2px solid black; margin: 5px;">
+              <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
+                  <i style="color: green;" class="fas fa-check-circle"></i>
+              </span>
+              <span class="">{{ topic.title }}</span>
+          </div>
+      {% endfor %}
   </div>
-                    
- <!-- <button class="btn "><a  href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>  -->
-
-
+  <!-- Add more content here -->
+  {% endif %}
 
 <!-- embed for youtube video https://www.youtube.com/watch?v=NlOF03DUoWc -->
 <!-- <div class="app-container">
@@ -254,7 +188,8 @@ padding-left: 0px;
 </div> -->
 
 
-<table  id="example" class="datatable-wide display card-body"  style="width:100%;">
+
+<table  id="example" class="datatable-wide display "  style="width:100%;">
     
     <thead class="">
         <tr>
@@ -263,11 +198,16 @@ padding-left: 0px;
                 <h6 style="flex-wrap: wrap;" class="d-flex">
                    
                     <!-- <a href="{% url 'student:take-exam' %}">Take Exam</a> -->
-                    <p class="">{{c}} Modules </p> 
+                    <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>  <br>
+
                     <!-- <p>{{ hitcount.total_hits }}  <i class="fas fa-eye"></i></p> -->
-                    <a class="" href="{% url 'sms:feedbackformview' %}">                
+                    <a class="" href="{% url 'sms:feedbackformview' %}">
+                      
                         <i class="fas fa-bell fa-fw"></i>
+
                         <span>Feedback</span></a>
+                       
+             
                 </h6>
             </th>
          
@@ -278,13 +218,13 @@ padding-left: 0px;
         <tr>
        
             <td class="text-center">
-                <div style="" class="tbodycontents">
-                    <br> 
+                <div style="padding-left: 5px; padding-right: 5px;" class="">
                     {% if topic.img_topic %}
-                        <img class="img-box" src="{{topic.img_topic.url}}" height="500px" width="100%" alt="topics image">
+                        <img class="img-box" src="{{topic.img_topic.url}}" height="700px" width="100%" alt="topics image">
                     {% else %}
                     {% endif %}
                     <!-- Add the video player -->
+                    
                     {% if topic.video %}
                       
                     <!-- <div class="video-container">
@@ -322,49 +262,9 @@ padding-left: 0px;
                     
                     
                     {% endif %}
-                    <!-- {% if topic.video %}
-                        <div style="margin: -40px;" class="video-list-container">
-                        <div class="video-container">
-                            <div id="myVideo" class="video-wrapper" sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation">
-                            <iframe src="{{ topic.video }}" frameborder="0" modestbranding="1" rel="0" showinfo="0" controls="0" disablekb="1"></iframe>
-                            </div>
-                        </div>
-                        
-                        </div>
-                        {% endif %} -->
-
-                        
-                    <!-- {% if topic.video %}
-                      
-                   <div  class="video-container app-container" >
-                        <div  id="myVideo" class="video-wrapper app-container" sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style="background: #000000; bottom: 61px; position: relative;">
-         
-                          <br> <br>
-                          <iframe
-                            src="{{ topic.video }}"
-                            frameborder="0"
-                            modestbranding="1"
-                            rel="0"
-                            showinfo="0"
-                            controls="0"
-                            disablekb="1"
-                            >
-                          </iframe>
-
-                          <div class="banner-overlay">
-                        </div>
-
-                        <div class="watch-overlay">
-                        </div>
-
-                        </div>
-                      </div>
                     
-                    
-                    {% endif %} -->
-               
                     <div style="text-align: left;" class=" code-block">
-                        <h4 style="color: black;">{{topic.title|title|safe}}</h4>
+                        <h4 style="color: black;">{{topic.title|safe}}</h4>
                         <small style="color: black;">
                             created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
                         </small> <br>
@@ -413,51 +313,12 @@ padding-left: 0px;
  
 </table>
 
-<!-- {% if completed_topic_ids %}
-<div id="content-container" class="makecompleted hide-on-mobile">
-    {% for topic in topics %}
-        <div class="bg-white topic-item" style="border: 2px solid black; margin: 5px;">
-            <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
-                <i style="color: green;" class="fas fa-check-circle"></i>
-            </span>
-            <span class="">{{ topic.title }}</span>
-        </div>
-    {% endfor %}
-</div>
-
-{% endif %} -->
-
-
-<div style="" class="scrollable-list">
-    
-    <ul>
-
-        <!-- Add more content here -->
-        <br><br>
-    {% if completed_topic_ids %}
-    <h3 class="text-center">Course progress</h3>
-    <div style="padding: 50px;padding-right: 20px;" id="content-container" class="makecomleted hide-on-mobile">
-        {% for topic in topics %}
-            <div class="bg-white topic-item" style="border: 2px solid black; margin: 5px;">
-                <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
-                    <i style="color: green;" class="fas fa-check-circle"></i>
-                </span>
-                <span class="">{{ topic.title }}</span>
-                <!-- <a href="{% url 'sms:topicslistview' topic.id %}">{{ topic.title }}</a> -->
-            </div>
-        {% endfor %}
-    </div>
-    <!-- Add more content here -->
-    {% endif %}
-    
-
-    <!-- Add more list items as needed -->
-    </ul>
-</div>
 
 
 
-        
+
+
+            
 <!-- page refresh  -->
 <script>
     function reloadContent() {
@@ -475,7 +336,7 @@ padding-left: 0px;
     }
     
     // Example: Reload content every 10 seconds
-   
+   // Adjust the time interval to 5 minutes (300,000 milliseconds)
      setInterval(reloadContent, 600000);
 
     </script>
@@ -526,22 +387,7 @@ padding-left: 0px;
 
 
     </script>    
-<script>
-    // Get the total number of topics from Django template variable
-    var totalTopics = {{ topics|length }};
 
-    // Get the pagination container
-    var paginationContainer = document.getElementById('pagination-container');
-
-    // Generate pagination links
-    var paginationHTML = '';
-    for (var i = 1; i <= Math.ceil(totalTopics / 10); i++) { // Assuming each page shows 10 topics
-        paginationHTML += '<a href="?page=' + i + '">' + i + '</a>';
-    }
-
-    // Insert pagination links into the pagination container
-    paginationContainer.innerHTML = paginationHTML;
-</script>
 
 <!-- iframe videos -->
 
