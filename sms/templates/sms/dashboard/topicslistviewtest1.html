@@ -197,20 +197,20 @@ padding-left: 0px;
   padding: 5px; /* Optional: Add padding to list items for better readability */
 }
 
-.text{
+.tbodycontents{
     padding-left: 300px; 
     padding-right: 100px;
 }
 /* Media query for mobile devices */
 @media (max-width: 768px) {
-    .text {
+    .tbodycontents {
         padding-left: 5px; /* Adjust padding-left for mobile view */
     }
 }
 
 /* Media query for tablet devices */
 @media (min-width: 768px) and (max-width: 1024px) {
-    .text {
+    .tbodycontents {
         padding-left: 5px; /* Adjust padding-left for tablet view */
     }
 }
@@ -278,7 +278,7 @@ padding-left: 0px;
         <tr>
        
             <td class="text-center">
-                <div style="" class="text">
+                <div style="" class="tbodycontents">
                     <br> 
                     {% if topic.img_topic %}
                         <img class="img-box" src="{{topic.img_topic.url}}" height="500px" width="100%" alt="topics image">
@@ -429,7 +429,7 @@ padding-left: 0px;
 
 
 <div style="" class="scrollable-list">
-    <div class="close-button">&times;</div>
+    
     <ul>
 
         <!-- Add more content here -->
