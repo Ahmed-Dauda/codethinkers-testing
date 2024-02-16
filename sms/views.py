@@ -929,11 +929,11 @@ class Topicslistview(LoginRequiredMixin, DetailView):
         context['completed_topic_ids'] = completed_topic_ids
         context['completed_topic_ids_count'] = int(len(completed_topic_ids))
         context['topics_count'] = int(topics.count())
-        context['percentage'] = int((len(completed_topic_ids) / topics.count()) * 100)
+        context['percentage'] = int((len(completed_topic_ids) / len(topics)) * 100)
 
         # context['completed_topic_titles'] = completed_topic_title
         print("completed",len(completed_topic_ids))
-        print("topics", topics.count())
+        print("topics", len(topics))
 
 
         return context
