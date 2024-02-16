@@ -1343,6 +1343,8 @@ class AlertView(ListView):
         context['alerts'] = Alert.objects.order_by('-created')
         context['alert_count'] = Alert.objects.all().count()
         context['base'] = Alert.objects.all().count()
+        context['completed'] = "Alert.objects.all()"
+        
 
         # Assuming Courses is a model in your application
        
@@ -1361,8 +1363,9 @@ class DashboardCourses(LoginRequiredMixin, HitCountDetailView, DetailView):
 
         context = super().get_context_data(**kwargs)
         course = self.get_object()  # Retrieve the course
-      
+        
         context['coursess'] = Courses.objects.all().order_by('created')
    
      
         return context
+    
