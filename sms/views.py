@@ -927,8 +927,12 @@ class Topicslistview(LoginRequiredMixin, DetailView):
             # completed_topic_titles = profile.completed_topics.values_list('title', flat=True)
 
         context['completed_topic_ids'] = completed_topic_ids
+        context['completed_topic_ids_count'] = int(len(completed_topic_ids))
+        context['topics_count'] = int(topics.count())
+        context['percentage'] = (int(len(completed_topic_ids))/int(topics.count()) ) * 100
         # context['completed_topic_titles'] = completed_topic_titles
-        # print("cccccc", completed_topic_ids)
+        print("completed",len(completed_topic_ids))
+        print("topics", topics.count())
 
 
         return context

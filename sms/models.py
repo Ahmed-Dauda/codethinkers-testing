@@ -190,10 +190,8 @@ class Topics(models.Model):
     courses = models.ForeignKey(Courses, on_delete=models.CASCADE) 
     title = models.CharField(max_length=500, blank=True, null=True)
     slug = models.SlugField(unique=True, blank=True, null=True)
-
     is_completed = models.BooleanField(default=False)
     completed_by = models.ManyToManyField('users.Profile', through='CompletedTopics')
-
     desc = HTMLField(null=True)
     transcript = models.TextField(blank=True, null=True)  # New field for transcript
     img_topic = CloudinaryField('topic image', blank=True, null=True)

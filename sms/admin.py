@@ -146,7 +146,7 @@ class TopicsResource(resources.ModelResource):
         # fields = ('title',)
 
 class TopicsAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'categories', 'courses', 'title', 'desc', 'img_topic', 'video', 'topics_url', 'created', 'updated']
+    list_display = ['id', 'categories', 'courses','title', 'desc', 'img_topic', 'video', 'topics_url', 'created', 'updated']
     prepopulated_fields = {"slug": ("title",)}
     list_filter = ['categories', 'courses', 'created']
     search_fields = ['id', 'title', 'created', 'categories__name', 'courses__title']  # Use double underscore for related fields
