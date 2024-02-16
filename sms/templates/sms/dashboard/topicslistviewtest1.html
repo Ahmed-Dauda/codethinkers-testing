@@ -332,7 +332,7 @@ table-layout: fixed; // ***********add this
 </div>
 <div id="content2" class="content">
     {% if completed_topic_ids %}
-    <div id="content-container" class="makecompleted hide-on-mobile">
+    <div id="content-container" class="makecompleted">
         {% for topic in topics %}
             <div class="bg-white topic-item" style="border: 2px solid black; margin: 5px;">
                 <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
