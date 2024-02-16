@@ -935,7 +935,6 @@ class Topicslistview(LoginRequiredMixin, DetailView):
         print("completed",len(completed_topic_ids))
         print("topics", len(topics))
 
-
         return context
 
 
