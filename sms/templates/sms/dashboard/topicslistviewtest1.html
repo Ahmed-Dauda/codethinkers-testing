@@ -94,14 +94,15 @@ table-layout: fixed; // ***********add this
     display: flex;
     flex-wrap: wrap;
     padding-left: 20px;
+    font-size: 14px;
 }
 /* Hide the content on mobile view */
-/* @media (max-width: 767px) {
+@media (max-width: 767px) {
     .hide-on-mobile {
         display: none;
        
     }
-} */
+}
 
 /* herozontal scroll on mobile view */
 
@@ -151,6 +152,27 @@ table-layout: fixed; // ***********add this
 }
 
 
+  /* Style for the menu */
+  .menu {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+    }
+    .menu > *{
+        
+        margin: 20px;
+    } 
+    .menu li {
+        cursor: pointer;
+    }
+    /* Style for the content */
+    .content {
+        display: none;
+    }
+    .content.active {
+        display: block;
+    }
 </style>
 
                <!-- alert -->
@@ -189,6 +211,7 @@ table-layout: fixed; // ***********add this
 
 
 
+
 <table  id="example" class="datatable-wide display "  style="width:100%;">
     
     <thead class="">
@@ -198,7 +221,7 @@ table-layout: fixed; // ***********add this
                 <h6 style="flex-wrap: wrap;" class="d-flex">
                    
                     <!-- <a href="{% url 'student:take-exam' %}">Take Exam</a> -->
-                    <button class="btn "><a href="https://wa.me/23409031568177"> Contact Us For Personal Tutoring </a>  </button>  <br>
+                    <a href="https://wa.me/23409031568177">Personal Tutoring </a> <br>
 
                     <!-- <p>{{ hitcount.total_hits }}  <i class="fas fa-eye"></i></p> -->
                     <a class="" href="{% url 'sms:feedbackformview' %}">
@@ -216,11 +239,11 @@ table-layout: fixed; // ***********add this
     <tbody>
         {% for topic in topics %}
         <tr>
-       
+
             <td class="text-center">
-                <div style="padding-left: 5px; padding-right: 5px;" class="">
+                <div style="padding-left: 10px; padding-right: 10px;" class="">
                     {% if topic.img_topic %}
-                        <img class="img-box" src="{{topic.img_topic.url}}" height="700px" width="100%" alt="topics image">
+                        <img class="img-box" src="{{topic.img_topic.url}}" height="500" width="80%" alt="topics image">
                     {% else %}
                     {% endif %}
                     <!-- Add the video player -->
@@ -260,49 +283,119 @@ table-layout: fixed; // ***********add this
                         </div>
                       </div>
                     
-                    
-                    {% endif %}
-                    
-                    <div style="text-align: left;" class=" code-block">
-                        <h4 style="color: black;">{{topic.title|safe}}</h4>
-                        <small style="color: black;">
-                            created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
-                        </small> <br>
-                        <hr>
-                        
-                        {% if topic.desc %}
-                            <label style="max-width: 100%; overflow-x: hidden;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.desc|safe}}</label> <br>
-                            {% for t in topicsa %}
-                            {% if topic.title == t.course_name.title %}
-                            <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge </a></button>  <br> <br> <br>
-                            <!-- <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge {{t.course_name.title}}</a></button>     -->
-                            {% endif %}
-                            {% endfor %}
-                            {% if topic.topics_url %}
-                            <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
-                            {% endif %}
-                        {% else %}
-                            <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.coursedesc|safe}}</label>
-                        {% endif %}
-                    </div>
-                    <div style="marin-left: 60%;" >
-                        
-                            <button id="complete-button-{{ topic.id }} " onclick="markTopicCompleted({{ topic.id }})">Mark as Completed</button>
-                            <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
-                              <i style="color: green;" class="fas fa-check-circle"></i>
-                            </span>
-                    </div>
-                    <br>
+                    <!-- List Menu -->
+<ul class="menu">
+    <li onclick="showContent('content1')">Transcript</li>
+    <li onclick="showContent('content2')">Progress</li>
+    <li onclick="showContent('content3')">Coming soon</li>
+</ul>
 
-                    {% if forloop.last %}
-                        <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4> <br>
-                        <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
+<!-- Content -->
+<div id="content1" class="content">
+    <div style="text-align: left;" class=" code-block">
+        <h4 style="color: black;">{{topic.title|safe}}</h4>
+        <!-- <small style="color: black;">
+            created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
+        </small> <br> -->
+        <hr>
+        {% if topic.desc %}
+        <label style="max-width: 100%; overflow-x: hidden;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.desc|safe}}</label> <br>
+        {% for t in topicsa %}
+        {% if topic.title == t.course_name.title %}
+        <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge </a></button>  <br> <br> <br>
+        <!-- <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge {{t.course_name.title}}</a></button>     -->
+        {% endif %}
+        {% endfor %}
+        
+        {% if topic.topics_url %}
+        <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
+        {% endif %}
+    {% else %}
+        <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.coursedesc|safe}}</label>
+    {% endif %}
+</div>
+<div style="marin-left: 60%;" >
+                    
+    <button id="complete-button-{{ topic.id }} " onclick="markTopicCompleted({{ topic.id }})">Mark as Completed</button>
+    <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
+      <i style="color: green;" class="fas fa-check-circle"></i>
+    </span>
+</div>
+<br>
+{% if forloop.last %}
+<h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4> <br>
+<h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
+{% else %}
+<p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;"></p>
+{% endif %}
+
+</div>
+<div id="content2" class="content">
+    {% if completed_topic_ids %}
+    <div id="content-container" class="makecompleted hide-on-mobile">
+        {% for topic in topics %}
+            <div class="bg-white topic-item" style="border: 2px solid black; margin: 5px;">
+                <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
+                    <i style="color: green;" class="fas fa-check-circle"></i>
+                </span>
+                <span class="">{{ topic.title }}</span>
+            </div>
+        {% endfor %}
+    </div>
+    <!-- Add more content here -->
+    {% endif %}
+</div>
+<div id="content3" class="content">
+    Coming soon
+</div>
+                   
+                   {% else %} 
+                   gggggggggggggg
+                   <div style="text-align: left;" class=" code-block">
+                    <h4 style="color: black;">{{topic.title|safe}}</h4>
+                    <small style="color: black;">
+                        created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
+                    </small> <br>
+                    <hr>
+                    
+                    {% if topic.desc %}
+                        <label style="max-width: 100%; overflow-x: hidden;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.desc|safe}}</label> <br>
+                        {% for t in topicsa %}
+                        {% if topic.title == t.course_name.title %}
+                        <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge </a></button>  <br> <br> <br>
+                        <!-- <button type="button" class="btn btn- text-white "> <a style="border: 2px solid black;" class="" href="{% url 'quiz:start-exam' t.id %}">Assess Your Knowledge {{t.course_name.title}}</a></button>     -->
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if topic.topics_url %}
+                        <p>Join Community: {{topic.topics_url|urlizetrunc:15}}</p><br>
+                        {% endif %}
                     {% else %}
-                        <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;"></p>
+                        <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.coursedesc|safe}}</label>
                     {% endif %}
                 </div>
-            </td>
-        </tr>
+                <div style="marin-left: 60%;" >
+                    
+                        <button id="complete-button-{{ topic.id }} " onclick="markTopicCompleted({{ topic.id }})">Mark as Completed</button>
+                        <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
+                          <i style="color: green;" class="fas fa-check-circle"></i>
+                        </span>
+                </div>
+                <br>
+
+                {% if forloop.last %}
+                    <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4> <br>
+                    <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
+                {% else %}
+                    <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;"></p>
+                {% endif %}
+            </div>
+        </td>
+    </tr>
+                    {% endif %}   
+                   
+
+         
         {% empty %}
             <h3 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h3>
         {% endfor %}
@@ -505,7 +598,21 @@ table-layout: fixed; // ***********add this
 
     </script>
     
+<!-- horizontal navbar under videos -->
+<script>
+    // Function to show content based on the clicked menu item
+    function showContent(id) {
+        // Hide all content elements
+        var contents = document.querySelectorAll('.content');
+        contents.forEach(function(content) {
+            content.classList.remove('active');
+        });
 
+        // Show the selected content element
+        var selectedContent = document.getElementById(id);
+        selectedContent.classList.add('active');
+    }
+</script>
 
     <!-- link to the solution of related videos -->
     <!-- https://stackoverflow.com/questions/57820478/how-to-disable-related-videos-from-an-embedded-youtube-playlist -->
