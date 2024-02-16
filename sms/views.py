@@ -894,6 +894,8 @@ from django.views.generic import DetailView
 
 from django.urls import reverse_lazy
 from django.views import View
+from django.http import Http404
+import logging
 
 class Topicslistview(LoginRequiredMixin, DetailView):
     model = Courses
@@ -923,18 +925,27 @@ class Topicslistview(LoginRequiredMixin, DetailView):
 
         if self.request.user.is_authenticated:
             profile = get_object_or_404(Profile, user=self.request.user)
+
             completed_topic_ids = profile.completed_topics.values_list('id', flat=True)
+            completed_topic_ids_course = completed_topic_ids.filter(courses_id=course.id).count()
+            context['completed_topic_ids_course'] = completed_topic_ids_course
             # completed_topic_titles = profile.completed_topics.values_list('title', flat=True)
 
         context['completed_topic_ids'] = completed_topic_ids
         context['completed_topic_ids_count'] = int(len(completed_topic_ids))
         context['topics_count'] = int(topics.count())
-        context['percentage'] = int((len(completed_topic_ids) / len(topics)) * 100)
-
+        if topics.count() > 0:
+            context['percentage'] = int((completed_topic_ids_course / len(topics)) * 100)
+        else:
+            context['percentage'] = 0
         # context['completed_topic_titles'] = completed_topic_title
+        topics = Topics.objects.filter(courses_id=course.id)
         print("completed",len(completed_topic_ids))
-        print("topics", len(topics))
+        print("completed2",completed_topic_ids.filter(courses_id=course.id).count())
+        print("nntopics", len(topics))
+      
 
+        
         return context
 
 
