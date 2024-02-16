@@ -96,6 +96,14 @@ table-layout: fixed; // ***********add this
     padding-left: 20px;
     font-size: 14px;
 }
+
+.progressmakecompleted{
+    display: flex;
+    flex-wrap: nowrap;
+    font-size: 14px;
+}
+
+
 /* Hide the content on mobile view */
 @media (max-width: 767px) {
     .hide-on-mobile {
@@ -330,20 +338,21 @@ table-layout: fixed; // ***********add this
 {% endif %}
 
 </div>
-<div id="content2" class="content">
+<div id="content2" class="content" style="overflow-x: auto;">
     {% if completed_topic_ids %}
-    <div id="content-container" class="makecompleted">
+    <div id="content-container"  class="progressmakecompleted">
         {% for topic in topics %}
             <div class="bg-white topic-item" style="border: 2px solid black; margin: 5px;">
                 <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
                     <i style="color: green;" class="fas fa-check-circle"></i>
                 </span>
-                <span class="">{{ topic.title }}</span>
+                <span style="font-size: 14px;" class="">{{ topic.title }}</span>
             </div>
         {% endfor %}
     </div>
-    <!-- Add more content here -->
     {% endif %}
+</div>
+
 </div>
 <div id="content3" class="content">
     Coming soon
