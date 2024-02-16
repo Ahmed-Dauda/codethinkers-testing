@@ -100,9 +100,10 @@ table-layout: fixed; // ***********add this
 .progressmakecompleted{
     display: flex;
     flex-wrap: nowrap;
-    font-size: 14px;
 }
-
+.progressmakecompleted > *{
+    margin: 10px;
+}
 
 /* Hide the content on mobile view */
 @media (max-width: 767px) {
@@ -340,7 +341,7 @@ table-layout: fixed; // ***********add this
 </div>
 <div id="content2" class="content" style="overflow-x: auto;">
     {% if completed_topic_ids %}
-    <div id="content-container"  class="progressmakecompleted">
+    <div id="content-container"  class="progressmakecompleted" style="white-space: nowrap;">
         {% for topic in topics %}
             <div class="bg-white topic-item" style="border: 2px solid black; margin: 5px;">
                 <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
