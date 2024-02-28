@@ -4,21 +4,7 @@
 
   {% block content %} 
   <style>
-    .container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    
-    .left-column-cat {
-        flex: 1;
-        margin: 5px;
-        background-color: #4158D0;
-        color: black;
-        background-image: linear-gradient(#ffff 100%, #ffff 46%, white 100%);
-    
-    }
-    
+ 
     </style>
        
     <!--Products-->
@@ -26,19 +12,33 @@
     <h3 class="text-center">Select a Course to Take Exam</h3>
     <p class="text-center">Start the Quiz</p>
     <p class="text-center">Good luck!</p>
-    <div class="container text-center">
-        
+
+ 
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; padding: 0 10px 0px 10px;">
         {% for item in courses %}
-        <div class="left-column-cat card-body text-center category">
-            <!-- <img class="card-img" src="{{item.img_course.url}}" > -->
-            <a class="bg-white container" href="{% url 'student:start-exam' item.id %}">{{item}}</a> <hr>
-           
+        <div style="width: 100%; max-width: 400px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; display: flex;">
+            <div style="background-color: #f0f0f0; color: #333; font-size: 24px; font-weight: bold; padding: 20px; border-right: 1px solid #ccc;">
+                {{item|make_list|first }}
+            </div>
+            <div style="flex-grow: 1;">
+                <div style="padding: 20px;">
+                    <a style="color: #333; text-decoration: none;" href="{% url 'student:start-exam' item.id %}">{{ item }}</a>
+                   
+                </div>
+            </div>
         </div>
         {% empty %}
-        <small class="card-text">No Exams Available Yet. CHECK LATER</small>
-    
+        <div style="width: 100%; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 8px; overflow: hidden;">
+            <div style="padding: 20px;">
+                <small>No Exams Available Yet. CHECK LATER</small>
+            </div>
+        </div>
         {% endfor %}
     </div>
+    
+    
+    
+   
 
   {% endblock %} 
  

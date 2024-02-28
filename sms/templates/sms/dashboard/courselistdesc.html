@@ -398,6 +398,7 @@
 <div class="pl-3 pr-3">
 <h3>About Course Owner</h3>
 
+{% if aboutcourseowners %}
 {% for aboutcourseowner in aboutcourseowners %}
 
 <p id="myLink2" class=" pr-3">{{ aboutcourseowner.desc|linebreaksbr|truncatechars:200|safe }}</p>
@@ -421,6 +422,24 @@
 <h3 class="card text-center text-danger">No Record here</h3>
 {% endfor %}
 
+{% else %}
+<p>
+Welcome to CodeThinkers Academy, your gateway to the exciting world of coding and technology!
+Why CodeThinkers Academy?
+Unlock Endless Opportunities: In today's tech-driven world, …
+Welcome to CodeThinkers Academy, your gateway to the exciting world of coding and technology!
+Why CodeThinkers Academy?
+Unlock Endless Opportunities: In today's tech-driven world, coding skills are more valuable than ever. At CodeThinkers Academy, we empower you to unlock endless opportunities in the tech industry, from web development to app creation and beyond.
+Expert Instructors: Learn from the best! Our team of experienced and passionate instructors will guide you through every step of your coding journey. They are dedicated to your success and will ensure you grasp complex concepts with ease.
+Hands-on Learning: At CodeThinkers Academy, we believe in learning by doing. Our curriculum is designed to offer hands-on projects and real-world scenarios, giving you the confidence to tackle any coding challenge.
+Tailored for All Levels: Whether you're a complete beginner or an experienced programmer looking to upskill, we have the right courses for you. Choose from our diverse range of courses, designed to meet your unique learning needs.
+Why Choose CodeThinkers Academy?
+Flexible Learning Options: We offer both in-person and online learning options, so you can choose what suits your schedule best.
+Affordable Pricing: Quality education shouldn't come with a hefty price tag. We offer competitive pricing and various payment options to fit your budget.
+Community and Networking: Join our vibrant community of learners, share experiences, and collaborate on exciting projects. Networking opportunities abound!
+Career Support: Our commitment to your success goes beyond the classroom. Benefit from our career support services, including resume reviews and interview preparation.
+</p>
+{% endif %}
 </div
 >
 <br><br><br>
@@ -531,8 +550,8 @@
       </div>
 
     </div>
-    {% empty %}
-    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+    <!-- {% empty %}
+    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1> -->
     {% endfor %}
   </div>
 </div>
@@ -572,8 +591,8 @@
       </div>
 
     </div>
-    {% empty %}
-    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
+    <!-- {% empty %}
+    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1> -->
     {% endfor %}
   </div>
 </div>
@@ -599,24 +618,24 @@
   <ul style="text-align: center; padding-right: 25px;" class="text-center">
   <!-- payment logics -->
 
-{% if course.status_type == 'Free' %}
-<!-- For free courses, always display the "Enroll" button -->
+<!-- {% if course.status_type == 'Free' %}
+
 <a href="{% url 'sms:topicslistview' course.id %}">
   <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
 </a>
 {% else %}
 {% if not related_payments.exists %}
-  <!-- User has not made a payment for this course -->
+ 
   <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
     <button class="btn btn-primary">Make payment to proceed</button>
   </a>
 {% else %}
-  <!-- User has made a payment for this course -->
+
   <a href="{% url 'sms:topicslistview' course.id %}">
     <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
   </a>
 {% endif %}
-{% endif %}
+{% endif %} -->
 
 {% if related_payments.exists and not payment_success %}
 <!-- Add a hidden input field to hold the payment success flag -->
