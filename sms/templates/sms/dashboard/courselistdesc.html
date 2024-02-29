@@ -238,7 +238,7 @@
    </a>
 {% endif %}
 
-
+<!--end of payment logics -->
 
 <!-- {% if course.status_type == 'Free' %}
 
@@ -741,30 +741,62 @@ Career Support: Our commitment to your success goes beyond the classroom. Benefi
 
   <!-- payment logics -->
 
-{% if course.status_type == 'Free' %}
-<!-- For free courses, always display the "Enroll" button -->
+  <!-- payment logics -->
+<div style="text-align: center; padding-right: 25px;">
+
+  {% if course.status_type == 'Free' %}
+  <!-- For free courses, always display the "Enroll" button -->
+  <a href="{% url 'sms:topicslistview' course.id %}">
+    <button class="btn btn-primary fixed-bottom">Enroll {{ course.title|safe }}</button>
+  </a>
+{% elif related_payments %}
+  <!-- If there are related payments -->
+  <a href="{% url 'sms:topicslistview' course.id %}">
+    <button class="btn btn-primary fixed-bottom">Enroll {{ object.title }}</button>
+  </a>
+{% elif associated_schools %}
+  <!-- If there are associated schools -->
+  {% for school in associated_schools %}
+    {% if school.school_name == school_name %}
+      <!-- Inside the loop, check if the school name matches -->
+      <a href="{% url 'sms:topicslistview' course.id %}">
+        <button class="btn btn-primary fixed-bottom">Enroll {{ object.title }}</button>
+      </a>
+      {% else %}
+      <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
+        <button class="btn btn-primary fixed-bottom">Make payment to proceed</button>
+       </a>
+    {% endif %}
+  {% endfor %}
+{% else %}
+  <!-- For cases other than free courses, related payments, and associated schools -->
+  <!-- Add your logic here -->
+  <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
+    <button class="btn btn-primary fixed-bottom">Make payment to proceed</button>
+   </a>
+{% endif %}
+
+<!--end of payment logics -->
+
+<!-- {% if course.status_type == 'Free' %}
 <a href="{% url 'sms:topicslistview' course.id %}">
   <button class="btn btn-primary fixed-bottom">Enroll {{ course.title|safe }}</button>
 </a>
 {% else %}
 {% if not related_payments.exists %}
-  <!-- User has not made a payment for this course -->
   <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
     <button class="btn btn-primary fixed-bottom">Make payment to proceed</button>
   </a>
 {% else %}
-  <!-- User has made a payment for this course -->
   <a href="{% url 'sms:topicslistview' course.id %}">
     <button class="btn btn-primary fixed-bottom">Enroll {{ course.title|safe }}</button>
   </a>
 {% endif %}
-{% endif %}
+{% endif %} -->
+
 
 {% if related_payments.exists and not payment_success %}
 <!-- Add a hidden input field to hold the payment success flag -->
-
-
-
 {% endif %}
 
 <!--end payment logics -->
