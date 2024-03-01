@@ -442,27 +442,105 @@ def take_exams_view(request):
     }
     return render(request, 'student/dashboard/take_exams.html', context=context)
 
+# @login_required
+# def start_exams_view(request, pk):
+    
+#     course = QMODEL.Course.objects.get(id = pk)
+#     questions = QMODEL.Question.objects.get_queryset().filter(course = course).order_by('id')
+#     q_count = QMODEL.Question.objects.all().filter(course = course).count()
+#     paginator = Paginator(questions, 100) # Show 25 contacts per page.
+#     page_number = request.GET.get('page')
+#     page_obj = paginator.get_page(page_number)
+
+#     context = {
+#         'course':course,
+#         'questions':questions,
+#         'q_count':q_count,
+#         'page_obj':page_obj
+#     }
+#     if request.method == 'POST':
+#         pass
+#     response = render(request, 'student/dashboard/start_exams.html', context=context)
+#     response.set_cookie('course_id', course.id)
+#     return response
+
+from datetime import datetime, timedelta
+from django.utils import timezone
+from django.http import HttpResponse
+from datetime import datetime, timedelta
+from django.core.cache import cache  # Import Django's caching framework
+
+from django.core.cache import cache
+from django.shortcuts import render
+from django.utils import timezone
+from datetime import timedelta
+
 @login_required
 def start_exams_view(request, pk):
-    
-    course = QMODEL.Course.objects.get(id = pk)
-    questions = QMODEL.Question.objects.get_queryset().filter(course = course).order_by('id')
-    q_count = QMODEL.Question.objects.all().filter(course = course).count()
-    paginator = Paginator(questions, 100) # Show 25 contacts per page.
+    course = QMODEL.Course.objects.get(id=pk)
+    questions = QMODEL.Question.objects.filter(course=course).order_by('id')
+    q_count = questions.count()
+    paginator = Paginator(questions, 100)  # Show 100 questions per page.
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
+    # Calculate quiz end time
+    quiz_duration = course.duration_minutes
+    quiz_start_time = timezone.now()
+    quiz_end_time = quiz_start_time + timedelta(minutes=quiz_duration)
+    
+    # Store the quiz end time in cache
+    cache.set(f'quiz_end_time_{course.id}', quiz_end_time, timeout=None)
+
+    # Calculate remaining time until the end of the quiz
+    remaining_time = quiz_end_time - timezone.now()
+    remaining_seconds = max(int(remaining_time.total_seconds()), 0)
 
     context = {
-        'course':course,
-        'questions':questions,
-        'q_count':q_count,
-        'page_obj':page_obj
+        'course': course,
+        'questions': questions,
+        'q_count': q_count,
+        'page_obj': page_obj,
+        'remaining_seconds': remaining_seconds,  # Pass remaining time to template
     }
+
     if request.method == 'POST':
+        # Handle form submission
         pass
+
     response = render(request, 'student/dashboard/start_exams.html', context=context)
     response.set_cookie('course_id', course.id)
     return response
+
+# @login_required
+# def start_exams_view(request, pk):
+#     course = QMODEL.Course.objects.get(id=pk)
+#     questions = QMODEL.Question.objects.filter(course=course).order_by('id')
+#     q_count = questions.count()
+#     paginator = Paginator(questions, 100)  # Show 100 questions per page.
+#     page_number = request.GET.get('page')
+#     page_obj = paginator.get_page(page_number)
+#     # Calculate quiz end time
+#     quiz_duration = course.duration_minutes  # Assuming duration_minutes is the duration of the quiz
+#     quiz_start_time = timezone.now()
+#     quiz_end_time = quiz_start_time + timedelta(minutes=quiz_duration)
+    
+#     context = {
+#         'course': course,
+#         'questions': questions,
+#         'q_count': q_count,
+#         'page_obj': page_obj,
+#         'quiz_end_time': quiz_end_time,  # Pass end time to template
+        
+#     }
+
+#     if request.method == 'POST':
+#         # Handle form submission
+#         pass
+
+#     response = render(request, 'student/dashboard/start_exams.html', context=context)
+#     response.set_cookie('course_id', course.id)
+#     return response
 
 # end of dashboard view
 
