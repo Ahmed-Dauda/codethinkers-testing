@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>start exams view</title>
+    <!-- ajex -->
+	
+  <script src="https://unpkg.com/htmx.org@1.7.0"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- jquery -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+    crossorigin="anonymous"></script>
+
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+ <!-- mathjax settings -->
+ <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$$','$$'], ['\\(','\\)']]}});
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+ 
+</script>
+    
+       <!-- sweetify -->
+       <!-- <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
+      <!-- bootstrap link -->
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+      <style>
+
+
+      /* } */
+/* .math-class{
+  text-align: left !important;
+  display: inline !important;
+} */input[type=radio]{
+  transform:scale(1.3);
+ 
+}
+
+</style>
+ 
+<style type="text/css">
+  /* https://jsbin.com/zequb/7/edit */
+  input[type=radio]{
+    /* hide original inputs */
+    /* visibility: hidden; */
+    position: absolute;
+  }
+  input[type=radio] + label{
+    cursor:pointer;
+  }
+  input[type=radio] + label:before{
+    width:16px;
+    height:16px;
+    content: " ";
+    display:inline-block;
+    border:1px solid #ccc;
+    border-radius:50%; 
+    box-shadow: inset 0 -3px 6px #e4e4e4;
+    transition: 0.3s;
+  }
+  
+  /* CHECKED */
+  input[type=radio]:checked + label:before{
+    box-shadow: inset 0 0 0 5px #2196F3;
+  }
+  </style>     
+</head>
+<body>
+ 
+
+  <!-- quiz timer  -->
+  <div class='float-right sticky-top'>
+    <div class="row justify-content-left">
+      <div class="col-mx-auto">
+        <div class="alert alert-success" role="alert"><center>Time left : <span id="countdown"></span></center></div>
+      </div>
+    </div>
+  </div>
+ <!--end quiz timer  -->
+    
+<br>
+<div id="fav_list" class="container">
+ 
+<form action="/student/calculate_marks" onsubmit="return  saveAns()" enctype="multipart/form-data" id ='quiz' method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="csrfmiddlewaretoken" value="C24rUotmdHawVQJL3KrqiWxvti8UffOFYUc8TRbZtLt36AVLdP3jbkzUVe3beRAa">
+    <h1>{{course}} Quiz</h1><br>
+    <h4>Number of Questions in the Quiz: {{q_count}}</h4>
+    <hr>
+    <p>Question {{obj}}</p>
+    <hr>
+  {% for q in  page_obj %}
+  
+<!-- <h6 style="text-align: right;">[marks {{q.marks}}]</h6> -->
+{% if q.img_quiz.url %}
+<div  class="text-center" ><img src="{{q.img_quiz.url}}" width="100%" height="300px" alt=""> </div><br>
+{% endif %}
+
+<div style="border: 2px dotted green;" class="container shadow-lg mb-1 bg-white rounded">
+<p class="d-flex" style="overflow-x: auto; white-space: pre-wrap; font-size: 20px;font-family: sans-serif;" >
+{{ q.question }}</p>
+{% if q.marks %} 
+<h6 style="text-align: right;">[marks {{q.marks}}]</h6>
+{% endif %}
+</div>
+
+{% if q.option1 %}
+  <div  class="card-header shadow-lg mb-1 bg-white rounded">
+  <input   type="radio" name="{{forloop.counter}}" id="{{q.option1}}"  value="Option1" class="in" onchange="this.form.submt()">
+ <label for="option1"> {{q.option1}}</label><br>
+</div>
+{% endif %}
+
+  {% if q.option2 %}
+  <div class="card-header shadow-lg mb-1 bg-white rounded">
+  <input   type="radio" name="{{forloop.counter}}" id="{{q.option2}}"  value="Option2" class="in" onchange="this.form.submt()">
+  <label for="option2">{{q.option2}}</label><br>
+
+ 
+	  
+</div>
+{% endif %}
+
+{% if q.option3 %}
+<div class="card-header shadow-lg mb-1 bg-white rounded">
+  <input  type="radio" name="{{forloop.counter}}" id="{{q.option3}}"  value="Option3" class="in" onchange="this.form.submi()">
+  <label for="option3">{{q.option3}}</label><br> 
+</div>
+{% endif %}
+
+{% if q.option4 %}
+<div class="card-header shadow-lg mb-1 bg-white rounded">
+  <input  type="radio" name="{{forloop.counter}}" id="{{q.option4}}"  value="Option4" class="in" onchange="this.form.submt()">
+  <label  for="option4">{{q.option4}}</label><br>
+</div>
+{% endif %}
+<br><br>
+{% empty %}
+<h1 class="card text-center text-danger">No Exam Available Yet. CHECK LATER</h1>
+  {% endfor %}
+
+  <input   class="btn btn-primary" type="submit" value="Next Subject">
+
+</div>
+
+</form>
+</div>
+<br>
+
+
+<script> 
+  function saveAns(){  
+      var ele = document.getElementsByTagName('input'); 
+      for(i = 0; i < ele.length; i++) { 
+          if(ele[i].type="radio") { 
+              if(ele[i].checked){        
+                setCookie(ele[i].name,ele[i].value,3)
+              }console.log(ele[i].checked)
+          } 
+      } 
+        
+  }
+  
+  function setCookie(cname, cvalue, exdays) {
+var d = new Date();
+d.setTime(d.getTime() + (exdays*24*60*60*1000));
+var expires = "expires="+ d.toUTCString();
+document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+</script>
+
+
+<!-- pagination codes star -->
+<div hx-boost="true">
+	
+{% if page_obj.has_other_pages %}
+<div class="container" id = ''>
+<nav class="d-flex" aria-label="Page navigation example">
+
+  <ul class="pagination  pagination-sm flex-wrap justify-content-center">
+    {% if page_obj.has_previous %}
+      <li class=" page-item"><a  class="continue page-link badge bg-primary rounded-pill" href="?page={{ page_obj.previous_page_number }}">previous &laquo;</a></li>
+    {% else %}
+      <li class="page-item disabled"><span>&laquo;</span></li>
+    {% endif %}
+    {% for i in obj.paginator.page_range %}
+      {% if obj.number == i %}
+        <li class="page-item active" aria-current="page"><span><a class="page-link" href="">{{ i }}</a></span></li>
+      {% else %}
+        <li class="page-item"><a class="continue page-link" href="?page={{ i }}">{{ i }}</a></li>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <li class="page-item"><a class="page-link badge bg-primary rounded-pill" href="?page={{ page_obj.next_page_number }}"> next &raquo;</a></li>
+    {% else %}
+      <li class="page-item disabled"><span>last &raquo; </span></li>
+    {% endif %}
+  </ul>
+</nav>
+
+</div> 
+
+</div>
+</div>
+	
+
+{% endif %}
+
+</div>
+
+
+<!-- quiz timer start-->
+
+<script>
+ 
+  $time_limit = "2016-08-14 00:01:00"
+  var d = new Date($time_limit);
+  var hours = d.getHours(); //00 hours
+  var minutes = d.getMinutes(); //10 minutes
+  var seconds = 60 * minutes; // 600seconds
+  
+  if (typeof(Storage) !== "undefined") {
+    if (localStorage.seconds) {
+      seconds = localStorage.seconds;
+    }
+  }
+  
+  function secondPassed() {
+    var minutes = Math.round((seconds - 30) / 60);
+    console.log(minutes);
+    var hours = Math.round((minutes) / 60);
+    var remainingSeconds = seconds % 60;
+    if (remainingSeconds < 10) {
+      remainingSeconds = "0" + remainingSeconds;
+    }
+    if (typeof(Storage) !== "undefined") {
+      localStorage.setItem("seconds", seconds);
+    }
+    document.getElementById('countdown').innerHTML = hours + ":" + minutes + ":" + remainingSeconds;
+  
+    if (seconds == 0) {
+      clearInterval(myVar);
+      document.getElementById('countdown').innerHTML = "Time Out";
+      document.getElementById('quiz').submit();
+      if (typeof(Storage) !== "undefined") {
+        localStorage.removeItem("seconds");
+      }
+    } else {
+      seconds--;
+      console.log(seconds);
+    }
+  
+  }
+  var myVar = setInterval(secondPassed, 1000);
+  </script>	
+    <!-- end of quiz timer -->
+
+
+ <!-- Option 1: Bootstrap Bundle with Popper -->
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+ <!-- scroll bar in django -->
+
+ <!-- Option 2: Separate Popper and Bootstrap JS -->
+ <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+</body>
+</html>
+<!-- 
+ <script> 
+    function saveAns(){  
+
+        var ele = document.getElementsByTagName('input'); 
+        for(i = 0; i < ele.length; i++) { 
+            if(ele[i].type="radio") { 
+                if(ele[i].checked){        
+                  setCookie(ele[i].name,ele[i].value,3)
+                }
+            } 
+        } 
+          
+    }
+    
+    function setCookie(cname, cvalue, exdays) {
+  var d = new Date();
+  d.setTime(d.getTime() + (exdays*24*60*60*1000));
+  var expires = "expires="+ d.toUTCString();
+  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+</script>  -->
+
+<br><br><br><br><br><br>
