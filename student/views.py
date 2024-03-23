@@ -480,7 +480,7 @@ def start_exams_view(request, pk):
     course = QMODEL.Course.objects.get(id=pk)
     questions = QMODEL.Question.objects.filter(course=course).order_by('id')
     q_count = questions.count()
-    paginator = Paginator(questions, 100)  # Show 100 questions per page.
+    paginator = Paginator(questions, 200)  # Show 100 questions per page.
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -495,6 +495,31 @@ def start_exams_view(request, pk):
     # Calculate remaining time until the end of the quiz
     remaining_time = quiz_end_time - timezone.now()
     remaining_seconds = max(int(remaining_time.total_seconds()), 0)
+
+    # updating timer
+    # Get the instance of your model
+    # instance = course
+
+    # if request.method == 'POST':
+    #     timer_data = request.POST.get('timer_data')
+    #     # Split the timer data into minutes and seconds
+    #     minutes, seconds = timer_data.split(':')
+        
+    #     # Convert minutes and seconds to integers
+    #     minutes = int(minutes)
+    #     seconds = int(seconds)
+        
+    #     # Calculate the total duration in minutes
+    #     total_minutes = minutes + seconds / 60
+    #     print("total_minutes", total_minutes)
+        
+    #     # Update the model with the total duration
+    #     instance.duration_minutes = total_minutes
+    #     instance.save()
+        
+    #     return JsonResponse({'status': 'success'})
+
+
 
     context = {
         'course': course,
@@ -544,40 +569,77 @@ def start_exams_view(request, pk):
 
 # end of dashboard view
 
+import json
+from django.http import JsonResponse
 
+
+
+# example 2
 
 @login_required
 def calculate_marks_view(request):
     if request.COOKIES.get('course_id') is not None:
         course_id = request.COOKIES.get('course_id')
-        course=QMODEL.Course.objects.get(id=course_id)
+        course = QMODEL.Course.objects.get(id=course_id)
         
-        total_marks=0
-        questions=QMODEL.Question.objects.get_queryset().filter(course=course).order_by('id')
-        for i in range(len(questions)):
-            
-            selected_ans = request.COOKIES.get(str(i+1))
-            actual_answer = questions[i].answer
-            if selected_ans == actual_answer:
-                total_marks = total_marks + questions[i].marks
+        total_marks = 0
+        questions = QMODEL.Question.objects.filter(course=course).order_by('id')
+        
+        if request.body:
+            json_data = json.loads(request.body)
+            for i, question in enumerate(questions, start=1):
+                selected_ans = json_data.get(str(i))
+                print("answers" + str(i), selected_ans)
+                actual_answer = question.answer
+                if selected_ans == actual_answer:
+                    total_marks += question.marks
+        
         student = Profile.objects.get(user_id=request.user.id)
-        result = QMODEL.Result()
+        result = QMODEL.Result.objects.create(marks=total_marks, exam=course, student=student)
         
-        result.marks=total_marks 
-        result.exam=course
-        result.student=student
-        m = QMODEL.Result.objects.aggregate(Max('marks'))
-        max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-        max_result = Result.objects.filter(id__in = Subquery(max_q[:1]), exam=course, student=student)
-        score = 0
-        for max_value in max_result:
-            score = score + max_value.marks
-            
-        if total_marks > score:
-            result.save()
-        return HttpResponseRedirect('view_result')
+        # Redirect to the view_result URL
+        return JsonResponse({'success': True, 'message': 'Marks calculated successfully.'})
+    
     else:
-        return HttpResponseRedirect('take-exam')
+        return JsonResponse({'success': False, 'error': 'Course ID not found.'})
+
+# @login_required
+# def calculate_marks_view(request):
+#     if request.COOKIES.get('course_id') is not None:
+#         course_id = request.COOKIES.get('course_id')
+#         course=QMODEL.Course.objects.get(id=course_id)
+        
+#         total_marks=0
+#         questions=QMODEL.Question.objects.get_queryset().filter(course=course).order_by('id')
+#         for i in range(len(questions)):
+            
+#             # selected_ans = request.COOKIES.get(str(i+1))
+#             selected_ans = request.POST.get(str(i+1))
+#             print("answers1", selected_ans)
+#             actual_answer = questions[i].answer
+#             if selected_ans == actual_answer:
+#                 total_marks = total_marks + questions[i].marks
+#         student = Profile.objects.get(user_id=request.user.id)
+#         result = QMODEL.Result()
+        
+#         result.marks=total_marks 
+#         result.exam=course
+#         result.student=student
+#         # m = QMODEL.Result.objects.aggregate(Max('marks'))
+#         # max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
+#         # max_result = Result.objects.filter(id__in = Subquery(max_q[:1]), exam=course, student=student)
+        
+#         result.save()
+#         # score = 0
+#         # for max_value in max_result:
+#         #     score = score + max_value.marks
+            
+#         # if total_marks > score:
+            
+#         return HttpResponseRedirect('view_result')
+#     else:
+#         return HttpResponseRedirect('take-exam')
+
 
 @login_required
 def view_result_view(request):

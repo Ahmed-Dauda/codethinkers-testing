@@ -45,9 +45,13 @@ def start_exams_view(request, pk):
     q_count = QuestionAssessment.objects.all().filter(course = course).count()
     student = request.user.profile
     results = ResultAssessment.objects.filter(exam = course, student = student).order_by('id')
-    paginator = Paginator(questions, 20) # Show 25 contacts per page.
+    paginator = Paginator(questions, 1000) # Show 25 contacts per page.
+    paginator_comp = Paginator(questions, 1) # Show 25 contacts per page.
     page_number = request.GET.get('page')
+    
     page_obj = paginator.get_page(page_number)
+   
+    page_obj_comp = paginator_comp.get_page(page_number)
     letters = list(ascii_uppercase)
 
     context = {
@@ -55,13 +59,15 @@ def start_exams_view(request, pk):
         'questions':questions,
         'q_count':q_count,
         'page_obj':page_obj,
+        'page_obj_comp':page_obj_comp,
         'results':results,
-        'letters':letters
+        'letters':letters,
+        'completed':"letters",
       
     }
     if request.method == 'POST':
         pass
-    response = render(request, 'quiz/dashboard/start_exams.html', context=context)
+    response = render(request, 'quiz/dashboard/start_exams paginat.html', context=context)
     response.set_cookie('course_id', course.id)
     return response
      
@@ -75,12 +81,16 @@ def calculate_marks_view(request):
     if request.COOKIES.get('course_id') is not None:
         course_id = request.COOKIES.get('course_id')
         course= TopicsAssessment.objects.get(id=course_id)
-        
+        options = []  # List to store the selected options
         total_marks=0
         questions= QuestionAssessment.objects.get_queryset().filter(course=course).order_by('id')
         for i in range(len(questions)):
             
-            selected_ans = request.COOKIES.get(str(i+1))
+            # selected_ans = request.COOKIES.get(str(i+1))
+            selected_ans = request.POST.get(str(i+1))
+            options.append(selected_ans)  # Add selected option to the list
+            print("answers", selected_ans)
+            
             actual_answer = questions[i].answer
             if selected_ans == actual_answer:
                 total_marks = total_marks + questions[i].marks
@@ -90,20 +100,35 @@ def calculate_marks_view(request):
         result.marks=total_marks 
         result.exam=course
         result.student=student
-        m = ResultAssessment.objects.aggregate(Max('marks'))
-        max_q = ResultAssessment.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-        max_result = ResultAssessment.objects.filter(id__in = Subquery(max_q[:1]), exam=course, student=student)
-        score = 0
-        for max_value in max_result:
-            score = score + max_value.marks
-            
-        if total_marks > score:
-            result.save()
-            
+        # options_str = ", ".join(str(option) if option is not None else "None" for option in options)
+        result.option = options  # Save selected options as a comma-separated string
+        
+        # print("result2", options)
+        
+        # m = ResultAssessment.objects.aggregate(Max('marks'))
+        # max_q = ResultAssessment.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
+        # max_result = ResultAssessment.objects.filter(id__in = Subquery(max_q[:1]), exam=course, student=student)
+        # score = 0
+        # print("t mark", total_marks)
+        print("result", result)
+        print("pass mar", course.pass_mark)
+        
+        result.save()
+        # if result.marks >= course.pass_mark:
+        #     result.save()
 
+        # if total_marks > score:
+
+        # if request.method == 'POST':
+        #     Option1 = request.POST.get('1')
+        #     Option2 = request.POST.get('2')
+        #     Option3 = request.POST.get('3')
+        #     Option4 = request.POST.get('4')
+       
         return HttpResponseRedirect(reverse('quiz:start-exam', kwargs={'pk': course.pk}))
     else:
         return HttpResponseRedirect('take-exam')
+
 
 
 @login_required

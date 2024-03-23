@@ -50,6 +50,7 @@ class ResultAssessment(models.Model):
 
     student = models.ForeignKey(Profile,on_delete=models.CASCADE)
     exam = models.ForeignKey(TopicsAssessment,on_delete=models.CASCADE)
+    option = models.CharField(max_length=100,blank=True, null= True)
     # smscourses = models.ForeignKey(smscourses,on_delete=models.CASCADE, blank=True, null= True)
     marks = models.PositiveIntegerField()
     date = models.DateTimeField(auto_now=True)

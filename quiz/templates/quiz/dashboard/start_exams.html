@@ -55,7 +55,7 @@
   background-color: #e0e0e0; /* Background color on hover */
 }
 
-      </style>
+</style>
       
 </head>
 <body> 
@@ -179,28 +179,28 @@
 
 <!-- end of pagination -->
 
-      <script> 
+  <script> 
 
-          function saveAns(){  
-      
-              var ele = document.getElementsByTagName('input'); 
-              for(i = 0; i < ele.length; i++) { 
-                  if(ele[i].type="radio") { 
-                      if(ele[i].checked){        
-                        setCookie(ele[i].name,ele[i].value,3)
-                      }
-                  } 
+      function saveAns(){  
+  
+          var ele = document.getElementsByTagName('input'); 
+          for(i = 0; i < ele.length; i++) { 
+              if(ele[i].type="radio") { 
+                  if(ele[i].checked){        
+                    setCookie(ele[i].name,ele[i].value,3)
+                  }
               } 
-                
-          }
-          
-          function setCookie(cname, cvalue, exdays) {
-        var d = new Date();
-        d.setTime(d.getTime() + (exdays*24*60*60*1000));
-        var expires = "expires="+ d.toUTCString();
-        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+          } 
+            
       }
-    </script>
+      
+    function setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays*24*60*60*1000));
+    var expires = "expires="+ d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+  }
+</script>
 
 <script>
     function disp(){
@@ -209,50 +209,8 @@
 </script>
 
 <script>
-  function check(){
-    var radios = document.getElementsByName("choice");
-
-    for (var i = 0, len = radios.length; i < len; i++) {
-         if (radios[i].checked) {
-             return true;
-         }
-    }
-
-    return false;
-}
-</script>
-
-</script>
-</body>
-</html>
-
- <script> 
-    function saveAns(){  
-
-        var ele = document.getElementsByTagName('input'); 
-        for(i = 0; i < ele.length; i++) { 
-            if(ele[i].type="radio") { 
-                if(ele[i].checked){        
-                  setCookie(ele[i].name,ele[i].value,3)
-                }
-            } 
-        } 
-          
-    }
-    
-    function setCookie(cname, cvalue, exdays) {
-  var d = new Date();
-  d.setTime(d.getTime() + (exdays*24*60*60*1000));
-  var expires = "expires="+ d.toUTCString();
-  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-}
-
-</script> 
-
-<script>
   document.addEventListener("DOMContentLoaded", function() {
   const quizButtons = document.querySelectorAll(".quiz");
-  
   quizButtons.forEach(button => {
     button.addEventListener("click", function() {
       const radioInput = this.querySelector("input[type='radio']");
@@ -264,4 +222,9 @@
 });
 
 </script>
+
+</body>
+</html>
+
+
 <br><br><br><br><br><br>
