@@ -29,9 +29,9 @@ class NewUserResource(resources.ModelResource):
         # fields = ('title',)
                
 class NewUserAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'email','username','phone_number', 'first_name', 'last_name','student_class','school','countries' ,'is_staff', 'is_superuser', 'is_active','last_login', 'date_joined']
-    list_filter =  ['email','username','school','phone_number','first_name', 'last_login']
-    search_fields = ['email','username','school','phone_number','student_class','first_name', 'last_login']
+    list_display = ['id', 'email', 'username', 'phone_number', 'first_name', 'last_name', 'student_class', 'school', 'countries', 'is_staff', 'is_superuser', 'is_active', 'last_login', 'date_joined']
+    list_filter = ['email', 'username', 'school', 'phone_number', 'first_name', 'last_login', 'student_class']
+    search_fields = ['email', 'username', 'school__school_name', 'phone_number', 'first_name', 'last_login', 'student_class']  # Use school__name to search by school name
     ordering = ['date_joined']
     
     resource_class = NewUserResource
