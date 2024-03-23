@@ -67,15 +67,30 @@ admin.site.register(ResultAssessment, ResultAssessmentAdmin)
 
 
 class ResultResource(resources.ModelResource):
+    exam_course_name = fields.Field(
+        column_name='exam',
+        attribute='exam__course_name__title'  
+    )
     
-    courses = fields.Field(
-        column_name= 'student',
-        attribute='student',
-        widget=ForeignKeyWidget(Profile,'username') )
+    student_username = fields.Field(
+        column_name='student_username',
+        attribute='student__user__username',
+    )
+
+    student_first_name = fields.Field(
+        column_name='student_first_name',
+        attribute='student__first_name',
+    )
+
+    student_last_name = fields.Field(
+        column_name='student_last_name',
+        attribute='student__last_name',
+    )
     
     class Meta:
         model = Result
-        # fields = ('title',)
+        fields = ('id', 'exam_course_name', 'student_username', 'student_first_name', 'student_last_name', 'marks', 'created')
+
                
 class ResultAdmin(ImportExportModelAdmin):
     list_display = ['id', 'student', 'exam', 'marks', 'created']
