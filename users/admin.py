@@ -30,8 +30,8 @@ class NewUserResource(resources.ModelResource):
                
 class NewUserAdmin(ImportExportModelAdmin):
     list_display = ['id', 'email','username','phone_number', 'first_name', 'last_name','student_class','school','countries' ,'is_staff', 'is_superuser', 'is_active','last_login', 'date_joined']
-    list_filter =  ['email','username','phone_number','first_name', 'last_login']
-    search_fields = ['email','username','phone_number','student_class','first_name', 'last_login']
+    list_filter =  ['email','username','school','phone_number','first_name', 'last_login']
+    search_fields = ['email','username','school','phone_number','student_class','first_name', 'last_login']
     ordering = ['date_joined']
     
     resource_class = NewUserResource
