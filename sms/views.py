@@ -918,6 +918,7 @@ class Topicslistview(LoginRequiredMixin, DetailView):
         context['topicsa'] = topicsa
         context['alert_count'] = Alert.objects.all().count()
         context['alerts'] = PDFDocument.objects.order_by('-created')
+        context['course'] = course
 
         # Fetch completed topic IDs for the current user
         completed_topic_ids = []

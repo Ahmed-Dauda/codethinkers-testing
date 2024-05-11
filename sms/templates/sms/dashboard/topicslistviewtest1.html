@@ -184,15 +184,6 @@ table-layout: fixed; // ***********add this
     }
 </style>
 
-               <!-- alert -->
-               <!-- <div style="height:351px; width:625px; overflow: hidden;"> -->
-                <!-- <iframe height="651" width="625"
-                  src="https://www.youtube.com/embed/eujgoer87Uw?theme=dark&autoplay=1&keyboard=1&autohide=2&cc_load_policy=1&modestbranding=1&fs=0&showinfo=0&rel=0&iv_load_policy=3&mute=0&loop=0?controls=0"
-                  sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation"
-                  style="height:371px; background:#000000; bottom: 61px; position: relative;"
-                  frameborder="0">
-                </iframe>
-              </div> -->
 
   <br>                   
 
@@ -345,12 +336,14 @@ table-layout: fixed; // ***********add this
     </span>
 </div>
 <br>
-{% if forloop.last %}
+<!-- {% if forloop.last %}
 <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4> <br>
+
 <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
+    
 {% else %}
 <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;"></p>
-{% endif %}
+{% endif %} -->
 
 </div>
 
@@ -425,8 +418,10 @@ table-layout: fixed; // ***********add this
                 <br>
 
                 {% if forloop.last %}
-                    <h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4> <br>
-                    <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
+                    <h4 style="color: green;text-align:center">Congratulations! You have completed this course h</h4> <br>
+                    <h3 class="card text-center text-danger"><a href="{% url 'student:start-exam' course.id %}">Take Exam</a></h3>
+                    <!-- <a style="color: #ea0f0f; text-decoration: none; font-size:12px;" href="{% url 'student:start-exam' course.id %}"> {{ course }}</a>
+  -->
                 {% else %}
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;"></p>
                 {% endif %}

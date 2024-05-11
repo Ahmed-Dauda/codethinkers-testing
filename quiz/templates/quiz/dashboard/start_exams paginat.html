@@ -145,40 +145,48 @@ function goBack() {
     {% for q in  page_obj %}
       <tr>
         
-          <td style="width:100%;" colspan="4">
-            {% if q.img_quiz.url %}
-            <div  class="text-center" ><img src="{{q.img_quiz.url}}" width="100%" height="300px" alt=""> </div><br>
+        <td colspan="4">
+          {% if q.img_quiz.url %}
+            <div  class="text-center" ><img src="{{q.img_quiz.url}}"  width="40%" height="250px" alt=""> </div><br>
             {% endif %}
-            
-            <label style="font-size: 18px;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">
-          {{ q.question|safe }}
+        
+            {% if q.img_quiz.url %}
+            <label style="font-size: 18px; text-align: center; display: block;">
+              {{ q.question|safe }}
             </label>
+            {% else %}
+            <label style="font-size: 18px;">
+              {{ q.question|safe }}
+            </label>
+
+            {% endif %}
             
             <h6 style="text-align: right;">[marks {{q.marks}}]</h6>
 
             {% if q.option1 %}
             <div class="quiz"> 
               <input  class="radio-button"  type="radio" name="{{forloop.counter}}" id="option1"  value="Option1"  required>
-              <label style="width: 100%;" for="option1" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left"> {{q.option1|safe}}</label><br>
+              <label style="width: 100%;" data-original-text="{{ q.option1|safe|striptags }}" for="option1" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left"> {{q.option1|safe}}</label>
             </div> 
             {% endif %}
           {% if q.option2 %}
             <div class="quiz">
               <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option2"  value="Option2"  required>
-              <label style="width: 100%;" for="option2" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option2|safe}}</label>
+              <label style="width: 100%;" data-original-text="{{ q.option2|safe|striptags }}" for="option2" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button  text-left">{{q.option2|safe}}</label>
             </div>
             
             {% endif %}
         {% if q.option3 %}
             <div class="quiz" >
               <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option3"  value="Option3"  required>
-              <label style="width: 100%;" for="option3" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option3|safe}}</label>
+              <label style="width: 100%;" data-original-text="{{ q.option3|safe|striptags }}" for="option3" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button  text-left">{{q.option3|safe}}</label>
             </div>
             {% endif %}
         {% if q.option4 %}
             <div class="quiz" >
               <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option4"  value="Option4"  required>
-              <label style="width: 100%;"  for="option4" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option4|safe}}</label><br>
+              
+              <label style="width: 100%;" data-original-text="{{ q.option4|safe|striptags }}"  for="option4" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button text-left">{{q.option4|safe}}</label><br>
             </div>
             {% endif %}
           
@@ -249,10 +257,11 @@ function goBack() {
 $.fn.dataTable.ext.errMode = 'none';
 
 var table = $('#example').DataTable({
-
     pageLength: 1,
     order: [[3, 'desc']],
     lengthChange: false, 
+    sDom: 'lrtip',
+    "ordering": false,
    
     dom: '<"top"fi>rt<"bottom"lp><"clear">',
     columnDefs: [
@@ -467,6 +476,7 @@ document.addEventListener('change', function(event) {
 
 // Retrieve the stored value from local storage for each question
 var allRadioButtons = document.querySelectorAll('.radio-button');
+
 allRadioButtons.forEach(function(radioButton) {
     var questionName = radioButton.getAttribute('name');
     var storedCheckedValue = localStorage.getItem('checked_' + questionName);
@@ -474,8 +484,10 @@ allRadioButtons.forEach(function(radioButton) {
     if (storedCheckedValue !== null) {
         if (radioButton.value === storedCheckedValue) {
             radioButton.checked = true;
-            radioButton.nextElementSibling.textContent = 'Selected';
+            radioButton.nextElementSibling.textContent = radioButton.nextElementSibling.dataset.originalText;
             radioButton.style.color = 'red';
+        } else {
+            radioButton.nextElementSibling.textContent = radioButton.nextElementSibling.dataset.originalText;
         }
     }
 });
