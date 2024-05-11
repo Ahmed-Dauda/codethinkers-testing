@@ -419,9 +419,8 @@ table-layout: fixed; // ***********add this
 
                 {% if forloop.last %}
                     <h4 style="color: green;text-align:center">Congratulations! You have completed this course h</h4> <br>
-                    <h3 class="card text-center text-danger"><a href="{% url 'student:start-exam' topic.courses.id %}">Take Exam</a></h3>
-                    <!-- <a style="color: #ea0f0f; text-decoration: none; font-size:12px;" href="{% url 'student:start-exam' course.id %}"> {{ course }}</a>
-  -->
+                    <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
+                    
                 {% else %}
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;"></p>
                 {% endif %}

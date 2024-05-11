@@ -910,6 +910,7 @@ class Topicslistview(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         course = self.object  # Access the 'object' attribute
+
         topics = course.topics_set.all().order_by('created')
         topic = TopicsAssessment.objects.filter(course_name__title=course).order_by('id')
         topics_assessment = TopicsAssessment.objects.filter(course_name__title=course.title).order_by('id')
@@ -941,9 +942,9 @@ class Topicslistview(LoginRequiredMixin, DetailView):
             context['percentage'] = 0
         # context['completed_topic_titles'] = completed_topic_title
         topics = Topics.objects.filter(courses_id=course.id)
-        print("completed",len(completed_topic_ids))
-        print("completed2",completed_topic_ids.filter(courses_id=course.id).count())
-        print("nntopics", len(topics))
+        # print("completed",len(completed_topic_ids))
+        # print("completed2",completed_topic_ids.filter(courses_id=course.id).count())
+        # print("nntopics", len(topics))
       
 
         return context
