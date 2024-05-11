@@ -946,7 +946,6 @@ class Topicslistview(LoginRequiredMixin, DetailView):
         print("nntopics", len(topics))
       
 
-        
         return context
 
 
