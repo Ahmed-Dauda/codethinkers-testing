@@ -129,20 +129,37 @@ class Profile(models.Model):
 
 
 
-@receiver(post_save, sender=get_user_model())
-def userprofile_receiver(sender, instance, created, *args, **kwargs):
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def userprofile_receiver(sender, instance, created, **kwargs):
     if created:
-        Profile.objects.create(
-            user=instance,
-            username=instance.username,
-            first_name=instance.first_name,
-            last_name=instance.last_name,
-            countries=instance.countries,
-            # referral_code=instance.referral_code,
-            # school=instance.school,
-        )
+        Profile.objects.create(user=instance)
+    else:
+        # Ensure the profile is updated with the user fields
+        profile = instance.profile
+        profile.username = instance.username
+        profile.first_name = instance.first_name
+        profile.last_name = instance.last_name
+        profile.phone_number = instance.phone_number
+        profile.countries = instance.countries
+        
+        profile.save()
 
 post_save.connect(userprofile_receiver, sender=settings.AUTH_USER_MODEL)
+
+# @receiver(post_save, sender=get_user_model())
+# def userprofile_receiver(sender, instance, created, *args, **kwargs):
+#     if created:
+#         Profile.objects.create(
+#             user=instance,
+#             username=instance.username,
+#             first_name=instance.first_name,
+#             last_name=instance.last_name,
+#             countries=instance.countries,
+#             # referral_code=instance.referral_code,
+#             # school=instance.school,
+#         )
+
+# post_save.connect(userprofile_receiver, sender=settings.AUTH_USER_MODEL)
 
 # def userprofile_receiver(sender, instance, created, *args, **kwargs):
 #     if created:
