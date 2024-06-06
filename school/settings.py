@@ -328,8 +328,8 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIES_HTTPONLY = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
+# end of security codes
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
-
 LOGIN_REDIRECT_URL = 'sms:homepage'
 LOGIN_URL = 'account_login'
 LOGOUT_REDIRECT_URL = 'account_login'

@@ -19,10 +19,6 @@ from sms.models import Topics
 # from sms.paystack import Paystack
 
 
-
-
-
-
 class Question(models.Model):
     topic = models.ForeignKey(Topics, on_delete=models.CASCADE)
     text = models.TextField()
