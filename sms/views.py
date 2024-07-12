@@ -1288,12 +1288,16 @@ def Admin_detail_view(request,pk):
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course).order_by('-marks')
     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course, marks = 1).delete() 
+
+    questions = QMODEL.Question.objects.filter(course= course).count()
+    print('questions', questions)
     
  
     context = { 
         'results':results,
         'course':course,
         'st':request.user,
+        'q_count':questions
      
     }
     return render(request,'sms/dashboard/admin_details.html', context)
