@@ -36,14 +36,13 @@
                                         </tr>
                                     </thead>
                            
-
                                     <tbody>
                                         {% for t in results %}
                                         <tr>
                                             <td> {{t.student.first_name}} {{t.student.last_name}}</td>
                                             <td>{{t.exam}}</td>
                                             <!-- <td>{{t.marks}} / {{course.total_marks}}</td> -->
-                                            <td>{{ t.marks|div:q_count|mul:100|floatformat:"1" }} / 100 %</td>
+                                            <td>{{ t.marks|div:q_count|mul:100|floatformat:"1" }} / 100%</td>
                                             <!-- <td>positon {{ forloop.counter}}</td> -->
                                             {% if course == t.exam and t.marks > t.constant or t.marks != None %}
                                             <h4 > <td style="color:green"> Passed</td> </h4>
