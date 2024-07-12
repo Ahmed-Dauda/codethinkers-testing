@@ -1,7 +1,8 @@
 
+
 {% extends 'sms/dashboard/base.html' %}
 
-
+{% load mathfilters %}
 {% load hitcount_tags %}
 {% load cloudinary %}
 {% load embed_video_tags %}
@@ -99,30 +100,39 @@ function goBack() {
 <div class="card" >
   <div class="card-header">
     <!-- <h1>tttttttttt{{ course.pass_mark }}</h1>  -->         
-      <h2>Quiz Results</h2>    
+      <h2>Quiz Results </h2>    
       {% for t in results %}
+      
+      <div class="container">
+      <span>Score: ({{ t.marks|mul:100|div:q_count }}  %)
+      {% if t.marks >= course.pass_mark %}
+          <p id="passText" style="color: green;">Congratulations! You have passed the assessment benchmark <span class="bi bi-emoji-smile"></span> 
+            <br> 
+            <a class="" href="{% url 'sms:topicslistview' course.course_name.courses.id %}" style="font-size: 24px;">
+              <span class="bi bi-arrow-left"></span>
+            </a>
+          </p>
+      {% else %}
+          <p id="failText" style="color: red;">Unfortunately, you did not pass this assessment. Don't be discouraged! Keep practicing and try again! <span class="bi bi-emoji-sad"></span></p>
+      {% endif %}
+    </span>
+    </div>
 
-      <!-- <div class="ard-bdy" id="ardBdy">
-        <span>Score: {{ t.marks }} / {{ q_count }}</span>
-        {% if t.marks >= course.pass_mark  %}
-          <p style="color: green;">Congratulations! You have passed the assessment benchmark <span class="bi bi-emoji-smile"></span></p>
-        {% else %}
-          <p style="color: red;">Unfortunately, you did not pass this assessment. Don't be discouraged!.Keep practicing and try again! <span class="bi bi-emoji-sad"></span></p>
-        {% endif %}
-      </div> -->
-      <div class="ard-bdy" id="ardBdy">
-        <span>Score: <span id="score">{{ t.marks }}</span> / <span id="qCount">{{ q_count }}</span></span>
+    </div>
+      
+        <!-- <span>Score: <span id="score">{{ t.marks }}</span> / <span id="qCount">{{ q_count }}</span></span>
         {% if t.marks >= course.pass_mark  %}
             <p id="passText" style="color: green;">Congratulations! You have passed the assessment benchmark <span class="bi bi-emoji-smile"></span></p>
         {% else %}
             <p id="failText" style="color: red;">Unfortunately, you did not pass this assessment. Don't be discouraged!. Keep practicing and try again! <span class="bi bi-emoji-sad"></span></p>
-        {% endif %}
-    </div>
+        {% endif %} -->
     
     {% endfor %}
 <hr>    
 
-<form  action="/quiz/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
+<div class="container">
+
+<form id="quizForm"  action="/quiz/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
 
   {% csrf_token %}
   <input type="hidden" name="csrfmiddlewaretoken" value="C24rUotmdHawVQJL3KrqiWxvti8UffOFYUc8TRbZtLt36AVLdP3jbkzUVe3beRAa">
@@ -200,9 +210,9 @@ function goBack() {
 
 </form>
 
-
 <!-- <button style="display: n;" id="submit"  type="submit">Submit form</button> -->
 <button id="submit" type="submit" >Submit Quiz</button>
+</div>
 
 <br><br>
 <div class="progress mt-4">
@@ -370,6 +380,7 @@ for (var i = 1; i <= totalPages; i++) {
 <script>
 
 
+
   $(document).ready(function() {
     // Function to update pagination boxes with values
     function updatePagination() {
@@ -528,13 +539,26 @@ submitButton.addEventListener('click', function() {
   
 
 
-  <script>
+  <!-- <script>
     $(document).ready(function() {
         setInterval(function() {
             $('#ardBdy').load(location.href + ' #ardBdy');
         }, 5000); // 1000 milliseconds = 1 second
     });
 
+</script> -->
+
+<!-- quiz page refresh -->
+<script>
+  document.getElementById('submit').addEventListener('click', function(event) {
+      event.preventDefault(); // Prevent the default form submission
+      document.getElementById('quizForm').submit(); // Submit the form programmatically
+
+      // Delay the page reload by 2 seconds (2000 milliseconds)
+      setTimeout(function() {
+          location.reload();
+      }, 2000);
+  });
 </script>
 
 <!-- 

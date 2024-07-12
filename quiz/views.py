@@ -12,7 +12,7 @@ from django.http import HttpResponseRedirect
 @login_required
 def take_exams_view(request):
     course = TopicsAssessment.objects.get_queryset().order_by('id')
-    print("Course Title:", course.title)
+    # print("Course Title:", course.title)
     for ta in TopicsAssessment.objects.all():
         print("TopicsAssessment Course Name Title:", ta.course_name.title)
         print("TopicsAssessment topic Name:", ta.course_name)
@@ -80,54 +80,80 @@ from django.urls import reverse
 def calculate_marks_view(request):
     if request.COOKIES.get('course_id') is not None:
         course_id = request.COOKIES.get('course_id')
-        course= TopicsAssessment.objects.get(id=course_id)
+        course = get_object_or_404(TopicsAssessment, id=course_id)
         options = []  # List to store the selected options
-        total_marks=0
-        questions= QuestionAssessment.objects.get_queryset().filter(course=course).order_by('id')
+        total_marks = 0
+        questions = QuestionAssessment.objects.filter(course=course).order_by('id')
         for i in range(len(questions)):
-            
-            # selected_ans = request.COOKIES.get(str(i+1))
             selected_ans = request.POST.get(str(i+1))
             options.append(selected_ans)  # Add selected option to the list
-            print("answers", selected_ans)
-            
             actual_answer = questions[i].answer
             if selected_ans == actual_answer:
-                total_marks = total_marks + questions[i].marks
-        student = Profile.objects.get(user_id=request.user.id)
-        result =ResultAssessment()
-        
-        result.marks=total_marks 
-        result.exam=course
-        result.student=student
-        # options_str = ", ".join(str(option) if option is not None else "None" for option in options)
-        result.option = options  # Save selected options as a comma-separated string
-        
-        # print("result2", options)
-        
-        # m = ResultAssessment.objects.aggregate(Max('marks'))
-        # max_q = ResultAssessment.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-        # max_result = ResultAssessment.objects.filter(id__in = Subquery(max_q[:1]), exam=course, student=student)
-        # score = 0
-        # print("t mark", total_marks)
-        print("result", result)
-        print("pass mar", course.pass_mark)
-        
-        result.save()
-        # if result.marks >= course.pass_mark:
-        #     result.save()
+                total_marks += questions[i].marks
 
-        # if total_marks > score:
+        student = get_object_or_404(Profile, user_id=request.user.id)
 
-        # if request.method == 'POST':
-        #     Option1 = request.POST.get('1')
-        #     Option2 = request.POST.get('2')
-        #     Option3 = request.POST.get('3')
-        #     Option4 = request.POST.get('4')
-       
-        return HttpResponseRedirect(reverse('quiz:start-exam', kwargs={'pk': course.pk}))
+        # Check if the result already exists
+        existing_result = ResultAssessment.objects.filter(marks=total_marks,student=student, exam=course).first()
+
+        if existing_result:
+            # Update the existing result
+            existing_result.marks = total_marks
+            existing_result.option = options  # Save selected options as a list
+            existing_result.save()
+            print(existing_result, 'updated result')
+        else:
+            # Create a new result
+            result = ResultAssessment.objects.create(
+                marks=total_marks,
+                exam=course,
+                student=student,
+                option=options  # Save selected options as a list
+            )
+            print(result, 'new result')
+
+     
+        
+        return HttpResponseRedirect(f'/quiz/start-exam/{course.pk}')
     else:
-        return HttpResponseRedirect('take-exam')
+        return HttpResponseRedirect('/quiz/take-exam')
+       
+# @login_required
+# def calculate_marks_view(request):
+#     if request.COOKIES.get('course_id') is not None:
+#         course_id = request.COOKIES.get('course_id')
+#         course= TopicsAssessment.objects.get(id=course_id)
+#         options = []  # List to store the selected options
+#         total_marks=0
+#         questions= QuestionAssessment.objects.get_queryset().filter(course=course).order_by('id')
+#         for i in range(len(questions)):
+            
+#             # selected_ans = request.COOKIES.get(str(i+1))
+#             selected_ans = request.POST.get(str(i+1))
+#             options.append(selected_ans)  # Add selected option to the list
+#             print("answers", selected_ans)
+            
+#             actual_answer = questions[i].answer
+#             if selected_ans == actual_answer:
+#                 total_marks = total_marks + questions[i].marks
+#         student = Profile.objects.get(user_id=request.user.id)
+        
+#         result =ResultAssessment()
+        
+#         result.marks=total_marks 
+#         result.exam=course
+#         result.student=student
+#         # options_str = ", ".join(str(option) if option is not None else "None" for option in options)
+#         result.option = options  # Save selected options as a comma-separated string
+        
+#         print("result", result)
+#         print("pass mar", course.pass_mark)
+        
+#         result.save()
+
+#         return HttpResponseRedirect(reverse('quiz:start-exam', kwargs={'pk': course.pk}))
+#     else:
+#         return HttpResponseRedirect('take-exam')
 
 
 
