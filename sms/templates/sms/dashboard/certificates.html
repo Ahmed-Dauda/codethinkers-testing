@@ -43,7 +43,7 @@
             <td>{{ t.exam }}</td>
             <td>
               {% if t.marks != 0 %}
-              <span>Score: ({{ t.marks|div:q_count|mul:100 }} %) </span>
+              <span>Score: ( {{ t.marks|div:q_count|mul:100|floatformat:"1" }} %) </span>
           {% else %}
               <span>Score: 0 </span>
           {% endif %}
@@ -56,7 +56,7 @@
     
           <!-- <span>Score: ({{ t.marks|div:q_count|mul:100 }} %) </span> -->
           {% if t.marks != 0 %}
-    <span>Score: ({{ t.marks|div:q_count|mul:100 }} %) </span>
+    <span>Score: ({{ t.marks|div:q_count|mul:100|floatformat:"1" }} %) </span>
 {% else %}
     <span>Score: N/A </span>
 {% endif %}
