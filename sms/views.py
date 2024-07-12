@@ -1279,28 +1279,60 @@ class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
 
 
 @login_required
-def Admin_detail_view(request,pk):
-    course=QMODEL.Course.objects.get(id=pk)
-    student = Profile.objects.get(user_id=request.user.id)
+def Admin_detail_view(request, pk):
+    course = get_object_or_404(Course, id=pk)
+    student = get_object_or_404(Profile, user_id=request.user.id)
 
-    # m = QMODEL.Result.objects.aggregate(Max('marks'))   
-    # max_q = QMODEL.Result.objects.filter(student_id = OuterRef('student_id'), exam_id = OuterRef('exam_id') ,).order_by('-marks').values('id')
-    max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-    results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course).order_by('-marks')
-    Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course, marks = 1).delete() 
+    # Find the max marks for each exam and student combination
+    max_q = Result.objects.filter(
+        student_id=OuterRef('student_id'),
+        exam_id=OuterRef('exam_id')
+    ).order_by('-marks').values('id')
 
-    questions = QMODEL.Question.objects.filter(course= course).count()
-    print('questions', questions)
-    
- 
-    context = { 
-        'results':results,
-        'course':course,
-        'st':request.user,
-        'q_count':questions
-     
+    # Get the results with the highest marks
+    results = Result.objects.filter(
+        id=Subquery(max_q[:1]),
+        exam=course
+    ).order_by('-marks')
+
+    # Optionally delete results with marks = 1 that are not the highest
+    Result.objects.filter(
+        id__in=Subquery(max_q[1:]),
+        exam=course,
+        marks=1
+    ).delete()
+
+    # Count the number of questions in the course
+    questions_count =QMODEL.Question.objects.filter(course=course).count()
+
+    context = {
+        'results': results,
+        'course': course,
+        'st': request.user,
+        'q_count': questions_count
     }
-    return render(request,'sms/dashboard/admin_details.html', context)
+
+    return render(request, 'sms/dashboard/admin_details.html', context)
+
+# @login_required
+# def Admin_detail_view(request,pk):
+#     course=QMODEL.Course.objects.get(id=pk)
+#     student = Profile.objects.get(user_id=request.user.id)
+
+#     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
+#     results = Result.objects.filter(id = Subquery(max_q[:1]), exam=course).order_by('-marks')
+#     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course, marks = 1).delete() 
+#     questions = QMODEL.Question.objects.filter(course= course).count()
+#     # print('questions', questions)
+    
+#     context = { 
+#         'results':results,
+#         'course':course,
+#         'st':request.user,
+#         'q_count':questions
+     
+#     }
+#     return render(request,'sms/dashboard/admin_details.html', context)
 
 
     
