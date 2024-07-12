@@ -457,7 +457,9 @@ def Certificates(request,pk):
     max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
     results = Result.objects.filter(exam=course, student = student).order_by('-date')[:1]
     Result.objects.filter(id__in = Subquery(max_q[1:]), exam=course)
-   
+    
+
+
     context = {
         'results':results,
         'course':course,
@@ -465,6 +467,7 @@ def Certificates(request,pk):
         'user_profile':student,
         'courses':courses,
         'cert_note':cert_note,
+       
    
         # 'message': message,
     }
@@ -507,7 +510,10 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
             return HttpResponseRedirect("account_login")
         
         # context['certificate'] = get_object_or_404(Certificate, code=self.kwargs['pk'], user=self.request.user)
+        questions = QMODEL.Question.objects.filter(course= zcourse).count()
+        print('questions', questions)
         context['results'] = results
+        context['q_count'] = int(questions)
         context['course'] = zcourse
         context['st'] = self.request.user
         context['user_profile'] = user_profile

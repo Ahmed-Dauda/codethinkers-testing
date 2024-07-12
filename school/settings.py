@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'tinymce',
     'django_social_share',
     'import_export',
+    'mathfilters',
     
     
     
