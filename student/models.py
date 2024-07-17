@@ -198,10 +198,11 @@ class DocPayment(models.Model):
 
 
 class Payment(models.Model):
-    payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
+    # payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
     courses = models.ManyToManyField(Courses, related_name='payments', blank=True)
     amount = models.PositiveBigIntegerField(null=True)
     ref = models.CharField(max_length=250, null=True)
+    f_code = models.CharField(max_length=200, null=True, blank=True)
     first_name = models.CharField(max_length=200, null=True)
     last_name = models.CharField(max_length=200, null=True)
     content_type = models.CharField(max_length=200, null=True)
@@ -213,11 +214,19 @@ class Payment(models.Model):
     def __str__(self):
         # Get a comma-separated list of course titles
         course_titles = ', '.join(course.title for course in self.courses.all())
-        return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles}"
+        return f"{self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles}"
 
 
 from django.urls import reverse
 from django import forms
+
+class PercentageReferrer(models.Model):
+    referer_per = models.CharField(max_length=20, blank=True, null=True, default="20")
+    
+    def __str__(self):
+        return f'Percentages of Referrer {self.referer_per}'
+
+
 
 class ReferrerMentor(models.Model):
     name = models.CharField(max_length=20, blank=True, null=True)
@@ -230,6 +239,7 @@ class ReferrerMentor(models.Model):
     account_number = models.CharField(max_length=20, blank=True, null=True)
     bank = models.CharField(max_length=50, blank=True, null=True)
     phone_no = models.CharField(max_length=50, blank=True, null=True)
+    referer_per = models.CharField(max_length=20, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
     # # ... widthral methods ...
     # withdrawal_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -259,21 +269,38 @@ class ReferrerMentor(models.Model):
     def referred_students_phone_numbers(self):
         return self.referred_students.values_list('phone_number', flat=True)
     
-
+    @property
+    def referred_students_referer_per(self):
+        return self.referred_students.values_list('referer_per', flat=True)
+    
     @property
     def f_code_count(self):
-        return CertificatePayment.objects.filter(f_code=self.referrer_code).count()
+        return CertificatePayment.objects.filter(f_code=self.referrer_code).count() + Payment.objects.filter(f_code=self.referrer_code).count()
 
     @property
     def total_amount(self):
         return CertificatePayment.objects.filter(f_code=self.referrer_code).aggregate(Sum('amount'))['amount__sum']
+    
+    @property
+    def payment_f_code_count(self):
+        return Payment.objects.filter(f_code=self.referrer_code).count()
+    
+    @property
+    def payment_total_amount(self):
+        return Payment.objects.filter(f_code=self.referrer_code).aggregate(Sum('amount'))['amount__sum']
 
     @property
     def related_payments(self):
         return CertificatePayment.objects.filter(f_code=self.referrer_code)
     
+    @property
+    def course_payments(self):
+        return Payment.objects.filter(f_code=self.referrer_code)
+    
+    
     def __str__(self):
         return f'Referrer Profile for {self.name}'
+
 
 @receiver(pre_save, sender=ReferrerMentor)
 def generate_referrer_code(sender, instance, **kwargs):

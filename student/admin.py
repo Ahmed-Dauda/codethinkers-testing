@@ -3,7 +3,7 @@ from django.contrib import admin
 from student.models import (Logo, Signature, Designcert, 
                             PartLogo, Payment,PDFDocument, 
                             DocPayment, CertificatePayment, 
-                            EbooksPayment, ReferrerMentor
+                            EbooksPayment, ReferrerMentor, PercentageReferrer
                             )
 
 # from student.models import Cart,CartItem, Order, OrderItem
@@ -20,7 +20,7 @@ from django.utils.html import format_html
 from .models import AdvertisementImage
 
 admin.site.register(PDFDocument)
-# admin.site.register(WithdrawalRequest)
+admin.site.register(PercentageReferrer)
 
 class AdvertisementImageAdmin(admin.ModelAdmin):
     list_display = ('id', 'image', 'desc')
@@ -105,9 +105,9 @@ class CertificatePaymentResource(resources.ModelResource):
 
 
 class CertificatePaymentAdmin(ImportExportModelAdmin):
-    list_display = ['id', 'amount', 'ref', 'f_code','first_name','last_name','get_courses_titles' ,'content_type', 'email', 'verified', 'date_created']
+    list_display = ['email', 'amount', 'ref', 'f_code','first_name','last_name','get_courses_titles' ,'content_type', 'verified', 'date_created']
     list_filter = ['amount', 'f_code', 'content_type', 'ref', 'email', 'date_created']
-    search_fields = ['id', 'amount', 'f_code', 'content_type','date_created', 'email']
+    search_fields = ['amount','email','f_code', 'content_type','date_created']
     ordering = ['amount']
     resource_class = CertificatePaymentResource
 
@@ -134,9 +134,10 @@ from .models import Payment
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('payment_user', 'content_type', 'amount', 'get_course_titles', 'verified', 'date_created')
-    list_filter = ('content_type', 'verified', 'date_created')
-    search_fields = ('payment_user__user__username', 'content_type', 'amount', 'courses__title')
+    list_display = ('email','content_type','first_name','first_name','amount','ref','f_code' ,'get_course_titles', 'verified', 'date_created')
+    list_filter = ('content_type','email','verified','ref','f_code', 'date_created')
+    search_fields = ('ref','f_code', 'email','content_type', 'amount', 'courses__title')
+    # search_fields = ('payment_user__user__username','ref','f_code', 'email','content_type', 'amount', 'courses__title')
 
     def get_course_titles(self, obj):
         return ', '.join(course.title for course in obj.courses.all())

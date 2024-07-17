@@ -9,7 +9,7 @@ from django.utils.decorators import method_decorator
 from django.db.models import fields
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
-from student.models import ReferrerMentor
+from student.models import ReferrerMentor, PercentageReferrer
 from django.conf import settings
 from django.http import JsonResponse
 from django.core.paginator import Paginator
@@ -774,7 +774,63 @@ class Blogdetaillistview(HitCountDetailView,DetailView):
         return context 
 # end dashboard view
 
+
+# class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
+#     model = Courses
+#     template_name = 'sms/dashboard/courselistdesc.html'
+#     count_hit = True
+
+#     def get_queryset(self):
+#         return Courses.objects.all()
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         course = self.get_object()  # Retrieve the course
+      
+#         context['coursess'] = Courses.objects.all().order_by('created')[:10]
+#         context['courses_count'] = Courses.objects.filter(categories__pk=self.object.id).count()
+#         context['category_sta'] = Categories.objects.annotate(num_course=Count('categories'))
    
+#         context['course'] = Courses.objects.get(pk=self.kwargs["pk"])
+#         prerequisites = course.prerequisites.all()
+#         context['prerequisites'] = prerequisites
+#          # Retrieve related courses based on category
+#         context['related_courses'] = Courses.objects.filter(categories=course.categories).exclude(id=self.object.id)
+#         context['faqs'] = CourseFrequentlyAskQuestions.objects.all().filter(courses_id= course).order_by('id')
+#         context['courseLearnerReviews'] = CourseLearnerReviews.objects.filter(courses_review_id= course).order_by('id')
+#         context['skillyouwillgain'] = Skillyouwillgain.objects.all().filter(courses_id= course).order_by('id')
+#         context['whatyouwilllearn'] = Whatyouwilllearn.objects.all().filter(courses_id= course).order_by('id')
+#         context['whatyouwillbuild'] = Whatyouwillbuild.objects.all().filter(courses_id= course).order_by('id')
+#         context['careeropportunities'] = CareerOpportunities.objects.all().filter(courses_id= course).order_by('id')
+#         context['aboutcourseowners'] = AboutCourseOwner.objects.all().filter(courses_id= course).order_by('id')
+#         context['topics'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id')
+#         context['payments'] = Payment.objects.filter(courses=course).order_by('id')
+
+#         user = self.request.user
+#         # Handle the case where the Profile does not exist
+#         try:
+#             student_count = Profile.objects.filter(student_course=course).count()
+#         except Profile.DoesNotExist:
+#             student_count = 0
+        
+#         context['student_count'] = student_count
+
+#         # Get all schools associated with the specific course
+#         associated_schools = course.schools.all()
+#         context['associated_schools'] = associated_schools
+#         print('associated_schools', associated_schools)
+
+#         user_newuser = get_object_or_404(NewUser, email=self.request.user)
+#         if user_newuser.school:
+#             context['school_name'] = user_newuser.school.school_name
+
+#         related_payments = Payment.objects.filter(email=user, courses=course, amount=course.price)
+#         context['related_payments'] = related_payments
+#         enrollment_count = related_payments.count()
+#         context['enrollment_count'] = enrollment_count + 100
+
+#         return context
+      
 
 class Courseslistdescview(LoginRequiredMixin, HitCountDetailView, DetailView):
     model = Courses
@@ -1030,6 +1086,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         user_profile = Profile.objects.filter(user_id=self.request.user.id)
         context['user_profile'] = user_profile
+        context['percentage_referer'] = PercentageReferrer.objects.all()
 
         # Include school name if it exists in the user's profile
         # print("self.request.user", self.request.user)
@@ -1109,8 +1166,6 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         #     context['payment_amount'] = paymentdata.amount
         #     print('amount', paymentdata.amount)
 
-
-
         try:
             # Referrer account
             referrer_mentors = ReferrerMentor.objects.filter(referrer=self.request.user.id)
@@ -1124,27 +1179,47 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
                 f_code_count = referrer_mentor.f_code_count
                 count_of_students_referred = referrer_mentor.count_of_students_referred
                 total_amount = referrer_mentor.total_amount
+                payment_total_amount = referrer_mentor.payment_total_amount
+
+                # # Handle total_amount
+                # if total_amount is not None:
+                #     total_amount /= 2
+                # else:
+                #     # Handle the case where total_amount is None, if needed
+                #     pass
 
                 # Handle total_amount
-                if total_amount is not None:
-                    total_amount /= 2
+                if payment_total_amount is not None:
+                    payment_total_amount *= 0.2
+                    print('payment_total_amount',payment_total_amount)
                 else:
                     # Handle the case where total_amount is None, if needed
                     pass
+
+                # Handle total_amount
+                if total_amount is not None:
+                    total_amount *= 0.2
+                else:
+                    # Handle the case where total_amount is None, if needed
+                    pass
+
 
                 account_number = referrer_mentor.account_number
                 account_name = referrer_mentor.name
                 bank = referrer_mentor.bank
                 phone_no = referrer_mentor.phone_no
+                referer_per = referrer_mentor.referer_per
 
                 context['referrer_mentor'] = referrer_mentor
                 context['referred_students_count'] = referred_students_count
                 context['f_code_count'] = f_code_count
                 context['total_amount'] = total_amount
+                context['payment_total_amount'] = payment_total_amount
                 context['referrer_code'] = referrer_mentor.referrer_code
                 context['account_number'] =  account_number
                 context['account_name'] =  account_name
                 context['phone_no'] =  phone_no
+                context['referer_per'] =  referer_per
                 context['bank'] =  bank
                 context['count_of_students_referred'] = count_of_students_referred
             else:
@@ -1158,6 +1233,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
                 context['account_name'] =  'NIL'
                 context['bank'] =  'NIL'
                 context['phone_no'] =  'NIL'
+                context['referer_per'] =  'NIL'
                 context['count_of_students_referred'] = 'NIL'
 
         except ReferrerMentor.DoesNotExist:
