@@ -311,10 +311,10 @@ USE_TZ = True
 
 
 
-# ADDITIONAL SITE SECURITY
+# ADDITIONAL SITEs SECURITY
 
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
 
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
@@ -406,8 +406,6 @@ TINYMCE_COMPRESSOR = False
 # live api
 PAYSTACK_SECRET_KEY = 'sk_live_ecb915cd648ffcea0578361a08ac369122f02754'
 PAYSTACK_PUBLIC_KEY = 'pk_live_010265c77983e11a700678d34d476b1ce1c48fb1'
-
-
 
 # problem of hosting to heroku and solution
 # error: failed to push some refs to 'https://git.heroku.com/codethinkers.git'
