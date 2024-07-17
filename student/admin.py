@@ -70,13 +70,23 @@ class ReferrerMentorAdmin(ImportExportModelAdmin):
     # Count_of_students_referred.short_description = 'Count of students referred'
 
     def get_total_amount(self, obj):
-        total_amount = CertificatePayment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum']
-        total_amount += Payment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum']
-        if total_amount is not None:
+        cert_payment_sum = CertificatePayment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum'] or 0
+        payment_sum = Payment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        total_amount = cert_payment_sum + payment_sum
+        
+        if total_amount:
             total_amount *= 0.2
-            return total_amount 
-        else:
-            return 0  # 
+        return total_amount or 0
+
+    # def get_total_amount(self, obj):
+    #     total_amount = CertificatePayment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum']
+    #     total_amount += Payment.objects.filter(f_code=obj.referrer_code).aggregate(Sum('amount'))['amount__sum']
+    #     if total_amount is not None:
+    #         total_amount *= 0.2
+    #         return total_amount 
+    #     else:
+    #         return 0  # 
         
         # if total_amount is not None:
         #     return total_amount *= 0.2
