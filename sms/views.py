@@ -1178,8 +1178,9 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
                 referred_students_count = referrer_mentor.referred_students_count
                 f_code_count = referrer_mentor.f_code_count
                 count_of_students_referred = referrer_mentor.count_of_students_referred
-                total_amount = referrer_mentor.total_amount
-                payment_total_amount = referrer_mentor.payment_total_amount
+                total_amount = (referrer_mentor.total_amount or 0) + (referrer_mentor.payment_total_amount or 0)
+                # total_amount = referrer_mentor.total_amount + referrer_mentor.payment_total_amount
+                # payment_total_amount = referrer_mentor.payment_total_amount
 
                 # # Handle total_amount
                 # if total_amount is not None:
@@ -1189,12 +1190,12 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
                 #     pass
 
                 # Handle total_amount
-                if payment_total_amount is not None:
-                    payment_total_amount *= 0.2
-                    print('payment_total_amount',payment_total_amount)
-                else:
-                    # Handle the case where total_amount is None, if needed
-                    pass
+                # if payment_total_amount is not None:
+                #     payment_total_amount *= 0.2
+                #     print('payment_total_amount',payment_total_amount)
+                # else:
+                #     # Handle the case where total_amount is None, if needed
+                #     pass
 
                 # Handle total_amount
                 if total_amount is not None:
@@ -1214,7 +1215,7 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
                 context['referred_students_count'] = referred_students_count
                 context['f_code_count'] = f_code_count
                 context['total_amount'] = total_amount
-                context['payment_total_amount'] = payment_total_amount
+                # context['payment_total_amount'] = payment_total_amount
                 context['referrer_code'] = referrer_mentor.referrer_code
                 context['account_number'] =  account_number
                 context['account_name'] =  account_name
