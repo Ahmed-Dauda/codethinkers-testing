@@ -13,20 +13,25 @@
     <p class="text-center">Start the Quiz</p>
     <p class="text-center">Good luck!</p>
 
- 
+   
     <div style="display: flex; flex-wrap: wrap; justify-content: center; padding: 0 10px 0px 10px;">
         {% for item in courses %}
-        <div style="width: 100%; max-width: 400px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; display: flex;">
+
+        <a style="color: #333; text-decoration: none; font-size:12px;" href="{% url 'student:start-exam' item.id %}">
+        <div style="width: 100%; max-width: 400px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; display: flex;">       
             <div style="background-color: #f0f0f0; color: #333; font-size: 24px; font-weight: bold; padding: 20px; border-right: 1px solid #ccc;">
                 {{item|make_list|first }}
             </div>
             <div style="flex-grow: 1;">
                 <div style="padding: 20px;">
-                    <a style="color: #333; text-decoration: none; font-size:12px;" href="{% url 'student:start-exam' item.id %}">{{ item }}</a>
+                    
+                        {{ item }}
                    
                 </div>
             </div>
+     
         </div>
+    </a>
         {% empty %}
         <div style="width: 100%; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 8px; overflow: hidden;">
             <div style="padding: 20px;">
@@ -35,7 +40,7 @@
         </div>
         {% endfor %}
     </div>
-    
+
     
     
    

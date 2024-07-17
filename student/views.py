@@ -78,33 +78,29 @@ def paystack_webhook(request):
         content_type = url_parts[-3]
         print("content_type", content_type)
         print('url:', url_parts[-3])
-
         # retrieving referral codes
         recode = get_object_or_404(NewUser, email = email)
         recode = recode.phone_number
     
-
         # Check if the last part of the URL is a numeric "id"
         if url_parts[-2].isdigit():
             id_value = url_parts[-2]
             print("Extracted ID:", id_value)
         else:
             id_value = None
-
-        
         # print("course printed:", course)
-        
         # course_amount = course.price
-      
         if content_type == 'course':
             # Assuming id_value is the primary key of the Courses model
             course = get_object_or_404(Courses, pk=id_value)
-
             # Check if a Payment with the same reference already exists
             # user_newuser = get_object_or_404(NewUser, email=request.user)
             # print("user_newuser", user_newuser)
-            user = Profile.objects.get(id=course.id)
-            existing_payment = Payment.objects.filter(ref=reference).first()
+            # user = Profile.objects.get(id=course.id)
+
+            # profile = get_object_or_404(Profile, id=user_id)
+     
+            existing_payment = Payment.objects.filter(ref=reference, email=email,amount=paid_amount,content_type=course).first()
 
             if not existing_payment:
                 # Create a new Payment only if no existing payment is found
@@ -116,8 +112,8 @@ def paystack_webhook(request):
                     email=email,
                     verified=verified,
                     content_type=course,
-                    payment_user=user,
-                    
+                    f_code=recode,
+                    # payment_user=user,   
                 )
 
                 # Set courses for the Payment instance
@@ -179,6 +175,7 @@ def paystack_webhook(request):
                         email=email,
                         verified=verified,
                         content_type=course,
+                        
                     )
 
                     if course:
@@ -188,26 +185,6 @@ def paystack_webhook(request):
                     # You may want to log, display an error message, or take other actions
                     print(f"Payment with reference {reference} already exists.")
 
- 
-            # if content_type == 'ebooks':
-            #     course = get_object_or_404(PDFDocument, pk=id_value)
-            
-            #     epayment = EbooksPayment.objects.create(
-            #         ref=reference,
-            #         amount=paid_amount,
-            #         first_name=first_name,
-            #         last_name=last_name,
-            #         email=email,
-            #         verified=verified,
-            #         content_type = course,
-                
-            #     )
-            #     # print("idvalue", id_value)
-            #     course = get_object_or_404(PDFDocument, pk=id_value)
-            #     # print('pdfcourse', course)
-            #     # Add courses to the payment using the 'set()' method
-            #     if course:
-            #         epayment.courses.set([course])
 
         return JsonResponse({'status': 'success'})
     else:

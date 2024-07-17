@@ -195,36 +195,25 @@
   {% endif  %}
 </div>
 
-<script>
-//   function copyToClipboard() {
-//   var copyText = document.getElementById("referralLink");
-//   copyText.setSelectionRange(0, copyText.value.length);
-//   document.execCommand("copy");
-//   alert("Copied the referral link: " + copyText.value);
-// }
 
-  function copyToClipboard() {
-    var copyText = document.getElementById("referralLink");
-    copyText.select();
-    document.execCommand("copy");
-    alert("Copied the referral link: " + copyText.value);
-  }
-</script>
 <hr>
+
+{% for percentage in percentage_referer %}
+  <p style="color: green; text-align: center;">Note: Your earning is {{ percentage.referer_per }}% of the certificates purchased</p>
+{% endfor %}
 
 {% if referrer_mentor %}
   <!-- Referrer Information -->
   <a href="{% url 'student:referrer_mentor_detail' pk=referrer_mentor.pk %}" target="_blank" rel="noopener noreferrer">Update Account <Details></Details></a>
 
-  <h3 style="color: green; text-align: center;">Note: Your earning is 50% of the certificates purchased</h3>
-  <h2 style="color: red;">Referrer Information</h2>
+  <p style="color: red;">Referrer Information</p>
   <div style="overflow-x: auto;">
     <table style="border-collapse: collapse; width: 100%;" border="1">
       <tr>
         <th style="border: 1px solid black; text-align: center;">Referral Code</th>
-        <th style="border: 1px solid black; text-align: center;">Purchased Certificate</th>
-        <th style="border: 1px solid black; text-align: center;">Referred Students Count</th>
-        <th style="border: 1px solid black; text-align: center;">F Code Count</th>
+        <th style="border: 1px solid black; text-align: center;">Purchases</th>
+        <!-- <th style="border: 1px solid black; text-align: center;">Referred Students Count</th> -->
+        <!-- <th style="border: 1px solid black; text-align: center;">Referred Students Count</th> -->
         <th style="border: 1px solid black; text-align: center;">Total Earnings (#)</th>
         <th style="border: 1px solid black; text-align: center;">Account Name</th>
         <th style="border: 1px solid black; text-align: center;">Account Number</th>
@@ -234,9 +223,9 @@
       <tr>
         <td style="border: 1px solid black; text-align: center;">{{ referrer_mentor.referrer_code }}</td>
         <td style="border: 1px solid black; text-align: center;">{{ referrer_mentor.f_code_count }}</td>
-        <td style="border: 1px solid black; text-align: center;">{{ count_of_students_referred }}</td>
-        <td style="border: 1px solid black; text-align: center;">{{ referrer_mentor.f_code_count }}</td>
-        <td style="border: 1px solid black; text-align: center;">{{ total_amount }}</td>
+        <!-- <td style="border: 1px solid black; text-align: center;">{{ count_of_students_referred }}</td> -->
+        <!-- <td style="border: 1px solid black; text-align: center;">{{ referrer_mentor.f_code_count }}</td> -->
+        <td style="border: 1px solid black; text-align: center;">{{ total_amount|add:payment_total_amount }} </td>
         <td style="border: 1px solid black; text-align: center;">{{ account_name }}</td>
         <td style="border: 1px solid black; text-align: center;">{{ account_number }}</td>
         <td style="border: 1px solid black; text-align: center;">{{ bank }}</td>
@@ -250,15 +239,8 @@
 
   <br> <br> <hr>
   <!-- Referred Students -->
-  <h3 style="color: red;">Referred Students and course(s)</h3>
-  <!-- <ul>
-    {% for student in referrer_mentor.referred_students.all %}
-      <li>{{ student.username }}</li>
-    {% endfor %}
-  </ul> -->
+  <p style="color: red;">Referred Students and course(s)</p>
 
-  <!-- Payments and Courses -->
-  <!-- <h2>Payments and Courses</h2> -->
   <div style="overflow-x: auto;">
     <table style="border-collapse: collapse; width: 100%;" border="1">
       <tr>
@@ -280,6 +262,20 @@
           <td colspan="4" style="border: 1px solid black; text-align: center;">No payments found.</td>
         </tr>
       {% endfor %}
+
+      {% for payment in referrer_mentor.course_payments %}
+      <tr>
+        <td style="border: 1px solid black; text-align: center;">{{ payment.first_name }} {{ payment.last_name }}</td>
+        <td style="border: 1px solid black; text-align: center;">{{ payment.amount }}</td>
+        <td style="border: 1px solid black; text-align: center;">{{ payment.content_type }} </td>
+
+        <td style="border: 1px solid black; text-align: center;">{{ payment.date_created }}</td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="4" style="border: 1px solid black; text-align: center;">No payments found.</td>
+      </tr>
+    {% endfor %}
     </table>
   </div>
   
@@ -320,4 +316,20 @@
 </table>
 
 
+<script>
+  //   function copyToClipboard() {
+  //   var copyText = document.getElementById("referralLink");
+  //   copyText.setSelectionRange(0, copyText.value.length);
+  //   document.execCommand("copy");
+  //   alert("Copied the referral link: " + copyText.value);
+  // }
+  
+    function copyToClipboard() {
+      var copyText = document.getElementById("referralLink");
+      copyText.select();
+      document.execCommand("copy");
+      alert("Copied the referral link: " + copyText.value);
+    }
+  </script>
+  
 {% endblock %} 
