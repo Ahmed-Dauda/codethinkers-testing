@@ -39,11 +39,11 @@ class ReferrerMentorResource(resources.ModelResource):
 
 class ReferrerMentorAdmin(ImportExportModelAdmin):
     list_display = [
-        'id', 'name', 'referrer', 'get_f_code_count','get_total_amount',
+        'name', 'referrer', 'get_f_code_count','get_total_amount',
         'referrer_code', 'account_number', 'bank', 'phone_no', 'date_created'
     ]
-    list_filter = ['id', 'name', 'referrer', 'referrer_code']
-    search_fields = ['id', 'name', 'referrer', 'referrer_code']
+    list_filter = ['name', 'referrer', 'referrer_code']
+    search_fields = ['name', 'referrer', 'referrer_code']
     ordering = ['id']
 
     resource_class = ReferrerMentorResource
@@ -76,7 +76,9 @@ class ReferrerMentorAdmin(ImportExportModelAdmin):
         total_amount = cert_payment_sum + payment_sum
         
         if total_amount:
-            total_amount *= 0.2
+            referer_per = PercentageReferrer.objects.all().first().referer_per
+            # referer_per = int(referer_per)
+            total_amount *= int(referer_per)/100
         return total_amount or 0
 
     # def get_total_amount(self, obj):

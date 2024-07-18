@@ -239,7 +239,7 @@ class ReferrerMentor(models.Model):
     account_number = models.CharField(max_length=20, blank=True, null=True)
     bank = models.CharField(max_length=50, blank=True, null=True)
     phone_no = models.CharField(max_length=50, blank=True, null=True)
-    referer_per = models.CharField(max_length=20, blank=True, null=True)
+    # referer_per = models.CharField(max_length=20, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
     # # ... widthral methods ...
     # withdrawal_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
