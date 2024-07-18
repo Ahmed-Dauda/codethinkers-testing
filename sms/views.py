@@ -1179,8 +1179,16 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
                 f_code_count = referrer_mentor.f_code_count
                 count_of_students_referred = referrer_mentor.count_of_students_referred
                 total_amount = (referrer_mentor.total_amount or 0) + (referrer_mentor.payment_total_amount or 0)
-                referer_per = PercentageReferrer.objects.all().first().referer_per
+                # referer_per = PercentageReferrer.objects.all().first().referer_per
                 # print('Retrieved referer_per from PercentageReferrer:', referer_per)
+                referer_per = PercentageReferrer.objects.all().first()
+                if referer_per is not None:
+                    referer_per = referer_per.referer_per
+                    print('Retrieved referer_per from PercentageReferrer:', referer_per)
+                else:
+                    referer_per = None
+                    print('PercentageReferrer record does not exist, using default value of 20')
+                    
 
                
                 # total_amount = referrer_mentor.total_amount + referrer_mentor.payment_total_amount
