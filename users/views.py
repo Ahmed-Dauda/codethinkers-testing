@@ -170,6 +170,8 @@ class ReferralSignupView(SignupView):
 from django.shortcuts import render, redirect
 from .forms import ReferrerMentorForm
 
+
+@login_required
 def become_referrer(request):
     if request.method == 'POST':
         form = ReferrerMentorForm(request.POST)
@@ -183,6 +185,8 @@ def become_referrer(request):
         form = ReferrerMentorForm(initial={'referrer': request.user.pk})
 
     return render(request, 'users/become_referrer.html', {'form': form})
+
+
 
 # def referral_signup(request, referrer_code):
 #     # Your referral logic goes here
