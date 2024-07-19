@@ -180,16 +180,26 @@ cloudinary.config(
 # code to unblock zoho account
 # https://mail.zoho.com/UnblockMe
 
-EMAIL_BACKED = 'django_smtp_ssl.SSLEmailBackend'
+EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = 'smtppro.zoho.eu'
-# EMAIL_HOST = 'smtppro.zoho.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False 
+EMAIL_PORT = 465  # SSL port
+EMAIL_USE_TLS = False  # Use TLS should be False if using SSL
+EMAIL_USE_SSL = True  # Enable SSL
 EMAIL_HOST_USER = 'techsupport@esteemlearningcentre.com'
-# EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
 EMAIL_HOST_PASSWORD = 'techSupport@01'
 DEFAULT_FROM_EMAIL = 'techsupport@esteemlearningcentre.com'
+
+# EMAIL_BACKED = 'django_smtp_ssl.SSLEmailBackend'
+# EMAIL_HOST = 'smtppro.zoho.eu'
+# # EMAIL_HOST = 'smtppro.zoho.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_USE_SSL = False 
+# EMAIL_HOST_USER = 'techsupport@esteemlearningcentre.com'
+# # EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
+# EMAIL_HOST_PASSWORD = 'techSupport@01'
+# DEFAULT_FROM_EMAIL = 'techsupport@esteemlearningcentre.com'
+
 
 # if DEBUG:
 #     EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
