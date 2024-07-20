@@ -183,11 +183,23 @@ cloudinary.config(
 # EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
 # EMAIL_HOST = 'smtppro.zoho.eu'
 # EMAIL_PORT = 465  # SSL port
-# EMAIL_USE_TLS = False  # Use TLS should be False if using SSL
-# EMAIL_USE_SSL = True  # Enable SSL
-# EMAIL_HOST_USER = 'techsupport@esteemlearningcentre.com'
-# EMAIL_HOST_PASSWORD = 'techSupport@01'
-# DEFAULT_FROM_EMAIL = 'techsupport@esteemlearningcentre.com'
+# EMAIL_USE_TLS = True  # Use TLS should be False if using SSL
+# EMAIL_USE_SSL = False  # Enable SSL
+# EMAIL_HOST_USER = 'codethinkersa@gmail.com'
+# EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
+# DEFAULT_FROM_EMAIL = 'codethinkersa@gmail.com'
+
+# EMAIL_BACKED = 'django_smtp_ssl.SSLEmailBackend'
+# EMAIL_HOST = 'smtppro.zoho.eu'
+# # EMAIL_HOST = 'smtppro.zoho.com'
+# EMAIL_PORT = 465  # SSL port for Zoho
+# EMAIL_USE_TLS = False
+# EMAIL_USE_SSL = True
+# EMAIL_HOST_USER = 'codethinkersa@gmail.com'
+# # EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
+# EMAIL_HOST_PASSWORD = 'pYHr Mi6f iVDO'
+# DEFAULT_FROM_EMAIL = 'codethinkersa@gmail.com'
+
 
 EMAIL_BACKED = 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = 'smtppro.zoho.eu'
@@ -197,7 +209,7 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False 
 EMAIL_HOST_USER = 'techsupport@esteemlearningcentre.com'
 # EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
-EMAIL_HOST_PASSWORD = 'techSupport@01'
+EMAIL_HOST_PASSWORD = 'pYHr Mi6f iVDO'
 DEFAULT_FROM_EMAIL = 'techsupport@esteemlearningcentre.com'
 
 
