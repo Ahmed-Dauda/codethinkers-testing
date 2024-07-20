@@ -209,7 +209,7 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False 
 EMAIL_HOST_USER = 'techsupport@esteemlearningcentre.com'
 # EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
-EMAIL_HOST_PASSWORD = 'pYHr Mi6f iVDO'
+EMAIL_HOST_PASSWORD = 'techSupport@02'
 DEFAULT_FROM_EMAIL = 'techsupport@esteemlearningcentre.com'
 
 
