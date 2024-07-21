@@ -209,12 +209,13 @@
   {% if course.status_type == 'Free' %}
   <!-- For free courses, always display the "Enroll" button -->
   <a href="{% url 'sms:topicslistview' course.id %}">
-    <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
+    <button class="btn btn-primary">Start Learning</button>
+    <!-- <button class="btn btn-primary">Enroll {{ course.title|safe }}</button> -->
   </a>
 {% elif related_payments %}
   <!-- If there are related payments -->
   <a href="{% url 'sms:topicslistview' course.id %}">
-    <button class="btn btn-primary">Enroll {{ object.title }}</button>
+    <button class="btn btn-primary">Start Learning</button>
   </a>
 {% elif associated_schools %}
   <!-- If there are associated schools -->
@@ -222,7 +223,8 @@
     {% if school.school_name == school_name %}
       <!-- Inside the loop, check if the school name matches -->
       <a href="{% url 'sms:topicslistview' course.id %}">
-        <button class="btn btn-primary">Enroll {{ object.title }}</button>
+        <button class="btn btn-primary">Start Learning</button>
+        <!-- <button class="btn btn-primary">Enroll {{ object.title }}</button> -->
       </a>
       {% else %}
       <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
@@ -747,12 +749,12 @@ Career Support: Our commitment to your success goes beyond the classroom. Benefi
   {% if course.status_type == 'Free' %}
   <!-- For free courses, always display the "Enroll" button -->
   <a href="{% url 'sms:topicslistview' course.id %}">
-    <button class="btn btn-primary fixed-bottom">Enroll {{ course.title|safe }}</button>
+    <button class="btn btn-primary fixed-bottom">Start Learning</button>
   </a>
 {% elif related_payments %}
   <!-- If there are related payments -->
   <a href="{% url 'sms:topicslistview' course.id %}">
-    <button class="btn btn-primary fixed-bottom">Enroll {{ object.title }}</button>
+    <button class="btn btn-primary fixed-bottom">Start Learning</button>
   </a>
 {% elif associated_schools %}
   <!-- If there are associated schools -->
@@ -760,7 +762,7 @@ Career Support: Our commitment to your success goes beyond the classroom. Benefi
     {% if school.school_name == school_name %}
       <!-- Inside the loop, check if the school name matches -->
       <a href="{% url 'sms:topicslistview' course.id %}">
-        <button class="btn btn-primary fixed-bottom">Enroll {{ object.title }}</button>
+        <button class="btn btn-primary fixed-bottom">Start Learning</button>
       </a>
       {% else %}
       <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
