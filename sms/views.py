@@ -516,6 +516,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         context['results'] = results
         context['q_count'] = int(questions)
         context['course'] = zcourse
+        context['pcourse'] = zcourse
         context['st'] = self.request.user
         context['user_profile'] = user_profile
         context['courses'] = courses
@@ -545,9 +546,9 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         related_payments = CertificatePayment.objects.filter(
             email=user, courses=course,
             amount=course.course_name.cert_price)
-
-        course_payments = Payment.objects.filter(email=user, amount=course.course_name.price)
-
+        print('cert',course.course_name.cert_price)
+        course_payments = Payment.objects.filter(email=user,courses=course.course_name, amount=course.course_name.price)
+        print('corpay',course.course_name.price)
         context['course_payments'] = course_payments
         context['related_payments'] = related_payments
 
