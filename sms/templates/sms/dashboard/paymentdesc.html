@@ -226,9 +226,11 @@
   <h6>{{ object.title|safe }}</h6>
   <p>{{enrollment_count}}  students already enrolled </p>
   {% if object.price %}
-  <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  #{{object.price|safe|floatformat:"0g"}}</p> 
-
+  <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  #{{object.price|safe|floatformat:"0g"}} </p> 
+  {% elif object.cert_price %}
+  <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  #{{object.cert_price|safe|floatformat:"0g"}} </p> 
   {% else %}
+  
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}}</p> 
   
   {% endif %}
@@ -254,7 +256,11 @@
   </div>
   <div class="form-group">
     <label for="first-name"></label>
+    {% if object.price %}
     <input  value = "{{object.price|safe}}"  type="hidden" id="amount" required />
+    {% else %}
+    <input  value = "{{object.cert_price|safe}}"  type="hidden" id="amount" required />
+    {% endif %}
   </div>
   <div class="form-group">
    
