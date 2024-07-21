@@ -112,15 +112,15 @@
                 <button class="btn btn-primary" type="submit" id="purchasebtn" onclick="payWithPaystack()"> Pay #{{course.course_name.cert_price|safe}} Now to Print Certificate</button>
   
             {% else %}
-            {{course.course_name.price|safe}}
+            <!-- {{course.course_name.price|safe}} -->
             <button class="btn btn-primary" type="submit" id="purchasebtn" onclick="payWithPaystack()"> Pay #{{course.course_name.price|safe}} Now to Print Certificate</button>      
             {% endif %}
             {% endif %}
             
              {% endif %}
 
-                        </form>
-                        <script src="https://js.paystack.co/v1/inline.js"></script>
+                    </form>
+                    <script src="https://js.paystack.co/v1/inline.js"></script>
           
                     {% else %}
                         <h4 style="color: red">Passed mark is {{ course.pass_mark }}. You are close to getting your Certificate. Please try again</h4>
@@ -138,9 +138,6 @@
 
 
 </div>
-
-<!-- End of Main Content -->
-
 
 
 <script>
