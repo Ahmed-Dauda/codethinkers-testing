@@ -3,43 +3,86 @@
 {% block title %} table {% endblock %}
 
   {% block content %} 
-
   <style>
-
-.container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.left-column-cat {
-    flex: 1;
-    margin: 5px;
-    background-color: #4158D0;
-    color: black;
-    background-image: linear-gradient(#ffff 100%, #ffff 46%, white 100%);
-
-}
-
+    /* Inline CSS */
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        margin-top: 10px;
+        background-color: #007bff;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .btn a {
+        color: #fff;
+        text-decoration: none;
+    }
+    .container {
+        text-align: center;
+    }
+    .card {
+        padding: 2px;
+        margin-bottom: 0px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        display: inline-block;
+        width: calc(100% - 40px);
+        margin: 1px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .card a {
+        text-decoration: none;
+        color: #007bff;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .card hr {
+        border: 1px solid #ddd;
+    }
+    @media (min-width: 576px) {
+        .card {
+            width: calc(50% - 40px);
+        }
+    }
+    @media (min-width: 768px) {
+        .card {
+            width: calc(33% - 40px);
+        }
+    }
 </style>
+
+    <button class="btn bg-primary">
+        <a href="https://wa.me/23409031568177">Contact Us</a>
+    </button>
     
-<br> <br>
-<button class="btn "><a href="https://wa.me/23409031568177"> Contact Us  </a>  </button>
-<br> <br> <br>
-<h3 class="text-center ">
-  Select course to print certificate
-</h3>
-<div class="container text-center">
-
-  {% for item in courses  %}
-    <div class="left-column-cat card-body text-center category">
-        <a class="bg-white container" href="{% url 'sms:certificates' item.id %}">{{ item.course_name.title }}</a> <hr>
+    <br><br><br>
+    
+    <h3 class="text-center" style="text-align: center; margin-bottom: 20px;">
+        Select course to print certificate
+    </h3>
+    
+    <div class="container">
+    
+        {% for item in courses %}
+        <a href="{% url 'sms:certificates' item.id %}">
+            <div class="card">
+                
+                    {{ item.course_name.title }}
+                
+                <hr>
+            </div>
+          </a>
+        {% empty %}
+            <small class="card-text" style="color: #999; font-size: 14px;">No Exams Available Yet. CHECK LATER</small>
+        {% endfor %}
+    
     </div>
-{% empty %}
-    <small class="card-text">No Exams Available Yet. CHECK LATER</small>
-{% endfor %}
-
-</div>
+    
 
 
 <!-- End of Main Content -->
