@@ -228,7 +228,7 @@
   {% if object.price %}
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  #{{object.price|safe|floatformat:"0g"}} </p> 
   {% elif object.cert_price %}
-  <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  #{{object.cert_price|safe|floatformat:"0g"}} </p> 
+  <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} </p> 
   {% else %}
   
   <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}}</p> 
@@ -243,11 +243,54 @@
       {% if request.user.profile in course.student.all or object.status_type  == 'Free'  %}
     <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
       {% else %}
-  
-      {% endif %}
-<h4 style="color: green;">Enrollment Fee: #{{object.price|safe}}</h4>
+      <h4 style="color: green;">Enrollment Fee: #{{object.price|safe}}</h4>
    
-
+      <form id="paymentForm" action="" method="POST" style="margin-top: -40px;">
+        {% csrf_token %}
+        <div class="form-group">
+       
+          <input  value = '{{request.user}}' type="hidden" id="email-address" required />
+        </div>
+        <div class="form-group">
+          <label for="first-name"></label>
+          {% if object.price %}
+          <input  value = "{{object.price|safe}}"  type="hidden" id="amount" required />
+          {% else %}
+          <input  value = "{{object.cert_price|safe}}"  type="hidden" id="amount" required />
+          {% endif %}
+        </div>
+        <div class="form-group">
+         
+          <input value = "{{request.user.profile.first_name|safe}}" type="hidden"id="first-name" /> 
+        </div>
+        <div class="form-group">
+      
+          <input value = "{{request.user.profile.last_name}}" type="hidden" id="last-name" /> 
+        </div>
+      
+      
+        <div class="form-submit">
+         
+        </div>
+        {% if not related_payments.exists %}
+      
+        <button style="width: 100%;" class="btn btn-primary" type="submit"  id="purchasebtn" onclick="payWithPaystack()">Pay Now </button>
+      {% else %}
+       
+      
+          <a href="{% url 'sms:courseslistdesc' course.id %}">
+            Start {{ course.title|safe }}
+          </a>
+          <div>
+            <p class="" style="color: green;">You have already made payment! You can now proceed with the course enrollment.</p>
+          </div>
+         
+        {% endif %}
+      </form>
+      
+      {% endif %}
+<!-- <h4 style="color: green;">Enrollment Fee: #{{object.price|safe}}</h4>
+   
 <form id="paymentForm" action="" method="POST" style="margin-top: -40px;">
   {% csrf_token %}
   <div class="form-group">
@@ -289,7 +332,7 @@
     </div>
    
   {% endif %}
-</form>
+</form> -->
 
 
 
