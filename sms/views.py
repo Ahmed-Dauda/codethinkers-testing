@@ -503,7 +503,7 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
         results = Result.objects.filter(exam=zcourse, student = student).order_by('-date')[:1]
         Result.objects.filter(id__in = Subquery(max_q[1:]), exam=zcourse)
-        print("results", results)
+
         try:
             user_profile =  Profile.objects.filter(user_id = self.request.user)
             print("checking payment user", user_profile)
@@ -528,7 +528,12 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         context['qcourse'] = course
 
         user = self.request.user.email
-
+        # content_type
+        # Query the Payment model to get all payments related to the user and course
+        # user_newuser = get_object_or_404(NewUser, email=self.request.user)
+        # if user_newuser.school:
+        #     context['school_name'] = user_newuser.school.school_name
+           
         if self.request.user.is_authenticated:
             user_newuser = get_object_or_404(NewUser, email=self.request.user.email)
             if user_newuser.school:
@@ -549,8 +554,6 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
 
         return context
-
-
 
 # class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
 #     model = QMODEL.Course
