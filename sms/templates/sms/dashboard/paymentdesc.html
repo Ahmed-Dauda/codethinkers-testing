@@ -241,7 +241,8 @@
     <p class=" pr-3">{{ object.desc|truncatechars:300|safe }}</p>
 
       {% if request.user.profile in course.student.all or object.status_type  == 'Free'  %}
-    <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Enroll {{ object.title|safe }}</button> </a> 
+      <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Start Learning</button> </a> 
+    <!-- <a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary">Start {{ object.title|safe }}</button> </a>  -->
       {% else %}
       <h4 style="color: green;">Enrollment Fee: #{{object.price|safe}}</h4>
    
@@ -279,7 +280,7 @@
        
       
           <a href="{% url 'sms:courseslistdesc' course.id %}">
-            Start {{ course.title|safe }}
+            Start Learning
           </a>
           <div>
             <p class="" style="color: green;">You have already made payment! You can now proceed with the course enrollment.</p>
@@ -373,7 +374,7 @@
 
 <ul>
   {% if request.user.profile in course.student.all or object.status_type  == 'Free'  %}
-<a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary fixed-bottom">Enroll {{ object.title|safe }}</button> </a> 
+<a href="{% url 'sms:topicslistview' object.id %}"> <button class="btn btn-primary fixed-bottom">Start {{ object.title|safe }}</button> </a> 
   {% else %}
 
   
