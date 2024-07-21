@@ -235,8 +235,9 @@
   
   {% endif %}
   <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.categories.name|safe|title}} level</small> <br>
+  {% if object.course_type %}
   <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.course_type|safe}}</small>
-
+  {% endif %}
     <br> <br>
     <p class=" pr-3">{{ object.desc|truncatechars:300|safe }}</p>
 

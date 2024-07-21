@@ -77,34 +77,23 @@
                             </div>
                 
 
-            
-            <!-- {% if not related_payments.exists %}
-            {% if course.course_name.cert_price %}
-                <button class="btn btn-primary" type="submit" id="purchasebtn" onclick="payWithPaystack()"> Pay #{{course.course_name.cert_price|safe}} Now to Print Certificate</button>
-                {% else %}
-                <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
-            {% endif %}
-            {% else %}
-            {% if not course.course_name.cert_price or course == course.course_name.title %}
-                <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
-            {% endif %}
-        {% endif %} -->
-
         {% if related_payments.exists and course_payments.exists %}
 
-       <!--{% if course.course_name.cert_price or course.course_name.price %}
+       <!-- {% if course.course_name.cert_price or course.course_name.price %}
             <button class="btn btn-primary" type="submit" id="purchasebtn" onclick="payWithPaystack()"> Pay #{{course.course_name.cert_price|safe}} Now to Print Certificate</button>
         {% else %}
             <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
         {% endif %}
        
-        {% else %}-->
+        {% else %} -->
 
             {% if related_payments.exists or course_payments.exists or school_name %}
-                <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
+            <p>{{ course }}</p>
+                <a href="{% url 'student:pdf' course.id %}"> PRINT  CERTIFICATE</a><br>
 
             {% elif qcourse.course_name.cert_price == None and qcourse.course_name.price == None or school_name %}
-            <a href="{% url 'student:pdf' course.id %}"> PRINT {{ course }} CERTIFICATE</a><br>
+            <p>{{ course }}</p>
+            <a href="{% url 'student:pdf' course.id %}"> PRINT  CERTIFICATE</a><br>
 
             
             {% else %}
