@@ -159,7 +159,7 @@ class Migration(migrations.Migration):
             name='Certificate',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(default=student.models.generate_certificate_code, max_length=10, unique=True)),
+                ('code', models.CharField(default=student.models, max_length=10, unique=True)),
                 ('holder', models.CharField(max_length=255, null=True)),
                 ('issued_date', models.DateField(null=True)),
                 ('user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),

@@ -9,6 +9,10 @@ from . import views
 app_name = 'student'
 
 urlpatterns = [
+
+    # path('download-certificate-pdf/<str:code>/', download_certificate_pdf, name='download_certificate_pdf'),
+    path('verify/<str:code>/', views.verify_certificate, name='verify_certificate'),
+    path('certificate/pdf/<str:pk>/', views.pdf_id_view, name='pdf_id_view'),
     path('paystack/webhook/', views.paystack_webhook, name='paystack_webhook'),
     # path('withdrawal/', views.withdrawal_request, name='withdrawal_request'),
     # URL for updating a referrer mentor
@@ -38,9 +42,6 @@ urlpatterns = [
     path('pdf/<pk>/', views.pdf_id_view,name='pdf'),
     # path('check_marks/<pk>/', views.check_marks_view,name='check_marks'),
     # path('verify/', views.verify_cert, name='verify_cert'),
-
-    path('verify/<str:certificate_code>/', views.verify_certificate, name='verify_certificate'),
-    
    
 ]
 
