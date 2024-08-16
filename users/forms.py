@@ -3,23 +3,12 @@ from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from django.db import models 
 from django.forms import ModelForm
-
-
 from student.models import ReferrerMentor
 from django.contrib.auth import get_user_model
-
-
 from sms.models import Comment
 from allauth.account.forms import SignupForm
-
 from .models import *
 from users.models import NewUser
-
-# models.py
-
-
-
-# forms.py
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
@@ -143,7 +132,6 @@ class SchoolSignupForm(forms.ModelForm):
 
 
 
-
 class ReferrerMentorForm(forms.ModelForm):
     class Meta:
         model = ReferrerMentor
@@ -151,7 +139,7 @@ class ReferrerMentorForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Exclude the 'referrer' field from the form
+        # Hide the 'referrer' field
         if 'referrer' in self.fields:
             self.fields['referrer'].widget = forms.HiddenInput()
 
@@ -161,6 +149,25 @@ class ReferrerMentorForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+# class ReferrerMentorForm(forms.ModelForm):
+#     class Meta:
+#         model = ReferrerMentor
+#         fields = ['name', 'phone_no']
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         # Exclude the 'referrer' field from the form
+#         if 'referrer' in self.fields:
+#             self.fields['referrer'].widget = forms.HiddenInput()
+
+#     def save(self, commit=True):
+#         instance = super().save(commit=False)
+#         instance.referrer_code = self.cleaned_data.get('referrer_code', '')
+#         if commit:
+#             instance.save()
+#         return instance
 
 
 

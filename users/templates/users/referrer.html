@@ -8,7 +8,7 @@
   <h2>Referral Signup</h2>
 
 
-  <form method="post" action="{% url 'sms:homepage' %}">
+  <form method="post" action="">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Sign Up</button>

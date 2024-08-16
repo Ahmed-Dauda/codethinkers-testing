@@ -372,6 +372,13 @@ STATIC_ROOT =os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT =os.path.join(BASE_DIR, 'media')
 
 
+# settings.py
+
+X_FRAME_OPTIONS = 'ALLOW-FROM http://127.0.0.1:8000'
+# settings.py
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 

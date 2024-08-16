@@ -15,6 +15,7 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from sms.models import Topics
+from quiz.models import Result, Course
 
 # from sms.paystack import Paystack
 
@@ -35,6 +36,11 @@ class Choice(models.Model):
         return self.text
 
 
+import random
+import string
+# def generate_certificate_code():
+#     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+
 def generate_certificate_code():
     code_length = 10
     characters = string.ascii_letters + string.digits
@@ -42,16 +48,15 @@ def generate_certificate_code():
 
 
 class Certificate(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null= True)
-    code = models.CharField(max_length=10, unique=True, default=generate_certificate_code)
-    holder = models.CharField(max_length=255, null= True)
-    issued_date = models.DateField(null= True)
-
-    # Add any additional fields relevant to the certificate
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, blank=True, null=True)
+    issue_date = models.DateField(auto_now_add=True, blank=True, null=True)
+    verification_code = models.UUIDField(default=uuid.uuid4, unique=True)
+    code = models.CharField(default=generate_certificate_code, max_length=10, unique=True)
 
     def __str__(self):
-        return self.holder
-
+        return f"{self.user.username} - {self.course.course_name}"
+    
 
 
 class Logo(models.Model):
@@ -129,7 +134,6 @@ class EbooksPayment(models.Model):
         # course_titles = ', '.join(course.title for course in self.courses.all())
         return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount}"
 
-from quiz.models import Result, Course
 
 class CertificatePayment(models.Model):
     payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)

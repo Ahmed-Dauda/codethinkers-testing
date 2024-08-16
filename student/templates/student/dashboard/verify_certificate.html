@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f2f2f2;
+        }
+        .certificate-container {
+            border: 2px solid #000;
+            padding: 20px;
+            width: 80%;
+            margin: 0 auto;
+            text-align: center;
+            background: #fff;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+        }
+        .certificate-header img {
+            max-width: 150px;
+            height: auto;
+        }
+        .certificate-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .certificate-details {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        .certificate-footer img {
+            max-width: 100px;
+            height: auto;
+            margin-top: 30px;
+        }
+        .verification-link {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .iframe-container {
+            margin-top: 20px;
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate-container">
+        <div class="certificate-header">
+            {% if certificate.course.school.logo %}
+                <img src="{{ certificate.course.school.logo.url }}" alt="School Logo">
+            {% endif %}
+            <h2 class="certificate-title">Certificate of Completion</h2>
+        </div>
+
+        <div class="certificate-details">
+            {% if is_valid %}
+                <p>This certificate is valid.</p>
+                <p>Issued to: <strong>{{ student.first_name }} {{ student.last_name }}</strong></p>
+                <p>Course: <strong>{{ certificate.course.course_name }}</strong></p>
+                <p>Issue Date: <strong>{{ certificate.issue_date }}</strong></p>
+            {% else %}
+                <p>This certificate is invalid or could not be found.</p>
+            {% endif %}
+        </div>
+
+        <div class="certificate-footer">
+            {% if certificate.course.school.principal_signature %}
+                <img src="{{ certificate.course.school.principal_signature.url }}" alt="Principal's Signature">
+            {% endif %}
+        </div>
+
+        <div class="verification-link">
+            <p>Verification URL: <a href="{{ verification_url }}">{{ verification_url }}</a></p>
+        </div>
+
+        <!-- Embed the PDF certificate in an iframe -->
+        <div class="iframe-container">
+            <iframe src="{% url 'student:pdf_id_view' pk=certificate.pk %}?iframe=true" width="800px" height="500px"></iframe>
+        </div>
+        
+    </div>
+</body>
+</html>
