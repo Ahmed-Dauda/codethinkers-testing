@@ -882,17 +882,20 @@ def verify_certificate(request, code):
     return render(request, 'student/dashboard/verify_certificate.html', context)
 
 
+
+import logging
+logger = logging.getLogger(__name__)
+
+
+
 @login_required
-def pdf_id_view(request, *args, **kwargs):
-    pk = kwargs.get('pk')
-    
-#     course = get_object_or_404(Course, pk=pk)
+def pdf_id_view(request, pk):
     # Retrieve the certificate using the primary key
     certificate = get_object_or_404(Certificate, pk=pk)
- 
+
     # Ensure the course associated with the certificate exists
     try: 
-        course = Course.objects.filter(course_name = certificate.course.course_name)
+        course = Course.objects.get(pk=certificate.course.pk)
     except Course.DoesNotExist:
         return HttpResponse("No Course matches the given query.", status=404)
 
@@ -936,57 +939,6 @@ def pdf_id_view(request, *args, **kwargs):
 
     return response
 
-
-# @login_required
-# def pdf_id_view(request, pk):
-#     # Retrieve the certificate using the primary key
-#     certificate = get_object_or_404(Certificate, pk=pk)
-
-#     # Ensure the course associated with the certificate exists
-#     try: 
-#         course = Course.objects.get(pk=certificate.course.pk)
-#     except Course.DoesNotExist:
-#         return HttpResponse("No Course matches the given query.", status=404)
-
-#     # Get additional data required for rendering the PDF
-#     student = Profile.objects.get(user_id=request.user.id)
-#     date = timezone.now()
-#     logo = Logo.objects.all()
-#     sign = Signature.objects.all()
-#     design = Designcert.objects.all()
-
-#     context = {
-#         'results': [course],
-#         'student': student,
-#         'date': date,
-#         'course': [course],
-#         'logo': logo,
-#         'sign': sign,
-#         'design': design,
-#         'school_name': certificate.user.school.school_name if certificate.user.school else '',
-#         'school_logo': certificate.user.school.logo if certificate.user.school else '',
-#         'school_sign': certificate.user.school.principal_signature if certificate.user.school else '',
-#         'principal_name': certificate.user.school.name if certificate.user.school else '',
-#         'portfolio': certificate.user.school.portfolio if certificate.user.school else '',
-        
-#         'verification_url': request.build_absolute_uri(
-#             reverse('student:verify_certificate', args=[certificate.code])
-#         ),
-#     }
-
-#     # Render the PDF
-#     template_path = 'student/dashboard/certificatepdf_testing.html'
-#     template = get_template(template_path)
-#     html = template.render(context)
-    
-#     response = HttpResponse(content_type='application/pdf')
-#     response['Content-Disposition'] = 'inline; filename="certificate.pdf"'
-#     pisa_status = pisa.CreatePDF(html, dest=response)
-    
-#     if pisa_status.err:
-#         return HttpResponse('We had some errors <pre>' + html + '</pre>')
-
-#     return response
 
 # pdf
 # @login_required
