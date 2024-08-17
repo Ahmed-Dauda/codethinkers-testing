@@ -1103,70 +1103,13 @@ class UserProfilelistview(LoginRequiredMixin, ListView):
         # max_marks_per_course = results.values('exam__course_name').annotate(max_marks=Max('marks'))
         max_marks_per_course = results.values('exam__course_name__title').annotate(max_marks=Max('marks'))
         context['max_marks_per_course'] = max_marks_per_course
-        # print("maximun v", max_marks_per_course)
-        # print("users2", Result.objects.filter(student=self.request.user.profile))
-        # Subquery to get the maximum marks for each course
-        # max_marks_subquery = Result.objects.filter(
-        #     exam_id=OuterRef('exam_id')
-        # ).order_by('-marks').values('marks')[:1]
-
-        # Query to filter results based on the maximum marks for each course
-        # results = Result.objects.filter(
-        #     marks=Subquery(max_marks_subquery)
-        # ).order_by('exam_id', '-date')
-        # context['new_results'] = results
-        # context['all_courses'] = Course.objects.all()
-
-        # Dictionary to store the maximum marks for each course
-        # max_marks_dict = {}
-
-        # for result in results:
-        #     max_marks_dict[result.exam] = result.marks
-        #     print("Maximum Marks :", result.marks)
-            
-
-        # print("Maximum Marks for Each Course:", max_marks_dict)
-        # context['mx'] = max_marks_dict
-
         user = self.request.user.email
-        # related_payments = CertificatePayment.objects.all(email=user)
-        # cert_payments = CertificatePayment.objects.all()
-        # context['cert_payments'] = CertificatePayment.objects.all()
-
-        # user_certificates = CertificatePayment.objects.filter(email=user)
-        # context['user_certificates'] = user_certificates
-
         # Fetch the amount from CertificatePayment instances
         context['certificate_payments']= CertificatePayment.objects.filter(email=user)
         # context['certificate_data'] = certificate_data
 
-        # Assuming you have a CertificatePayment model with a 'courses' field
-        # all_certificate_courses = Course.objects.filter(certificates__isnull=False)
-        # context['all_certificate_courses'] = all_certificate_courses
-        # print("all_certificate_courses", all_certificate_courses)
-
-        # for cerpaymentcourse in all_certificate_courses:
-        #     context['cerpaymentcourse'] = cerpaymentcourse
-        #     print("certpaycourse", cerpaymentcourse)
-
-        # for cd in certificate_data:
-        #     context['cert_email'] = cd.email
-            # print('amount', cd.amount)
-
         payments = Payment.objects.filter(email=user)
         context['payments'] = payments
-        # print("cp",payments)
-
-        # Extracting the list of courses from course_payments
-        # course_list = [course for payment in course_payments for course in payment.courses.all()]
-        # for paymentcourse in course_list:
-        #     context['paymentcourse'] = paymentcourse
-        #     print("paymentcourse", paymentcourse)
-
-        # for paymentdata in course_payments:
-        #     context['payment_email'] = paymentdata.email
-        #     context['payment_amount'] = paymentdata.amount
-        #     print('amount', paymentdata.amount)
 
         try:
             # Referrer account
