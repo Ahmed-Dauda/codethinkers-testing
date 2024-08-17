@@ -1,6 +1,6 @@
 import imp
 from django.contrib import admin
-from student.models import (Logo, Signature, Designcert, 
+from student.models import (Logo, Signature, Designcert,Certificate, 
                             PartLogo, Payment,PDFDocument, 
                             DocPayment, CertificatePayment, 
                             EbooksPayment, ReferrerMentor, PercentageReferrer
@@ -19,8 +19,15 @@ from sms.models import  Topics
 from django.utils.html import format_html
 from .models import AdvertisementImage
 
+# admin.site.register(Certificate)
 admin.site.register(PDFDocument)
 admin.site.register(PercentageReferrer)
+
+class CertificateAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user','course', 'code')
+
+admin.site.register(Certificate, CertificateAdmin)
+
 
 class AdvertisementImageAdmin(admin.ModelAdmin):
     list_display = ('id', 'image', 'desc')

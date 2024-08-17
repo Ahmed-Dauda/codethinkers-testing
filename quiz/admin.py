@@ -13,10 +13,15 @@ from quiz.models import (
    
     )
 # Register your models here.
-admin.site.register(Course)
+# admin.site.register(Course)
 admin.site.register(School)
 admin.site.register(TopicsAssessment)
-# admin.site.register(QuestionAssessment)
+
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ('id','course_name', 'question_number','total_marks', 'pass_mark', 'duration_minutes')
+
+admin.site.register(Course, CourseAdmin)
+
 
 # QuestionAssessment
 
