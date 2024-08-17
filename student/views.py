@@ -753,17 +753,12 @@ def check_marks_view(request,pk):
    
    
 #     return response
-
-
-# def verify_certificate(request, code):
-#     certificate = get_object_or_404(Certificate, verification_code=code)
-#     context = {
-#         'certificate': certificate,
-#         'is_valid': True
-#     }
-#     return render(request, 'student/dashboard/verify_certificate.html', context)
 from django.urls import reverse
 import uuid
+from django.views.generic import TemplateView
+
+
+
 
 
 # def verify_certificate(request, code):
@@ -785,54 +780,125 @@ import uuid
 
 #     return render(request, 'student/dashboard/verify_certificate.html', context)
 
+# def verify_certificate(request, code):
+#     # Retrieve the certificate using the verification code
+#     certificate = get_object_or_404(Certificate, code=code)
+#     user_newuser = get_object_or_404(NewUser, email=request.user.email)
+#     student = Profile.objects.get(user_id=request.user.id)
+#     date = datetime.now()
+
+#     # Retrieve course and other related data
+#     course = get_object_or_404(Course, pk=certificate.course.pk)
+#     logo = Logo.objects.all()
+#     sign = Signature.objects.all()
+#     design = Designcert.objects.all()
+
+#     context = {
+#         'results': [course],
+#         'student': student,
+#         'date': date,
+#         'course': [course],
+#         'logo': logo,
+#         'sign': sign,
+#         'design': design,
+#         'school_name': user_newuser.school.school_name if user_newuser.school else '',
+#         'school_logo': user_newuser.school.logo if user_newuser.school else '',
+#         'school_sign': user_newuser.school.principal_signature if user_newuser.school else '',
+#         'principal_name': user_newuser.school.name if user_newuser.school else '',
+#         'portfolio': user_newuser.school.portfolio if user_newuser.school else '',
+#         'verification_url': request.build_absolute_uri(reverse('student:verify_certificate', args=[certificate.code])),
+#     }
+
+#     # Render the template for the certificate
+#     template_path = 'student/dashboard/verify_certificate.html'  # Replace with your actual template path
+#     template = get_template(template_path)
+#     html = template.render(context)
+
+#     # Generate the PDF
+#     response = HttpResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = 'inline; filename="certificate.pdf"'
+#     pisa_status = pisa.CreatePDF(html, dest=response)
+    
+#     # Check for errors
+#     if pisa_status.err:
+#         return HttpResponse('We had some errors <pre>' + html + '</pre>')
+
+#     return response
+
+
+# def verify_certificate(request, code):
+    
+#     certificate = get_object_or_404(Certificate, code=code)
+#     student = Profile.objects.get(user_id=request.user.id)
+   
+#     # Generate URL for PDF view using the certificate's primary key
+#     pdf_url = request.build_absolute_uri(
+#         reverse('student:pdf_id_view', args=[certificate.pk])
+#     )
+
+#     # Debugging: print the PDF URL
+#     print(f"PDF URL: {pdf_url}")
+
+#     context = {
+#         'certificate': certificate,
+#         'is_valid': True,
+#         'pdf_url': pdf_url,
+#         'student': student
+#     }
+
+#     return render(request, 'student/dashboard/verify_certificate.html', context)
+
 def verify_certificate(request, code):
-    # Retrieve the certificate using the verification code
     certificate = get_object_or_404(Certificate, code=code)
     student = Profile.objects.get(user_id=request.user.id)
    
-    # Generate verification URL using the same code
-    verification_url = request.build_absolute_uri(
-        reverse('student:verify_certificate', args=[certificate.code])
+    # Generate URL for PDF view using the certificate's primary key
+    pdf_url = request.build_absolute_uri(
+        reverse('student:pdf_id_view', args=[certificate.pk])
     )
+
+    # Get all categories
+    categories = Categories.objects.all()
+
+    # Create a dictionary to hold courses grouped by category
+    courses_by_category = {}
+    for category in categories:
+        # List courses for each category
+        courses_by_category[category.name] = Courses.objects.filter(categories=category)
+
+    # Generate URL for the courses list description
+    
 
     context = {
         'certificate': certificate,
         'is_valid': True,
-        'verification_url': verification_url,
-        'student': student
+        'pdf_url': pdf_url,
+        'student': student,
+        'courses_by_category': courses_by_category,
+        'date':timezone.now().date()
+        
     }
 
     return render(request, 'student/dashboard/verify_certificate.html', context)
 
 
 @login_required
-def pdf_id_view(request, *args, **kwargs):
-    pk = kwargs.get('pk')
-    course = get_object_or_404(Course, pk=pk)
+def pdf_id_view(request, pk):
+    # Retrieve the certificate using the primary key
+    certificate = get_object_or_404(Certificate, pk=pk)
+
+    # Ensure the course associated with the certificate exists
+    try:
+        course = Course.objects.get(pk=certificate.course.pk)
+    except Course.DoesNotExist:
+        return HttpResponse("No Course matches the given query.", status=404)
+
+    # Get additional data required for rendering the PDF
     student = Profile.objects.get(user_id=request.user.id)
-    date = datetime.now()
+    date = timezone.now()
     logo = Logo.objects.all()
     sign = Signature.objects.all()
     design = Designcert.objects.all()
-
-    template_path = 'student/dashboard/certificatepdf_testing.html'
-
-    # Retrieve the certificate for the user and course if it exists
-    user_newuser = get_object_or_404(NewUser, email=request.user.email)
-    certificate = Certificate.objects.filter(user=user_newuser, course=course).first()
-
-    if not certificate:
-        # If no certificate exists, create one
-        certificate = Certificate.objects.create(
-            user=user_newuser,
-            course=course,
-            verification_code=uuid.uuid4()
-        )
-
-    # Generate verification URL
-    verification_url = request.build_absolute_uri(
-        reverse('student:verify_certificate', args=[certificate.code])
-    )
 
     context = {
         'results': [course],
@@ -842,35 +908,98 @@ def pdf_id_view(request, *args, **kwargs):
         'logo': logo,
         'sign': sign,
         'design': design,
-        'school_name': user_newuser.school.school_name if user_newuser.school else '',
-        'school_logo': user_newuser.school.logo if user_newuser.school else '',
-        'school_sign': user_newuser.school.principal_signature if user_newuser.school else '',
-        'principal_name': user_newuser.school.name if user_newuser.school else '',
-        'portfolio': user_newuser.school.portfolio if user_newuser.school else '',
-        'verification_url': verification_url,
+        'school_name': certificate.user.school.school_name if certificate.user.school else '',
+        'school_logo': certificate.user.school.logo if certificate.user.school else '',
+        'school_sign': certificate.user.school.principal_signature if certificate.user.school else '',
+        'principal_name': certificate.user.school.name if certificate.user.school else '',
+        'portfolio': certificate.user.school.portfolio if certificate.user.school else '',
+        'verification_url': request.build_absolute_uri(
+            reverse('student:verify_certificate', args=[certificate.code])
+        ),
     }
 
-    # Determine if the request is from an iframe or direct download
-    is_iframe = request.GET.get('iframe') == 'true'
-
-    response = HttpResponse(content_type='application/pdf')
-    if is_iframe:
-        response['Content-Disposition'] = 'inline; filename="certificate.pdf"'
-    else:
-        response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
-
-    # Render the template to HTML
+    # Render the PDF
+    template_path = 'student/dashboard/certificatepdf_testing.html'
     template = get_template(template_path)
     html = template.render(context)
-
-    # Generate the PDF
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="certificate.pdf"'
     pisa_status = pisa.CreatePDF(html, dest=response)
     
-    # Check for errors
     if pisa_status.err:
         return HttpResponse('We had some errors <pre>' + html + '</pre>')
 
     return response
+
+
+# @login_required
+# def pdf_id_view(request, *args, **kwargs):
+#     pk = kwargs.get('pk')
+#     course = get_object_or_404(Course, pk=pk)
+#     student = Profile.objects.get(user_id=request.user.id)
+#     date = datetime.now()
+#     logo = Logo.objects.all()
+#     sign = Signature.objects.all()
+#     design = Designcert.objects.all()
+
+#     template_path = 'student/dashboard/certificatepdf_testing.html'
+
+#     # Retrieve or create a certificate for the user and course
+#     user_newuser = get_object_or_404(NewUser, email=request.user.email)
+#     certificate = Certificate.objects.filter(user=user_newuser, course=course).first()
+
+#     if not certificate:
+#         # If no certificate exists, create one
+#         certificate = Certificate.objects.create(
+#             user=user_newuser,
+#             course=course,
+#             verification_code=uuid.uuid4(),
+#             code=uuid.uuid4().hex[:8]  # Generate or use existing code as needed
+#         )
+
+#     # Generate verification URL
+#     verification_url = request.build_absolute_uri(
+#         reverse('student:verify_certificate', args=[certificate.code])
+#     )
+
+#     context = {
+#         'results': [course],
+#         'student': student,
+#         'date': date,
+#         'course': [course],
+#         'logo': logo,
+#         'sign': sign,
+#         'design': design,
+#         'school_name': user_newuser.school.school_name if user_newuser.school else '',
+#         'school_logo': user_newuser.school.logo if user_newuser.school else '',
+#         'school_sign': user_newuser.school.principal_signature if user_newuser.school else '',
+#         'principal_name': user_newuser.school.name if user_newuser.school else '',
+#         'portfolio': user_newuser.school.portfolio if user_newuser.school else '',
+#         'verification_url': verification_url,
+#     }
+
+#     # Determine if the request is from an iframe or direct download
+#     is_iframe = request.GET.get('iframe') == 'true'
+
+#     response = HttpResponse(content_type='application/pdf')
+#     if is_iframe:
+#         response['Content-Disposition'] = 'inline; filename="certificate.pdf"'
+#     else:
+#         response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
+
+#     # Render the template to HTML
+#     template = get_template(template_path)
+#     html = template.render(context)
+
+#     # Generate the PDF
+#     pisa_status = pisa.CreatePDF(html, dest=response)
+    
+#     # Check for errors
+#     if pisa_status.err:
+#         return HttpResponse('We had some errors <pre>' + html + '</pre>')
+
+#     return response
 
 
 # @login_required
