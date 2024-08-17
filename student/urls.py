@@ -12,19 +12,13 @@ urlpatterns = [
  
     path('verify/<str:code>/', views.verify_certificate, name='verify_certificate'),
     path('certificate/pdf/<int:pk>/', views.pdf_id_view, name='pdf_id_view'),
+    
     path('paystack/webhook/', views.paystack_webhook, name='paystack_webhook'),
+#   testing  path('pdf/<pk>/', views.pdf_id_view,name='pdf'),
     # path('withdrawal/', views.withdrawal_request, name='withdrawal_request'),
     # URL for updating a referrer mentor
     path('referrer_mentor_detail/<int:pk>/', update_referrer_mentor, name='referrer_mentor_detail'),
    
-    
-    # path('question-list/', views.question_list_view, name='question-list'),
-    # path('question-form/', views.question_form_view, name='question-form'),      
-    # path('verify/<str:id>/', views.verify,name='verify'),
-    # path('docverify/<str:id>/', views.docverify,name='docverify'),
-    
-    # path('student/verify/<str:id>/', views.verify_payment, name='verify_payment'),
-  
     # path('process', views.process,name='process'),
     # new url
     path('take-exam', views.take_exams_view,name='take-exam'),
@@ -38,7 +32,7 @@ urlpatterns = [
     # path('pdf_document_detail/<str:pk>/', views.pdf_document_detail, name='pdf_document_detail'),
     # end
 
-    path('pdf/<pk>/', views.pdf_id_view,name='pdf'),
+    
     # path('check_marks/<pk>/', views.check_marks_view,name='check_marks'),
     # path('verify/', views.verify_cert, name='verify_cert'),
    
