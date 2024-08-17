@@ -79,7 +79,7 @@
   {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
         <div class="" style="display: flex; align-items: center;font-weight: bold;">
            {{ course }}
-          <a style="margin: 10px;" class="" href="{% url 'student:pdf' course.id %}">Download</a>
+          <a style="margin: 10px;" class="" href="{% url 'student:pdf_id_view' course.id %}">Download</a>
          
       </div>
       <p style="">&#10004; Great Work! You have passed all requirements and can view your course certificate now.</p>   
@@ -106,7 +106,7 @@
         <!-- {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
         <div class="card" style="display: flex; align-items: center;">
             {{ course }}
-          <a class="" href="{% url 'student:pdf' course.id %}">free Download</a>
+          <a class="" href="{% url 'student:pdf_id_view' course.id %}">free Download</a>
       </div>   
         {% endif %} -->
     
