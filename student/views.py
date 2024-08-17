@@ -848,13 +848,55 @@ from django.views.generic import TemplateView
 
 #     return render(request, 'student/dashboard/verify_certificate.html', context)
 
-def verify_certificate(request, code):
-    certificate = get_object_or_404(Certificate, code=code)
-    student = Profile.objects.get(user_id=request.user.id)
+# def verify_certificate(request, code):
+#     certificate = get_object_or_404(Certificate, code=code)
+#     student = Profile.objects.get(user_id=request.user.id)
    
+#     # Generate URL for PDF view using the certificate's primary key
+#     pdf_url = request.build_absolute_uri(
+#         reverse('student:pdf_id_view', args=[certificate.pk])
+#     )
+
+#     # Get all categories
+#     categories = Categories.objects.all()
+
+#     # Create a dictionary to hold courses grouped by category
+#     courses_by_category = {}
+#     for category in categories:
+#         # List courses for each category
+#         courses_by_category[category.name] = Courses.objects.filter(categories=category)
+
+#     # Generate URL for the courses list description
+    
+
+#     context = {
+#         'certificate': certificate,
+#         'is_valid': True,
+#         'pdf_url': pdf_url,
+#         'student': student,
+#         'courses_by_category': courses_by_category,
+#         'date':timezone.now().date()
+        
+#     }
+
+#     return render(request, 'student/dashboard/verify_certificate.html', context)
+
+
+
+import logging
+logger = logging.getLogger(__name__)
+
+@login_required
+def verify_certificate(request, code):
+    # Retrieve the certificate using the code
+    certificate = get_object_or_404(Certificate, code=code)
+    print(certificate.course.id, 'certificate.pk')
+    # Retrieve the student profile based on the logged-in user
+    student = get_object_or_404(Profile, user_id=request.user.id)
+    # course = get_object_or_404(Course, pk=code)
     # Generate URL for PDF view using the certificate's primary key
     pdf_url = request.build_absolute_uri(
-        reverse('student:pdf_id_view', args=[certificate.pk])
+        reverse('student:pdf_id_view', args=[certificate.course.id])
     )
 
     # Get all categories
@@ -866,46 +908,48 @@ def verify_certificate(request, code):
         # List courses for each category
         courses_by_category[category.name] = Courses.objects.filter(categories=category)
 
-    # Generate URL for the courses list description
-    
-
     context = {
         'certificate': certificate,
         'is_valid': True,
         'pdf_url': pdf_url,
         'student': student,
         'courses_by_category': courses_by_category,
-        'date':timezone.now().date()
-        
+        'date': timezone.now().date()
     }
 
     return render(request, 'student/dashboard/verify_certificate.html', context)
 
 
-
-import logging
-logger = logging.getLogger(__name__)
-
-
-
 @login_required
 def pdf_id_view(request, pk):
-    # Retrieve the certificate using the primary key
-    certificate = get_object_or_404(Certificate, pk=pk)
-
     # Ensure the course associated with the certificate exists
-    try: 
-        course = Course.objects.get(pk=certificate.course.pk)
-    except Course.DoesNotExist:
-        return HttpResponse("No Course matches the given query.", status=404)
+    course = get_object_or_404(Course, pk=pk)
+
+    # Ensure the NewUser exists or create it if not
+    user_newuser, created = NewUser.objects.get_or_create(email=request.user.email)
+
+    # Ensure a certificate for the user and course exists or create it if not
+    certificate, created = Certificate.objects.get_or_create(
+        user=user_newuser,
+        course=course,
+        defaults={
+            'verification_code': uuid.uuid4(),
+            'code': uuid.uuid4().hex[:8]  # Generate or use existing code as needed
+        }
+    )
 
     # Get additional data required for rendering the PDF
-    student = Profile.objects.get(user_id=request.user.id)
+    try:
+        student = Profile.objects.get(user_id=request.user.id)
+    except Profile.DoesNotExist:
+        return HttpResponse("Student profile not found.", status=404)
+    
     date = timezone.now()
     logo = Logo.objects.all()
     sign = Signature.objects.all()
     design = Designcert.objects.all()
 
+    # Context for rendering the PDF
     context = {
         'results': [course],
         'student': student,
@@ -919,7 +963,6 @@ def pdf_id_view(request, pk):
         'school_sign': certificate.user.school.principal_signature if certificate.user.school else '',
         'principal_name': certificate.user.school.name if certificate.user.school else '',
         'portfolio': certificate.user.school.portfolio if certificate.user.school else '',
-        
         'verification_url': request.build_absolute_uri(
             reverse('student:verify_certificate', args=[certificate.code])
         ),
@@ -932,13 +975,14 @@ def pdf_id_view(request, pk):
     
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'inline; filename="certificate.pdf"'
+    
+    # Create PDF
     pisa_status = pisa.CreatePDF(html, dest=response)
     
     if pisa_status.err:
-        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return HttpResponse(f'We had some errors <pre>{html}</pre>', status=500)
 
     return response
-
 
 # pdf
 # @login_required
