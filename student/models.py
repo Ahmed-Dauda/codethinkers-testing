@@ -56,7 +56,7 @@ class Certificate(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.course.course_name}"
-    
+   
 
 
 class Logo(models.Model):
