@@ -1,89 +1,200 @@
+{% load hitcount_tags %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificate Verification</title>
+    <title>Verify Certificate</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
-            background-color: #f2f2f2;
+            background-color: #f4f4f4;
+            color: #333;
         }
-        .certificate-container {
-            border: 2px solid #000;
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            background-color: #fff;
             padding: 20px;
-            width: 80%;
-            margin: 0 auto;
-            text-align: center;
-            background: #fff;
-            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        .certificate-header img {
-            max-width: 150px;
-            height: auto;
+        .text-container {
+            flex: 1;
+            margin-right: 10px;
+            max-width: 800px;
         }
-        .certificate-title {
-            font-size: 24px;
-            font-weight: bold;
+        .text-container h1 {
+            color: #007BFF;
+            font-size: 2em;
             margin-bottom: 20px;
         }
-        .certificate-details {
-            font-size: 18px;
-            margin-top: 20px;
+        .text-container p {
+            line-height: 1.6;
+            font-size: 1.1em;
+            margin-bottom: 15px;
         }
-        .certificate-footer img {
-            max-width: 100px;
-            height: auto;
-            margin-top: 30px;
+        .text-container button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            margin-top: 10px;
         }
-        .verification-link {
-            margin-top: 20px;
-            font-size: 18px;
+        .text-container button:hover {
+            background-color: #0056b3;
+        }
+        .text-container button a {
+            text-decoration: none;
+            color: white;
         }
         .iframe-container {
-            margin-top: 20px;
+            flex: 1;
+            max-width: 800px;
+            background-color: #fafafa;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        iframe {
             width: 100%;
-            height: 600px;
+            height: 550px;
             border: none;
+        }
+        .categories-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 40px;
+            padding: 20px 0;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+        }
+        .category-column {
+            flex: 1;
+            min-width: 200px;
+            margin-right: 20px;
+            margin-bottom: 20px;
+        }
+        .category-column h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .category-column ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .category-column ul li {
+            margin-bottom: 10px;
+        }
+        .category-column ul li a {
+            text-decoration: none;
+            color: #007BFF;
+            transition: color 0.3s;
+        }
+        .category-column ul li a:hover {
+            color: #0056b3;
+        }
+        .contact-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .contact-buttons button {
+            flex: 1;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+        .contact-buttons button:hover {
+            background-color: #218838;
+        }
+        .contact-buttons button a {
+            text-decoration: none;
+            color: white;
+        }
+
+        /* Media Query for Smaller Screens */
+        @media (max-width: 768px) {
+            iframe {
+                width: 100%;
+                height: 30vh; /* Adjust height for smaller screens */
+            }
+            .container {
+                flex-direction: column; /* Stack elements vertically on smaller screens */
+            }
+            .text-container, .iframe-container {
+                margin-right: 0; /* Remove right margin when stacked vertically */
+            }
+        }
+
+        /* Media Query for Extra Small Screens */
+        @media (max-width: 480px) {
+            button {
+                font-size: 14px; /* Smaller button font size */
+                padding: 8px 16px; /* Adjust padding for smaller buttons */
+            }
+            iframe {
+                width: 100%;
+                height: 30vh; /* Further adjust height for very small screens */
+            }
         }
     </style>
 </head>
 <body>
-    <div class="certificate-container">
-        <div class="certificate-header">
-            {% if certificate.course.school.logo %}
-                <img src="{{ certificate.course.school.logo.url }}" alt="School Logo">
-            {% endif %}
-            <h2 class="certificate-title">Certificate of Completion</h2>
+    <div class="container">
+        <div class="text-container">
+            <h1>Certificate Verification</h1>
+            <p>The certificate below verifies that <strong>{{ student.first_name }} {{ student.last_name }}</strong> has successfully completed the course <a href="{% url 'sms:courseslistdesc' certificate.course.id %}">{{ certificate.course.course_name }}</a> with Certificate Code: <strong>{{ certificate.code }}</strong> on this date: <strong>{{ date }}</strong></p>
+            <p>Enroll here: 
+                <button>
+                    <a href="{% url 'sms:courseslistdesc' certificate.course.id %}">{{ certificate.course.course_name }}</a>
+                </button>
+            </p>
+
+            <hr>
+            <h2>Courses by Category</h2>
+            <div class="categories-container">
+                {% for category, courses in courses_by_category.items %}
+                    <div class="category-column">
+                        <h3>{{ category }}</h3>
+                        <ul>
+                            {% for course in courses %}
+                                <li><a href="{% url 'sms:courseslistdesc' course.id %}">{{ course.title }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <hr>
+            <div class="contact-buttons">
+                <button>
+                    <a href="mailto:codethinkersa@gmail.com">codethinkersa@gmail.com</a>
+                </button>
+                <button>
+                    <a href="https://wa.me/23409031568177">Customer Support</a>
+                </button>
+            </div>
         </div>
 
-        <div class="certificate-details">
-            {% if is_valid %}
-                <p>This certificate is valid.</p>
-                <p>Issued to: <strong>{{ student.first_name }} {{ student.last_name }}</strong></p>
-                <p>Course: <strong>{{ certificate.course.course_name }}</strong></p>
-                <p>Issue Date: <strong>{{ certificate.issue_date }}</strong></p>
-            {% else %}
-                <p>This certificate is invalid or could not be found.</p>
-            {% endif %}
-        </div>
-
-        <div class="certificate-footer">
-            {% if certificate.course.school.principal_signature %}
-                <img src="{{ certificate.course.school.principal_signature.url }}" alt="Principal's Signature">
-            {% endif %}
-        </div>
-
-        <div class="verification-link">
-            <p>Verification URL: <a href="{{ verification_url }}">{{ verification_url }}</a></p>
-        </div>
-
-        <!-- Embed the PDF certificate in an iframe -->
         <div class="iframe-container">
-            <iframe src="{% url 'student:pdf_id_view' pk=certificate.pk %}?iframe=true" width="800px" height="500px"></iframe>
+            <iframe src="{{ pdf_url }}" title="Certificate"></iframe>
         </div>
-        
     </div>
 </body>
 </html>

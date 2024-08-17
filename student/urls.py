@@ -9,10 +9,9 @@ from . import views
 app_name = 'student'
 
 urlpatterns = [
-
-    # path('download-certificate-pdf/<str:code>/', download_certificate_pdf, name='download_certificate_pdf'),
+ 
     path('verify/<str:code>/', views.verify_certificate, name='verify_certificate'),
-    path('certificate/pdf/<str:pk>/', views.pdf_id_view, name='pdf_id_view'),
+    path('certificate/pdf/<int:pk>/', views.pdf_id_view, name='pdf_id_view'),
     path('paystack/webhook/', views.paystack_webhook, name='paystack_webhook'),
     # path('withdrawal/', views.withdrawal_request, name='withdrawal_request'),
     # URL for updating a referrer mentor
