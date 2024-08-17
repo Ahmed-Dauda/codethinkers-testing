@@ -888,8 +888,9 @@ def pdf_id_view(request, pk):
     certificate = get_object_or_404(Certificate, pk=pk)
 
     # Ensure the course associated with the certificate exists
-    try:
-        course = Course.objects.get(pk=certificate.course.pk)
+    try: 
+        course = Course.objects.get(pk=certificate.course.course_name.pk)
+        # course = Course.objects.get(pk=certificate.course.pk)
     except Course.DoesNotExist:
         return HttpResponse("No Course matches the given query.", status=404)
 
