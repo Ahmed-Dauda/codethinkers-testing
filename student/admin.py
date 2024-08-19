@@ -159,7 +159,7 @@ from .models import Payment
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('email','content_type','first_name','first_name','amount','ref','f_code' ,'get_course_titles', 'verified', 'date_created')
+    list_display = ('email' ,'get_course_titles','content_type','first_name','first_name','amount','ref','f_code' , 'verified', 'date_created')
     list_filter = ('content_type','email','verified','ref','f_code', 'date_created')
     search_fields = ('ref','f_code', 'email','content_type', 'amount', 'courses__title')
     # search_fields = ('payment_user__user__username','ref','f_code', 'email','content_type', 'amount', 'courses__title')
