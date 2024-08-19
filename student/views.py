@@ -886,7 +886,7 @@ from django.views.generic import TemplateView
 import logging
 logger = logging.getLogger(__name__)
 
-
+@login_required
 def verify_certificate(request, code):
     # Retrieve the certificate using the code
     certificate = get_object_or_404(Certificate, code=code)
