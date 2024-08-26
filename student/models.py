@@ -46,7 +46,6 @@ def generate_certificate_code():
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(code_length))
 
-
 class Certificate(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, blank=True, null=True)
@@ -54,8 +53,22 @@ class Certificate(models.Model):
     verification_code = models.UUIDField(default=uuid.uuid4, unique=True)
     code = models.CharField(default=generate_certificate_code, max_length=10, unique=True)
 
+    class Meta:
+        unique_together = ('user', 'course')  # Enforce unique certificate per user per course
+
     def __str__(self):
         return f"{self.user.username} - {self.course.course_name}"
+
+
+# class Certificate(models.Model):
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     course = models.ForeignKey(Course, on_delete=models.CASCADE, blank=True, null=True)
+#     issue_date = models.DateField(auto_now_add=True, blank=True, null=True)
+#     verification_code = models.UUIDField(default=uuid.uuid4, unique=True)
+#     code = models.CharField(default=generate_certificate_code, max_length=10, unique=True)
+
+#     def __str__(self):
+#         return f"{self.user.username} - {self.course.course_name}"
    
 
 
