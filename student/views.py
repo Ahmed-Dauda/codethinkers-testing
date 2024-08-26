@@ -948,49 +948,58 @@ def verify_certificate(request, code):
     return render(request, 'student/dashboard/verify_certificate.html', context)
 
 
+from django.core.exceptions import MultipleObjectsReturned
 
 def pdf_id_view(request, pk):
     # Ensure the course associated with the certificate exists
     course = get_object_or_404(Course, pk=pk)
 
-    # Handle cases where the user might not be logged in
+    certificate = None
+
     if request.user.is_authenticated:
         user_newuser, created = NewUser.objects.get_or_create(email=request.user.email)
-        # Ensure a certificate for the user and course exists or create it if not
-        certificate, created = Certificate.objects.get_or_create(
-            user=user_newuser,
-            course=course,
-            defaults={
-                'verification_code': uuid.uuid4(),
-                'code': uuid.uuid4().hex[:8]  # Generate or use existing code as needed
-            }
-        )
+
+        try:
+            # Ensure a certificate for the user and course exists or create it if not
+            certificate, created = Certificate.objects.get_or_create(
+                user=user_newuser,
+                course=course,
+                defaults={
+                    'verification_code': uuid.uuid4(),
+                    'code': uuid.uuid4().hex[:8]  # Generate or use existing code as needed
+                }
+            )
+        except MultipleObjectsReturned:
+            # If multiple certificates are found, get the first one or handle accordingly
+            certificate = Certificate.objects.filter(user=user_newuser, course=course).first()
+
     else:
         # Handle case for anonymous users
-        certificate, created = Certificate.objects.get_or_create(
-            course=course,
-            defaults={
-                'verification_code': uuid.uuid4(),
-                'code': uuid.uuid4().hex[:8]  # Generate or use existing code as needed
-            }
-        )
+        try:
+            certificate, created = Certificate.objects.get_or_create(
+                course=course,
+                defaults={
+                    'verification_code': uuid.uuid4(),
+                    'code': uuid.uuid4().hex[:8]  # Generate or use existing code as needed
+                }
+            )
+        except MultipleObjectsReturned:
+            # If multiple certificates are found, get the first one or handle accordingly
+            certificate = Certificate.objects.filter(course=course).first()
 
     # Get additional data required for rendering the PDF
-    # Use a default or empty profile for anonymous users
     student = Profile.objects.filter(user_id=request.user.id).first() if request.user.is_authenticated else None
-    
+
     date = timezone.now()
     logo = Logo.objects.all()
     sign = Signature.objects.all()
     design = Designcert.objects.all()
 
     # Context for rendering the PDF
-    print(certificate.user.last_name, 'nnnn')
     context = {
         'results': [course],
-        'first_name': certificate.user.first_name,
-        'last_name': certificate.user.last_name,
-        # 'student': student,
+        'first_name': certificate.user.first_name if certificate.user else 'Anonymous',
+        'last_name': certificate.user.last_name if certificate.user else '',
         'date': date,
         'course': [course],
         'logo': logo,
@@ -1021,6 +1030,80 @@ def pdf_id_view(request, pk):
         return HttpResponse(f'We had some errors <pre>{html}</pre>', status=500)
 
     return response
+
+
+# def pdf_id_view(request, pk):
+#     # Ensure the course associated with the certificate exists
+#     course = get_object_or_404(Course, pk=pk)
+
+#     # Handle cases where the user might not be logged in
+#     if request.user.is_authenticated:
+#         user_newuser, created = NewUser.objects.get_or_create(email=request.user.email)
+#         # Ensure a certificate for the user and course exists or create it if not
+#         certificate, created = Certificate.objects.get_or_create(
+#             user=user_newuser,
+#             course=course,
+#             defaults={
+#                 'verification_code': uuid.uuid4(),
+#                 'code': uuid.uuid4().hex[:8]  # Generate or use existing code as needed
+#             }
+#         )
+#     else:
+#         # Handle case for anonymous users
+#         certificate, created = Certificate.objects.get_or_create(
+#             course=course,
+#             defaults={
+#                 'verification_code': uuid.uuid4(),
+#                 'code': uuid.uuid4().hex[:8]  # Generate or use existing code as needed
+#             }
+#         )
+
+#     # Get additional data required for rendering the PDF
+#     # Use a default or empty profile for anonymous users
+#     student = Profile.objects.filter(user_id=request.user.id).first() if request.user.is_authenticated else None
+    
+#     date = timezone.now()
+#     logo = Logo.objects.all()
+#     sign = Signature.objects.all()
+#     design = Designcert.objects.all()
+
+#     # Context for rendering the PDF
+#     # print(certificate.user.last_name, 'nnnn')
+#     context = {
+#         'results': [course],
+#         'first_name': certificate.user.first_name,
+#         'last_name': certificate.user.last_name,
+#         # 'student': student,
+#         'date': date,
+#         'course': [course],
+#         'logo': logo,
+#         'sign': sign,
+#         'design': design,
+#         'school_name': certificate.user.school.school_name if certificate.user and certificate.user.school else '',
+#         'school_logo': certificate.user.school.logo if certificate.user and certificate.user.school else '',
+#         'school_sign': certificate.user.school.principal_signature if certificate.user and certificate.user.school else '',
+#         'principal_name': certificate.user.school.name if certificate.user and certificate.user.school else '',
+#         'portfolio': certificate.user.school.portfolio if certificate.user and certificate.user.school else '',
+#         'verification_url': request.build_absolute_uri(
+#             reverse('student:verify_certificate', args=[certificate.code])
+#         ),
+#     }
+
+#     # Render the PDF
+#     template_path = 'student/dashboard/certificatepdf_testing.html'
+#     template = get_template(template_path)
+#     html = template.render(context)
+    
+#     response = HttpResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = 'inline; filename="certificate.pdf"'
+    
+#     # Create PDF
+#     pisa_status = pisa.CreatePDF(html, dest=response)
+    
+#     if pisa_status.err:
+#         return HttpResponse(f'We had some errors <pre>{html}</pre>', status=500)
+
+#     return response
 
 # pdf
 # @login_required
