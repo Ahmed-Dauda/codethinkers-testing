@@ -159,12 +159,21 @@
     <div class="container">
         <div class="text-container">
             <h1>Certificate Verification</h1>
-            <p>The certificate below verifies that <strong>{{ student.first_name }} {{ student.last_name }}</strong> has successfully completed the course <a href="{% url 'sms:courseslistdesc' certificate.course.id %}">{{ certificate.course.course_name }}</a> with Certificate Code: <strong>{{ certificate.code }}</strong> on this date: <strong>{{ date }}</strong></p>
-            <p>Enroll here: 
-                <button>
-                    <a href="{% url 'sms:courseslistdesc' certificate.course.id %}">{{ certificate.course.course_name }}</a>
-                </button>
-            </p>
+            {% if certificate %}
+                <p>The certificate below verifies that <strong>{{ certificate.user.first_name }} {{ certificate.user.last_name }}</strong> has successfully completed the course <a href="{% url 'sms:courseslistdesc' certificate.course.id %}">{{ certificate.course.course_name }}</a> with Certificate Code: <strong>{{ certificate.code }}</strong> on this date: <strong>{{ date }}</strong></p>
+                <p>Enroll here: 
+                    <button>
+                        <a href="{% url 'sms:courseslistdesc' certificate.course.id %}">{{ certificate.course.course_name }}</a>
+                    </button>
+                </p>
+            {% else %}
+                <p>The certificate below verifies that <strong>the holder</strong> has successfully completed the course <a href="{% url 'sms:courseslistdesc' certificate.course.id %}">{{ certificate.course.course_name }}</a> with Certificate Code: <strong>{{ certificate.code }}</strong> on this date: <strong>{{ date }}</strong></p>
+                <p>Enroll here: 
+                    <button>
+                        <a href="{% url 'sms:courseslistdesc' certificate.course.id %}">{{ certificate.course.course_name }}</a>
+                    </button>
+                </p>
+            {% endif %}
 
             <hr>
             <h2>Courses by Category</h2>
