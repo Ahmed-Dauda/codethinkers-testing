@@ -478,6 +478,9 @@ def Certificates(request,pk):
 
 from quiz.models import School
 
+
+# real codes
+
 class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
     model = QMODEL.Course
     template_name = 'sms/dashboard/certificates.html'
@@ -556,74 +559,6 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
 
         return context
 
-# class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
-#     model = QMODEL.Course
-#     template_name = 'sms/dashboard/certificates.html'
-#     success_message = 'TestModel successfully updated!'
-#     count_hit = True
-     
-#     def get_queryset(self):
-#         return QMODEL.Course.objects.all()
-
-#     def get_context_data(self,*args , **kwargs ):
-#         context = super().get_context_data(**kwargs)
-#         zcourse = get_object_or_404(QMODEL.Course, pk=self.kwargs['pk'])
-#         print('tessss', zcourse)
-        
-#         courses = Courses.objects.all()
-#         cert_note = QMODEL.Certificate_note.objects.all()
-        
-#         try:
-#             student = Profile.objects.get(user_id=self.request.user.id) 
-#         except Profile.DoesNotExist:
-#             return HttpResponseRedirect("account_login")
-      
-#         max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-#         results = Result.objects.filter(exam=zcourse.course_name.id, student = student).order_by('-date')[:1]
-#         Result.objects.filter(id__in = Subquery(max_q[1:]), exam=zcourse.course_name.id)
-
-#         try:
-#             user_profile =  Profile.objects.filter(user_id = self.request.user)
-#             print("checking payment user", user_profile)
-#         except Profile.DoesNotExist:
-#             return HttpResponseRedirect("account_login")
-        
-#         # context['certificate'] = get_object_or_404(Certificate, code=self.kwargs['pk'], user=self.request.user)
-#         context['results'] = results
-#         context['course'] = zcourse
-#         context['st'] = self.request.user
-#         context['user_profile'] = user_profile
-#         context['courses'] = courses
-#         context['cert_note'] = cert_note
-        
-#         # user = self.request.user.profile
-#         # maincourses = Courses.objects.get(pk=self.kwargs["pk"])
-
-#         course = QMODEL.Course.objects.get(pk=self.kwargs["pk"])
-#         print("course price:", course.course_name.cert_price)
-#         # print("course id:", course.course_name.id)
-#         print("course:", course)
-
-
-#         user = self.request.user.email
-         
-#         # Query the Payment model to get all payments related to the user and course
-#         related_payments = CertificatePayment.objects.filter(
-#             email=user, content_type =course,
-#             amount=course.course_name.cert_price)
-#         # related_payments = CertificatePayment.objects.filter(
-#         #     email=user, content_type =coursew.course_name,
-#         #     amount=coursew.course_name.cert_price)
-
-#         context['related_payments'] = related_payments
-
-    
-       
-#         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
-
-        
-
-#         return context
 
 from student.models import DocPayment
 

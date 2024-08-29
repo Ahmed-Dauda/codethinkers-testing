@@ -887,46 +887,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# def verify_certificate(request, code):
-#     # Retrieve the certificate using the code
-#     certificate = get_object_or_404(Certificate, code=code)
-#     print(certificate.course.id, 'certificate.pk')
-#     # Retrieve the student profile based on the logged-in user
-#     student = get_object_or_404(Profile, user_id=request.user.id)
-#     # course = get_object_or_404(Course, pk=code)
-#     # Generate URL for PDF view using the certificate's primary key
-#     pdf_url = request.build_absolute_uri(
-#         reverse('student:pdf_id_view', args=[certificate.course.id])
-#     )
-
-#     # Get all categories
-#     categories = Categories.objects.all()
-
-#     # Create a dictionary to hold courses grouped by category
-#     courses_by_category = {}
-#     for category in categories:
-#         # List courses for each category
-#         courses_by_category[category.name] = Courses.objects.filter(categories=category)
-
-#     context = {
-#         'certificate': certificate,
-#         'is_valid': True,
-#         'pdf_url': pdf_url,
-#         'student': student,
-#         'courses_by_category': courses_by_category,
-#         'date': timezone.now().date()
-#     }
-
-#     return render(request, 'student/dashboard/verify_certificate.html', context)
-
 def verify_certificate(request, code):
     # Retrieve the certificate using the code
     certificate = get_object_or_404(Certificate, code=code)
+
+     # Generate the verification link for the certificate
+    verification_link = request.build_absolute_uri(
+        reverse('student:verify_certificate', args=[certificate.code])
+    )
     
     # Generate URL for PDF view using the certificate's primary key
-    pdf_url = request.build_absolute_uri(
-        reverse('student:pdf_id_view', args=[certificate.course.id])
-    )
+    # pdf_url = request.build_absolute_uri(
+    #     reverse('student:pdf_id_view', args=[certificate.code])
+    # )
 
     # Get all categories
     categories = Categories.objects.all()
@@ -939,8 +912,9 @@ def verify_certificate(request, code):
 
     context = {
         'certificate': certificate,
+        'verification_link':verification_link,
         'is_valid': True,
-        'pdf_url': pdf_url,
+        # 'pdf_url': pdf_url,
         'courses_by_category': courses_by_category,
         'date': timezone.now().date()
     }
@@ -950,10 +924,10 @@ def verify_certificate(request, code):
 
 from django.core.exceptions import MultipleObjectsReturned
 
+# # original pdf
 def pdf_id_view(request, pk):
     # Ensure the course associated with the certificate exists
     course = get_object_or_404(Course, pk=pk)
-
     certificate = None
 
     if request.user.is_authenticated:
@@ -997,6 +971,7 @@ def pdf_id_view(request, pk):
 
     # Context for rendering the PDF
     context = {
+        # 'student':student,
         'results': [course],
         'first_name': certificate.user.first_name if certificate.user else 'Anonymous',
         'last_name': certificate.user.last_name if certificate.user else '',
@@ -1031,79 +1006,6 @@ def pdf_id_view(request, pk):
 
     return response
 
-
-# def pdf_id_view(request, pk):
-#     # Ensure the course associated with the certificate exists
-#     course = get_object_or_404(Course, pk=pk)
-
-#     # Handle cases where the user might not be logged in
-#     if request.user.is_authenticated:
-#         user_newuser, created = NewUser.objects.get_or_create(email=request.user.email)
-#         # Ensure a certificate for the user and course exists or create it if not
-#         certificate, created = Certificate.objects.get_or_create(
-#             user=user_newuser,
-#             course=course,
-#             defaults={
-#                 'verification_code': uuid.uuid4(),
-#                 'code': uuid.uuid4().hex[:8]  # Generate or use existing code as needed
-#             }
-#         )
-#     else:
-#         # Handle case for anonymous users
-#         certificate, created = Certificate.objects.get_or_create(
-#             course=course,
-#             defaults={
-#                 'verification_code': uuid.uuid4(),
-#                 'code': uuid.uuid4().hex[:8]  # Generate or use existing code as needed
-#             }
-#         )
-
-#     # Get additional data required for rendering the PDF
-#     # Use a default or empty profile for anonymous users
-#     student = Profile.objects.filter(user_id=request.user.id).first() if request.user.is_authenticated else None
-    
-#     date = timezone.now()
-#     logo = Logo.objects.all()
-#     sign = Signature.objects.all()
-#     design = Designcert.objects.all()
-
-#     # Context for rendering the PDF
-#     # print(certificate.user.last_name, 'nnnn')
-#     context = {
-#         'results': [course],
-#         'first_name': certificate.user.first_name,
-#         'last_name': certificate.user.last_name,
-#         # 'student': student,
-#         'date': date,
-#         'course': [course],
-#         'logo': logo,
-#         'sign': sign,
-#         'design': design,
-#         'school_name': certificate.user.school.school_name if certificate.user and certificate.user.school else '',
-#         'school_logo': certificate.user.school.logo if certificate.user and certificate.user.school else '',
-#         'school_sign': certificate.user.school.principal_signature if certificate.user and certificate.user.school else '',
-#         'principal_name': certificate.user.school.name if certificate.user and certificate.user.school else '',
-#         'portfolio': certificate.user.school.portfolio if certificate.user and certificate.user.school else '',
-#         'verification_url': request.build_absolute_uri(
-#             reverse('student:verify_certificate', args=[certificate.code])
-#         ),
-#     }
-
-#     # Render the PDF
-#     template_path = 'student/dashboard/certificatepdf_testing.html'
-#     template = get_template(template_path)
-#     html = template.render(context)
-    
-#     response = HttpResponse(content_type='application/pdf')
-#     response['Content-Disposition'] = 'inline; filename="certificate.pdf"'
-    
-#     # Create PDF
-#     pisa_status = pisa.CreatePDF(html, dest=response)
-    
-#     if pisa_status.err:
-#         return HttpResponse(f'We had some errors <pre>{html}</pre>', status=500)
-
-#     return response
 
 # pdf
 # @login_required
