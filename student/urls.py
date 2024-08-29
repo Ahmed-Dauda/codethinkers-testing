@@ -9,7 +9,7 @@ from . import views
 app_name = 'student'
 
 urlpatterns = [
- 
+
     path('verify/<str:code>/', views.verify_certificate, name='verify_certificate'),
     path('certificate/pdf/<int:pk>/', views.pdf_id_view, name='pdf_id_view'),
     
