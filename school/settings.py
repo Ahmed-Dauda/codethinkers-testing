@@ -127,6 +127,11 @@ ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_FORMS = {'signup': 'users.forms.SimpleSignupForm'}
 
 
+from django.urls import reverse_lazy
+
+ACCOUNT_ADAPTER = 'users.adapters.CustomAccountAdapter'
+ACCOUNT_SIGNUP_REDIRECT_URL = reverse_lazy('account_login')
+
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -189,28 +194,27 @@ cloudinary.config(
 # EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
 # DEFAULT_FROM_EMAIL = 'codethinkersa@gmail.com'
 
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = 'codethinkersacademy2@gmail.com'
+EMAIL_HOST_PASSWORD = 'zlht ehfi ivft vzgh'  # Use an App Password
+DEFAULT_FROM_EMAIL = "codethinkersacademy1@gmail.com"
+
+
+# real codes
 # EMAIL_BACKED = 'django_smtp_ssl.SSLEmailBackend'
 # EMAIL_HOST = 'smtppro.zoho.eu'
 # # EMAIL_HOST = 'smtppro.zoho.com'
-# EMAIL_PORT = 465  # SSL port for Zoho
-# EMAIL_USE_TLS = False
-# EMAIL_USE_SSL = True
-# EMAIL_HOST_USER = 'codethinkersa@gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_USE_SSL = False 
+# EMAIL_HOST_USER = 'techsupport@esteemlearningcentre.com'
 # # EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
-# EMAIL_HOST_PASSWORD = 'pYHr Mi6f iVDO'
-# DEFAULT_FROM_EMAIL = 'codethinkersa@gmail.com'
-
-
-EMAIL_BACKED = 'django_smtp_ssl.SSLEmailBackend'
-EMAIL_HOST = 'smtppro.zoho.eu'
-# EMAIL_HOST = 'smtppro.zoho.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False 
-EMAIL_HOST_USER = 'techsupport@esteemlearningcentre.com'
-# EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
-EMAIL_HOST_PASSWORD = 'techSupport@02'
-DEFAULT_FROM_EMAIL = 'techsupport@esteemlearningcentre.com'
+# EMAIL_HOST_PASSWORD = 'techSupport@02'
+# DEFAULT_FROM_EMAIL = 'techsupport@esteemlearningcentre.com'
 
 
 # if DEBUG:
@@ -330,20 +334,20 @@ USE_TZ = True
 
 # ADDITIONAL SITEs SECURITY
 
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# SECURE_SSL_REDIRECT = True
-# SECURE_BROWSER_XSS_FILTER = True
-# X_FRAME_OPTIONS = 'DENY'
-# SECURE_SSL_REDIDERECT = True
-# SECURE_HSTS_SECONDS = 3600
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# SESSION_COOKIES_SECURE = True
-# SECURE_FRAME_DENY = True
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIES_HTTPONLY = True
-# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_SSL_REDIDERECT = True
+SECURE_HSTS_SECONDS = 3600
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SESSION_COOKIES_SECURE = True
+SECURE_FRAME_DENY = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIES_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # end of security codes
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'

@@ -163,28 +163,6 @@ class ReferralSignupView(SignupView):
 
         return response
     
-# class ReferralSignupView(SignupView):
-#     template_name = 'users/referrer.html'  # Replace with your actual template path
-#     form_class = SimpleSignupForm
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         referral_code = self.kwargs.get('referrer_code', '')
-#         context['form'].fields['phone_number'].initial = referral_code
-#         context['referrer_code'] = self.request.resolver_match.kwargs.get('referrer_code', '')
-#         return context
-
-#     def form_valid(self, form):
-#         response = super().form_valid(form)
-#         referral_code = form.cleaned_data.get('phone_number', '')
-
-#         # Perform actions with the referral code, e.g., associate it with the user
-#         user = self.request.user  # The user object after signup
-#         user.phone_number = referral_code
-#         user.save()
-        
-#         return response
-
 
 
 @login_required
