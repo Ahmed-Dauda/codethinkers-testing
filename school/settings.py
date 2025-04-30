@@ -4,6 +4,7 @@ from pathlib import Path
 from django.conf import settings
 
 from django.contrib.auth import SESSION_KEY
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
@@ -17,21 +18,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECRET_KEY = 'django-insecure-f1btf-a@a!84mjii=$tgdel4$+w5gtmbw3o%7$8n4w+2rntpns'
 
 # Read SECRET_KEY from an environment variable
-
-import os
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'cg#p$g+j9tax!#a3cup@1$8obt2_+&k3q+pmu)5%asj6yjpkag')
-
-
-
 # SECURITY WARNING: don't run with debug turned on in production!
-# SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
-DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
 
-ALLOWED_HOSTS = ['*']
-# ALLOWED_HOSTS = ['codethinkers.herokuapp.com','codethinkerslms.com','www.codethinkerslms.com','codethinkers.org','www.codethinkers.org', '127.0.0.1']
-# ALLOWED_HOSTS = ['ctsaalms.herokuapp.com','codethinkers.org' ,'127.0.0.1']
+
+import environ
+
+env = environ.Env(DEBUG=(bool, False))
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+DEBUG = env("DEBUG")
+SECRET_KEY = env("SECRET_KEY")
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+DATABASES = {
+    'default': env.db()
+}
+
 
 # wyswyg = ['grappelli', 'filebrowser']
 INSTALLED_APPS = [
@@ -217,11 +219,6 @@ DEFAULT_FROM_EMAIL = "codethinkersacademy1@gmail.com"
 # DEFAULT_FROM_EMAIL = 'techsupport@esteemlearningcentre.com'
 
 
-# if DEBUG:
-#     EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
-# else:
-#     EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
-
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -254,23 +251,6 @@ TEMPLATES = [
     },
 ]
 
-# TEMPLATES = [
-#     {
-#         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-#         'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Add any template directories here
-#         'APP_DIRS': True,
-#         'OPTIONS': {
-#             'context_processors': [
-#                 'django.template.context_processors.debug',
-#                 'django.template.context_processors.request',
-                
-#                 'django.contrib.auth.context_processors.auth',
-#                 'django.contrib.messages.context_processors.messages',
-                
-#             ],
-#         },
-#     },
-# ]
 
 WSGI_APPLICATION = 'school.wsgi.application'
 
@@ -279,21 +259,13 @@ WSGI_APPLICATION = 'school.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 PROJECT_PATH =os.path.dirname(os.path.abspath(__file__))
 
+
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(PROJECT_PATH, 'school.sqlite3'),
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-import os
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 
 
