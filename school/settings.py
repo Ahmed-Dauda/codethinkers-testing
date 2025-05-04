@@ -127,22 +127,29 @@ SITE_ID = 2
 # ACCOUNT_SESSION_REMEMBER = True
 
 # ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
-ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
-ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
-ACCOUNT_LOGIN_ON_PASSWORD_RESET = False
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_MIN_LENGTH = 3
-ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
-ACCOUNT_FORMS = {'signup': 'users.forms.SimpleSignupForm'}
-
-
 from django.urls import reverse_lazy
 
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
+ACCOUNT_LOGIN_ON_PASSWORD_RESET = False
+
+ACCOUNT_USERNAME_MIN_LENGTH = 3
+ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
+ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+
+ACCOUNT_FORMS = {'signup': 'users.forms.SimpleSignupForm'}
 ACCOUNT_ADAPTER = 'users.adapters.CustomAccountAdapter'
 ACCOUNT_SIGNUP_REDIRECT_URL = reverse_lazy('account_login')
+
+# ACCOUNT_SIGNUP_REDIRECT_URL = 'sms:homepage'  # or '/'
+LOGIN_REDIRECT_URL = 'sms:homepage'
+LOGIN_URL = 'account_login'
+LOGOUT_REDIRECT_URL = 'account_login'
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -206,6 +213,8 @@ cloudinary.config(
 # EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
 # DEFAULT_FROM_EMAIL = 'codethinkersa@gmail.com'
 
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -237,8 +246,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'users.middleware.BotSignupProtectionMiddleware',
+      
 ]
 
 CSRF_COOKIE_SECURE=False
@@ -314,31 +324,31 @@ USE_TZ = True
 
 
 
+
 # ADDITIONAL SITEs SECURITY
 
 # HTTPS and secure headers
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SECURE_SSL_REDIRECT = True
+# SECURE_BROWSER_XSS_FILTER = True
+# SECURE_CONTENT_TYPE_NOSNIFF = True
+# X_FRAME_OPTIONS = 'DENY'
 
-# HSTS (HTTP Strict Transport Security)
-SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+# # HSTS (HTTP Strict Transport Security)
+# SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
 
-# Cookies and sessions
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# # Cookies and sessions
+# CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
+# SESSION_COOKIE_HTTPONLY = True
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# Optional - block embedding your site in iframes entirely
-SECURE_FRAME_DENY = True  # Already handled by X_FRAME_OPTIONS = 'DENY'
+# # Optional - block embedding your site in iframes entirely
+# SECURE_FRAME_DENY = True  # Already handled by X_FRAME_OPTIONS = 'DENY'
 
-# Remove typo
-
+# end of new security
 
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # SECURE_SSL_REDIRECT = True
@@ -356,11 +366,7 @@ SECURE_FRAME_DENY = True  # Already handled by X_FRAME_OPTIONS = 'DENY'
 # SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # end of security codes
-MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
-LOGIN_REDIRECT_URL = 'sms:homepage'
-LOGIN_URL = 'account_login'
-LOGOUT_REDIRECT_URL = 'account_login'
-ACCOUNT_SIGNUP_REDIRECT_URL= 'account_login'
+
 # ACCOUNT_SIGNUP_REDIRECT_URL= 'settings.LOGOUT_URL'
 # django hit count 
 # HITCOUNT_KEEP_HIT_ACTIVE = {'seconds': 2}
