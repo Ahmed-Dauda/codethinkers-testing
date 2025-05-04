@@ -41,6 +41,9 @@ from django.http import HttpResponse
 
 from django.shortcuts import render, redirect
 
+from allauth.account.views import SignupView
+from .forms import SimpleSignupForm
+ 
 
 def SchoolStudentView(request):
     if request.method == 'POST':
@@ -163,21 +166,38 @@ class ReferralSignupView(SignupView):
 
         return response
     
-
+from django.utils.timezone import now
 
 @login_required
 def become_referrer(request):
     if request.method == 'POST':
-        form = ReferrerMentorForm(request.POST)
+        form = ReferrerMentorForm(request.POST, request=request)
         if form.is_valid():
-            # Set the referrer field before saving
             form.instance.referrer = request.user
             form.save()
             return redirect('sms:myprofile')
     else:
-        form = ReferrerMentorForm(initial={'referrer': request.user.pk})
+        form = ReferrerMentorForm(initial={'referrer': request.user.pk}, request=request)
+        # Set timestamp for bot protection
+        request.session['referrer_form_created_at'] = now().isoformat()
 
     return render(request, 'users/become_referrer.html', {'form': form})
+
+
+# working
+# @login_required
+# def become_referrer(request):
+#     if request.method == 'POST':
+#         form = ReferrerMentorForm(request.POST)
+#         if form.is_valid():
+#             # Set the referrer field before saving
+#             form.instance.referrer = request.user
+#             form.save()
+#             return redirect('sms:myprofile')
+#     else:
+#         form = ReferrerMentorForm(initial={'referrer': request.user.pk})
+
+#     return render(request, 'users/become_referrer.html', {'form': form})
 
 
 

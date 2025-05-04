@@ -5,11 +5,27 @@
 <div class="text-center">
     <br><br>
   <h2>Become a Referrer</h2>
-  <form method="post" action="{% url 'users:become_referrer' %}">
+
+<!-- templates/users/become_referrer.html -->
+
+<form method="post" action="{% url 'users:become_referrer' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+
+  <!-- JavaScript Honeypot -->
+  <input type="hidden" name="js_honeypot" id="js_honeypot" value="">
+  <script>
+    document.getElementById('js_honeypot').value = 'human';
+  </script>
+
+  <button type="submit">Submit</button>
+</form>
+
+  <!-- <form method="post" action="{% url 'users:become_referrer' %}">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Submit</button>
-  </form>
+  </form> -->
 
 </div>
 {% endblock %}
