@@ -732,7 +732,7 @@ ff -->
 
 
         <!-- <a style="font-size: 20px;color: red;" href="{% url 'users:become_referrer' %}">Become a Referrer, Click Here</a> -->
-        <h1>Unleashing Your Coding Potential</h1>
+        <h3 style="background-color: rgb(238, 238, 244);color: rgb(40, 99, 236);">Welcome to CodeThinkers Academy!</h3>
         <p>
           Join us at CodeThinkers Academy to unlock your coding potential. 
           Our diverse range of courses covers web development, app creation, data science, 
@@ -743,16 +743,8 @@ ff -->
         
       </div>
       
-      <div  class="button-container">
-        {% if not users.is_authenticated %}
-        <a href="{% url 'account_login' %}" class="btn-front btn-primary">Join us for Free</a>
-        {% endif  %}
-      </div>
-      <div class="button-container">
-        {% if not users.is_authenticated %}
-        <a href="{% url 'account_signup' %}" class="btn-front btn-primary ">Sign Up</a>
-        {% endif  %}
-      </div>
+      
+    
     </div>
   
     <div id="flash-message-container">
@@ -774,7 +766,15 @@ ff -->
 
 
 <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 30px 10px; background-color: #f5f5f5;">
-  
+  {% if not users.is_authenticated %}
+  <a href="{% url 'account_login' %}" 
+     style="display: block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 16px; text-align: center; transition: background-color 0.3s ease; display: flex; align-items: center; gap: 10px;"
+     onmouseover="this.style.backgroundColor='#0056b3'" 
+     onmouseout="this.style.backgroundColor='#007bff'">
+    <span>🆓</span> Join us for Free
+  </a>
+  {% endif %}
+
   <a href="mailto:codethinkersa@gmail.com" 
      style="padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 16px; transition: background-color 0.3s ease;"
      onmouseover="this.style.backgroundColor='#0056b3'"
@@ -788,7 +788,6 @@ ff -->
      onmouseout="this.style.backgroundColor='#28a745'">
     💬 Customer Support
   </a>
-
 </div>
 
 
@@ -1446,103 +1445,122 @@ ff -->
 
   <br> <br> <br>
   <!-- ebooks section  -->
-  <div class="card-body text-center">
-    <div class="">
-  <h3 style="color: red;  font-weight: bold;" > {{alert_count_homes}} E-books Available for You</h3>
+
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body text-center">
+      <h3 class="text-danger fw-bold">
+        <i class="fas fa-book-reader me-2"></i>{{ alert_count_homes }} E-books Available for You
+      </h3>
     </div>
   </div>
-  <br>
-
   
-<div class="flex-container">
-  {% for alert in alert_homes %}
-  <div class="card card-ebooks">
-    <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
-    <div class="card-body child-ebooks">
-      <img class="" src="{{ alert.img_ebook.url }}" width="300px" height="250px" alt="{{ obj.desc }}">
-      <div class=""> 
-        <h6 style="color: #000000;  padding-right: 3px;" class="card-title">{{ alert.title|safe }}</h6> 
-        <small>Price: &#8358;{{ alert.price }}</small> <br>
-        <button><a href="{% url 'sms:ebooks' alert.id %}">{{ alert.title }}</a></button>
-        
+  <!-- E-books Grid -->
+  
+  <div class="d-flex flex-wrap justify-content-center gap-4">
+    {% for alert in alert_homes %}
+    <div class="card shadow-sm border-0 d-flex flex-column" style="width: 16rem;">
+      <img src="{{ alert.img_ebook.url }}" class="card-img-top" alt="{{ alert.title }}" style="height: 180px; object-fit: cover;">
+      <div class="card-body d-flex flex-column justify-content-between">
+        <div>
+          <h6 class="card-title text-dark fw-semibold mb-2">{{ alert.title|safe }}</h6>
+          <p class="mb-2 small">
+            <i class="fas fa-tag text-success me-1"></i> Price: <strong>&#8358;{{ alert.price }}</strong>
+          </p>
+        </div>
+        <a href="{% url 'sms:ebooks' alert.id %}" class="btn btn-outline-primary btn-sm mt-auto">
+          <i class="fas fa-eye me-1"></i> View Details
+        </a>
       </div>
     </div>
+    {% endfor %}
   </div>
-  {% endfor %}
-</div>
-
-
-
+  
 
   <!-- ebooks section endign -->
 
 <br> <br> <br>
-<div class="row d-flex justify-content-center">
-  <div class="col-md-10 col-xl-8 text-center">
-    <h3 style="color: black; font-weight: bold;"  class="mb-4">What People Say About Us</h3>
-    <p class="mb-4 pb-2 mb-md-5 pb-md-0">
-
-    </p>
-  </div>
+<div class="text-center mb-5">
+  <h3 class="fw-bold text-primary">What Our Students Say</h3>
+  <p class="text-muted">Real feedback from learners at CodeThinkers Academy</p>
 </div>
 
-<section style="" class="container ">
+<section class="container py-5">
 
 
-  <div class="row text-center d-flex align-items-stretch">
-    <div class="col-sm mb-5 mb-md-0 d-flex align-items-stretch">
-      <div class="card testimonial-card">
-        <div class="card-up" style="background-color: #9d789b;"></div>
-        <div class="avatar mx-auto bg-white">
-
-          <img src=" /static/sms/images/girlavater.webp" width="100px" class="rounded-circle img-fluid" />
-
+  <div class="row g-4 justify-content-center">
+    
+    <div class="col-md-4 d-flex align-items-stretch">
+      <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-up rounded-top" style="background-color: #9d789b;"></div>
+        <div class="avatar mx-auto bg-white p-2 rounded-circle shadow" style="margin-top: -40px;">
+          <img src="/static/sms/images/girlavater.webp" width="90" height="90" class="rounded-circle img-fluid" />
         </div>
-        <div class="card-body">
-          <h6 class="mb-4">Maria Smantha</h6>
-          <img src="/static/sms/images/star-rating-icon-21.jpg" width="100px" alt="">
-          <hr />
-          <p class="dark-grey-text mt-4">
-            <i class="fas fa-quote-left pe-2"></i>
+        <div class="card-body text-center px-4">
+          <h5 class="fw-semibold mt-3">Maria Smantha</h5>
+          <div class="mb-2">
+            <i class="fas fa-star text-warning"></i>
+            <i class="fas fa-star text-warning"></i>
+            <i class="fas fa-star text-warning"></i>
+            <i class="fas fa-star text-warning"></i>
+            <i class="fas fa-star text-warning"></i>
+          </div>
+          <hr>
+          <p class="text-muted small">
+            <i class="fas fa-quote-left me-2 text-secondary"></i>
             "Codethinkers Academy offers a top-notch programming education with knowledgeable instructors, comprehensive curriculum, and practical projects that prepare students for real-world challenges."
           </p>
         </div>
       </div>
     </div>
 
-    <div class="col-sm mb-5 mb-md-0 d-flex align-items-stretch">
-      <div class="card testimonial-card">
-        <div class="card-up" style="background-color: #7a81a8;"></div>
-        <div class="avatar mx-auto bg-white">
-          <img src=" /static/sms/images/avater11.png" width="100px" class="rounded-circle img-fluid" />
+    <div class="col-md-4 d-flex align-items-stretch">
+      <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-up rounded-top" style="background-color: #7a81a8;"></div>
+        <div class="avatar mx-auto bg-white p-2 rounded-circle shadow" style="margin-top: -40px;">
+          <img src="/static/sms/images/avater11.png" width="90" height="90" class="rounded-circle img-fluid" />
         </div>
-        <div class="card-body">
-          <h6 class="mb-4">Andrew Cudrow</h6>
-          <img src="https://icon-library.com/images/star-rating-icon/star-rating-icon-21.jpg" width="100px" alt="">
-          <hr />
-          <p class="dark-grey-text mt-4">
-            <i class="fas fa-quote-left pe-2"></i>
+        <div class="card-body text-center px-4">
+          <h5 class="fw-semibold mt-3">Andrew Cudrow</h5>
+          <div class="mb-2">
+            <i class="fas fa-star text-warning"></i>
+            <i class="fas fa-star text-warning"></i>
+            <i class="fas fa-star text-warning"></i>
+            <i class="fas fa-star text-warning"></i>
+            <i class="fas fa-star text-warning"></i>
+          </div>
+          <hr>
+          <p class="text-muted small">
+            <i class="fas fa-quote-left me-2 text-secondary"></i>
             "The academy creates a supportive learning environment, where instructors and mentors are readily available, fostering collaboration and individual attention."
           </p>
         </div>
       </div>
     </div>
-    <div class="col-sm mb-0 d-flex align-items-stretch">
-      <div class="card testimonial-card">
-        <div class="card-up" style="background-color: #6d5b98;"></div>
-        <div class="avatar mx-auto bg-white">
-          <img src=" /static/sms/images/avater2.webp" width="100px" class="rounded-circle img-fluid" />
+
+    <div class="col-md-4 d-flex align-items-stretch">
+      <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-up rounded-top" style="background-color: #6d5b98;"></div>
+        <div class="avatar mx-auto bg-white p-2 rounded-circle shadow" style="margin-top: -40px;">
+          <img src="/static/sms/images/avater2.webp" width="90" height="90" class="rounded-circle img-fluid" />
         </div>
-        <div class="card-body">
-          <h6 class="mb-4">Muhammad  Abubakar</h6>
-          <img src="https://icon-library.com/images/star-rating-icon/star-rating-icon-21.jpg" width="100px" alt="">
-          <hr />
-          <p class="dark-grey-text mt-4">
-            <i class="fas fa-quote-left pe-2"></i>
+        <div class="card-body text-center px-4">
+          <h5 class="fw-semibold mt-3">Muhammad Abubakar</h5>
+          <div class="mb-2">
+            <i class="fas fa-star text-warning"></i>
+            <i class="fas fa-star text-warning"></i>
+            <i class="fas fa-star text-warning"></i>
+            <i class="fas fa-star text-warning"></i>
+            <i class="fas fa-star text-warning"></i>
+          </div>
+          <hr>
+          <p class="text-muted small">
+            <i class="fas fa-quote-left me-2 text-secondary"></i>
             "With a focus on real-world projects and career preparation, Codethinkers Academy equips students with practical skills and offers valuable resources for successful entry into the programming industry."
+          </p>
         </div>
       </div>
     </div>
+
   </div>
 </section>
 
@@ -1638,20 +1656,21 @@ ff -->
 
 <!-- Categories and Courses -->
 
-<br><br><br>
-<h3 class="text-center text-primary">Categories and Courses</h3>
-<br>
+<h3 class="text-center text-primary mt-4 mb-4">
+  <i class="fas fa-layer-group"></i> Categories and Courses
+</h3>
 
-<div class="flex-container">
+<div class="d-flex flex-wrap justify-content-center gap-4">
   {% for category in category_sta %}
-  <div class="card card-cat">
-    <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
-    <div class="card-body child-ele">
-      <img class="" src="/static/sms/images/newlogo3.jpg" width="100px" height="50px" alt="{{ obj.desc }}">
-      <div class="">
-        <h5 style="font-weight: bold;" class="card-title">{{ category.name|title }}</h5>
-        <p class="card-text">{{ category.num_courses }} Courses</p>
-      </div>
+  <div class="card shadow-sm border-0" style="width: 16rem;">
+    <div class="card-body text-center">
+      <!-- <img src="/static/sms/images/newlogo3.jpg" class="mb-2 rounded" width="100" height="50" alt="{{ category.name }}"> -->
+      <h5 class="card-title fw-bold mt-2">
+        <i class="fas fa-book-open text-info me-1"></i> {{ category.name|title }}
+      </h5>
+      <p class="card-text text-muted">
+        <i class="fas fa-graduation-cap text-secondary me-1"></i> {{ category.num_courses }} Courses
+      </p>
     </div>
   </div>
   {% endfor %}
