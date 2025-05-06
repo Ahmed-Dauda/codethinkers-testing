@@ -5,78 +5,48 @@
 
 {% block content %}
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
-  }
-
-  .container {
-    max-width: 450px;
-    margin: 40px auto;
-    padding: 30px;
-    background-color: #ffffff;
+  /* Basic pure CSS styling */
+  form#signup_form {
+    max-width: 400px;
+    margin: auto;
+    padding: 1rem;
+    background: #f9f9f9;
     border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: sans-serif;
   }
 
-  h1 {
-    text-align: center;
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 20px;
+  form#signup_form p {
+    margin-bottom: 1rem;
   }
 
-  p {
-    text-align: center;
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 25px;
-  }
-
-  p a {
-    color: #007BFF;
-    text-decoration: none;
-  }
-
-  p a:hover {
-    text-decoration: underline;
-  }
-
-  form.signup {
-    display: flex;
-    flex-direction: column;
-  }
-
-  form.signup p {
-    margin-bottom: 15px;
-  }
-
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  select {
+  form#signup_form input[type="text"],
+  form#signup_form input[type="email"],
+  form#signup_form input[type="password"],
+  form#signup_form select {
     width: 100%;
-    padding: 10px;
+    padding: 0.5rem;
     border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-    margin-top: 5px;
+    border-radius: 5px;
   }
 
-  .btn {
-    padding: 10px;
-    background-color: #28a745;
+  form#signup_form button {
+    width: 100%;
+    padding: 0.7rem;
+    background-color: #4CAF50;
     color: white;
-    font-weight: bold;
     border: none;
-    border-radius: 6px;
+    border-radius: 5px;
+    font-weight: bold;
     cursor: pointer;
-    font-size: 15px;
-    margin-top: 10px;
   }
 
-  .btn:hover {
-    background-color: #218838;
+  form#signup_form button:hover {
+    background-color: #45a049;
+  }
+
+  /* Hide honeypot fields from view */
+  #id_honeypot, #id_js_honeypot {
+    display: none;
   }
 </style>
 
@@ -104,17 +74,20 @@
     </script>
 </form> -->
 
+<form id="signup_form" method="post" action="{% url 'account_signup' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
 
-  <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
-    {% csrf_token %}
-    {{ form.as_p }}
+  <button type="submit">Sign Up</button>
 
-    {% if redirect_field_value %}
-      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-    {% endif %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function(){
+      var jsTrap = document.getElementById('id_js_honeypot');
+      if (jsTrap) jsTrap.value = 'human';
+    });
+  </script>
+</form>
 
-    <button class="btn" type="submit">{% trans "Sign Up" %} &raquo;</button>
-  </form>
   
 </div>
 {% endblock %}
