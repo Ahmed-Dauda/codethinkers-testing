@@ -713,7 +713,7 @@ ff -->
       <div class="desc">
         <p> {{ image.desc }}</p>
           {% if image.link %}
-              <a href="{{ image.link }}">Click Here to Start</a>
+              <a href="{{ image.link }}">View Details</a>
           {% else %}
              
           {% endif %}
@@ -721,11 +721,30 @@ ff -->
   {% endfor %}
 
   <!-- Navigation controls -->
-  <div class="popup-controls">
+   <!-- Navigation controls -->
+<div class="popup-controls" style="display: flex; justify-content: center; gap: 12px; margin-top: 15px;">
+  <button onclick="prevImage()" 
+          style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: background-color 0.3s;">
+    ⬅ Previous
+  </button>
+  
+  <button onclick="nextImage()" 
+          style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: background-color 0.3s;">
+    Next ➡
+  </button>
+  
+  <button onclick="closePopup()" 
+          style="padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: background-color 0.3s;">
+    ❌ Close
+  </button>
+</div>
+
+  <!-- <div class="popup-control">
       <button onclick="prevImage()">Previous</button>
       <button onclick="nextImage()">Next</button>
       <button onclick="closePopup()">Close</button>
   </div>
+   -->
 </div>
 
 
