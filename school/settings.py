@@ -187,13 +187,27 @@ CLOUDINARY_URL = 'CLOUDINARY_URL=cloudinary://671667183251344:P5WKA1qweMmd1i4TkU
 
 
 import cloudinary
+import os
+import environ
 
-cloudinary.config( 
-  cloud_name = "ds5l3gqr6", 
-  api_key ="671667183251344", 
-  api_secret = "P5WKA1qweMmd1i4TkU2W_ZY9ZuA",
-  secure = True
+env = environ.Env()
+environ.Env.read_env()
+
+cloudinary.config(
+    cloud_name = env("CLOUDINARY_CLOUD_NAME"),
+    api_key    = env("CLOUDINARY_API_KEY"),
+    api_secret = env("CLOUDINARY_API_SECRET"),
+    secure     = True
 )
+
+
+# cloudinary.config( 
+#   cloud_name = "ds5l3gqr6", 
+#   api_key ="671667183251344", 
+#   api_secret = "P5WKA1qweMmd1i4TkU2W_ZY9ZuA",
+#   secure = True
+# )
+
 # email settings
 
 # EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
@@ -220,9 +234,14 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'codethinkersacademy2@gmail.com'
-EMAIL_HOST_PASSWORD = 'zlht ehfi ivft vzgh'  # Use an App Password
-DEFAULT_FROM_EMAIL = "codethinkersacademy1@gmail.com"
+
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+
+# EMAIL_HOST_USER = 'codethinkersacademy2@gmail.com'
+# EMAIL_HOST_PASSWORD = 'zlht ehfi ivft vzgh'  # Use an App Password
+# DEFAULT_FROM_EMAIL = "codethinkersacademy1@gmail.com"
 
 
 # real codes
@@ -247,8 +266,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'users.middleware.BotSignupProtectionMiddleware',
-      
+    'users.middleware.BotSignupProtectionMiddleware',  
 ]
 
 CSRF_COOKIE_SECURE=False
@@ -326,44 +344,29 @@ USE_TZ = True
 
 
 # ADDITIONAL SITEs SECURITY
-
 # HTTPS and secure headers
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# SECURE_SSL_REDIRECT = True
-# SECURE_BROWSER_XSS_FILTER = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# X_FRAME_OPTIONS = 'DENY'
 
-# # HSTS (HTTP Strict Transport Security)
-# SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
 
-# # Cookies and sessions
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIE_SECURE = True
-# SESSION_COOKIE_HTTPONLY = True
-# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# HSTS (HTTP Strict Transport Security)
+SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
-# # Optional - block embedding your site in iframes entirely
-# SECURE_FRAME_DENY = True  # Already handled by X_FRAME_OPTIONS = 'DENY'
+# Cookies and sessions
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Optional - block embedding your site in iframes entirely
+SECURE_FRAME_DENY = True  # Already handled by X_FRAME_OPTIONS = 'DENY'
 
 # end of new security
-
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# SECURE_SSL_REDIRECT = True
-# SECURE_BROWSER_XSS_FILTER = True
-# X_FRAME_OPTIONS = 'DENY'
-# SECURE_SSL_REDIDERECT = True
-# SECURE_HSTS_SECONDS = 3600
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# SESSION_COOKIES_SECURE = True
-# SECURE_FRAME_DENY = True
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIES_HTTPONLY = True
-# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # end of security codes
 

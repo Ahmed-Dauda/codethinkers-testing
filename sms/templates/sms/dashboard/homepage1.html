@@ -773,40 +773,62 @@ ff -->
 </div>
 
 
-<div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-  <button style="margin: 5px;" class="btn text-center text-white">
-    <a class="btn bg-primary text-white" href="mailto:codethinkersa@gmail.com">codethinkersa@gmail.com</a>
-  </button>
-  <button style="margin: 5px;" class="btn text-center text-white">
-    <a class="btn bg-primary text-white" href="https://wa.me/23408128014921">Customer Support</a>
-  </button>
+<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 30px 10px; background-color: #f5f5f5;">
+  
+  <a href="mailto:codethinkersa@gmail.com" 
+     style="padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 16px; transition: background-color 0.3s ease;"
+     onmouseover="this.style.backgroundColor='#0056b3'"
+     onmouseout="this.style.backgroundColor='#007bff'">
+    📧 codethinkersa@gmail.com
+  </a>
+
+  <a href="https://wa.me/23408128014921" 
+     style="padding: 12px 24px; background-color: #28a745; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 16px; transition: background-color 0.3s ease;"
+     onmouseover="this.style.backgroundColor='#1e7e34'"
+     onmouseout="this.style.backgroundColor='#28a745'">
+    💬 Customer Support
+  </a>
+
 </div>
 
 
 
   <!-- partners section  -->
   
-  <div class="card-bod" style="padding-left: 20px; background-color: rgb(240, 238, 235)">
-   <h3 class="text-center ">Our Partners and Collaborators</h3>
- 
- 
-  <section class="partners " >
- 
-   
- 
-   {% for partner in partners %}
- 
-           <!-- <img src=" /static/sms/images/girlavater.webp" width="100%" class="img-fluid" /> -->
-     <img src="{{partner.img_partner.url}}" width="80px" height="80px" class="img-fluid" />
+  <div class="card-bod" style="padding: 40px 20px; background-color: #f6f6f6; overflow: hidden;">
+    <h2 style="text-align: center; font-size: 28px; font-weight: 600; margin-bottom: 30px; color: #333;">
+      Trusted by Our Global Partners
+    </h2>
+  
+    <section class="partners" style="display: flex; align-items: center; gap: 50px; animation: scrollPartners 30s linear infinite; width: max-content;">
+      {% for partner in partners %}
+        <img 
+          src="{{ partner.img_partner.url }}" 
+          width="100px" 
+          height="100px" 
+          class="img-fluid" 
+          alt="Partner Logo"
+          style="filter: grayscale(100%); transition: filter 0.4s ease, transform 0.4s ease; border-radius: 8px;"
+          onmouseover="this.style.filter='grayscale(0%)'; this.style.transform='scale(1.05)'"
+          onmouseout="this.style.filter='grayscale(100%)'; this.style.transform='scale(1)'"
+        />
+      {% empty %}
+        <h4 class="text-center text-danger" style="width: 100%;">No Partners available yet. Please check back later.</h4>
+      {% endfor %}
+    </section>
+  
+    <style>
+      @keyframes scrollPartners {
+        0% {
+          transform: translateX(100%);
+        }
+        100% {
+          transform: translateX(-100%);
+        }
+      }
+    </style>
+  </div>
     
-     {% empty %}
-     <h1 class="card text-center text-danger">no partners available Yet. CHECK LATER</h1>
- 
-     {% endfor %}
- 
- </section>
- </div>
-
  <!-- partners section endign -->
  
 <!-- page Statistics -->
