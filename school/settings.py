@@ -210,23 +210,6 @@ cloudinary.config(
 
 # email settings
 
-# EMAIL_BACKED = 'django.core.mail.backends.smtp.EmailBackend'
-
-# the below email backed is for testing with local server
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# code to unblock zoho account
-# https://mail.zoho.com/UnblockMe
-
-# EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
-# EMAIL_HOST = 'smtppro.zoho.eu'
-# EMAIL_PORT = 465  # SSL port
-# EMAIL_USE_TLS = True  # Use TLS should be False if using SSL
-# EMAIL_USE_SSL = False  # Enable SSL
-# EMAIL_HOST_USER = 'codethinkersa@gmail.com'
-# EMAIL_HOST_PASSWORD = '0806563624937811Bm.'
-# DEFAULT_FROM_EMAIL = 'codethinkersa@gmail.com'
-
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
