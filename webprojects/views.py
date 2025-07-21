@@ -17,8 +17,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.conf import settings
 import json
-import openai
-import openai
 from openai import OpenAI
 import io
 import contextlib
@@ -411,7 +409,8 @@ def create_folder(request, project_id):
 # Use your actual OpenAI API key here
 # openai.api_key = "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"
 
-client = OpenAI(api_key="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")
+# client = OpenAI(api_key="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")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @csrf_exempt
 def ai_suggest_code(request):
