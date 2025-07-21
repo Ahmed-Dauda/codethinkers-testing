@@ -1,0 +1,37 @@
+<!-- templates/webprojects/test_ai.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Python Completion Test</title>
+</head>
+<body>
+  <h1>Test AI Python Completion</h1>
+  <label for="prefix">Enter prefix (e.g., np., pd., plt.):</label>
+  <input id="prefix" type="text" value="np." />
+  <button onclick="testCompletion()">Test</button>
+
+  <h3>Results:</h3>
+  <pre id="output"></pre>
+
+  <script>
+    function testCompletion() {
+      const prefix = document.getElementById("prefix").value;
+      fetch("/webprojects/ai-python-completion/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ prefix })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+      })
+      .catch(err => {
+        document.getElementById("output").textContent = "Error: " + err;
+      });
+    }
+  </script>
+</body>
+</html>

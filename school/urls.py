@@ -30,6 +30,7 @@ urlpatterns = [
     path('teacher/', include('teacher.urls')),
     path('users/', include('users.urls')),
     path('accounts/', include('allauth.urls')),
+    path("webprojects/", include("webprojects.urls")),
     
 
     # path('tinymce/', include('tinymce.urls')),

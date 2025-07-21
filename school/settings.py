@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'django_social_share',
     'import_export',
     'mathfilters',
+    'webprojects',
     
     
     
@@ -148,7 +149,6 @@ ACCOUNT_SIGNUP_REDIRECT_URL = reverse_lazy('account_login')
 LOGIN_REDIRECT_URL = 'sms:homepage'
 LOGIN_URL = 'account_login'
 LOGOUT_REDIRECT_URL = 'account_login'
-
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 
@@ -183,7 +183,6 @@ SOCIALACCOUNT_PROVIDERS = {
 # api_key = '671667183251344'
 # api_secret = 'P5WKA1qweMmd1i4TkU2W_ZY9ZuA'
 # secure = True
-CLOUDINARY_URL = 'CLOUDINARY_URL=cloudinary://671667183251344:P5WKA1qweMmd1i4TkU2W_ZY9ZuA@ds5l3gqr6'
 
 
 import cloudinary
@@ -199,6 +198,8 @@ cloudinary.config(
     api_secret = env("CLOUDINARY_API_SECRET"),
     secure     = True
 )
+CLOUDINARY_URL = env('CLOUDINARY_URL')
+DEFAULT_FILE_STORAGE = env('DEFAULT_FILE_STORAGE')
 
 
 # cloudinary.config( 

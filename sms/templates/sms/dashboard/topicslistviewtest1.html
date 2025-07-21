@@ -4,7 +4,7 @@
 {% load cloudinary %}
 {% load embed_video_tags %}
 
-{% block title %} Course Overall Scores Detail View {% endblock %}
+{% block title %} Course Detail view {% endblock %}
 
   {% block content %} 
     <!-- prism.css and prism.js -->
@@ -13,9 +13,6 @@
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
   <style>
-
-
-
 img, .videoWrapper{
 width: 100%;
 }
@@ -183,9 +180,27 @@ table-layout: fixed; // ***********add this
         display: block;
     }
 </style>
+<style>
+  .awesome-link {
+    display: inline-block;
+    padding: 10px 20px;
+    background: linear-gradient(to right, #4f46e5, #8b5cf6);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: bold;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
 
+  .awesome-link:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+  }
+</style>
 
   <br>                   
+<a href="{% url 'create_project' %}" class="awesome-link">🚀 AI Coding Assistant</a>
 
   <div class="card-body">
    {{percentage}}%
@@ -213,17 +228,6 @@ table-layout: fixed; // ***********add this
   <!-- Add more content here -->
   {% endif %}
 
-<!-- embed for youtube video https://www.youtube.com/watch?v=NlOF03DUoWc -->
-<!-- <div class="app-container">
-    <iframe width="560" height="315" src="http://www.youtube.com/embed/NlOF03DUoWc" frameborder="0" allowfullscreen></iframe>
-  
-    <div class="banner-overlay">
-    </div>
-</div> -->
-
-
-
-
 <table  id="example" class="datatable-wide display "  style="width:100%;">
     
     <thead class="">
@@ -237,12 +241,8 @@ table-layout: fixed; // ***********add this
 
                     <!-- <p>{{ hitcount.total_hits }}  <i class="fas fa-eye"></i></p> -->
                     <a class="" href="{% url 'sms:feedbackformview' %}">
-                      
                         <i class="fas fa-bell fa-fw"></i>
-
                         <span>Feedback</span></a>
-                       
-             
                 </h6>
             </th>
          
@@ -250,8 +250,16 @@ table-layout: fixed; // ***********add this
     </thead>
     <tbody>
         {% for topic in topics %}
-        <tr>
+    <h3>{{ topic.title }}</h3>
+    {% if topic.id in topic_embeds %}
+        <iframe width="560" height="315" src="{{ topic_embeds }}" frameborder="0" allowfullscreen></iframe>
+    {% else %}
+        <p>No valid video found for {{ topic.title }}.</p>
+    {% endif %}
+{% endfor %}
 
+        {% for topic in topics %}
+        <tr>
             <td class="text-center">
                 <div style="padding-left: 10px; padding-right: 10px;" class="">
                     {% if topic.img_topic %}
@@ -259,34 +267,30 @@ table-layout: fixed; // ***********add this
                     {% else %}
                     {% endif %}
                     <!-- Add the video player -->
-                    
+                    <hr>
+<iframe width="560" height="315"
+    src="https://www.youtube.com/embed/Ha8wtmdhZvI?cc_load_policy=1"
+    frameborder="0" allowfullscreen>
+</iframe>
+
+<h3>Transcript</h3>
+<div class="video-transcript" style="max-height: 300px; overflow-y: auto; padding: 10px; border: 1px solid #ccc;">
+  {% for line in video_transcript %}
+    <p>{{ line }}</p>
+  {% endfor %}
+</div>
+
+<hr>
+ 
                     {% if topic.video %}
                       
-                    <!-- <div class="video-container">
-                        <div id="myVideo" class="video-wrapper"  sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style=" background:#000000; bottom: 61px; position: relative;">
-                            {% video topic.video|safe class="ratio ratio-16x9" %}
-                        </div>
-                       
-                    </div> -->
-
-
-
                    <div class="video-container app-container">
                         <div  id="myVideo" class="video-wrapper app-container" sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style="background: #000000; bottom: 61px; position: relative;">
-         
-                          <br> <br>
-                          <iframe
-                            src="{{ topic.video }}"
-                            frameborder="0"
-                            modestbranding="1"
-                            rel="0"
-                            showinfo="0"
-                            controls="0"
-                            disablekb="1"
-                            >
-                          </iframe>
 
-                          <div class="banner-overlay">
+                          <br> <br>
+          <iframe width="560" height="315" src="{{ embed_url }}" frameborder="0" allowfullscreen></iframe>
+                
+                         <div class="banner-overlay">
                         </div>
 
                         <div class="watch-overlay">
@@ -308,9 +312,6 @@ table-layout: fixed; // ***********add this
 <div id="content1" class="content">
     <div style="text-align: left;" class=" code-block">
      
-        <!-- <small style="color: black;">
-            created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
-        </small> <br> -->
         <hr>
         {% if topic.desc %}
         <label style="max-width: 100%; overflow-x: hidden;" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.desc|safe}}</label> <br>
@@ -328,7 +329,7 @@ table-layout: fixed; // ***********add this
         <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.coursedesc|safe}}</label>
     {% endif %}
 </div>
-<div style="marin-left: 60%;" >
+<div>
                     
     <button id="complete-button-{{ topic.id }} " onclick="markTopicCompleted({{ topic.id }})">Mark as Completed</button>
     <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
@@ -336,17 +337,8 @@ table-layout: fixed; // ***********add this
     </span>
 </div>
 <br>
-<!-- {% if forloop.last %}
-<h4 style="color: green;text-align:center">Congratulations! You have completed this course</h4> <br>
-
-<h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
-    
-{% else %}
-<p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;"></p>
-{% endif %} -->
 
 </div>
-
 
 <div id="content2" class="content" style="overflow-x: auto;">
     <div class="card-body">
@@ -408,7 +400,7 @@ table-layout: fixed; // ***********add this
                         <label data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{topic.coursedesc|safe}}</label>
                     {% endif %}
                 </div>
-                <div style="marin-left: 60%;" >
+                <div >
                     
                         <button id="complete-button-{{ topic.id }} " onclick="markTopicCompleted({{ topic.id }})">Mark as Completed</button>
                         <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
@@ -440,10 +432,7 @@ table-layout: fixed; // ***********add this
     
  
 </table>
-
-
-
-            
+          
 <!-- page refresh  -->
 <script>
     function reloadContent() {
@@ -467,7 +456,6 @@ table-layout: fixed; // ***********add this
     </script>
     <!-- end of  -->
 
-    
 <!-- make completed javascrpts -->
 <script>
     function markTopicCompleted(topicId) {
@@ -495,7 +483,6 @@ table-layout: fixed; // ***********add this
     
 
 <script>
-
 
     $(document).ready(function () {
         $('#example').DataTable({
@@ -576,9 +563,6 @@ table-layout: fixed; // ***********add this
                 wrapper.style.marginRight = "5px";
 
                 // ...
-
-               
-              
     
                 iframe.parentNode.insertBefore(wrapper, iframe);
                 
@@ -647,7 +631,6 @@ table-layout: fixed; // ***********add this
     }
 </script>
 
-    <!-- link to the solution of related videos -->
-    <!-- https://stackoverflow.com/questions/57820478/how-to-disable-related-videos-from-an-embedded-youtube-playlist -->
+   
   {% endblock %} 
  

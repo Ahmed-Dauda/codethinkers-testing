@@ -1,0 +1,103 @@
+{% extends "webprojects/base_editor.html" %}
+{% load static %}
+
+{% block title %}Project: {{ project.name }}{% endblock %}
+
+{% block content %}
+<div id="fileExplorer">
+  <button onclick="promptNewFolder()">➕ New Folder</button>
+  <button onclick="promptNewFile()">📄 New File</button>
+
+  <ul id="fileTree">
+    {% for folder in folders %}
+      <li>
+        <div style="margin-bottom: 5px;">
+          <span onclick="toggleFolder(this)" style="cursor:pointer;">📁 {{ folder.name }}</span>
+          <a href="{% url 'public_folder_view' folder.id %}" target="_blank" style="font-size: 0.9em;">🌐 View</a>
+          <button onclick="promptNewFile({{ folder.id }})" style="font-size: 0.8em;">➕ File</button>
+        </div>
+        <ul style="display: none;">
+          {% for file in folder.files.all %}
+            <li><a href="{% url 'file_detail' project.id file.id %}">📄 {{ file.name }}</a></li>
+          {% empty %}
+            <li><em>No files</em></li>
+          {% endfor %}
+        </ul>
+      </li>
+    {% endfor %}
+
+    <!-- Files not in any folder -->
+    {% for file in files %}
+      {% if not file.folder %}
+        <li><a href="{% url 'file_detail' project.id file.id %}">📄 {{ file.name }}</a></li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+
+  <div id="message" style="margin-top: 10px; color: green;"></div>
+</div>
+
+<script>
+  const projectId = "{{ project.id }}";
+  const csrfToken = "{{ csrf_token }}";
+
+  function toggleFolder(el) {
+    const ul = el.parentElement.nextElementSibling;
+    if (ul && ul.tagName === "UL") {
+      ul.style.display = ul.style.display === "none" ? "block" : "none";
+    }
+  }
+
+  function promptNewFolder() {
+    const name = prompt("Enter folder name:");
+    if (!name) return;
+
+    fetch(`/${projectId}/create-folder/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken
+      },
+      body: JSON.stringify({ name: name })
+    })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("message").textContent = "✅ Folder created. Reload to see changes.";
+      location.reload(); // Optional: reload after creation
+    })
+    .catch(err => {
+      alert("❌ Failed to create folder: " + err.message);
+    });
+  }
+
+  function promptNewFile(folderId = null) {
+  const name = prompt("Enter file name:");
+  if (!name) return;
+
+  const payload = { name: name };
+  if (folderId) payload.folder_id = folderId;
+
+  fetch(`/${projectId}/create-file/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Server error");
+    return res.json();
+  })
+  .then(data => {
+    if (data.error) throw new Error(data.error);
+    alert("✅ File created!");
+    location.reload();
+  })
+  .catch(err => {
+    alert("❌ Failed to create file: " + err.message);
+  });
+}
+
+</script>
+{% endblock %}
