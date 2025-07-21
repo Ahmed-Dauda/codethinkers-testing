@@ -896,146 +896,30 @@ from django.views import View
 from django.http import Http404
 import logging
 
-from youtube_transcript_api import YouTubeTranscriptApi
-import re
 
-import re
-from youtube_transcript_api import YouTubeTranscriptApi
-
-import re
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import DetailView
-from youtube_transcript_api import YouTubeTranscriptApi
 
 
 
 
-
-class Topicslistview(LoginRequiredMixin, DetailView):
-    model = Courses
-    template_name = 'sms/dashboard/topicslistviewtest1.html'
-    count_hit = True
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-        return self.render_to_response(context)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        course = self.object
-
-        # Get topics and assessments
-        topics = course.topics_set.all().order_by('created')
-        topicsa = TopicsAssessment.objects.order_by('id')
-        context['topics'] = topics
-        context['topicsa'] = topicsa
-        context['alert_count'] = Alert.objects.all().count()
-        context['alerts'] = PDFDocument.objects.order_by('-created')
-        context['course'] = course
-
-        # Track completed topics
-        completed_topic_ids = []
-        if self.request.user.is_authenticated:
-            profile = get_object_or_404(Profile, user=self.request.user)
-            completed_topic_ids = profile.completed_topics.values_list('id', flat=True)
-            completed_topic_ids_course = profile.completed_topics.filter(courses_id=course.id).count()
-            context['completed_topic_ids_course'] = completed_topic_ids_course
-        else:
-            completed_topic_ids_course = 0
-
-        context['completed_topic_ids'] = completed_topic_ids
-        context['completed_topic_ids_count'] = int(len(completed_topic_ids))
-        context['topics_count'] = int(topics.count())
-
-        if topics.count() > 0:
-            context['percentage'] = int((completed_topic_ids_course / len(topics)) * 100)
-        else:
-            context['percentage'] = 0
-
-        # --- Video Embed URL Logic ---
-        original_url = getattr(course, 'video_url', '').strip()
-        if original_url:
-            youtube_id = self.extract_youtube_id(original_url)
-        else:
-            youtube_id = None
-
-        print('Original course.video_url:', original_url)
-        print('Extracted YouTube ID:', youtube_id)
-
-        if youtube_id:
-            embed_url = (
-                f"https://www.youtube.com/embed/{youtube_id}"
-                "?theme=dark&autoplay=1&keyboard=1&autohide=2&cc_load_policy=1"
-                "&modestbranding=1&fs=0&showinfo=0&rel=0&iv_load_policy=3&mute=0&loop=0&controls=0"
-            )
-        else:
-            youtube_id = '7vmh59ZyDho'  # fallback ID
-            embed_url = (
-                f"https://www.youtube.com/embed/{youtube_id}"
-                "?theme=dark&autoplay=1&keyboard=1&autohide=2&cc_load_policy=1"
-                "&modestbranding=1&fs=0&showinfo=0&rel=0&iv_load_policy=3&mute=0&loop=0&controls=0"
-            )
-
-        context['embed_url'] = embed_url
-
-        # --- Transcript logic ---
-        transcript = []
-        if youtube_id:
-            try:
-                raw_transcript = YouTubeTranscriptApi.get_transcript(youtube_id)
-                transcript = [entry['text'] for entry in raw_transcript]
-            except Exception as e:
-                transcript = ["Transcript not available."]
-        else:
-            transcript = ["Invalid YouTube URL or ID."]
-
-        context['video_transcript'] = transcript
-
-        return context
-
-    def extract_youtube_id(self, url):
-        """
-        Extracts YouTube video ID from a variety of YouTube URL formats or returns the ID if already provided.
-        """
-        # If input is exactly 11 characters, treat it as a video ID
-        if re.match(r'^[0-9A-Za-z_-]{11}$', url):
-            return url
-
-        # Define patterns to catch various YouTube URL formats
-        patterns = [
-            r'(?:https?:\/\/)?(?:www\.)?youtu\.be\/([0-9A-Za-z_-]{11})',
-            r'(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([0-9A-Za-z_-]{11})',
-            r'(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([0-9A-Za-z_-]{11})',
-            r'(?:https?:\/\/)?(?:www\.)?youtube\.com\/v\/([0-9A-Za-z_-]{11})',
-        ]
-
-        for pattern in patterns:
-            match = re.search(pattern, url)
-            if match:
-                return match.group(1)
-
-        return None
-
-#working code
 # class Topicslistview(LoginRequiredMixin, DetailView):
 #     model = Courses
 #     template_name = 'sms/dashboard/topicslistviewtest1.html'
 #     count_hit = True
 
 #     def get(self, request, *args, **kwargs):
-#         self.object = self.get_object()  # Set the 'object' attribute
+#         self.object = self.get_object()
 #         context = self.get_context_data(object=self.object)
 #         return self.render_to_response(context)
 
 #     def get_context_data(self, **kwargs):
 #         context = super().get_context_data(**kwargs)
-#         course = self.object  # Access the 'object' attribute
+#         course = self.object
 
+#         # Get topics and assessments
 #         topics = course.topics_set.all().order_by('created')
-#         topic = TopicsAssessment.objects.filter(course_name__title=course).order_by('id')
-#         topics_assessment = TopicsAssessment.objects.filter(course_name__title=course.title).order_by('id')
 #         topicsa = TopicsAssessment.objects.order_by('id')
 #         context['topics'] = topics
 #         context['topicsa'] = topicsa
@@ -1043,29 +927,138 @@ class Topicslistview(LoginRequiredMixin, DetailView):
 #         context['alerts'] = PDFDocument.objects.order_by('-created')
 #         context['course'] = course
 
-#         # Fetch completed topic IDs for the current user
+#         # Track completed topics
 #         completed_topic_ids = []
-#         # completed_topic_titles = []
-
 #         if self.request.user.is_authenticated:
 #             profile = get_object_or_404(Profile, user=self.request.user)
-
 #             completed_topic_ids = profile.completed_topics.values_list('id', flat=True)
-#             completed_topic_ids_course = completed_topic_ids.filter(courses_id=course.id).count()
+#             completed_topic_ids_course = profile.completed_topics.filter(courses_id=course.id).count()
 #             context['completed_topic_ids_course'] = completed_topic_ids_course
-#             # completed_topic_titles = profile.completed_topics.values_list('title', flat=True)
+#         else:
+#             completed_topic_ids_course = 0
 
 #         context['completed_topic_ids'] = completed_topic_ids
 #         context['completed_topic_ids_count'] = int(len(completed_topic_ids))
 #         context['topics_count'] = int(topics.count())
+
 #         if topics.count() > 0:
 #             context['percentage'] = int((completed_topic_ids_course / len(topics)) * 100)
 #         else:
 #             context['percentage'] = 0
-#         # context['completed_topic_titles'] = completed_topic_title
-#         topics = Topics.objects.filter(courses_id=course.id)
-      
+
+#         # --- Video Embed URL Logic ---
+#         original_url = getattr(course, 'video_url', '').strip()
+#         if original_url:
+#             youtube_id = self.extract_youtube_id(original_url)
+#         else:
+#             youtube_id = None
+
+#         print('Original course.video_url:', original_url)
+#         print('Extracted YouTube ID:', youtube_id)
+
+#         if youtube_id:
+#             embed_url = (
+#                 f"https://www.youtube.com/embed/{youtube_id}"
+#                 "?theme=dark&autoplay=1&keyboard=1&autohide=2&cc_load_policy=1"
+#                 "&modestbranding=1&fs=0&showinfo=0&rel=0&iv_load_policy=3&mute=0&loop=0&controls=0"
+#             )
+#         else:
+#             youtube_id = '7vmh59ZyDho'  # fallback ID
+#             embed_url = (
+#                 f"https://www.youtube.com/embed/{youtube_id}"
+#                 "?theme=dark&autoplay=1&keyboard=1&autohide=2&cc_load_policy=1"
+#                 "&modestbranding=1&fs=0&showinfo=0&rel=0&iv_load_policy=3&mute=0&loop=0&controls=0"
+#             )
+
+#         context['embed_url'] = embed_url
+
+#         # --- Transcript logic ---
+#         transcript = []
+#         if youtube_id:
+#             try:
+#                 raw_transcript = YouTubeTranscriptApi.get_transcript(youtube_id)
+#                 transcript = [entry['text'] for entry in raw_transcript]
+#             except Exception as e:
+#                 transcript = ["Transcript not available."]
+#         else:
+#             transcript = ["Invalid YouTube URL or ID."]
+
+#         context['video_transcript'] = transcript
+
 #         return context
+
+#     def extract_youtube_id(self, url):
+#         """
+#         Extracts YouTube video ID from a variety of YouTube URL formats or returns the ID if already provided.
+#         """
+#         # If input is exactly 11 characters, treat it as a video ID
+#         if re.match(r'^[0-9A-Za-z_-]{11}$', url):
+#             return url
+
+#         # Define patterns to catch various YouTube URL formats
+#         patterns = [
+#             r'(?:https?:\/\/)?(?:www\.)?youtu\.be\/([0-9A-Za-z_-]{11})',
+#             r'(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([0-9A-Za-z_-]{11})',
+#             r'(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([0-9A-Za-z_-]{11})',
+#             r'(?:https?:\/\/)?(?:www\.)?youtube\.com\/v\/([0-9A-Za-z_-]{11})',
+#         ]
+
+#         for pattern in patterns:
+#             match = re.search(pattern, url)
+#             if match:
+#                 return match.group(1)
+
+#         return None
+
+#working code
+
+class Topicslistview(LoginRequiredMixin, DetailView):
+    model = Courses
+    template_name = 'sms/dashboard/topicslistviewtest1.html'
+    count_hit = True
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()  # Set the 'object' attribute
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course = self.object  # Access the 'object' attribute
+
+        topics = course.topics_set.all().order_by('created')
+        topic = TopicsAssessment.objects.filter(course_name__title=course).order_by('id')
+        topics_assessment = TopicsAssessment.objects.filter(course_name__title=course.title).order_by('id')
+        topicsa = TopicsAssessment.objects.order_by('id')
+        context['topics'] = topics
+        context['topicsa'] = topicsa
+        context['alert_count'] = Alert.objects.all().count()
+        context['alerts'] = PDFDocument.objects.order_by('-created')
+        context['course'] = course
+
+        # Fetch completed topic IDs for the current user
+        completed_topic_ids = []
+        # completed_topic_titles = []
+
+        if self.request.user.is_authenticated:
+            profile = get_object_or_404(Profile, user=self.request.user)
+
+            completed_topic_ids = profile.completed_topics.values_list('id', flat=True)
+            completed_topic_ids_course = completed_topic_ids.filter(courses_id=course.id).count()
+            context['completed_topic_ids_course'] = completed_topic_ids_course
+            # completed_topic_titles = profile.completed_topics.values_list('title', flat=True)
+
+        context['completed_topic_ids'] = completed_topic_ids
+        context['completed_topic_ids_count'] = int(len(completed_topic_ids))
+        context['topics_count'] = int(topics.count())
+        if topics.count() > 0:
+            context['percentage'] = int((completed_topic_ids_course / len(topics)) * 100)
+        else:
+            context['percentage'] = 0
+        # context['completed_topic_titles'] = completed_topic_title
+        topics = Topics.objects.filter(courses_id=course.id)
+      
+        return context
 
 
 
