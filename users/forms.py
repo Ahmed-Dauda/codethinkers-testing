@@ -165,6 +165,7 @@ class SimpleSignupForm(SignupForm):
         user.save()
         return user
 
+
 # class SimpleSignupForm(SignupForm):
 #     first_name = forms.CharField(max_length=12, label='First-name')
 #     last_name  = forms.CharField(max_length=225, label='Last-name')

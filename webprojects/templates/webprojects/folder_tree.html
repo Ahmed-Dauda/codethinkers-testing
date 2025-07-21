@@ -1,0 +1,15 @@
+{% for folder in folders %}
+  <div class="folder-toggle" data-folder="{{ folder.id }}">
+    📁 {{ folder.name }} <span>⮟</span>
+  </div>
+  <div class="file-group">
+    {% for f in folder.files.all %}
+      <div class="file-item">
+        <a href="{% url 'file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
+      </div>
+    {% endfor %}
+    {% if folder.subfolders.all %}
+      {% include "webprojects/folder_tree.html" with folders=folder.subfolders.all %}
+    {% endif %}
+  </div>
+{% endfor %}

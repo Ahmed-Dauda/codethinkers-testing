@@ -1,0 +1,1320 @@
+{% extends "webprojects/base_editor.html" %}
+{% load file_filters %}
+
+{% block title %}{{ file.name }} | {{ file.project.name }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #1e1e1e;
+    color: #ccc;
+  }
+  .editor-layout {
+    display: flex;
+    height: calc(100vh - 48px);
+  }
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    background: #1e1e1e;
+    border-bottom: 1px solid #444;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .toolbar button,
+  .toolbar select {
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: none;
+    font-size: 0.95em;
+    background: #333;
+    color: #eee;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  .toolbar button:hover,
+  .toolbar select:hover {
+    background: #444;
+  }
+  .sidebar {
+    width: 250px;
+    background-color: #252526;
+    padding: 10px;
+    border-right: 1px solid #444;
+    overflow-y: auto;
+  }
+  .folder-toggle {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    color: #ccc;
+    margin: 10px 0 5px;
+    transition: color 0.3s ease;
+  }
+  .folder-toggle:hover {
+    color: #fff;
+  }
+  .file-group {
+    margin-left: 10px;
+    display: none;
+    transition: all 0.3s ease;
+  }
+  .folder-toggle.open + .file-group {
+    display: block;
+  }
+  .file-item {
+    margin: 4px 0;
+  }
+  .file-item a {
+    color: #bbb;
+    text-decoration: none;
+    font-size: 0.9em;
+    display: block;
+    padding: 2px 0;
+    transition: color 0.2s ease;
+  }
+  .file-item a:hover {
+    color: #fff;
+  }
+  .editor-panel {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #container {
+    flex-grow: 1;
+    border-top: 1px solid #444;
+    border-bottom: 1px solid #444;
+  }
+  #outputPanel {
+    height: 160px;
+    background: #1e1e1e;
+    color: #dcdcdc;
+    padding: 10px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 0.9em;
+    border-top: 1px solid #444;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #2c2c2c;
+  }
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 100px;
+      font-size: 0.8em;
+      padding: 8px;
+    }
+    .toolbar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block header %}
+📁 {{ file.project.name }} — 📝 {{ file.name }}
+{% endblock %}
+
+
+{% block sidebar %}
+
+<h4 style="color: #ccc;">📤 Upload Image</h4>
+<div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
+  Drop Image Here or <label for="imageInput" style="color: #4fa;">Browse</label>
+  <input type="file" id="imageInput" accept="image/*" style="display:none;">
+</div>
+<small style="color: #888;">Image will be added to your files</small>
+
+<div style="margin-bottom: 20px;">
+  <input type="text" id="newFileName" placeholder="📝 New file name (e.g., index.html)" style="width: 100%; padding: 5px; margin-bottom: 5px; font-size: 0.9em;">
+  <button onclick="createNewFile()" style="width: 100%; background: #3498db; color: white; padding: 6px 10px; border: none; border-radius: 4px;">➕ Create File</button>
+</div>
+
+<hr>
+
+{% for ext in exts %}
+  {% with files|dictsort:"name" as sorted_files %}
+    <div class="folder-toggle" data-ext="{{ ext }}">
+     📁 {{ ext|upper }} Files <span>⮟</span>
+    </div>
+    <div class="file-group">
+      {% for f in sorted_files %}
+        {% if f.name|has_ext:ext %}
+          {% with f.name|lower as fname %}
+            <div class="file-item">
+              {% if fname|slice:"-4:" == ".png" or fname|slice:"-4:" == ".jpg" or fname|slice:"-5:" == ".jpeg" or fname|slice:"-4:" == ".gif" %}
+                <!-- 👇 Image File: Open Modal -->
+                <a href="javascript:void(0);" onclick="showImageModal('{{ f.image.url }}')" style="color:#4fa;">🖼️ {{ f.name }}</a>
+              {% else %}
+                <!-- 👇 Normal File: Go to Editor -->
+                <a href="{% url 'file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
+                {% if ".html" in f.name|lower %}
+                  <a href="{% url 'share_preview' f.project.id f.id %}" target="_blank">🔗Share Preview</a>
+                {% endif %}
+              {% endif %}
+            </div>
+          {% endwith %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endwith %}
+{% endfor %}
+
+
+<!-- 🖼️ Image Popup Modal -->
+<div id="imagePopupModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000;">
+  <span onclick="closeImageModal()" style="position:absolute; top:20px; right:30px; font-size:32px; color:white; cursor:pointer;">&times;</span>
+  <div style="display:flex; align-items:center; justify-content:center; height:100%;">
+    <img id="popupImage" src="" alt="Preview" style="max-width:90%; max-height:90%; border: 2px solid #555; border-radius: 8px;" />
+  </div>
+</div>
+
+<script>
+  function showImageModal(imgUrl) {
+    document.getElementById('popupImage').src = imgUrl;
+    document.getElementById('imagePopupModal').style.display = 'block';
+  }
+
+  function closeImageModal() {
+    document.getElementById('imagePopupModal').style.display = 'none';
+    document.getElementById('popupImage').src = "";
+  }
+</script>
+
+
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="toolbar">
+  <button id="runBtnCode" onclick="runCode()" style="background:#2ecc71; color:white;">▶ Run Code</button>
+  <span id="aiLoading" style="display:none;">⏳</span>
+  <button id="aiBtn" onclick="getAISuggestion()">💡 AI Suggest</button>
+  <button id="explainBtn" onclick="explainCode()">💬 Explain Code</button>
+  <select id="aiAction">
+    <option value="complete">🔧 Complete</option>
+    <option value="explain">💬 Explain</option>
+    <option value="optimize">⚡ Optimize</option>
+    <option value="comment">📝 Add Comments</option>
+    <option value="fix">🐞 Fix Bugs</option>
+  </select>
+  <button id="runBtn" onclick="runAIAction()">🚀 Run AI Action</button>
+</div>
+ 
+<div class="editor-panel" style="display: flex; flex-direction: column; height: 100%;">
+  <div id="container" style="flex-grow: 1; min-height: 100px;"></div>
+
+  <!-- Resize handle -->
+  <div id="resizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
+
+  <!-- Output panel -->
+  <div id="outputPanel" style="height: 160px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
+    <strong>🔽 Output:</strong>
+    <pre id="outputText" style="white-space: pre-wrap;"></pre>
+    <div id="tablePreview" style="margin-top: 15px;"></div>
+    <div id="plotPreview" style="display: none;"></div>
+  </div>
+</div>
+
+     
+    <pre id="outputText" style="white-space: pre-wrap;"></pre>
+    <div id="tablePreview" style="margin-top: 15px;"></div>
+    <div id="plotPreview" style="display: none;"></div>
+
+
+    <!-- AI Suggestion Preview Modal -->
+<div id="aiModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%);
+  background:#2d2d2d; color:#fff; padding:20px; border-radius:8px; z-index:1000; max-width:80%; box-shadow:0 0 10px #000;">
+  <h3>💡 AI Suggestion Preview</h3>
+  <pre id="aiModalContent" style="max-height:400px; overflow-y:auto; white-space:pre-wrap; background:#1e1e1e; padding:10px; border:1px solid #444;"></pre>
+  <div style="text-align:right; margin-top:10px;">
+    <button onclick="insertSuggestionFromModal()" style="background:#2ecc71; color:white; padding:6px 12px; border:none; border-radius:4px;">Insert</button>
+    <button onclick="closeAIModal()" style="background:#e74c3c; color:white; padding:6px 12px; border:none; border-radius:4px; margin-left:8px;">Cancel</button>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<script>
+function getAISuggestion() {
+  alert("AI Suggestion not implemented yet.");
+}
+function explainCode() {
+  alert("Explain Code not implemented yet.");
+}
+function runAIAction() {
+  const action = document.getElementById("aiAction").value;
+  alert("Run AI Action (" + action + ") not implemented yet.");
+}
+</script>
+
+<script>
+let editor;
+require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' } });
+require(['vs/editor/editor.main'], function () {
+  editor = monaco.editor.create(document.getElementById('container'), {
+    value: `{{ file.content|escapejs }}`,
+    language: getLanguage("{{ file.name }}"),
+    theme: 'vs-dark',
+    automaticLayout: true,
+    readOnly: false
+  });
+
+  // Auto-save every 3s
+
+let autoSaveInterval = setInterval(() => {
+  fetch("{% url 'file_autosave' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: JSON.stringify({
+      file_id: {{ file.id }},
+      content: editor.getValue()
+    })
+  }).then(response => {
+    if (!response.ok) {
+      console.error("❌ Auto-save failed.");
+    } else {
+      console.log("✅ Auto-saved at", new Date().toLocaleTimeString());
+    }
+  }).catch(err => {
+    console.error("❌ Auto-save error:", err);
+  });
+}, 3000);
+
+  // === HTML Snippet Completions ===
+monaco.languages.registerCompletionItemProvider('html', {
+  triggerCharacters: ['<', '"', "'", ' ', ':', '.', '{'],
+  provideCompletionItems: function (model, position) {
+    const textUntilPosition = model.getValueInRange({
+      startLineNumber: 1,
+      startColumn: 1,
+      endLineNumber: position.lineNumber,
+      endColumn: position.column
+    });
+
+    const cssProperties = [
+      "color", "background", "background-color", "font-size", "font-weight", "font-family",
+      "margin", "padding", "border", "border-radius", "width", "height", "display", "position",
+      "top", "left", "right", "bottom", "z-index", "overflow", "opacity", "flex", "justify-content",
+      "align-items", "gap", "grid", "box-shadow", "transition", "animation", "text-align",
+      "line-height", "letter-spacing", "visibility"
+    ];
+
+    const cssColors = [
+      "red", "green", "blue", "black", "white", "gray", "grey", "yellow", "orange", "pink", "purple",
+      "brown", "cyan", "magenta", "lime", "teal", "navy", "gold", "silver", "maroon", "aqua",
+      "chocolate", "coral", "crimson", "indigo", "khaki", "lavender", "plum", "salmon", "tan", "violet"
+    ];
+
+    const htmlTags = [
+      'html', 'head', 'body', 'title', 'meta', 'link', 'style', 'script',
+      'header', 'nav', 'main', 'footer', 'section', 'article', 'aside',
+      'div', 'span', 'p', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li', 'strong', 'em', 'br', 'hr', 'mark', 'abbr', 'cite',
+      'form', 'input', 'textarea', 'label', 'button', 'select', 'option',
+      'fieldset', 'legend', 'output', 'progress', 'meter',
+      'img', 'video', 'audio', 'source', 'canvas', 'iframe',
+      'details', 'summary', 'dialog', 'template',
+      'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td',
+      'code', 'pre', 'blockquote', 'figure', 'figcaption',
+      'b', 'i', 'u', 'small', 'big', 'sub', 'sup', 'kbd', 'samp'
+    ];
+
+    const voidTags = [
+      'meta', 'link', 'br', 'hr', 'img', 'input', 'source', 'area', 'base', 'col', 'embed', 'track', 'wbr'
+    ];
+
+    const jsSnippets = [
+      {
+        label: 'console.log',
+        insertText: `console.log($1);`,
+        documentation: 'Log output to the console'
+      },
+      {
+        label: 'function',
+        insertText: `function $1() {\n\t$2\n}`,
+        documentation: 'Function declaration'
+      },
+      {
+        label: 'addEventListener',
+        insertText: `document.querySelector('$1').addEventListener('$2', function(e) {\n\t$3\n});`,
+        documentation: 'Attach event listener'
+      },
+      {
+        label: 'fetch',
+        insertText: `fetch('$1')\n\t.then(res => res.json())\n\t.then(data => {\n\t\t$2\n});`,
+        documentation: 'Fetch API example'
+      }
+    ];
+
+    const tagSuggestions = htmlTags.map(tag => {
+      const isVoid = voidTags.includes(tag);
+      return {
+        label: tag,
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: isVoid ? `<${tag} $1>` : `<${tag}>$1</${tag}>`,
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: isVoid
+          ? `Insert <${tag}> tag (self-closing)`
+          : `Insert <${tag}>...</${tag}>`
+      };
+    });
+
+    const cssPropertySuggestions = cssProperties.map(prop => ({
+      label: prop,
+      kind: monaco.languages.CompletionItemKind.Property,
+      insertText: `${prop}: $1;`,
+      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      documentation: `CSS property: ${prop}`
+    }));
+
+    const cssColorSuggestions = cssColors.map(color => ({
+      label: color,
+      kind: monaco.languages.CompletionItemKind.Color,
+      insertText: color,
+      documentation: `CSS color: ${color}`
+    }));
+
+    const jsSuggestions = jsSnippets.map(snip => ({
+      label: snip.label,
+      kind: monaco.languages.CompletionItemKind.Snippet,
+      insertText: snip.insertText,
+      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      documentation: snip.documentation
+    }));
+
+    const insideStyle = /<style[\s\S]*?>[\s\S]*$/i.test(textUntilPosition);
+    const insideScript = /<script[\s\S]*?>[\s\S]*$/i.test(textUntilPosition);
+    const insideInlineStyle = /style\s*=\s*["'][^"']*$/i.test(textUntilPosition);
+
+    if (insideStyle || insideInlineStyle) {
+      return {
+        suggestions: [...cssPropertySuggestions, ...cssColorSuggestions]
+      };
+    }
+
+    if (insideScript) {
+      return {
+        suggestions: jsSuggestions
+      };
+    }
+
+    return {
+      suggestions: [...tagSuggestions]
+    };
+  }
+});
+
+  // === JavaScript Snippets ===
+monaco.languages.registerCompletionItemProvider('javascript', {
+  triggerCharacters: ['.', '(', ' '],
+  provideCompletionItems: () => ({
+    suggestions: [
+      {
+        label: 'for loop',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: [
+          'for (let ${1:i} = 0; ${1:i} < ${2:array}.length; ${1:i}++) {',
+          '\t${3:// code}',
+          '}'
+        ].join('\n'),
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'A basic for loop over an array'
+      },
+      {
+        label: 'for...of loop',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: [
+          'for (const ${1:item} of ${2:array}) {',
+          '\t${3:// code}',
+          '}'
+        ].join('\n'),
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Iterates over iterable objects like arrays'
+      },
+      {
+        label: 'if statement',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: [
+          'if (${1:condition}) {',
+          '\t${2:// code}',
+          '}'
+        ].join('\n'),
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Basic if condition'
+      },
+      {
+        label: 'console.log',
+        kind: monaco.languages.CompletionItemKind.Function,
+        insertText: 'console.log(${1:message});',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Prints a message to the console'
+      },
+      {
+        label: 'addEventListener',
+        kind: monaco.languages.CompletionItemKind.Function,
+        insertText: "document.querySelector('${1:selector}').addEventListener('${2:event}', function(e) {\n\t$3\n});",
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Attaches an event listener to an element'
+      },
+      {
+        label: 'setTimeout',
+        kind: monaco.languages.CompletionItemKind.Function,
+        insertText: 'setTimeout(() => {\n\t$1\n}, ${2:1000});',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Delays execution of code'
+      },
+      {
+        label: 'fetch',
+        kind: monaco.languages.CompletionItemKind.Function,
+        insertText: [
+          "fetch('${1:url}')",
+          "  .then(response => response.json())",
+          "  .then(data => {",
+          "    ${2:// process data}",
+          "  })",
+          "  .catch(error => console.error(error));"
+        ].join('\n'),
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Makes a network request using fetch API'
+      }
+    ]
+  })
+});
+
+monaco.languages.registerHoverProvider('javascript', {
+  provideHover: function(model, position) {
+    const word = model.getWordAtPosition(position);
+    if (!word) return;
+
+    const docs = {
+      'console': {
+        value: '**console.log()**\n\nOutputs messages to the browser console.\nUseful for debugging.'
+      },
+      'fetch': {
+        value: '**fetch()**\n\nPerforms a network request and returns a Promise.\nUsed for AJAX and API calls.'
+      },
+      'setTimeout': {
+        value: '**setTimeout()**\n\nExecutes a function after a specified delay (in milliseconds).'
+      }
+    };
+
+    const doc = docs[word.word];
+    if (doc) {
+      return {
+        contents: [{ value: doc.value }]
+      };
+    }
+
+    return null;
+  }
+});
+
+
+ // === Python Snippets ===
+const staticCompletions = {
+  python: {
+    keywords: [
+      "False", "None", "True", "and", "as", "assert", "async", "await", "break", "class",
+      "continue", "def", "del", "elif", "else", "except", "finally", "for", "from", "global",
+      "if", "import", "in", "is", "lambda", "match", "nonlocal", "not", "or", "pass", "raise",
+      "return", "try", "while", "with", "yield", "case"
+    ],
+    functions: [
+      "abs", "aiter", "all", "any", "anext", "ascii", "bin", "bool", "breakpoint", "bytearray", "bytes",
+      "callable", "chr", "classmethod", "compile", "complex", "delattr", "dict", "dir", "divmod", "enumerate",
+      "eval", "exec", "filter", "float", "format", "frozenset", "getattr", "globals", "hasattr", "hash",
+      "help", "hex", "id", "input", "int", "isinstance", "issubclass", "iter", "len", "list", "locals", "map",
+      "max", "memoryview", "min", "next", "object", "oct", "open", "ord", "pow", "print", "property", "range",
+      "repr", "reversed", "round", "set", "setattr", "slice", "sorted", "staticmethod", "str", "sum", "super",
+      "tuple", "type", "vars", "zip", "__import__"
+    ],
+    classes: [
+      "int", "float", "str", "list", "dict", "set", "tuple", "object", "bool", "bytes", "bytearray",
+      "complex", "frozenset", "memoryview"
+    ],
+    exceptions: [
+      "ArithmeticError", "AssertionError", "AttributeError", "BaseException", "BlockingIOError", "BrokenPipeError",
+      "BufferError", "BytesWarning", "ChildProcessError", "ConnectionAbortedError", "ConnectionError",
+      "ConnectionRefusedError", "ConnectionResetError", "DeprecationWarning", "EOFError", "EnvironmentError",
+      "Exception", "FileExistsError", "FileNotFoundError", "FloatingPointError", "FutureWarning", "GeneratorExit",
+      "ImportError", "ImportWarning", "IndentationError", "IndexError", "InterruptedError", "IsADirectoryError",
+      "KeyError", "KeyboardInterrupt", "LookupError", "MemoryError", "ModuleNotFoundError", "NameError",
+      "NotADirectoryError", "NotImplemented", "NotImplementedError", "OSError", "OverflowError",
+      "PendingDeprecationWarning", "PermissionError", "ProcessLookupError", "RecursionError", "ReferenceError",
+      "ResourceWarning", "RuntimeError", "RuntimeWarning", "StopAsyncIteration", "StopIteration", "SyntaxError",
+      "SyntaxWarning", "SystemError", "SystemExit", "TabError", "TimeoutError", "TypeError", "UnboundLocalError",
+      "UnicodeDecodeError", "UnicodeEncodeError", "UnicodeError", "UnicodeTranslateError", "UnicodeWarning",
+      "UserWarning", "ValueError", "Warning", "ZeroDivisionError"
+    ],
+    modules: [
+      "os", "sys", "math", "random", "datetime", "time", "json", "re", "statistics", "itertools", "functools",
+      "collections", "pathlib", "shutil", "subprocess", "glob", "logging", "decimal", "fractions", "pprint",
+      "typing", "traceback", "urllib", "http", "argparse", "getopt", "enum", "dataclasses", "asyncio", "threading",
+      "multiprocessing", "platform", "socket", "email", "copy", "inspect", "pickle", "csv", "heapq", "uuid",
+      "base64", "hashlib", "html", "xml", "webbrowser", "sqlite3"
+    ]
+  },
+    np: [
+    "array", "arange", "linspace", "logspace", "zeros", "ones", "full", "eye", "identity", "diag", "empty",
+    "reshape", "transpose", "flatten", "ravel", "squeeze", "expand_dims",
+    "dot", "matmul", "tensordot", "inner", "outer", "cross",
+    "mean", "median", "std", "var", "sum", "cumsum", "prod", "max", "min", "argmax", "argmin", "where",
+    "unique", "sort", "argsort", "clip",
+    "concatenate", "stack", "vstack", "hstack", "dstack", "column_stack", "split", "hsplit", "vsplit", "array_split",
+    "random", "load", "save", "frombuffer", "fromfile", "fromiter", "fromfunction", "vectorize"
+  ],
+
+  pd: [
+    "DataFrame", "Series", "read_csv", "read_excel", "read_json", "read_sql", "read_html", "read_parquet", "read_feather",
+    "to_csv", "to_excel", "to_json", "to_sql", "to_parquet",
+    "head", "tail", "sample", "shape", "columns", "index", "dtypes", "axes",
+    "describe", "info", "memory_usage", "isnull", "notnull", "dropna", "fillna", "interpolate",
+    "groupby", "pivot", "pivot_table", "melt", "stack", "unstack", "merge", "join", "concat", "append",
+    "sort_values", "sort_index", "drop", "rename", "set_index", "reset_index",
+    "loc", "iloc", "at", "iat", "ix", "astype", "apply", "map", "applymap", "transform", "agg", "duplicated", "nunique", "value_counts"
+  ],
+
+  plt: [
+    "figure", "subplot", "subplots", "plot", "scatter", "bar", "barh", "hist", "pie", "boxplot", "violinplot", "stem",
+    "imshow", "matshow", "contour", "contourf", "pcolor", "quiver", "streamplot",
+    "xlabel", "ylabel", "title", "legend", "colorbar", "grid", "axis", "xlim", "ylim", "xticks", "yticks",
+    "tight_layout", "savefig", "show", "clf", "cla", "close"
+  ],
+
+  sns: [
+    "load_dataset", "scatterplot", "lineplot", "barplot", "boxplot", "histplot", "kdeplot", "violinplot", "stripplot",
+    "swarmplot", "countplot", "catplot", "pairplot", "heatmap", "clustermap", "jointplot",
+    "set", "set_theme", "set_style", "set_context", "color_palette", "despine"
+  ],
+
+  cv2: [
+    "imread", "imwrite", "imshow", "waitKey", "destroyAllWindows",
+    "cvtColor", "resize", "flip", "rotate", "GaussianBlur", "medianBlur", "threshold", "adaptiveThreshold",
+    "Canny", "VideoCapture", "VideoWriter", "findContours", "drawContours", "rectangle", "circle", "line", "putText",
+    "bitwise_and", "bitwise_or", "bitwise_not", "bitwise_xor", "add", "addWeighted", "subtract", "erode", "dilate",
+    "morphologyEx"
+  ]
+
+};
+
+monaco.languages.registerCompletionItemProvider('python', {
+  triggerCharacters: ['.', ...'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'],
+  provideCompletionItems: async function (model, position) {
+    const lineUntilCursor = model.getValueInRange({
+      startLineNumber: position.lineNumber,
+      startColumn: 1,
+      endLineNumber: position.lineNumber,
+      endColumn: position.column
+    });
+
+    // Dot notation (e.g., np.)
+    const dotMatch = lineUntilCursor.match(/(\w+)\.$/);
+    if (dotMatch) {
+      const prefix = dotMatch[1];
+      const completions = staticCompletions[prefix] || [];
+      return {
+        suggestions: completions.map(item => ({
+          label: item,
+          kind: monaco.languages.CompletionItemKind.Method,
+          insertText: item,
+          documentation: `${prefix}.${item}`
+        }))
+      };
+    }
+
+    // General Python typing (e.g., print, for, True, etc.)
+    const wordMatch = lineUntilCursor.match(/(\w+)$/);
+    if (wordMatch) {
+      const prefix = wordMatch[1].toLowerCase();
+      const python = staticCompletions.python;
+
+      const suggestions = [
+        ...python.keywords.filter(k => k.startsWith(prefix)).map(k => ({
+          label: k,
+          kind: monaco.languages.CompletionItemKind.Keyword,
+          insertText: k,
+          documentation: `Python keyword: ${k}`
+        })),
+        ...python.functions.filter(f => f.startsWith(prefix)).map(f => ({
+          label: f,
+          kind: monaco.languages.CompletionItemKind.Function,
+          insertText: f,
+          documentation: `Built-in function: ${f}`
+        })),
+        ...python.classes.filter(c => c.startsWith(prefix)).map(c => ({
+          label: c,
+          kind: monaco.languages.CompletionItemKind.Class,
+          insertText: c,
+          documentation: `Built-in class: ${c}`
+        })),
+        ...python.exceptions.filter(e => e.toLowerCase().startsWith(prefix)).map(e => ({
+          label: e,
+          kind: monaco.languages.CompletionItemKind.Class,
+          insertText: e,
+          documentation: `Exception: ${e}`
+        })),
+        ...python.modules.filter(m => m.startsWith(prefix)).map(m => ({
+          label: m,
+          kind: monaco.languages.CompletionItemKind.Module,
+          insertText: m,
+          documentation: `Python module: ${m}`
+        }))
+      ];
+
+      return { suggestions };
+    }
+
+    // Optional fallback to AI suggestions
+    try {
+      const res = await fetch("/ai-python-completion/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+        },
+        body: JSON.stringify({ prefix: lineUntilCursor.trim() })
+      });
+
+      const data = await res.json();
+      if (data.completions) {
+        return {
+          suggestions: data.completions.map(item => ({
+            label: item,
+            kind: monaco.languages.CompletionItemKind.Function,
+            insertText: item,
+            documentation: `AI: ${item}`
+          }))
+        };
+      }
+    } catch (err) {
+      console.warn("AI fallback failed", err);
+    }
+
+    return { suggestions: [] };
+  }
+});
+
+
+});
+
+
+// === CSS Snippets ===
+monaco.languages.registerCompletionItemProvider('css', {
+  provideCompletionItems: () => ({
+    suggestions: [
+      // === Layout & Box Model ===
+      {
+        label: 'display: flex',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'display: flex;',
+        documentation: 'Set display mode to flex'
+      },
+      {
+        label: 'display: grid',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'display: grid;',
+        documentation: 'Set display mode to grid'
+      },
+      {
+        label: 'flex-center',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: [
+          'display: flex;',
+          'justify-content: center;',
+          'align-items: center;'
+        ].join('\n'),
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Center content using flex'
+      },
+      {
+        label: 'margin',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'margin: ${1:0};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Set margin'
+      },
+      {
+        label: 'padding',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'padding: ${1:0};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Set padding'
+      },
+      {
+        label: 'box-sizing',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'box-sizing: border-box;',
+        documentation: 'Include padding and border in element width and height'
+      },
+      {
+        label: 'gap',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'gap: ${1:1rem};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Spacing between grid/flex items'
+      },
+
+      // === Dimensions ===
+      {
+        label: 'width',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'width: ${1:100%};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Set width'
+      },
+      {
+        label: 'height',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'height: ${1:auto};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Set height'
+      },
+
+      // === Positioning ===
+      {
+        label: 'position',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'position: ${1:relative};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Set positioning method'
+      },
+      {
+        label: 'top',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'top: ${1:0};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Set top offset'
+      },
+      {
+        label: 'left',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'left: ${1:0};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Set left offset'
+      },
+
+      // === Typography ===
+      {
+        label: 'font-size',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'font-size: ${1:16px};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Set font size'
+      },
+      {
+        label: 'font-weight',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'font-weight: ${1:bold};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Set font weight'
+      },
+      {
+        label: 'line-height',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'line-height: ${1:1.5};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Set line height'
+      },
+
+      // === Colors ===
+      {
+        label: 'color',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'color: ${1:#000};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Text color'
+      },
+      {
+        label: 'background-color',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'background-color: ${1:#fff};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Background color'
+      },
+      {
+        label: 'primary-color',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'color: ${1:#3498db};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Primary brand color'
+      },
+      {
+        label: 'named-color',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'color: ${1:red};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Use named color like red, blue, green, etc.'
+      },
+
+      // === Effects ===
+      {
+        label: 'transition',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'transition: ${1:all} ${2:0.3s} ease-in-out;',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Smooth transition'
+      },
+      {
+        label: 'box-shadow',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'box-shadow: ${1:0 2px 4px rgba(0,0,0,0.1)};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Shadow effect'
+      },
+      {
+        label: 'border-radius',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'border-radius: ${1:4px};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Rounded corners'
+      },
+
+      // === Animation ===
+      {
+        label: '@keyframes',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: [
+          '@keyframes ${1:fadeIn} {',
+          '  0% { opacity: 0; }',
+          '  100% { opacity: 1; }',
+          '}'
+        ].join('\n'),
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Define keyframes'
+      },
+      {
+        label: 'animation',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: 'animation: ${1:fadeIn} ${2:1s} ${3:ease-in-out};',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Apply animation'
+      },
+
+      // === Media Query ===
+      {
+        label: '@media',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: [
+          '@media (max-width: ${1:768px}) {',
+          '\t${2:selector} {',
+          '\t\t${3:property}: ${4:value};',
+          '\t}',
+          '}'
+        ].join('\n'),
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Media query block'
+      },
+
+      // === Utility Reminder (Tailwind etc.) ===
+      {
+        label: 'tw-bg-blue-500',
+        kind: monaco.languages.CompletionItemKind.Text,
+        insertText: 'bg-blue-500',
+        documentation: 'Tailwind class (remember: this is not native CSS)'
+      }
+    ]
+  })
+});
+
+
+
+function getLanguage(fileName) {
+  const ext = fileName.split('.').pop().toLowerCase();
+  switch (ext) {
+    case "py": return "python";
+    case "js": return "javascript";
+    case "html": return "html";
+    case "css": return "css";
+    case "json": return "json";
+    default: return "plaintext";
+  }
+}
+
+function runCode() {
+  const code = editor.getValue();
+  const output = document.getElementById("outputText");
+  const ext = "{{ file.name|lower }}".split('.').pop();
+  const tablePreview = document.getElementById("tablePreview");
+
+  output.textContent = "⏳ Running...";
+
+  if (ext === "js") {
+    try {
+      const logs = [];
+      const originalLog = console.log;
+      console.log = function (...args) {
+        logs.push(args.join(" "));
+      };
+      const result = eval(code);
+      console.log = originalLog;
+
+      let outputText = logs.join("\n");
+      if (result !== undefined) {
+        outputText += "\n➡️ Result: " + result;
+      }
+      output.textContent = outputText || "[No output]";
+    } catch (err) {
+      output.textContent = "❌ JavaScript Error: " + err.message;
+    }
+  }
+
+  else if (ext === "py") {
+    fetch("{% url 'file_detail' file.project.id file.id %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({
+        content: code,
+        run_plot: true
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      output.textContent = data.output || data.error || "[No output received]";
+
+      const plotPreview = document.getElementById("plotPreview");
+
+      if (data.table) {
+        tablePreview.innerHTML = data.table;
+        tablePreview.style.display = "block";
+      } else {
+        tablePreview.innerHTML = "";
+        tablePreview.style.display = "none";
+      }
+
+      plotPreview.innerHTML = "";
+      if (Array.isArray(data.images) && data.images.length > 0) {
+        data.images.forEach(src => {
+          const img = document.createElement("img");
+          img.src = src;
+          img.style.maxWidth = "100%";
+          img.style.marginBottom = "10px";
+          plotPreview.appendChild(img);
+        });
+        plotPreview.style.display = "block";
+      } else {
+        plotPreview.style.display = "none";
+      }
+    })
+    .catch(err => {
+      output.textContent = "❌ Request Failed: " + err;
+    });
+  }
+
+  else {
+    output.textContent = "⚠️ Unsupported file type: " + ext;
+  }
+}
+
+
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const toggles = document.querySelectorAll('.folder-toggle');
+
+  toggles.forEach(toggle => {
+    const ext = toggle.dataset.ext;
+    const storedState = localStorage.getItem('folder_' + ext);
+
+    if (storedState === 'open') {
+      toggle.classList.add('open');
+      toggle.nextElementSibling.style.display = 'block';
+    }
+
+    toggle.addEventListener('click', () => {
+      const group = toggle.nextElementSibling;
+      const isOpen = toggle.classList.toggle('open');
+      group.style.display = isOpen ? 'block' : 'none';
+      localStorage.setItem('folder_' + ext, isOpen ? 'open' : 'closed');
+    });
+  });
+});
+
+function getSelectedText() {
+  return editor.getModel().getValueInRange(editor.getSelection());
+}
+
+function insertAfterSelection(original, insertion) {
+  const range = editor.getSelection();
+  editor.executeEdits(null, [{
+    range: range,
+    text: original + "\n\n" + insertion,
+    forceMoveMarkers: true
+  }]);
+}
+
+function cleanAIResponse(text) {
+  if (text.includes("```")) {
+    const parts = text.split("```");
+    if (parts.length >= 2) {
+      return parts[1].replace(/^(\w+\n)?/, "").trim();
+    }
+  }
+  return text.trim();
+}
+
+function getAISuggestion() {
+  const selectedText = getSelectedText();
+  const btn = document.getElementById("aiBtn");
+  const loader = document.getElementById("aiLoading");
+
+  if (!selectedText.trim()) return alert("⚠️ Please select some code first.");
+
+  btn.disabled = true;
+  loader.style.display = "inline";
+
+  fetch("{% url 'ai_suggest_code' %}", {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify({ prompt: selectedText })
+  })
+  .then(res => res.json())
+  .then(data => {
+    const suggestion = cleanAIResponse(data.suggestion || "");
+    insertAfterSelection(selectedText, suggestion);
+  })
+  .catch(err => alert("AI Suggestion Failed: " + err))
+  .finally(() => {
+    btn.disabled = false;
+    loader.style.display = "none";
+  });
+}
+
+function explainCode() {
+  const code = getSelectedText();
+  const btn = document.getElementById("explainBtn");
+
+  if (!code.trim()) return alert("⚠️ Please select code to explain.");
+
+  btn.disabled = true;
+  btn.textContent = "💬 Explaining...";
+
+  fetch("{% url 'explain_code' %}", {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify({ code: code })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert("📘 AI Explanation:\n\n" + data.explanation);
+  })
+  .catch(err => alert("AI Explanation Error: " + err))
+  .finally(() => {
+    btn.disabled = false;
+    btn.textContent = "💬 Explain Code";
+  });
+}
+
+function runAIAction() {
+  const selectedText = getSelectedText();
+  const action = document.getElementById("aiAction").value;
+
+  if (!selectedText.trim()) return alert("⚠️ Please select code first.");
+
+  const instructions = {
+    complete: "Complete the following code:",
+    explain: "Explain what this code does:",
+    optimize: "Optimize this code for performance or readability:",
+    comment: "Add detailed comments to the following code:",
+    fix: "Fix any bugs or issues in this code:"
+  };
+
+  const prompt = instructions[action] + "\n\n" + selectedText;
+
+  fetch("{% url 'ai_suggest_code' %}", {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify({ prompt: prompt })
+  })
+  .then(res => res.json())
+  .then(data => {
+    const output = cleanAIResponse(data.suggestion || "");
+    insertAfterSelection(selectedText, output);
+  })
+  .catch(err => alert("AI Action Failed: " + err));
+}
+
+
+function createNewFolder() {
+  const name = document.getElementById("newFolderName").value.trim();
+  const projectId = {{ file.project.id }};
+
+  if (!name) return alert("⚠️ Please enter a folder name");
+
+  fetch(`/webprojects/${projectId}/create-folder/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: JSON.stringify({ name })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === "success") {
+      alert("✅ Folder created!");
+      location.reload(); // refresh to show the new folder
+    } else {
+      alert("❌ " + data.message);
+    }
+  })
+  .catch(err => alert("❌ Request failed: " + err));
+}
+
+function createNewFile() {
+  const name = document.getElementById("newFileName").value.trim();
+  const projectId = {{ file.project.id }};
+
+  if (!name) return alert("⚠️ Please enter a file name");
+
+  fetch(`/webprojects/${projectId}/create-file/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: JSON.stringify({ name })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === "success") {
+      alert("✅ File created!");
+      window.location.href = `/webprojects/${projectId}/file/${data.file_id}/`;
+    } else {
+      alert("❌ " + data.message);
+    }
+  })
+  .catch(err => alert("❌ Request failed: " + err));
+}
+
+
+</script>
+
+<script>
+const dropZone = document.getElementById('dropZone');
+const imageInput = document.getElementById('imageInput');
+
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.style.backgroundColor = '#333';
+});
+
+dropZone.addEventListener('dragleave', e => {
+  e.preventDefault();
+  dropZone.style.backgroundColor = '';
+});
+
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.style.backgroundColor = '';
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    uploadImage(file);
+  }
+});
+
+imageInput.addEventListener('change', () => {
+  const file = imageInput.files[0];
+  if (file && file.type.startsWith('image/')) {
+    uploadImage(file);
+  }
+});
+
+function uploadImage(file) {
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('name', file.name);
+
+  fetch("{% url 'upload_image_ajax' project.id %}", {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert("✅ Image uploaded!");
+      location.reload();  // or dynamically add the file to the sidebar
+    } else {
+      alert("❌ Upload failed.");
+    }
+  })
+  .catch(() => alert("❌ Upload error"));
+}
+</script>
+
+
+<!-- dragging output area js -->
+ <script>
+  const container = document.getElementById('container');
+  const outputPanel = document.getElementById('outputPanel');
+  const resizeHandle = document.getElementById('resizeHandle');
+
+  let isResizing = false;
+  let startY = 0;
+  let startHeight = 0;
+
+  resizeHandle.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    startY = e.clientY;
+    startHeight = outputPanel.offsetHeight;
+    document.body.style.cursor = 'row-resize';
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const dy = e.clientY - startY;
+    outputPanel.style.height = (startHeight - dy) + 'px';
+    container.style.flexGrow = '1';
+    container.style.height = `calc(100% - ${outputPanel.offsetHeight + resizeHandle.offsetHeight}px)`;
+  });
+
+  window.addEventListener('mouseup', () => {
+    isResizing = false;
+    document.body.style.cursor = 'default';
+  });
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,74 @@
+<!-- FILE: templates/webprojects/dashboard.html -->
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CodeThinkers Dashboard</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #1f1f1f;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+    }
+    nav a {
+      color: #00d9ff;
+      margin-left: 20px;
+      text-decoration: none;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    main {
+      padding: 20px;
+    }
+    .project-list {
+      margin-top: 30px;
+    }
+    .project-item {
+      background: #222;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-left: 5px solid #00d9ff;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Welcome, {{ request.user.username }}</h1>
+
+</header>
+
+<main>
+  {% block content %}
+    <h2>Your Projects</h2>
+    <div class="project-list">
+      {% for project in projects %}
+        <div class="project-item">
+          <a href="{% url 'project_detail' project.id %}" style="color: #fff;">📁 {{ project.title }}</a>
+        </div>
+      {% empty %}
+        <p>No projects found. <a href="{% url 'create_project' %}">Create one now.</a></p>
+      {% endfor %}
+    </div>
+  {% endblock %}
+</main>
+
+
+</body>
+</html>

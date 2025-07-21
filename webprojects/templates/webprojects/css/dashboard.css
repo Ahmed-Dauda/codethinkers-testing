@@ -1,0 +1,61 @@
+body {
+  margin: 0;
+  font-family: Consolas, monospace;
+  background: #1e1e1e;
+  color: #fff;
+}
+
+.vscode-container {
+  display: flex;
+  height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background: #252526;
+  color: white;
+  padding: 20px;
+}
+
+.sidebar .logo {
+  font-size: 1.5em;
+  margin-bottom: 30px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li a {
+  color: white;
+  text-decoration: none;
+  display: block;
+  padding: 10px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+}
+
+.sidebar ul li a:hover {
+  background: #007acc;
+}
+
+/* Main content */
+.main-content {
+  flex-grow: 1;
+  background: #1e1e1e;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-header {
+  background: #333;
+  padding: 15px 20px;
+  border-bottom: 1px solid #444;
+}
+
+.workspace {
+  padding: 20px;
+  overflow-y: auto;
+}

@@ -1,0 +1,18 @@
+{% extends "webprojects/base_editor.html" %}
+{% block title %}Folder: {{ folder.name }}{% endblock %}
+
+{% block content %}
+<h2>📁 {{ folder.name }}</h2>
+
+{% if files %}
+  <ul>
+    {% for file in files %}
+      <li>📄 {{ file.name }}</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No files in this folder.</p>
+{% endif %}
+
+<a href="javascript:history.back()">🔙 Go Back</a>
+{% endblock %}
