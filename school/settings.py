@@ -323,6 +323,12 @@ USE_L10N = True
 
 USE_TZ = True
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+# Now you can use:
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
 
