@@ -171,5 +171,49 @@ document.getElementById('create-project-form').addEventListener('submit', functi
 });
 </script>
 
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+function createEditorProject(topicId) {
+    fetch("{% url 'create_project' %}", {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({
+            name: "Lesson Project",
+            topic_id: topicId
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const url = `{% url 'file_detail' 0 0 %}`
+                .replace('0', data.project_id)
+                .replace('0', data.file_id);
+            window.location.href = url;
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(err => alert("Project creation failed: " + err));
+}
+</script>
 
 {% endblock %}
