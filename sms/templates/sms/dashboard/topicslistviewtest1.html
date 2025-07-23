@@ -206,7 +206,8 @@ table-layout: fixed; // ***********add this
 </style>
 
   <br>                   
- 
+ <a onclick="createEditorProject('{{ course.id }}', '{{ course.title }}')" href="javascript:void(0)" class="awesome-link">🚀 AI Coding Assistant</a>
+
   <div class="card-body">
    {{percentage}}%
 
@@ -223,8 +224,7 @@ table-layout: fixed; // ***********add this
   
       {% for topic in topics %}
    <!-- Place this under each topic -->
-<button onclick="createEditorProject({{ topic.id }})">🧪 Try it Yourself</button>
-<a href="javascript:void(0);" onclick="createEditorProject({{ topic.id }})" class="awesome-link">🚀 AI Coding Assistant</a>
+
 
           <div class="bg-white topic-item" style="border: 2px solid black; margin: 5px;">
               <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
@@ -275,6 +275,7 @@ table-layout: fixed; // ***********add this
     <tbody>
         {% for topic in topics %}
         <tr>
+    
 
             <td class="text-center">
                 <div style="padding-left: 10px; padding-right: 10px;" class="">
@@ -672,31 +673,33 @@ table-layout: fixed; // ***********add this
 </script>
 
 <script>
-function createEditorProject(topicId) {
+function createEditorProject(courseId, courseTitle) {
     fetch("{% url 'create_project' %}", {
         method: "POST",
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
+            "Content-Type": "application/json",
+            "X-CSRFToken": '{{ csrf_token }}'
         },
         body: JSON.stringify({
-            name: "Lesson Project",
-            topic_id: topicId
+            name: courseTitle  // ✅ Use course title here
         })
     })
     .then(res => res.json())
     .then(data => {
         if (data.status === 'success') {
-            const url = `{% url 'file_detail' 0 0 %}`
-                .replace('0', data.project_id)
-                .replace('0', data.file_id);
-            window.location.href = url;
+            if (data.file_id) {
+                const url = `/webprojects/${data.project_id}/file/${data.file_id}/`;
+                window.location.href = url;
+            } else {
+                alert("Project created, but no file attached.");
+            }
         } else {
             alert("Error: " + data.message);
         }
     })
     .catch(err => alert("Project creation failed: " + err));
 }
+
 </script>
 
   {% endblock %} 

@@ -149,12 +149,15 @@
 {% endblock %}
 
 {% block header %}
-📁 {{ file.project.name }} — 📝 {{ file.name }}
+<a style="color: white;" href="{% url 'create_project' %}">
+  📁 {{ file.project.name }} — 📝 {{ file.name }}
+</a>  
+
 {% endblock %}
 
 
 {% block sidebar %}
-<a href="{% url 'create_project' %}">check project</a>
+
 <h4 style="color: #ccc;">📤 Upload Image</h4>
 <div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
   Drop Image Here or <label for="imageInput" style="color: #4fa;">Browse</label>
@@ -172,7 +175,7 @@
 {% for ext in exts %}
   {% with files|dictsort:"name" as sorted_files %}
     <div class="folder-toggle" data-ext="{{ ext }}">
-     📁 {{ ext|upper }} Files <span>⮟</span>
+   📁 {{ ext|upper }} Files <span>⮟</span>
     </div>
     <div class="file-group">
       {% for f in sorted_files %}
