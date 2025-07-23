@@ -57,7 +57,7 @@ from django.contrib.auth.decorators import login_required
 # views.py
 from django.http import JsonResponse
 from collections import defaultdict
-
+from sms.models import Topics
 
 @login_required
 def create_project(request):
@@ -65,16 +65,42 @@ def create_project(request):
         try:
             data = json.loads(request.body)
             name = data.get('name', '').strip()
+            topic_id = data.get('topic_id', None)
+
+            # Get topic title if topic_id is provided
+            if topic_id:
+                topic = Topics.objects.get(id=topic_id)
+                course_title = topic.courses.title.lower()
+                name = name or topic.title.strip()
+            else:
+                course_title = name.lower()
 
             if not name:
                 return JsonResponse({'status': 'error', 'message': 'Project title is required'})
 
-            project = Project.objects.create(user=request.user, name=name)
+            # 🔍 Smart file extension detection
+            if "python" in course_title:
+                ext = ".py"
+                default_content = "# Start your Python code here"
+            elif "html" in course_title:
+                ext = ".html"
+                default_content = "<!-- Start writing HTML here -->"
+            elif "css" in course_title:
+                ext = ".css"
+                default_content = "/* Write your CSS here */"
+            elif "js" in course_title or "javascript" in course_title:
+                ext = ".js"
+                default_content = "// JavaScript starts here"
+            else:
+                ext = ".html"
+                default_content = "<!-- Start writing HTML here -->"
 
+            # Create the project and file
+            project = Project.objects.create(user=request.user, name=name)
             index_file = File.objects.create(
-                name='index.html',
+                name='main' + ext,
                 project=project,
-                content="<!-- Welcome to your new project -->"
+                content=default_content
             )
 
             return JsonResponse({
@@ -83,6 +109,8 @@ def create_project(request):
                 'file_id': index_file.id
             })
 
+        except Topics.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Topic not found'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
 
@@ -90,7 +118,7 @@ def create_project(request):
         user_projects = Project.objects.filter(user=request.user).order_by('-created')
         return render(request, 'webprojects/create_project.html', {
             'projects': user_projects
-        })
+        })    
 
 # editor/views.py
 # views.py
@@ -245,22 +273,28 @@ def file_detail(request, project_id, file_id):
             file.content = new_content
             file.save()
 
-            # ✅ Python execution block
+            # ✅ Execute Python if requested
             if run_plot and file.name.lower().endswith(".py"):
-                import contextlib
-                import sys
-
                 buffer_out = io.StringIO()
+                buffer_err = io.StringIO()
                 plt.clf()
                 plt.close('all')
 
                 local_vars = {}
 
                 try:
-                    with contextlib.redirect_stdout(buffer_out):
+                    with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
                         exec(new_content, {}, local_vars)
 
                     printed_output = buffer_out.getvalue()
+                    error_output = buffer_err.getvalue()
+
+                    # Return error if there was stderr
+                    if error_output:
+                        return JsonResponse({
+                            "status": "error",
+                            "message": error_output
+                        }, status=500)
 
                     # Capture DataFrame (if any)
                     table_html = ""
@@ -287,8 +321,13 @@ def file_detail(request, project_id, file_id):
                         "table": table_html
                     })
 
-                except Exception as e:
-                    return JsonResponse({"status": "error", "message": str(e)}, status=500)
+                except Exception:
+                    # Catch and return full traceback
+                    traceback_output = traceback.format_exc()
+                    return JsonResponse({
+                        "status": "error",
+                        "message": traceback_output
+                    }, status=500)
 
             return JsonResponse({"status": "saved", "message": "File saved successfully."})
 
@@ -301,8 +340,106 @@ def file_detail(request, project_id, file_id):
         'folders': folders,
         'exts': exts,
         'project': project,
-        'is_image': is_image,  # ✅ Pass to template
+        'is_image': is_image,
     })
+
+
+# def file_detail(request, project_id, file_id):
+#     file = get_object_or_404(File, id=file_id, project_id=project_id)
+#     files = file.project.files.all()
+#     project = get_object_or_404(Project, id=project_id)
+#     folders = Folder.objects.filter(project=file.project)
+
+#     # Group file extensions for sidebar
+#     exts = sorted({
+#         os.path.splitext(f.name)[1].lstrip('.').lower()
+#         for f in files if '.' in f.name
+#     })
+
+#     # ✅ Detect if file is an image
+#     is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+
+#             if data.get("file_id") and data.get("file_id") != file.id:
+#                 return JsonResponse({"error": "Mismatched file ID"}, status=400)
+
+#             new_content = data.get("content", "")
+#             updated_timestamp = data.get("timestamp")
+#             run_plot = data.get("run_plot", False)
+
+#             if updated_timestamp:
+#                 from django.utils.dateparse import parse_datetime
+#                 new_time = parse_datetime(updated_timestamp)
+#                 if new_time and new_time < file.updated:
+#                     return JsonResponse({
+#                         "status": "skipped",
+#                         "message": "Stale update ignored."
+#                     })
+
+#             file.content = new_content
+#             file.save()
+
+#             # ✅ Python execution block
+#             if run_plot and file.name.lower().endswith(".py"):
+#                 import contextlib
+#                 import sys
+
+#                 buffer_out = io.StringIO()
+#                 plt.clf()
+#                 plt.close('all')
+
+#                 local_vars = {}
+
+#                 try:
+#                     with contextlib.redirect_stdout(buffer_out):
+#                         exec(new_content, {}, local_vars)
+
+#                     printed_output = buffer_out.getvalue()
+
+#                     # Capture DataFrame (if any)
+#                     table_html = ""
+#                     for var in local_vars.values():
+#                         if isinstance(var, pd.DataFrame):
+#                             table_html = var.to_html(classes="table table-bordered", index=False)
+#                             break
+
+#                     # Capture matplotlib plots
+#                     images = []
+#                     for i in plt.get_fignums():
+#                         fig = plt.figure(i)
+#                         buffer = io.BytesIO()
+#                         fig.savefig(buffer, format='png', bbox_inches='tight')
+#                         plt.close(fig)
+#                         buffer.seek(0)
+#                         img_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+#                         images.append(f"data:image/png;base64,{img_base64}")
+
+#                     return JsonResponse({
+#                         "status": "plot_generated",
+#                         "images": images,
+#                         "output": printed_output or "[No output]",
+#                         "table": table_html
+#                     })
+
+#                 except Exception as e:
+#                     return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+#             return JsonResponse({"status": "saved", "message": "File saved successfully."})
+
+#         except Exception as e:
+#             return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+#     return render(request, 'webprojects/file_detail.html', {
+#         'file': file,
+#         'files': files,
+#         'folders': folders,
+#         'exts': exts,
+#         'project': project,
+#         'is_image': is_image,  # ✅ Pass to template
+#     })
 
 
 def view_rendered_file(request, file_id):

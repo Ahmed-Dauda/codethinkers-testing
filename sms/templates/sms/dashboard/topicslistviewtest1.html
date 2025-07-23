@@ -206,8 +206,7 @@ table-layout: fixed; // ***********add this
 </style>
 
   <br>                   
-<a href="{% url 'create_project' %}" class="awesome-link">🚀 AI Coding Assistant</a>
-
+ 
   <div class="card-body">
    {{percentage}}%
 
@@ -223,6 +222,10 @@ table-layout: fixed; // ***********add this
   <div id="content-container" class="makecompleted hide-on-mobile">
   
       {% for topic in topics %}
+   <!-- Place this under each topic -->
+<button onclick="createEditorProject({{ topic.id }})">🧪 Try it Yourself</button>
+<a href="javascript:void(0);" onclick="createEditorProject({{ topic.id }})" class="awesome-link">🚀 AI Coding Assistant</a>
+
           <div class="bg-white topic-item" style="border: 2px solid black; margin: 5px;">
               <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
                   <i style="color: green;" class="fas fa-check-circle"></i>
@@ -668,7 +671,33 @@ table-layout: fixed; // ***********add this
     }
 </script>
 
-    <!-- link to the solution of related videos -->
-    <!-- https://stackoverflow.com/questions/57820478/how-to-disable-related-videos-from-an-embedded-youtube-playlist -->
+<script>
+function createEditorProject(topicId) {
+    fetch("{% url 'create_project' %}", {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            name: "Lesson Project",
+            topic_id: topicId
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const url = `{% url 'file_detail' 0 0 %}`
+                .replace('0', data.project_id)
+                .replace('0', data.file_id);
+            window.location.href = url;
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(err => alert("Project creation failed: " + err));
+}
+</script>
+
   {% endblock %} 
  

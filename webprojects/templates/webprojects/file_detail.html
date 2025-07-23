@@ -127,6 +127,24 @@
       align-items: flex-start;
     }
   }
+  /* Spinner animation */
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 3px solid #ccc;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 </style>
 {% endblock %}
 
@@ -136,7 +154,7 @@
 
 
 {% block sidebar %}
-
+<a href="{% url 'create_project' %}">check project</a>
 <h4 style="color: #ccc;">📤 Upload Image</h4>
 <div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
   Drop Image Here or <label for="imageInput" style="color: #4fa;">Browse</label>
@@ -222,6 +240,7 @@
   <button id="runBtn" onclick="runAIAction()">🚀 Run AI Action</button>
 </div>
  
+
 <div class="editor-panel" style="display: flex; flex-direction: column; height: 100%;">
   <div id="container" style="flex-grow: 1; min-height: 100px;"></div>
 
@@ -232,16 +251,10 @@
   <div id="outputPanel" style="height: 160px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
     <strong>🔽 Output:</strong>
     <pre id="outputText" style="white-space: pre-wrap;"></pre>
-    <div id="tablePreview" style="margin-top: 15px;"></div>
+    <div id="tablePreview" style="margin-top: 15px;display: none;"></div>
     <div id="plotPreview" style="display: none;"></div>
   </div>
 </div>
-
-     
-    <pre id="outputText" style="white-space: pre-wrap;"></pre>
-    <div id="tablePreview" style="margin-top: 15px;"></div>
-    <div id="plotPreview" style="display: none;"></div>
-
 
     <!-- AI Suggestion Preview Modal -->
 <div id="aiModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%);
@@ -959,10 +972,13 @@ function getLanguage(fileName) {
 function runCode() {
   const code = editor.getValue();
   const output = document.getElementById("outputText");
-  const ext = "{{ file.name|lower }}".split('.').pop();
   const tablePreview = document.getElementById("tablePreview");
+  const plotPreview = document.getElementById("plotPreview");
+  const ext = "{{ file.name|lower }}".split('.').pop();
 
-  output.textContent = "⏳ Running...";
+  output.innerHTML = `⏳ Running... <span class="spinner"></span>`;
+  tablePreview.innerHTML = "";
+  plotPreview.innerHTML = "";
 
   if (ext === "js") {
     try {
@@ -971,6 +987,7 @@ function runCode() {
       console.log = function (...args) {
         logs.push(args.join(" "));
       };
+
       const result = eval(code);
       console.log = originalLog;
 
@@ -978,9 +995,10 @@ function runCode() {
       if (result !== undefined) {
         outputText += "\n➡️ Result: " + result;
       }
+
       output.textContent = outputText || "[No output]";
     } catch (err) {
-      output.textContent = "❌ JavaScript Error: " + err.message;
+      output.innerHTML = `<span style="color:red;">❌ JavaScript Error: ${escapeHTML(err.message)}</span>`;
     }
   }
 
@@ -998,18 +1016,22 @@ function runCode() {
     })
     .then(res => res.json())
     .then(data => {
-      output.textContent = data.output || data.error || "[No output received]";
+      if (data.status === "error") {
+        output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`;
+      } else {
+        const textOut = data.output || data.error || "[No output]";
+        output.textContent = textOut;
+      }
 
-      const plotPreview = document.getElementById("plotPreview");
-
+      // Table
       if (data.table) {
         tablePreview.innerHTML = data.table;
         tablePreview.style.display = "block";
       } else {
-        tablePreview.innerHTML = "";
         tablePreview.style.display = "none";
       }
 
+      // Plot
       plotPreview.innerHTML = "";
       if (Array.isArray(data.images) && data.images.length > 0) {
         data.images.forEach(src => {
@@ -1025,13 +1047,23 @@ function runCode() {
       }
     })
     .catch(err => {
-      output.textContent = "❌ Request Failed: " + err;
+      output.innerHTML = `<span style="color:red;">❌ Request Failed: ${escapeHTML(err.message)}</span>`;
     });
   }
 
   else {
-    output.textContent = "⚠️ Unsupported file type: " + ext;
+    output.innerHTML = `<span style="color:orange;">⚠️ Unsupported file type: ${escapeHTML(ext)}</span>`;
   }
+}
+
+function escapeHTML(str) {
+  return String(str).replace(/[&<>"']/g, tag => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[tag]));
 }
 
 
@@ -1144,8 +1176,12 @@ function explainCode() {
 function runAIAction() {
   const selectedText = getSelectedText();
   const action = document.getElementById("aiAction").value;
+  const loadingIndicator = document.getElementById("aiLoading");
+  const runBtn = document.getElementById("runBtn");
 
-  if (!selectedText.trim()) return alert("⚠️ Please select code first.");
+  if (!selectedText.trim()) {
+    return alert("⚠️ Please select code first.");
+  }
 
   const instructions = {
     complete: "Complete the following code:",
@@ -1156,6 +1192,11 @@ function runAIAction() {
   };
 
   const prompt = instructions[action] + "\n\n" + selectedText;
+
+  // Show loading
+  loadingIndicator.style.display = "inline";
+  runBtn.disabled = true;
+  runBtn.textContent = "⏳ Running...";
 
   fetch("{% url 'ai_suggest_code' %}", {
     method: "POST",
@@ -1170,7 +1211,15 @@ function runAIAction() {
     const output = cleanAIResponse(data.suggestion || "");
     insertAfterSelection(selectedText, output);
   })
-  .catch(err => alert("AI Action Failed: " + err));
+  .catch(err => {
+    alert("AI Action Failed: " + err);
+  })
+  .finally(() => {
+    // Hide loading
+    loadingIndicator.style.display = "none";
+    runBtn.disabled = false;
+    runBtn.textContent = "🚀 Run AI Action";
+  });
 }
 
 
