@@ -117,28 +117,47 @@
     {% csrf_token %}
     <label for="project-name">Project Name:</label>
     <input type="text" id="project-name" name="name" placeholder="e.g., Portfolio Site" required>
-    <button type="submit">Create Project</button>
+    <button type="submit">➕ Create Project</button>
   </form>
 
   <div id="status-message"></div>
 </div>
 
 <script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
 document.getElementById('create-project-form').addEventListener('submit', function(e) {
   e.preventDefault();
   const name = document.getElementById('project-name').value;
+  const messageBox = document.getElementById('status-message');  // ✅ Move this up here
+
+  messageBox.innerHTML = "<span style='color: #555;'>⏳ Creating project...</span>";
 
   fetch("{% url 'create_project' %}", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-CSRFToken": "{{ csrf_token }}"
+      "X-CSRFToken": csrftoken
     },
     body: JSON.stringify({ name: name })
   })
   .then(response => response.json())
   .then(data => {
-    const messageBox = document.getElementById('status-message');
     if (data.status === "success") {
       messageBox.innerHTML = "<span style='color: green;'>✅ Project created successfully. Redirecting...</span>";
       setTimeout(() => {
@@ -150,4 +169,6 @@ document.getElementById('create-project-form').addEventListener('submit', functi
   });
 });
 </script>
+
+
 {% endblock %}
