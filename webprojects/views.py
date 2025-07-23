@@ -4,6 +4,9 @@ from .models import Project, File
 import json
 from django.shortcuts import get_object_or_404, render
 from .models import Folder, File
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from .models import File, Project
 
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
@@ -91,9 +94,6 @@ def create_project(request):
 
 # editor/views.py
 # views.py
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from .models import File, Project
 
 @csrf_exempt
 def upload_image_ajax(request, project_id):
@@ -170,28 +170,6 @@ def share_preview_view(request, project_id, file_id):
         'file': file,
         'rendered_html': html,
     })
-
-
-# def share_preview_view(request, project_id, file_id):
-#     file = get_object_or_404(File, id=file_id, project_id=project_id)
-#     ext = os.path.splitext(file.name)[1].lstrip('.').lower()
-
-#     rendered_html = ""
-#     if ext == "html":
-#         rendered_html = f"""
-#         <!DOCTYPE html>
-#         <html>
-#         <head><meta charset="UTF-8"></head>
-#         <body style='background:white; padding:1rem'>
-#         {file.content}
-#         </body>
-#         </html>
-#         """
-#     return render(request, 'webprojects/live_preview.html', {
-#         'rendered_html': rendered_html,
-#         'file': file,
-#         'project': file.project,
-#     })
 
 
 def build_folder_tree(folders):
