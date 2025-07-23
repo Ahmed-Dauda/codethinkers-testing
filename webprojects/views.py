@@ -65,39 +65,41 @@ def create_project(request):
         try:
             data = json.loads(request.body)
             name = data.get('name', '').strip()
-            topic_id = data.get('topic_id', None)
-
-            # Get topic title if topic_id is provided
-            if topic_id:
-                topic = Topics.objects.get(id=topic_id)
-                course_title = topic.courses.title.lower()
-                name = name or topic.title.strip()
-            else:
-                course_title = name.lower()
 
             if not name:
-                return JsonResponse({'status': 'error', 'message': 'Project title is required'})
+                return JsonResponse({'status': 'error', 'message': 'Project name is required'})
 
-            # 🔍 Smart file extension detection
-            if "python" in course_title:
+            # Check for existing project by name (per user)
+            existing_project = Project.objects.filter(user=request.user, name=name).first()
+            if existing_project:
+                first_file = existing_project.files.first()
+                return JsonResponse({
+                    'status': 'success',
+                    'project_id': existing_project.id,
+                    'file_id': first_file.id if first_file else None
+                })
+
+            # Auto-detect file extension
+            lower_name = name.lower()
+            if "python" in lower_name:
                 ext = ".py"
                 default_content = "# Start your Python code here"
-            elif "html" in course_title:
+            elif "html" in lower_name:
                 ext = ".html"
                 default_content = "<!-- Start writing HTML here -->"
-            elif "css" in course_title:
+            elif "css" in lower_name:
                 ext = ".css"
                 default_content = "/* Write your CSS here */"
-            elif "js" in course_title or "javascript" in course_title:
+            elif "js" in lower_name or "javascript" in lower_name:
                 ext = ".js"
                 default_content = "// JavaScript starts here"
             else:
-                ext = ".html"
-                default_content = "<!-- Start writing HTML here -->"
+                ext = ".txt"
+                default_content = "// General notes"
 
-            # Create the project and file
             project = Project.objects.create(user=request.user, name=name)
-            index_file = File.objects.create(
+
+            file = File.objects.create(
                 name='main' + ext,
                 project=project,
                 content=default_content
@@ -106,11 +108,9 @@ def create_project(request):
             return JsonResponse({
                 'status': 'success',
                 'project_id': project.id,
-                'file_id': index_file.id
+                'file_id': file.id
             })
 
-        except Topics.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Topic not found'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
 
@@ -118,7 +118,8 @@ def create_project(request):
         user_projects = Project.objects.filter(user=request.user).order_by('-created')
         return render(request, 'webprojects/create_project.html', {
             'projects': user_projects
-        })    
+        })
+
 
 # editor/views.py
 # views.py
