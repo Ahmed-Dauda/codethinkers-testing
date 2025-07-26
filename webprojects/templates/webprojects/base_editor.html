@@ -109,29 +109,131 @@
         word-break: break-word;
       }
     }
+    .editor-layout {
+  display: flex;
+  height: calc(100vh - 48px);
+  transition: all 0.3s ease;
+}
+.sidebar {
+  width: 250px;
+  transition: all 0.3s ease;
+}
+.editor-panel {
+  flex-grow: 1;
+  transition: all 0.3s ease;
+}
+.sidebar {
+  width: 550px;
+  transform: translateX(0);
+  transition: transform 0.3s ease;
+}
+
+.sidebar.closed {
+  transform: translateX(-250px);
+}
+
+.editor-panel.full {
+  margin-left: 0 !important;
+}
+.editor-layout {
+  display: flex;
+  height: calc(100vh - 48px);
+  transition: all 0.3s ease;
+}
+
+.sidebar {
+  width: 250px;
+  transition: transform 0.3s ease;
+  will-change: transform;
+}
+
+.sidebar.closed {
+  transform: translateX(-250px);
+}
+
+.editor-panel {
+  flex-grow: 1;
+  transition: margin-left 0.3s ease;
+}
+
+.editor-layout.collapsed .sidebar {
+  display: none;
+}
+
+.editor-layout.collapsed .editor-panel {
+  flex-grow: 1;
+  width: 100% !important;
+}
+
   </style>
+<style>
+  .editor-layout {
+    display: flex;
+    height: calc(100vh - 48px);
+    transition: all 0.3s ease;
+  }
+
+  .sidebar {
+    width: 250px;
+    transition: width 0.3s ease;
+  }
+
+  .editor-panel {
+    flex-grow: 1;
+    transition: width 0.3s ease;
+  }
+
+  /* 👇 When collapsed */
+  .editor-layout.collapsed .sidebar {
+    display: none;
+  }
+
+  .editor-layout.collapsed .editor-panel {
+    width: 100% !important;
+  }
+  
+</style>
 
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <div class="editor-header">
-    {% block header %} CodeThinkers Editor {% endblock %}
+<div class="editor-header">
+  <div id="vscodeToggleBar">
+  <button id="toggleSidebarBtn" title="Toggle Sidebar">☰</button>
+</div>
+
+  {% block header %} CodeThinkers Editor {% endblock %}
+</div>
+
+<div class="editor-layout" id="editorLayout">
+  <div class="sidebar" id="sidebar">
+    {% block sidebar %}{% endblock %}
   </div>
 
-  <div class="editor-layout">
-    <div class="sidebar">
-      {% block sidebar %}
-        <!-- 🗂 File list goes here -->
-      {% endblock %}
-    </div>
-
-    <div class="editor-panel">
-      {% block content %}
-      
-        <!-- ✏️ Editor interface -->
-      {% endblock %}
-    </div>
+  <div class="editor-panel" id="editorPanel">
+    {% block content %}{% endblock %}
   </div>
-  
+</div>
+
+<!-- <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const sidebar = document.getElementById('sidebar');
+    const editorPanel = document.getElementById('editorPanel');
+    const toggleBtn = document.getElementById('sidebarToggle');
+
+    toggleBtn.addEventListener('click', function () {
+      sidebar.classList.toggle('closed');
+      editorPanel.classList.toggle('full');
+
+      // Resize the Monaco editor properly
+      if (window.editor) {
+        setTimeout(() => {
+          window.editor.layout(); // This ensures full width
+        }, 300); // Wait for animation to complete
+      }
+    });
+  });
+</script> -->
+
 </body>
 </html>
