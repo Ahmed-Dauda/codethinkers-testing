@@ -31,6 +31,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('accounts/', include('allauth.urls')),
     path("webprojects/", include("webprojects.urls")),
+    path('tinymce/', include('tinymce.urls')),
     
 
     # path('tinymce/', include('tinymce.urls')),
