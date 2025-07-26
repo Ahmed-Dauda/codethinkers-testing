@@ -146,6 +146,34 @@
 }
 
 </style>
+
+<style>
+  .editor-layout {
+    display: flex;
+    height: calc(100vh - 48px);
+    transition: all 0.3s ease;
+  }
+
+  .sidebar {
+    width: 250px;
+    transition: all 0.3s ease;
+  }
+
+  .editor-panel {
+    flex-grow: 1;
+    transition: all 0.3s ease;
+  }
+
+  /* When collapsed: hide sidebar and expand editor panel */
+  .editor-layout.collapsed .sidebar {
+    display: none;
+  }
+
+  .editor-layout.collapsed .editor-panel {
+    width: 100% !important;
+  }
+</style>
+
 {% endblock %}
 
 {% block header %}
@@ -157,6 +185,36 @@
 
 
 {% block sidebar %}
+
+<!-- your sidebar content below... -->
+ <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const editorLayout = document.getElementById('editorLayout');
+    const toggleBtn = document.getElementById('toggleSidebarBtn');
+
+    const updateToggleIcon = (isCollapsed) => {
+      toggleBtn.innerHTML = isCollapsed 
+        ? '<span title="Open Sidebar">☰</span>' 
+        : '<span title="Close Sidebar">✖</span>';
+    };
+
+    toggleBtn.addEventListener('click', () => {
+      const isCollapsed = editorLayout.classList.toggle('collapsed');
+      updateToggleIcon(isCollapsed);
+
+      // Relayout Monaco Editor
+      setTimeout(() => {
+        if (window.editor?.layout) {
+          window.editor.layout();
+        }
+      }, 100);
+    });
+
+    // Initial state
+    updateToggleIcon(editorLayout.classList.contains('collapsed'));
+  });
+</script>
+
 
 <h4 style="color: #ccc;">📤 Upload Image</h4>
 <div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
@@ -209,18 +267,6 @@
   </div>
 </div>
 
-<script>
-  function showImageModal(imgUrl) {
-    document.getElementById('popupImage').src = imgUrl;
-    document.getElementById('imagePopupModal').style.display = 'block';
-  }
-
-  function closeImageModal() {
-    document.getElementById('imagePopupModal').style.display = 'none';
-    document.getElementById('popupImage').src = "";
-  }
-</script>
-
 
 
 {% endblock %}
@@ -272,6 +318,22 @@
 
   </div>
 </div>
+
+
+
+<!-- js section -->
+
+<script>
+  function showImageModal(imgUrl) {
+    document.getElementById('popupImage').src = imgUrl;
+    document.getElementById('imagePopupModal').style.display = 'block';
+  }
+
+  function closeImageModal() {
+    document.getElementById('imagePopupModal').style.display = 'none';
+    document.getElementById('popupImage').src = "";
+  }
+</script>
 
 <script>
 function getAISuggestion() {
