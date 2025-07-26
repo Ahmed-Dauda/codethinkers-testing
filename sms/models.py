@@ -1,3 +1,4 @@
+
 from typing import cast
 from django.contrib.contenttypes.fields import GenericRelation
 from django.forms import Widget
@@ -11,6 +12,12 @@ from embed_video.fields import EmbedVideoField
 from django.conf import settings
 from hitcount.models import HitCount, HitCountMixin
 from django.db import models
+from django.utils import timezone
+from django.urls import reverse
+import uuid
+from django.utils.text import slugify
+
+
 
 
 
@@ -27,12 +34,12 @@ class Categories(models.Model, HitCountMixin):
     HitCount, object_id_field='object_pk',
     related_query_name='hit_count_generic_relation')
 
-# 
+
     def __str__(self):
         return f'{self.name}'
 
 
-import uuid
+
 
 class Courses(models.Model):
     COURSE_TYPE = [
@@ -170,14 +177,10 @@ class AboutCourseOwner(models.Model):
         return f'{self.courses.title}' 
     
 
-from django.utils.text import slugify
-
-
+from tinymce.widgets import TinyMCE
 from tinymce.models import HTMLField
 
-# models.py
-
-from tinymce.widgets import TinyMCE
+# Custom TinyMCE widget with specific attributes
 
 class CustomTinyMCEWidget(TinyMCE):
     def __init__(self, *args, **kwargs):
@@ -186,6 +189,7 @@ class CustomTinyMCEWidget(TinyMCE):
 
 
 class Topics(models.Model):
+    
     categories = models.ForeignKey(Categories, on_delete=models.CASCADE)
     courses = models.ForeignKey(Courses, on_delete=models.CASCADE) 
     title = models.CharField(max_length=500, blank=True, null=True)
@@ -266,8 +270,7 @@ class Blog(models.Model):
     def __str__(self):
         return f'{self.title}'
 
-from django.utils import timezone
-from django.urls import reverse
+
 # MainApp/models.py
 class Blogcomment(models.Model):
     post = models.ForeignKey(Blog,related_name='comments' ,on_delete=models.SET_NULL, null=True)

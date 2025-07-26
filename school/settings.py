@@ -9,6 +9,12 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+# STATIC_URL = '/static/'
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # ✅ this is correct
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # ✅ this is correct
+
 
 # settings.py
 LOGGING = {
@@ -36,7 +42,7 @@ LOGGING = {
 
 
 import environ
-import os
+
 
 env = environ.Env(DEBUG=(bool, False))
 
@@ -129,7 +135,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 IMPORT_EXPORT_CHUNK_SIZE = 1000 # speed import and export
 IMPORT_EXPORT_EXPORT_PERMISSION_CODE = True # you must have permission b4 export
 IMPORT_EXPORT_IMPORT_PERMISSION_CODE = True # you must have permission b4 import
-IMPORT_EXPORT_IMPORT_PERMISSION_CODE
 IMPORT_EXPORT_SKIP_ADMIN_LOG = True # speed import and export
 IMPORT_EXPORT_USE_TRANSACTIONS = True  # import won’t import only part of the data set.
 
@@ -260,26 +265,25 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 # DEFAULT_FROM_EMAIL = 'techsupport@esteemlearningcentre.com'
 
 
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',  # ✅ MUST come before Auth
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'users.middleware.BotSignupProtectionMiddleware',  
+    'users.middleware.BotSignupProtectionMiddleware',  # Your custom middleware
 ]
 
 CSRF_COOKIE_SECURE=False
 
 ROOT_URLCONF = 'school.urls'
-
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Add any template directories here
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',  # ✅ MUST be here
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -388,11 +392,8 @@ HITCOUNT_HITS_PER_IP_LIMIT = 0
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-
-
-STATIC_ROOT =os.path.join(BASE_DIR, 'static')
-MEDIA_ROOT =os.path.join(BASE_DIR, 'media')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # ✅ Dev-only static folder
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')    # ✅ For `collectstatic`
 
 
 # settings.py
@@ -440,7 +441,6 @@ TINYMCE_DEFAULT_CONFIG = {
     'theme': 'silver',
 }
 
-# TINYMCE_JS_URL = 'https://cdn.tiny.cloud/1/r5ebxl5femg5gy8yvid6alg59ohekm45qlmxptc20qeu5jgw/tinymce/5/tinymce.min.js'
 
 # r5ebxl5femg5gy8yvid6alg59ohekm45qlmxptc20qeu5jgw
 

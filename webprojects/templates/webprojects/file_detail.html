@@ -15,19 +15,23 @@
     background-color: #1e1e1e;
     color: #ccc;
   }
+
   .editor-layout {
     display: flex;
     height: calc(100vh - 48px);
+    transition: all 0.3s ease;
   }
+
   .toolbar {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     padding: 10px;
     background: #1e1e1e;
     border-bottom: 1px solid #444;
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
+
   .toolbar button,
   .toolbar select {
     padding: 6px 12px;
@@ -39,17 +43,21 @@
     cursor: pointer;
     transition: background 0.3s ease;
   }
+
   .toolbar button:hover,
   .toolbar select:hover {
     background: #444;
   }
+
   .sidebar {
     width: 250px;
     background-color: #252526;
     padding: 10px;
     border-right: 1px solid #444;
     overflow-y: auto;
+    transition: all 0.3s ease;
   }
+
   .folder-toggle {
     cursor: pointer;
     display: flex;
@@ -60,20 +68,25 @@
     margin: 10px 0 5px;
     transition: color 0.3s ease;
   }
+
   .folder-toggle:hover {
     color: #fff;
   }
+
   .file-group {
     margin-left: 10px;
     display: none;
     transition: all 0.3s ease;
   }
+
   .folder-toggle.open + .file-group {
     display: block;
   }
+
   .file-item {
     margin: 4px 0;
   }
+
   .file-item a {
     color: #bbb;
     text-decoration: none;
@@ -82,20 +95,25 @@
     padding: 2px 0;
     transition: color 0.2s ease;
   }
+
   .file-item a:hover {
     color: #fff;
   }
+
   .editor-panel {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
+
   #container {
     flex-grow: 1;
     border-top: 1px solid #444;
     border-bottom: 1px solid #444;
+    min-height: 100px;
   }
+
   #outputPanel {
     height: 160px;
     background: #1e1e1e;
@@ -106,65 +124,83 @@
     font-size: 0.9em;
     border-top: 1px solid #444;
   }
+
   ::-webkit-scrollbar {
     width: 6px;
   }
+
   ::-webkit-scrollbar-thumb {
     background: #555;
     border-radius: 3px;
   }
+
   ::-webkit-scrollbar-track {
     background: #2c2c2c;
   }
+
+  /* Responsive adjustments */
   @media (max-width: 768px) {
-    .sidebar {
-      width: 100px;
-      font-size: 0.8em;
-      padding: 8px;
+    .editor-layout {
+      flex-direction: column;
     }
+
+    .sidebar {
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid #444;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
     .toolbar {
       flex-direction: column;
-      align-items: flex-start;
+      align-items: stretch;
+    }
+
+    .editor-panel {
+      height: auto;
+    }
+
+    #outputPanel {
+      height: 140px;
     }
   }
+
+  @media (max-width: 480px) {
+    .toolbar button,
+    .toolbar select {
+      width: 100%;
+      font-size: 0.9em;
+    }
+
+    .folder-toggle {
+      font-size: 0.9em;
+    }
+
+    .file-item a {
+      font-size: 0.85em;
+    }
+  }
+
   /* Spinner animation */
-.spinner {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border: 3px solid #ccc;
-  border-top: 3px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  vertical-align: middle;
-  margin-left: 8px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-</style>
-
-<style>
-  .editor-layout {
-    display: flex;
-    height: calc(100vh - 48px);
-    transition: all 0.3s ease;
+  .spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 3px solid #ccc;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    vertical-align: middle;
+    margin-left: 8px;
   }
 
-  .sidebar {
-    width: 250px;
-    transition: all 0.3s ease;
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 
-  .editor-panel {
-    flex-grow: 1;
-    transition: all 0.3s ease;
-  }
-
-  /* When collapsed: hide sidebar and expand editor panel */
+  /* Sidebar collapse toggle for mobile */
   .editor-layout.collapsed .sidebar {
     display: none;
   }
@@ -172,6 +208,7 @@
   .editor-layout.collapsed .editor-panel {
     width: 100% !important;
   }
+  
 </style>
 
 {% endblock %}
@@ -185,35 +222,6 @@
 
 
 {% block sidebar %}
-
-<!-- your sidebar content below... -->
- <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const editorLayout = document.getElementById('editorLayout');
-    const toggleBtn = document.getElementById('toggleSidebarBtn');
-
-    const updateToggleIcon = (isCollapsed) => {
-      toggleBtn.innerHTML = isCollapsed 
-        ? '<span title="Open Sidebar">☰</span>' 
-        : '<span title="Close Sidebar">✖</span>';
-    };
-
-    toggleBtn.addEventListener('click', () => {
-      const isCollapsed = editorLayout.classList.toggle('collapsed');
-      updateToggleIcon(isCollapsed);
-
-      // Relayout Monaco Editor
-      setTimeout(() => {
-        if (window.editor?.layout) {
-          window.editor.layout();
-        }
-      }, 100);
-    });
-
-    // Initial state
-    updateToggleIcon(editorLayout.classList.contains('collapsed'));
-  });
-</script>
 
 
 <h4 style="color: #ccc;">📤 Upload Image</h4>
@@ -273,9 +281,15 @@
 
 
 {% block content %}
+<div style="padding: 8px 12px; background: #222; border-bottom: 1px solid #444; text-align: right;">
+ <button id="runBtnCode" onclick="runCode()" style="background:#2ecc71; color:white;">▶ Run Code</button> 
+  <button id="toggleAI" onclick="toggleAITools()" style="background: #444; color: #fff; padding: 6px 12px; border: none; border-radius: 4px;">
+    🔧 Show AI Tools
+  </button>
+</div>
 
-<div class="toolbar">
-  <button id="runBtnCode" onclick="runCode()" style="background:#2ecc71; color:white;">▶ Run Code</button>
+<div id="aiToolbar" class="toolbar">
+  
   <span id="aiLoading" style="display:none;">⏳</span>
   <button id="aiBtn" onclick="getAISuggestion()">💡 AI Suggest</button>
   <button id="explainBtn" onclick="explainCode()">💬 Explain Code</button>
@@ -288,7 +302,28 @@
   </select>
   <button id="runBtn" onclick="runAIAction()">🚀 Run AI Action</button>
 </div>
- 
+
+<script>
+  function toggleAITools() {
+    const aiToolbar = document.getElementById("aiToolbar");
+    const toggleBtn = document.getElementById("toggleAI");
+
+    if (aiToolbar.style.display === "none" || aiToolbar.style.display === "") {
+      aiToolbar.style.display = "flex";
+      toggleBtn.textContent = "❌ Hide AI Tools";
+    } else {
+      aiToolbar.style.display = "none";
+      toggleBtn.textContent = "🔧 Show AI Tools";
+    }
+  }
+
+  // Auto-hide toolbar on small screens
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.innerWidth <= 768) {
+      document.getElementById("aiToolbar").style.display = "none";
+    }
+  });
+</script>
 
 <div class="editor-panel" style="display: flex; flex-direction: column; height: 100%;">
   <div id="container" style="flex-grow: 1; min-height: 100px;"></div>
@@ -322,6 +357,34 @@
 
 
 <!-- js section -->
+<!-- your sidebar content below... -->
+ <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const editorLayout = document.getElementById('editorLayout');
+    const toggleBtn = document.getElementById('toggleSidebarBtn');
+
+    const updateToggleIcon = (isCollapsed) => {
+      toggleBtn.innerHTML = isCollapsed 
+        ? '<span title="Open Sidebar">☰</span>' 
+        : '<span title="Close Sidebar">✖</span>';
+    };
+
+    toggleBtn.addEventListener('click', () => {
+      const isCollapsed = editorLayout.classList.toggle('collapsed');
+      updateToggleIcon(isCollapsed);
+
+      // Relayout Monaco Editor
+      setTimeout(() => {
+        if (window.editor?.layout) {
+          window.editor.layout();
+        }
+      }, 100);
+    });
+
+    // Initial state
+    updateToggleIcon(editorLayout.classList.contains('collapsed'));
+  });
+</script>
 
 <script>
   function showImageModal(imgUrl) {
@@ -1401,32 +1464,49 @@ function uploadImage(file) {
 
 <!-- dragging output area js -->
  <script>
-  const container = document.getElementById('container');
-  const outputPanel = document.getElementById('outputPanel');
-  const resizeHandle = document.getElementById('resizeHandle');
+  const container = document.getElementById("container");
+  const outputPanel = document.getElementById("outputPanel");
+  const resizeHandle = document.getElementById("resizeHandle");
 
-  let isResizing = false;
+  let isDragging = false;
   let startY = 0;
   let startHeight = 0;
 
-  resizeHandle.addEventListener('mousedown', (e) => {
-    isResizing = true;
+  resizeHandle.addEventListener("mousedown", (e) => {
+    isDragging = true;
     startY = e.clientY;
     startHeight = outputPanel.offsetHeight;
-    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = "none"; // Prevent text selection
   });
 
-  window.addEventListener('mousemove', (e) => {
-    if (!isResizing) return;
+  document.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
     const dy = e.clientY - startY;
-    outputPanel.style.height = (startHeight - dy) + 'px';
-    container.style.flexGrow = '1';
-    container.style.height = `calc(100% - ${outputPanel.offsetHeight + resizeHandle.offsetHeight}px)`;
+    const newHeight = Math.max(startHeight - dy, 100); // Minimum height
+    outputPanel.style.height = `${newHeight}px`;
   });
 
-  window.addEventListener('mouseup', () => {
-    isResizing = false;
-    document.body.style.cursor = 'default';
+  document.addEventListener("mouseup", () => {
+    isDragging = false;
+    document.body.style.userSelect = "";
+  });
+
+  // Touch support for mobile
+  resizeHandle.addEventListener("touchstart", (e) => {
+    isDragging = true;
+    startY = e.touches[0].clientY;
+    startHeight = outputPanel.offsetHeight;
+  });
+
+  document.addEventListener("touchmove", (e) => {
+    if (!isDragging) return;
+    const dy = e.touches[0].clientY - startY;
+    const newHeight = Math.max(startHeight - dy, 100);
+    outputPanel.style.height = `${newHeight}px`;
+  });
+
+  document.addEventListener("touchend", () => {
+    isDragging = false;
   });
 </script>
 
