@@ -208,7 +208,25 @@
   .editor-layout.collapsed .editor-panel {
     width: 100% !important;
   }
-  
+#toastMessage {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  max-width: 600px;
+  background: #333;
+  color: #fff;
+  padding: 12px 16px;
+  font-size: 0.95em;
+  display: none;
+  opacity: 0;
+  z-index: 9999;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: opacity 0.3s ease;
+}
+
 </style>
 
 {% endblock %}
@@ -354,6 +372,22 @@
   </div>
 </div>
 
+<div id="toastMessage" style="
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #222;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 6px;
+  z-index: 9999;
+  font-size: 0.9em;
+  max-width: 90%;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+"></div>
 
 
 <!-- js section -->
@@ -1272,12 +1306,39 @@ function getAISuggestion() {
     loader.style.display = "none";
   });
 }
+function showToast(message) {
+  const toast = document.getElementById("toastMessage");
+  toast.innerHTML = `
+    <span>${message}</span>
+    <button onclick="hideToast()" style="
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 22px;
+      position: absolute;
+      right: 12px;
+      top: 8px;
+      cursor: pointer;
+    ">&times;</button>
+  `;
+  toast.style.display = "block";
+  toast.style.opacity = "1";
+}
+
+function hideToast() {
+  const toast = document.getElementById("toastMessage");
+  toast.style.opacity = "0";
+  setTimeout(() => (toast.style.display = "none"), 500);
+}
 
 function explainCode() {
   const code = getSelectedText();
   const btn = document.getElementById("explainBtn");
 
-  if (!code.trim()) return alert("⚠️ Please select code to explain.");
+  if (!code.trim()) {
+    showToast("⚠️ Please select code to explain.");
+    return;
+  }
 
   btn.disabled = true;
   btn.textContent = "💬 Explaining...";
@@ -1292,14 +1353,17 @@ function explainCode() {
   })
   .then(res => res.json())
   .then(data => {
-    alert("📘 AI Explanation:\n\n" + data.explanation);
+    showToast("📘 AI Explanation:\n" + data.explanation);
   })
-  .catch(err => alert("AI Explanation Error: " + err))
+  .catch(err => {
+    showToast("⚠️ AI Explanation Error: " + err.message);
+  })
   .finally(() => {
     btn.disabled = false;
     btn.textContent = "💬 Explain Code";
   });
 }
+
 
 function runAIAction() {
   const selectedText = getSelectedText();
