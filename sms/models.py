@@ -206,7 +206,8 @@ class Topics(models.Model):
     id = models.BigAutoField(primary_key=True)
     hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
 
-
+    class Meta:
+        ordering = ['title']
 
     def save(self, *args, **kwargs):
         if not self.slug:

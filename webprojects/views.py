@@ -600,7 +600,7 @@ def ai_python_completion(request):
             return JsonResponse({"error": "Invalid prefix"}, status=400)
 
         prompt = (
-            f"List 30 Python keywords, functions, or methods that typically start with '{prefix}'. "
+            f"List 100 Python keywords, functions, or methods that typically start with '{prefix}'. "
             f"Just return one per line without explanation."
         )
 

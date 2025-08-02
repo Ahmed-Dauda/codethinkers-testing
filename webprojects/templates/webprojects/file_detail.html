@@ -1158,7 +1158,8 @@ function runCode() {
         outputText += "\n➡️ Result: " + result;
       }
 
-      output.textContent = outputText || "[No output]";
+      // output.textContent = outputText || "[No output]";
+      output.textContent = outputText;
     } catch (err) {
       output.innerHTML = `<span style="color:red;">❌ JavaScript Error: ${escapeHTML(err.message)}</span>`;
     }
