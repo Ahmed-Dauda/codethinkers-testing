@@ -21,6 +21,9 @@ class TopicsAssessment(models.Model):
    
    def __str__(self):
         return f'{self.course_name}'
+   
+   class Meta:
+       ordering = ['course_name__title'] 
 
 
 from tinymce.models import HTMLField
