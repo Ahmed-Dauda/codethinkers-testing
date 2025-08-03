@@ -82,10 +82,7 @@ class School(models.Model):
     
 class Course(models.Model):
 
-#    course_name = models.CharField(max_length=50, unique= True)
    course_name = models.ForeignKey(Courses,on_delete=models.CASCADE, blank=True, null= True)
-#    school = models.ForeignKey(School, on_delete=models.SET_NULL, blank=True, null=True)
-#    schools = models.ManyToManyField(School , related_name='courses', blank=True)
    partdesc1 = models.CharField(max_length=300, blank=True, null= True)
    img_partdesc1 = CloudinaryField('image', blank=True, null= True)
    partdesc2 = models.CharField(max_length=225, blank=True, null= True)
@@ -102,7 +99,9 @@ class Course(models.Model):
    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
    id = models.AutoField(primary_key=True)
 
-   
+   class Meta:
+        ordering = ['course_name__title']  # Change 'title' to actual field name in Courses model
+        
    def __str__(self):
         return f'{self.course_name}'
 
