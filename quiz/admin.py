@@ -15,7 +15,14 @@ from quiz.models import (
 # Register your models here.
 # admin.site.register(Course)
 admin.site.register(School)
-admin.site.register(TopicsAssessment)
+# admin.site.register(TopicsAssessment)
+class TopicsAssessmentAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['course_name']
+    search_fields = ['course_name__title']  # Adjust 'title' if your Topics model uses a different field
+    list_display = ['course_name', 'question_number', 'total_marks', 'pass_mark', 'created']  # Optional
+
+admin.site.register(TopicsAssessment, TopicsAssessmentAdmin)
+
 
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('id','course_name', 'question_number','total_marks', 'pass_mark', 'duration_minutes')
