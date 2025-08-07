@@ -2,12 +2,12 @@ from django.urls import path
 
 from . import views
 
-
+#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
         
 app_name = 'quiz'
 
 urlpatterns = [
-  
+    path('ai-question-generator/', views.generate_ai_questions, name='generate_ai_questions'),
     path('take-exam', views.take_exams_view,name='take-exam'),
     path('start-exam/<pk>/', views.start_exams_view,name='start-exam'),
     path('calculate_marks', views.calculate_marks_view,name='calculate_marks'),

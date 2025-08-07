@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render
 
 # Create your views here.
@@ -8,6 +9,176 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Max, Subquery, OuterRef
 from quiz.models import TopicsAssessment, QuestionAssessment, ResultAssessment, Course
 from django.http import HttpResponseRedirect
+import openai
+
+from .models import Topics, TopicsAssessment, QuestionAssessment
+from django.contrib import messages
+
+
+# views.py
+from openai import OpenAI
+import re
+
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
+import json
+@login_required
+def generate_ai_questions(request):
+    assessments = TopicsAssessment.objects.select_related('course_name').all()
+
+    # ✅ Handle confirm-save POST request
+    if request.method == 'POST' and request.POST.get("confirm_save") == "1":
+        total_questions = int(request.POST.get("total_questions"))
+        assessment_id = request.POST.get("assessment_id")
+        marks = int(request.POST.get("marks"))
+
+        try:
+            assessment = TopicsAssessment.objects.get(id=assessment_id)
+        except TopicsAssessment.DoesNotExist:
+            messages.error(request, "Invalid assessment.")
+            return redirect('quiz:generate_ai_questions')
+
+        saved = 0
+        for i in range(1, total_questions + 1):
+            question_text = request.POST.get(f"question_{i}", "").strip()
+            option1 = request.POST.get(f"option1_{i}", "").strip()
+            option2 = request.POST.get(f"option2_{i}", "").strip()
+            option3 = request.POST.get(f"option3_{i}", "").strip()
+            option4 = request.POST.get(f"option4_{i}", "").strip()
+            answer = request.POST.get(f"answer_{i}", "Option1").strip()
+
+            if question_text and option1 and option2 and option3 and option4:
+                QuestionAssessment.objects.create(
+                    course=assessment,
+                    marks=marks,
+                    question=question_text,
+                    option1=option1,
+                    option2=option2,
+                    option3=option3,
+                    option4=option4,
+                    answer=answer
+                )
+                saved += 1
+
+        messages.success(request, f"{saved} edited questions saved successfully.")
+        return redirect('quiz:generate_ai_questions')
+
+    # ✅ Initial generation POST request
+    elif request.method == 'POST':
+        assessment_id = request.POST.get('assessment')
+        num_questions = int(request.POST.get('num_questions', 5))
+        marks = int(request.POST.get('marks', 1))
+
+        try:
+            assessment = TopicsAssessment.objects.get(id=assessment_id)
+        except TopicsAssessment.DoesNotExist:
+            messages.error(request, "Invalid assessment selected.")
+            return redirect('quiz:generate_ai_questions')
+        
+        
+        topic_title = assessment.course_name.courses.title
+        print("topic_title:", topic_title)
+        def extract_subject_tag(topic_title):
+            """Extracts the subject from a string like 'MATHS JSS2'."""
+            return topic_title.split()[0].lower()
+
+
+        # Format for Math, Chemistry, or Physics using MathML
+        subject_tag = extract_subject_tag(topic_title)
+        print("subject_tag:", subject_tag)
+        topics = assessment.course_name
+        # print("topics:", topics)
+
+        if subject_tag in ['maths', 'mathematics', 'math', 'chemistry', 'chem', 'physics']:
+            topics = assessment.course_name
+            prompt = f"""Generate {num_questions} multiple-choice questions on the topic '{topics}'.
+            Each question and its options must be strictly formatted using MathML with the namespace
+            http://www.w3.org/1998/Math/MathML. The question should be a math expression wrapped in <math> tags,
+            and each option should also be in MathML format.
+
+            Follow this exact structure:
+
+            Question: What is the value of <math xmlns='http://www.w3.org/1998/Math/MathML'><mfrac><msup><mn>3</mn><mn>4</mn></msup><msup><mn>3</mn><mn>2</mn></msup></mfrac></math>?
+            A. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>9</mn></math>
+            B. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>6</mn></math>
+            C. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>3</mn></math>
+            D. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>27</mn></math>
+            Answer: A
+            """
+        else:
+            prompt = f"""You are an expert Python tutor.
+
+            Generate {num_questions} multiple-choice Python questions on the topic '{topic_title}'.
+            Strictly follow this format (no explanations or extra text):
+
+            Question: What is Python?
+            A. A snake
+            B. A type of car
+            C. A programming language
+            D. A fruit
+            Answer: C
+
+            Randomize correct answer position. Avoid repeating options or questions.
+            """
+
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that generates programming quiz questions."},
+                    {"role": "user", "content": prompt},
+                ],
+                max_tokens=2000,
+                temperature=0.7,
+            )
+
+            if not response.choices:
+                messages.error(request, "OpenAI returned no content.")
+                return redirect('quiz:generate_ai_questions')
+
+            questions_text = response.choices[0].message.content.strip()
+            blocks = re.split(r'\n\s*\n', questions_text.strip())
+
+            preview_questions = []
+
+            for block in blocks:
+                lines = block.strip().split("\n")
+                if len(lines) == 6:
+                    question_text = lines[0].replace("Question:", "").strip()
+                    options = [line.split('. ', 1)[1].strip() for line in lines[1:5]]
+                    answer_letter = lines[5].split(':')[-1].strip().upper()
+
+                    answer_map = {'A': 'Option1', 'B': 'Option2', 'C': 'Option3', 'D': 'Option4'}
+                    answer = answer_map.get(answer_letter, 'Option1')
+
+                    preview_questions.append({
+                        'question': question_text,
+                        'option1': options[0],
+                        'option2': options[1],
+                        'option3': options[2],
+                        'option4': options[3],
+                        'answer': answer
+                    })
+                else:
+                    messages.warning(request, f"⚠️ Skipped malformed block:\n{block[:60]}...")
+
+            return render(request, 'quiz/dashboard/generate_questions.html', {
+                'assessments': assessments,
+                'preview_questions': preview_questions,
+                'assessment_id': assessment_id,
+                'marks': marks,
+            })
+
+        except Exception as e:
+            messages.error(request, f"OpenAI error: {str(e)}")
+            return redirect('quiz:generate_ai_questions')
+
+    # GET request
+    return render(request, 'quiz/dashboard/generate_questions.html', {
+        'assessments': assessments
+    })
+
+
 
 @login_required
 def take_exams_view(request):

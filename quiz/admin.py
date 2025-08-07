@@ -1,14 +1,15 @@
 import profile
 from django.contrib import admin
 from quiz.models import Certificate_note
-
+from django.utils.html import strip_tags
+from django.utils.text import Truncator
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields,resources
 from import_export.widgets import ForeignKeyWidget
 from users.models import Profile
 from quiz.models import (
-    Question, Course, Result,
+    Question, Course, Result,Topics,
     QuestionAssessment, TopicsAssessment, ResultAssessment, School
    
     )
@@ -31,26 +32,111 @@ admin.site.register(Course, CourseAdmin)
 
 
 # QuestionAssessment
+class MatchOnlyExistingTopicsAssessmentWidget(ForeignKeyWidget):
+    def clean(self, value, row=None, *args, **kwargs):
+        try:
+            # Get existing topic
+            topic = Topics.objects.get(title=value)
+        except Topics.DoesNotExist:
+            raise ValueError(f"No existing Topics found with title = '{value}'")
 
+        try:
+            # Get existing assessment for that topic
+            return TopicsAssessment.objects.get(course_name=topic)
+        except TopicsAssessment.DoesNotExist:
+            raise ValueError(f"No TopicsAssessment linked to Topics.title = '{value}'")
+
+
+# Resource for importing QuestionAssessment
 class QuestionAssessmentResource(resources.ModelResource):
-    
     course = fields.Field(
-        column_name= 'course',
+        column_name='course',
         attribute='course',
-        widget=ForeignKeyWidget(Course, field='course_name__title'))
-    
+        widget=MatchOnlyExistingTopicsAssessmentWidget(TopicsAssessment, 'course_name')
+    )
+
+    question = fields.Field()
+    option1 = fields.Field()
+    option2 = fields.Field()
+    option3 = fields.Field()
+    option4 = fields.Field()
+
+    def dehydrate_question(self, obj):
+        return strip_tags(obj.question or '')
+
+    def dehydrate_option1(self, obj):
+        return strip_tags(obj.option1 or '')
+
+    def dehydrate_option2(self, obj):
+        return strip_tags(obj.option2 or '')
+
+    def dehydrate_option3(self, obj):
+        return strip_tags(obj.option3 or '')
+
+    def dehydrate_option4(self, obj):
+        return strip_tags(obj.option4 or '')
+
     class Meta:
         model = QuestionAssessment
-        # fields = ('title',)
-               
+        import_id_fields = ['id']
+        fields = (
+            'course',
+            'marks',
+            'question',
+            'img_quiz',
+            'option1',
+            'option2',
+            'option3',
+            'option4',
+            'answer',
+            'created',
+            'updated',
+            'id',
+        )
+
+
+# Admin for QuestionAssessment with import-export
 class QuestionAssessmentAdmin(ImportExportModelAdmin):
-    list_display = ['id','course','marks' ,'question']
-    # prepopulated_fields = {"slug": ("title",)}
-    list_filter =  ['course','marks' ,'question']
-    search_fields= ['id','course__course_name__title','marks' ,'question']
+    list_display = [
+        'id',
+        'course',
+        'marks',
+        'short_question',
+        'short_option1',
+        'short_option2',
+        'short_option3',
+        'short_option4',
+        'answer',
+        'created',
+        'updated',
+    ]
+    autocomplete_fields = ['course']
+    list_filter = ['course', 'marks', 'answer']
+    search_fields = ['id', 'course__course_name__title', 'question', 'option1', 'option2']
     ordering = ['id']
-    
     resource_class = QuestionAssessmentResource
+
+    
+
+    def short_question(self, obj):
+        return Truncator(strip_tags(obj.question)).chars(40)
+    short_question.short_description = 'Question'
+
+    def short_option1(self, obj):
+        return Truncator(strip_tags(obj.option1)).chars(30)
+    short_option1.short_description = 'Option 1'
+
+    def short_option2(self, obj):
+        return Truncator(strip_tags(obj.option2)).chars(30)
+    short_option2.short_description = 'Option 2'
+
+    def short_option3(self, obj):
+        return Truncator(strip_tags(obj.option3)).chars(30)
+    short_option3.short_description = 'Option 3'
+
+    def short_option4(self, obj):
+        return Truncator(strip_tags(obj.option4)).chars(30)
+    short_option4.short_description = 'Option 4'
 
 admin.site.register(QuestionAssessment, QuestionAssessmentAdmin)
 
