@@ -2,7 +2,7 @@ from django.urls import path
 
 from . import views
 
-# urlpatterns for the quiz app    
+     
 app_name = 'quiz'
 
 urlpatterns = [
