@@ -105,19 +105,6 @@ class Course(models.Model):
    def __str__(self):
         return f'{self.course_name}'
 
-# class Student(models.Model):
-#     user = models.OneToOneField(Profile, on_delete=models.CASCADE, blank=True, null=True)
-#     school = models.ForeignKey(School, on_delete=models.SET_NULL, blank=True, null=True)
-#     name = models.CharField(max_length=255)
-#     admission_no = models.CharField(max_length=20, unique=True)
-#     date_of_birth = models.DateField()
-#     address = models.CharField(max_length=255)
-#     # course = models.ForeignKey(Course, on_delete=models.SET_NULL, blank=True, null=True)
-
-#     def __str__(self):
-#         school_name = getattr(self.school, 'school_name', '')
-#         return f'{self.name} - {self.school.school_name} {self.id}'
-
 
 class Question(models.Model):
     course=models.ForeignKey(Course,on_delete=models.CASCADE)
@@ -139,6 +126,7 @@ class Question(models.Model):
     def __str__(self):
         return f"{self.course} | {self.question}"
     
+
 class Result(models.Model):
 
     student = models.ForeignKey(Profile,on_delete=models.CASCADE)

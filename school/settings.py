@@ -376,8 +376,8 @@ SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# Optional - block embedding your site in iframes entirely
-SECURE_FRAME_DENY = True  # Already handled by X_FRAME_OPTIONS = 'DENY'
+# # Optional - block embedding your site in iframes entirely
+# SECURE_FRAME_DENY = True  # Already handled by X_FRAME_OPTIONS = 'DENY'
 
 # end of new security
 
@@ -429,17 +429,58 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # for TinyMCE 
 
-
 TINYMCE_DEFAULT_CONFIG = {
     'height': 360,
     'width': 700,
+    'entity_encoding': "raw",
     'cleanup_on_startup': True,
     'custom_undo_redo_levels': 20,
     'selector': 'textarea',
-    'plugins': 'link image preview codesample contextmenu table code',
-    'toolbar': 'undo redo | styleselect | bold italic | link image | codesample | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | code',
+    'plugins': 'link image preview codesample contextmenu table code mathjax',
+    'toolbar': 'undo redo | styleselect | bold italic | link image | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | codesample | mathjax',
     'theme': 'silver',
+
+    # Additional configuration for MathML
+    'extended_valid_elements': 'math[*],mrow[*],mfrac[*],mi[*],mn[*],mo[*]',
+    'custom_elements': 'math,mrow,mfrac,mi,mn,mo',
+    'content_style': "math, mrow, mfrac, mi, mn, mo",
+    'mathjax': {
+        'lib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML',
+        'symbols': {'mathml': True}
+    },
+    'init_instance_callback': '''
+        function (editor) {
+            console.log('Editor is initialized.');
+
+            // Add event listener for MathML elements
+            editor.on('click', function(e) {
+                if (e.target.nodeName === 'MATH' || e.target.closest('math')) {
+                    editor.focus();
+                }
+            });
+        }
+    ''',
+
+    # Prevent wrapping text in <p> tags
+    'forced_root_block': ' ',  # Use <div> instead of <p>
+    'forced_root_block_attrs': {},  # Clears any forced attributes
+    'br_in_pre': True,  # Insert <br> tags instead of wrapping in <p> tags
+
+    # Allow all elements and attributes
+    'valid_elements': '*[*]',  # Allow all elements
+    'valid_children': '+body[style|link|script|iframe|section],+section[div|p],+div[math|mrow|mfrac|mi|mn|mo]',
 }
+
+# TINYMCE_DEFAULT_CONFIG = {
+#     'height': 360,
+#     'width': 700,
+#     'cleanup_on_startup': True,
+#     'custom_undo_redo_levels': 20,
+#     'selector': 'textarea',
+#     'plugins': 'link image preview codesample contextmenu table code',
+#     'toolbar': 'undo redo | styleselect | bold italic | link image | codesample | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | code',
+#     'theme': 'silver',
+# }
 
 
 # r5ebxl5femg5gy8yvid6alg59ohekm45qlmxptc20qeu5jgw

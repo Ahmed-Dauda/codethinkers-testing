@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Choose AI Assessment</title>
+</head>
+<body>
+    <h1>Select AI Assessment Tool</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="selected_option">Choose an option:</label>
+        <select id="selected_option" name="selected_option" required>
+            <option value="" disabled selected>Select an option</option>
+            {% for option in options %}
+                <option value="{{ option.url }}">{{ option.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Go</button>
+    </form>
+
+    <hr/>
+
+    <h2>Or click directly:</h2>
+    <ul>
+        {% for option in options %}
+            <li><a href="{{ option.url }}">{{ option.name }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
