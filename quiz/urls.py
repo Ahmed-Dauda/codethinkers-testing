@@ -6,6 +6,9 @@ from . import views
 app_name = 'quiz'
 
 urlpatterns = [
+    path('ai-assessment-selector/', views.ai_assessment_selector, name='ai_assessment_selector'),
+
+    path('ai-summative-assessment/', views.ai_summative_assessment, name='ai_summative_assessment'),
     path('ai-question-generator/', views.generate_ai_questions, name='generate_ai_questions'),
     path('take-exam', views.take_exams_view,name='take-exam'),
     path('start-exam/<pk>/', views.start_exams_view,name='start-exam'),

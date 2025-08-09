@@ -236,11 +236,14 @@ class CourseResource(resources.ModelResource):
         # fields = ('title',)
                
 class CourseAdmin(ImportExportModelAdmin):
-    list_display = ['id','course','marks' ,'question']
+    list_display = [
+    'course','marks','question','img_quiz','option1','option2','option3','option4','answer','created','updated',
+    ]
     # prepopulated_fields = {"slug": ("title",)}
     list_filter =  ['course','marks' ,'question']
     search_fields= ['course__course_name__title','marks' ,'question']
     ordering = ['id']
+
     
     resource_class = CourseResource
 
