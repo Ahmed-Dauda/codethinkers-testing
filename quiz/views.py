@@ -126,52 +126,60 @@ def ai_topics_generator(request):
         messages.error(request, "Only superadmins can add topics.")
         return redirect('dashboard')
 
-    # Prefetch related topics for efficiency
-    categories = Categories.objects.prefetch_related('topics')
-    courses = Courses.objects.prefetch_related('topics')
+    # Use default reverse relation 'topics_set' to prefetch related topics
+    categories = Categories.objects.prefetch_related('topics_set')
+    courses = Courses.objects.prefetch_related('topics_set')
 
-    # === Save confirmed topics using bulk_create ===
+    # === Save confirmed topics ===
     if request.method == 'POST' and request.POST.get("confirm_save") == "1":
-        category_obj = get_object_or_404(Categories, id=request.POST.get("category_id"))
-        course_obj = get_object_or_404(Courses, id=request.POST.get("course_id"))
         total_topics = int(request.POST.get("total_topics", 0))
+        category_id = request.POST.get("category_id")
+        course_id = request.POST.get("course_id")
 
-        topics_to_create = []
+        try:
+            category_obj = Categories.objects.get(id=category_id)
+            course_obj = Courses.objects.get(id=course_id)
+        except (Categories.DoesNotExist, Courses.DoesNotExist):
+            messages.error(request, "Invalid category or course selected.")
+            return redirect('quiz:ai_topics_generator')
+
+        saved = 0
         for i in range(1, total_topics + 1):
             title = request.POST.get(f"title_{i}", "").strip()
-            description = request.POST.get(f"desc_{i}", "").strip()
+            desc = request.POST.get(f"desc_{i}", "").strip()
             transcript = request.POST.get(f"transcript_{i}", "").strip()
 
-            if title and (description or transcript):
-                topics_to_create.append(
-                    Topics(
-                        categories=category_obj,
-                        courses=course_obj,
-                        title=title,
-                        desc=description,
-                        transcript=transcript
-                    )
+            if title and (desc or transcript):
+                Topics.objects.create(
+                    categories=category_obj,
+                    courses=course_obj,
+                    title=title,
+                    desc=desc,
+                    transcript=transcript
                 )
+                saved += 1
 
-        if topics_to_create:
-            Topics.objects.bulk_create(topics_to_create)
-            messages.success(request, f"{len(topics_to_create)} topics saved successfully.")
-        else:
-            messages.warning(request, "No valid topics to save.")
-
+        messages.success(request, f"{saved} topics saved successfully.")
         return redirect('quiz:ai_topics_generator')
 
-    # === Generate AI topics ===
+    # === Generate topics ===
     elif request.method == 'POST':
-        category_obj = get_object_or_404(Categories, id=request.POST.get('category'))
-        course_obj = get_object_or_404(Courses, id=request.POST.get('course'))
+        category_id = request.POST.get('category')
+        course_id = request.POST.get('course')
         num_topics = int(request.POST.get('num_topics', 5))
         difficulty = request.POST.get('difficulty', 'medium').lower()
+
+        try:
+            category_obj = Categories.objects.get(id=category_id)
+            course_obj = Courses.objects.get(id=course_id)
+        except (Categories.DoesNotExist, Courses.DoesNotExist):
+            messages.error(request, "Invalid category or course selected.")
+            return redirect('quiz:ai_topics_generator')
+
         course_title = course_obj.title or ""
 
-        # Build your prompt (same as before)
+        # Prompt setup omitted for brevity — keep your previous prompt here
         prompt = f"""
-
 You are a JSON-only generator.
 
 Generate exactly {num_topics} course topics for a {course_title} course.
@@ -193,24 +201,42 @@ RULES:
    - Non-programming or general: generate topics with **exactly 5 paragraphs per description**, no more, no less. Paragraphs must be:
        1. Substantial, coherent, and instructor-ready for learners to consume directly.
        2. Use "\\n" for line breaks between paragraphs.
-       3. Exactly one paragraph among the five MUST contain a numbered bullet-point list.
-        A bullet-point list should have:
-        A short, contextual title line that clearly frames the list in relation to the topic — for example: "Key ethical issues in technology include:" or "Core components of a successful marketing strategy are:"
-        A numbered list in this exact format, with each item starting on its own line:
+       3. The first paragraph must open with a learner-centered hook that clearly states the personal or professional benefit of mastering the topic.
 
-        First item
-        Second item
-        Third item
-        Fourth item
-        (and so on, with at least 4 items)
-        No embedding of numbers inside a sentence — the list must be clean and standalone.
-        The contextual title line should immediately precede the list in the same paragraph.
+        Hooks should vary in structure and wording across topics to avoid repetition while keeping the focus on learner benefits.
 
-       4. All other paragraphs must be plain text without bullet points.
-       5. Each paragraph builds on the previous one for a coherent narrative.
-       6. Include relevant, real-world examples in each paragraph.
+        Acceptable formats include:
 
-4. At least one paragraph in each topic’s description (preferably the third) must include a real-life teaching story using this structure. introduce the list before listing eg. include:, for example: 
+        Direct benefit statement: "By learning to identify technology types, you can..."
+
+        Action-result framing: "Mastering technology types gives you the ability to..."
+
+        Impact-first framing: "Choosing the right technology can transform how you work and communicate."
+
+        Problem-solution framing: "Without a clear understanding of technology types, it’s easy to waste time on the wrong tools—this topic will help you avoid that."
+
+        Do not reuse the exact same phrase (e.g., “By learning to…”) more than once in consecutive topics.
+
+       4. Paragraph transitions must be smooth and connected; avoid abrupt topic jumps by adding linking phrases between examples.
+       5. Exactly one paragraph among the five MUST contain a numbered bullet-point list.
+          - The paragraph must begin with a **short, contextual title line** that clearly frames the list in relation to the topic — for example: "Key ethical issues in technology include:" or "Core components of a successful marketing strategy are:".
+          - All list items must begin with a **consistent category-style format** (e.g., "Communication Devices – ..." rather than mixing styles).
+          - Numbered list must be in this exact format, with each item starting on its own line:
+
+          First item
+          Second item
+          Third item
+          Fourth item
+          (and so on, with at least 4 items)
+
+          - No embedding of numbers inside sentences — the list must be clean and standalone.
+          - The contextual title line should immediately precede the list in the same paragraph.
+          - If the platform supports bold text, make the contextual title line bold for visual scanning.
+       6. All other paragraphs must be plain text without bullet points.
+       7. Each paragraph builds on the previous one for a coherent narrative.
+       8. Include relevant, real-world examples in each paragraph.
+
+4. At least one paragraph in each topic’s description (preferably the third) must include a real-life teaching story using this structure:
       - Setup – Introduce the person, company, or setting quickly.
       - Challenge – The problem they faced (related to the course topic).
       - Action – What they did.
@@ -223,6 +249,7 @@ RULES:
    - The "description" should contain the 5 learner-ready paragraphs separated by "\\n".
    - No markdown, no extra arrays, no nested JSON, no trailing commas.
 """
+
 
         def clean_response(text):
             if text.startswith("```"):
@@ -243,13 +270,15 @@ RULES:
                     max_tokens=6000,
                     temperature=0
                 )
+
                 topics_text = response.choices[0].message.content.strip()
                 topics_json = json.loads(clean_response(topics_text))
                 break
 
             except json.JSONDecodeError:
                 if attempt < max_retries - 1:
-                    import time; time.sleep(1)
+                    import time
+                    time.sleep(1)
                     continue
                 messages.error(request, "Failed to parse AI JSON output.")
                 return redirect('quiz:ai_topics_generator')
@@ -257,7 +286,6 @@ RULES:
                 messages.error(request, f"OpenAI error: {str(e)}")
                 return redirect('quiz:ai_topics_generator')
 
-        # Prepare preview
         preview_topics = [
             {
                 "title": topic.get("title", "").strip(),
@@ -271,8 +299,8 @@ RULES:
             'categories': categories,
             'courses': courses,
             'preview_topics': preview_topics,
-            'category_id': category_obj.id,
-            'course_id': course_obj.id
+            'category_id': category_id,
+            'course_id': course_id
         })
 
     # === GET request ===
@@ -280,6 +308,7 @@ RULES:
         'categories': categories,
         'courses': courses
     })
+
 
 
 # @login_required
