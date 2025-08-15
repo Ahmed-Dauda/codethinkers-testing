@@ -16,8 +16,6 @@ from allauth.account.views import SignupView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-
-
 # views.py
 
 from django.shortcuts import render, redirect
@@ -33,17 +31,115 @@ from allauth.account import app_settings
 # users/views.py
 from django.shortcuts import render, redirect
 from .forms import ReferrerMentorForm
-
-
-
-
 from django.http import HttpResponse
-
 from django.shortcuts import render, redirect
-
 from allauth.account.views import SignupView
 from .forms import SimpleSignupForm
  
+
+from django.db.models import Count, Avg
+from quiz.models import Course, Result, School, NewUser
+
+from django.utils.timezone import datetime
+from django.http import JsonResponse
+from django.utils import timezone
+from datetime import timedelta
+from .models import NewUser
+
+from django.db.models import Avg, Count
+from datetime import datetime
+from certificate_stats.models import CertificateDownload  # adjust to your app path
+
+from django.utils import timezone
+from datetime import timedelta
+from django.utils.timezone import now
+from student.models import Payment, PDFDocument, DocPayment, CertificatePayment, EbooksPayment
+
+def dashboard_view(request):
+    now = timezone.now()
+    
+    # Get filter params from GET request
+    month = request.GET.get('month', now.month)
+    year = request.GET.get('year', now.year)
+
+    # Ensure month/year are integers
+    month = int(month)
+    year = int(year)
+
+    # === Course download stats ===
+    course_downloads = (
+        CertificateDownload.objects
+        .values('certificate__title')
+        .annotate(total_downloads=Count('id'))
+        .order_by('-total_downloads')[:5]
+    )
+
+    # === Online users in last 5 mins ===
+    online_users = NewUser.objects.filter(
+        last_activity__gte=now - timedelta(minutes=5)
+    )
+
+    # Helper to calculate totals
+    def calc_totals(model):
+        all_time = model.objects.aggregate(
+            total_amount=Sum('amount') or 0,
+            total_count=Count('id')
+        )
+        month_total = model.objects.filter(
+            date_created__year=year, date_created__month=month
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        year_total = model.objects.filter(
+            date_created__year=year
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        return {
+            'all_time_amount': all_time['total_amount'] or 0,
+            'all_time_count': all_time['total_count'],
+            'month_total': month_total,
+            'year_total': year_total
+        }
+
+    payment_stats = {
+        "general": calc_totals(Payment),
+        "ebooks": calc_totals(EbooksPayment),
+        "certificates": calc_totals(CertificatePayment),
+        "documents": calc_totals(DocPayment),
+    }
+
+    # Total for month/year
+    total_month = sum([p['month_total'] for p in payment_stats.values()])
+    total_year = sum([p['year_total'] for p in payment_stats.values()])
+
+    context = {
+        "total_students": NewUser.objects.filter(is_staff=False).count(),
+        "total_courses": Course.objects.count(),
+        "quizzes_today": Result.objects.filter(created__date=now.date()).count(),
+        "avg_score": Result.objects.aggregate(Avg('marks'))['marks__avg'],
+        "active_schools": School.objects.count(),
+        "top_students": (
+            Result.objects
+            .values('student__username')
+            .annotate(avg_score=Avg('marks'))
+            .order_by('-avg_score')[:5]
+        ),
+        "course_downloads": course_downloads,
+        "online_users": online_users,
+        "payment_stats": payment_stats,
+        "total_month": total_month,
+        "total_year": total_year,
+        "selected_month": month,
+        "selected_year": year,
+    }
+
+    return render(request, "users/quick_dashboard.html", context)
+
+
+def online_users_api(request):
+    now = timezone.now()
+    users = NewUser.objects.filter(last_activity__gte=now - timedelta(minutes=5))
+    return JsonResponse({"users": list(users.values("username", "email"))})
+
+
+
 
 def SchoolStudentView(request):
     if request.method == 'POST':
@@ -85,63 +181,7 @@ class SchoolSignupView(CreateView):
         return response
 
 
-# @method_decorator(login_required, name='dispatch')
-# class ReferralSignupView(SignupView):
-#     template_name = 'users/referrer.html'  # Replace with your actual template path
-#     form_class = SimpleSignupForm
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         referral_code = self.kwargs.get('referrer_code', '')
-#         context['form'].fields['phone_number'].initial = referral_code
-#         context['referrer_code'] = self.request.resolver_match.kwargs.get('referrer_code', '')
-#         return context
-
-#     def form_valid(self, form):
-#         response = super().form_valid(form)
-#         referral_code = form.cleaned_data.get('phone_number', '')
-
-#         # Perform actions with the referral code, e.g., associate it with the user
-#         user = self.request.user  # The user object after signup
-#         user.phone_number = referral_code
-#         user.save()
-
-#         return response
-  
-
 from allauth.account.views import SignupView
-
-
-# class ReferralSignupView(SignupView):
-#     template_name = 'users/referrer.html'
-#     form_class = SimpleSignupForm  # Default form class
-
-#     def get_form_class(self):
-#         referral_code = self.kwargs.get('referrer_code', None)
-#         if referral_code:
-#             # If there's a referral code in the URL, use the ReferralSignupForm
-#             return SimpleSignupForm
-#         else:
-#             # Otherwise, use the default form class
-#             return super().get_form_class()
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         referral_code = self.kwargs.get('referrer_code', '')
-#         context['form'].fields['phone_number'].initial = referral_code
-#         context['referrer_code'] = referral_code
-#         return context
-
-#     def form_valid(self, form):
-#         response = super().form_valid(form)
-#         referral_code = form.cleaned_data.get('phone_number', '')
-
-#         # Perform actions with the referral code, e.g., associate it with the user
-#         user = self.request.user  # The user object after signup
-#         user.phone_number = referral_code
-#         user.save()
-
-#         return response
 
 
 class ReferralSignupView(SignupView):

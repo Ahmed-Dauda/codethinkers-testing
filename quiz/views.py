@@ -15,13 +15,313 @@ from .models import Question, Topics, TopicsAssessment, QuestionAssessment
 from django.contrib import messages
 
 
+ 
+
+#         prompt = f"""
+# You are a JSON-only generator.
+
+# Generate exactly {num_topics} course topics for a {course_title} course.
+
+# RULES:
+# 1. Always start with the following topics in this exact order:
+# 1. "Introduction to {course_title}"
+# 2. "Overview – {course_title}" – This should be a short, clear summary without examples or code.
+# 3. "Learning Objectives – {course_title}" – This should be a numbered list of at least 12 objectives or more depending on the {category_obj} level, based strictly on the {category_obj} and {difficulty} difficulty. Objective 5 must be a combined title containing the exact titles of Objectives 1, 2, 3, and 4 in order. After listing all objectives, include a concise conclusion paragraph summarizing the overall purpose and importance of mastering these objectives.
+
+# 2. Determine the course type by inspecting the {course_title} (case-insensitive):
+# - If {course_title} contains any programming-related keywords (python, javascript, java, c++, c#, php, ruby, html, css, sql, programming, coding, development, data science, machine learning, artificial intelligence, ai, devops, blockchain, software engineering):
+#     Use suitable programming learning objectives for {course_title} based on {category_obj} and {difficulty}.
+# - If {course_title} contains any non-programming tech-related keywords (tech, technology, digital, IT, cybersecurity, networking, cloud computing, hardware, electronics, gadgets):
+#     Use suitable tech learning objectives for {course_title} based on {category_obj} and {difficulty}.
+# - Else:
+#     Use suitable general learning objectives for {course_title} based on {category_obj} and {difficulty}.
+
+# 3. After the "Learning Objectives – {course_title}" topic:
+# - If programming-related:
+#     Generate the remaining topics strictly in the order of the learning objectives listed above.
+#     For each topic:
+#         - Title: Must match the learning objective wording exactly.
+#         - Description: Provide a detailed explanation in complete.
+#         - Break content down step-by-step.
+#         - Include at least 5 fully written, relevant code examples per step with inline comments.
+# - If non-programming:
+#     Generate the remaining topics strictly in the order of the learning objectives listed above.
+#     For each topic:
+#         - Title: Must match the learning objective wording exactly.
+#         - Description (Rich, instructor-ready): **Write exactly 5 detailed paragraphs** of plain text, totaling between 2000–4000 words. **Do not write more or fewer than 5 paragraphs.** Each paragraph must be substantial, coherent, and directly useful for instruction. Include relevant and related examples in every paragraph to illustrate concepts, ensuring they are practical and applicable to real-world teaching. Use "\\n" for line breaks between paragraphs. Do not use markdown formatting, lists, arrays, or JSON. Ensure the content flows naturally, covers the topic comprehensively, and is instructor-ready, providing explanations, context, and guidance that can be directly incorporated into lessons. Each paragraph should build upon the previous one, creating a coherent and engaging narrative that enhances understanding and demonstrates how the topic can be effectively taught. The AI must strictly adhere to producing exactly 5 paragraphs—no more, no less.
+#         - Break content down step-by-step.
+#         - Include relevant examples.
+
+# 4. Output must be a single valid JSON array with exactly {num_topics} objects, with only "title" and "description" keys. No explanations, no markdown, no text outside JSON.
+# 5. The "description" field must be plain text only, using "\\n" for line breaks. No arrays, no objects, no nested JSON.
+# 6. No trailing commas anywhere in the JSON output.
+# """
+
+#         prompt = f"""
+# You are a JSON-only generator.
+
+# Generate exactly {num_topics} course topics for a {course_title} course.
+
+# RULES:
+# 1. Always start with these topics in order:
+#    1. "Introduction to {course_title}"
+#    2. "Overview – {course_title}" – short, clear summary without examples or code.
+#    3. "Learning Objectives – {course_title}" – numbered list of at least 12 objectives. Objective 5 must combine Objectives 1–4. Conclude with a summary paragraph.
+#    4. Immediately after "Learning Objectives – {course_title}", the first generated topic must have its title exactly match Learning Objective #1, and its description must directly expand on that objective for learners. Continue in order with each subsequent learning objective becoming the exact title of the next topic.
+
+# 2. Determine course type from {course_title} (case-insensitive):
+#    - Programming keywords: python, javascript, java, c++, c#, php, ruby, html, css, sql, programming, coding, development, data science, machine learning, artificial intelligence, ai, devops, blockchain, software engineering.
+#    - Non-programming tech keywords: tech, technology, digital, IT, cybersecurity, networking, cloud computing, hardware, electronics, gadgets.
+#    - Else: general course.
+
+# 3. After "Learning Objectives – {course_title}":
+#    - Programming: generate topics with detailed explanation and at least 5 code examples each.
+#    - Non-programming or general: generate topics with **exactly 5 paragraphs per description**, no more, no less. Paragraphs must be:
+#        1. Substantial, coherent, and instructor-ready for learners to consume directly.
+#        2. Use "\\n" for line breaks between paragraphs.
+#        3. Exactly one paragraph among the five MUST contain a numbered bullet-point list.
+#         A bullet-point list should have:
+#         A short, contextual title line that clearly frames the list in relation to the topic — for example: "Key ethical issues in technology include:" or "Core components of a successful marketing strategy are:"
+#         A numbered list in this exact format, with each item starting on its own line:
+
+#         First item
+#         Second item
+#         Third item
+#         Fourth item
+#         (and so on, with at least 4 items)
+#         No embedding of numbers inside a sentence — the list must be clean and standalone.
+#         The contextual title line should immediately precede the list in the same paragraph.
+
+#        4. All other paragraphs must be plain text without bullet points.
+#        5. Each paragraph builds on the previous one for a coherent narrative.
+#        6. Include relevant, real-world examples in each paragraph.
+
+# 4. At least one paragraph in each topic’s description (preferably the third) must include a real-life teaching story using this structure. introduce the list before listing eg. include:, for example: 
+#       - Setup – Introduce the person, company, or setting quickly.
+#       - Challenge – The problem they faced (related to the course topic).
+#       - Action – What they did.
+#       - Outcome – What happened (positive or negative).
+#       - Lesson learned – Tie directly back to the teaching point.
+#    The story should be engaging but primarily instructional.
+
+# 5. Output: single valid JSON array of {num_topics} objects with keys "title" and "description" only. 
+#    - The "title" must exactly match the corresponding Learning Objective text (except for the first three topics).
+#    - The "description" should contain the 5 learner-ready paragraphs separated by "\\n".
+#    - No markdown, no extra arrays, no nested JSON, no trailing commas.
+# """
+        
 # views.py
 from openai import OpenAI
 import re
+import time
+from django.contrib.auth.decorators import user_passes_test
+import json
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-from django.contrib.auth.decorators import user_passes_test
+
+@login_required
+def ai_topics_generator(request):
+    if not request.user.is_superuser:
+        messages.error(request, "Only superadmins can add topics.")
+        return redirect('dashboard')
+
+    categories = Categories.objects.all()
+    courses = Courses.objects.all()
+
+    # Save confirmed topics
+    if request.method == 'POST' and request.POST.get("confirm_save") == "1":
+        total_topics = int(request.POST.get("total_topics", 0))
+        category_id = request.POST.get("category_id")
+        course_id = request.POST.get("course_id")
+
+        try:
+            category_obj = Categories.objects.get(id=category_id)
+            course_obj = Courses.objects.get(id=course_id)
+        except (Categories.DoesNotExist, Courses.DoesNotExist):
+            messages.error(request, "Invalid category or course selected.")
+            return redirect('quiz:ai_topics_generator')
+
+        saved = 0
+        for i in range(1, total_topics + 1):
+            title = request.POST.get(f"title_{i}", "").strip()
+            desc = request.POST.get(f"desc_{i}", "").strip()
+            transcript = request.POST.get(f"transcript_{i}", "").strip()
+
+            if title and (desc or transcript):
+                Topics.objects.create(
+                    categories=category_obj,
+                    courses=course_obj,
+                    title=title,
+                    desc=desc,
+                    transcript=transcript
+                )
+                saved += 1
+
+        messages.success(request, f"{saved} topics saved successfully.")
+        return redirect('quiz:ai_topics_generator')
+
+    # Generate topics
+    elif request.method == 'POST':
+        category_id = request.POST.get('category')
+        course_id = request.POST.get('course')
+        num_topics = int(request.POST.get('num_topics', 5))
+        difficulty = request.POST.get('difficulty', 'medium').lower()
+
+        try:
+            category_obj = Categories.objects.get(id=category_id)
+            course_obj = Courses.objects.get(id=course_id)
+        except (Categories.DoesNotExist, Courses.DoesNotExist):
+            messages.error(request, "Invalid category or course selected.")
+            return redirect('quiz:ai_topics_generator')
+
+        course_title = course_obj.title or ""
+
+        prompt = f"""
+You are a JSON-only generator.
+
+Generate exactly {num_topics} course topics for a {course_title} course.
+
+RULES:
+1. Always start with these topics in order:
+   1. "Introduction to {course_title}"
+   2. "Overview – {course_title}" – short, clear summary without examples or code.
+   3. "Learning Objectives – {course_title}" – numbered list of at least 12 objectives. Objective 5 must combine Objectives 1–4. Conclude with a summary paragraph.
+   4. Immediately after "Learning Objectives – {course_title}", the first generated topic must have its title exactly match Learning Objective #1, and its description must directly expand on that objective for learners. Continue in order with each subsequent learning objective becoming the exact title of the next topic.
+
+2. Determine course type from {course_title} (case-insensitive):
+   - Programming keywords: python, javascript, java, c++, c#, php, ruby, html, css, sql, programming, coding, development, data science, machine learning, artificial intelligence, ai, devops, blockchain, software engineering.
+   - Non-programming tech keywords: tech, technology, digital, IT, cybersecurity, networking, cloud computing, hardware, electronics, gadgets.
+   - Else: general course.
+
+3. After "Learning Objectives – {course_title}":
+   - Programming: generate topics with detailed explanation and at least 5 code examples each.
+   - Non-programming or general: generate topics with **exactly 5 paragraphs per description**, no more, no less. Paragraphs must be:
+       1. Substantial, coherent, and instructor-ready for learners to consume directly.
+       2. Use "\\n" for line breaks between paragraphs.
+       3. The first paragraph must open with a learner-centered hook that clearly states the personal or professional benefit of mastering the topic.
+
+        Hooks should vary in structure and wording across topics to avoid repetition while keeping the focus on learner benefits.
+
+        Acceptable formats include:
+
+        Direct benefit statement: "By learning to identify technology types, you can..."
+
+        Action-result framing: "Mastering technology types gives you the ability to..."
+
+        Impact-first framing: "Choosing the right technology can transform how you work and communicate."
+
+        Problem-solution framing: "Without a clear understanding of technology types, it’s easy to waste time on the wrong tools—this topic will help you avoid that."
+
+        Do not reuse the exact same phrase (e.g., “By learning to…”) more than once in consecutive topics.
+
+       4. Paragraph transitions must be smooth and connected; avoid abrupt topic jumps by adding linking phrases between examples.
+       5. Exactly one paragraph among the five MUST contain a numbered bullet-point list.
+          - The paragraph must begin with a **short, contextual title line** that clearly frames the list in relation to the topic — for example: "Key ethical issues in technology include:" or "Core components of a successful marketing strategy are:".
+          - All list items must begin with a **consistent category-style format** (e.g., "Communication Devices – ..." rather than mixing styles).
+          - Numbered list must be in this exact format, with each item starting on its own line:
+
+          First item
+          Second item
+          Third item
+          Fourth item
+          (and so on, with at least 4 items)
+
+          - No embedding of numbers inside sentences — the list must be clean and standalone.
+          - The contextual title line should immediately precede the list in the same paragraph.
+          - If the platform supports bold text, make the contextual title line bold for visual scanning.
+       6. All other paragraphs must be plain text without bullet points.
+       7. Each paragraph builds on the previous one for a coherent narrative.
+       8. Include relevant, real-world examples in each paragraph.
+
+4. At least one paragraph in each topic’s description (preferably the third) must include a real-life teaching story using this structure:
+      - Setup – Introduce the person, company, or setting quickly.
+      - Challenge – The problem they faced (related to the course topic).
+      - Action – What they did.
+      - Outcome – What happened (positive or negative).
+      - Lesson learned – Tie directly back to the teaching point.
+   The story should be engaging but primarily instructional.
+
+5. Output: single valid JSON array of {num_topics} objects with keys "title" and "description" only. 
+   - The "title" must exactly match the corresponding Learning Objective text (except for the first three topics).
+   - The "description" should contain the 5 learner-ready paragraphs separated by "\\n".
+   - No markdown, no extra arrays, no nested JSON, no trailing commas.
+"""
+    
+        
+        def clean_response(text):
+            # Remove ```json or ``` fences if present
+            if text.startswith("```"):
+                text = text.strip("`")
+                text = text.lstrip("json").strip()
+            # Remove any text before or after JSON array (keep only array)
+            import re
+            match = re.search(r"(\[.*\])", text, re.DOTALL)
+            if match:
+                return match.group(1).strip()
+            return text.strip()
+
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant that outputs only valid JSON."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    max_tokens=6000,
+                    temperature=0
+                )
+
+                if not response.choices:
+                    messages.error(request, "OpenAI returned no content.")
+                    return redirect('quiz:ai_topics_generator')
+
+                topics_text = response.choices[0].message.content.strip()
+                topics_text = clean_response(topics_text)
+
+                topics_json = json.loads(topics_text)
+
+                # Success, break retry loop
+                break
+
+            except json.JSONDecodeError as e:
+                if attempt < max_retries - 1:
+                    time.sleep(1)  # brief pause before retry
+                    continue
+                else:
+                    messages.error(request, f"Failed to parse AI JSON output after {max_retries} attempts. Error: {e}")
+                    return redirect('quiz:ai_topics_generator')
+
+            except Exception as e:
+                messages.error(request, f"OpenAI error: {str(e)}")
+                return redirect('quiz:ai_topics_generator')
+
+        preview_topics = [
+            {
+                "title": topic.get("title", "").strip(),
+                "desc": topic.get("description", "").strip(),
+                "transcript": ""
+            }
+            for topic in topics_json
+        ]
+
+        return render(request, 'quiz/dashboard/ai_topics_generator.html', {
+            'categories': categories,
+            'courses': courses,
+            'preview_topics': preview_topics,
+            'category_id': category_id,
+            'course_id': course_id
+        })
+
+    # GET request
+    return render(request, 'quiz/dashboard/ai_topics_generator.html', {
+        'categories': categories,
+        'courses': courses
+    })
+
+
 
 def superuser_required(view_func):
     decorated_view_func = user_passes_test(lambda u: u.is_superuser)(view_func)
@@ -32,7 +332,9 @@ def ai_assessment_selector(request):
     # URLs and display names
     options = [
         {'name': 'AI Summative Assessment', 'url': reverse('quiz:ai_summative_assessment')},
-        {'name': 'AI Question Generator', 'url': reverse('quiz:generate_ai_questions')},
+        {'name': 'AI formative assessment', 'url': reverse('quiz:generate_ai_questions')},
+        {'name': 'AI Topic Generator', 'url': reverse('quiz:ai_topics_generator')},
+        ai_topics_generator
     ]
 
     if request.method == 'POST':
@@ -41,6 +343,7 @@ def ai_assessment_selector(request):
             return redirect(selected_url)
 
     return render(request, 'quiz/dashboard/ai_assessment_selector.html', {'options': options})
+
 
 @login_required
 def ai_summative_assessment(request):
@@ -108,55 +411,81 @@ def ai_summative_assessment(request):
         # Get related CourseDetail
         course_detail = Course.objects.filter(course_name=course_obj).first()
         if not course_detail:
-            messages.error(request, "No course details found for this course.")
+            messages.error(request, "No course details found for this course. assign it to a course.")
             return redirect('quiz:ai_summative_assessment')
 
         if subject_tag in ['maths', 'mathematics', 'math', 'chemistry', 'chem', 'physics']:
             prompt = f"""
-Generate {num_questions} multiple-choice questions on the topic '{course_title}' 
-at a {difficulty} difficulty level.
 
-Use MathML formatting only for all math expressions, with namespace 'http://www.w3.org/1998/Math/MathML'.
+                You are an expert in learning assessment.
 
-Example question:
+                Generate {num_questions} {difficulty}-level multiple-choice questions based strictly on the topic '{topic_title}'. 
+                Questions must follow Bloom's Taxonomy and include at least one question from each relevant category for the selected difficulty:
 
-Question: <math xmlns='http://www.w3.org/1998/Math/MathML'><mfrac><msup><mn>3</mn><mn>4</mn></msup><msup><mn>3</mn><mn>2</mn></msup></mfrac></math>?
+                - Easy: Remembering, Understanding
+                - Medium: Remembering, Understanding, Applying, Analyzing
+                - Hard: Remembering, Understanding, Applying, Analyzing, Evaluating, Creating
 
-A. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>9</mn></math>  
-B. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>6</mn></math>  
-C. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>3</mn></math>  
-D. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>27</mn></math>  
-Answer: A
+                Each question must directly test knowledge, comprehension, application, analysis, evaluation, or creation related to '{topic_title}' using accurate and realistic information.
 
-Strictly follow the above format, no extra explanation or text.
-"""
+                Strictly follow this format (no explanations, no extra text, no numbering):
+
+                Question: <math xmlns='http://www.w3.org/1998/Math/MathML'><mfrac><msup><mn>3</mn><mn>4</mn></msup><msup><mn>3</mn><mn>2</mn></msup></mfrac></math>?
+
+                A. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>9</mn></math>  
+                B. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>6</mn></math>  
+                C. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>3</mn></math>  
+                D. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>27</mn></math>  
+                Answer: A
+
+                Rules:
+                1. Randomize the correct answer position for each question.
+                2. Avoid repeating options, reusing the same distractors, or duplicating questions.
+                3. Keep wording clear, concise, and unambiguous.
+                4. Ensure at least one question per relevant Bloom's category for the chosen difficulty level.
+                5. Make questions challenging but fair, using context or examples related to '{course_title}'.
+                """
         else:
             prompt = f"""
-You are an expert Python tutor.
 
-Generate {num_questions} {difficulty}-level multiple-choice Python questions 
-on the topic '{course_title}'.
-Strictly follow this format (no explanations or extra text):
+            You are an expert in learning assessment.
 
-Question: What is Python?
-A. A snake
-B. A type of car
-C. A programming language
-D. A fruit
-Answer: C
+            Generate {num_questions} {difficulty}-level multiple-choice questions based strictly on the topic '{course_title}'. 
+            Questions must follow Bloom's Taxonomy and include at least one question from each relevant category for the selected difficulty:
 
-Randomize correct answer position. Avoid repeating options or questions.
-"""
+            - Easy: Remembering, Understanding
+            - Medium: Remembering, Understanding, Applying, Analyzing
+            - Hard: Remembering, Understanding, Applying, Analyzing, Evaluating, Creating
+
+            Each question must directly test knowledge, comprehension, application, analysis, evaluation, or creation related to '{course_title}' using accurate and realistic information.
+
+            Strictly follow this format (no explanations, no extra text, no numbering):
+
+            Question: <question text>
+            A. <option>
+            B. <option>
+            C. <option>
+            D. <option>
+            Answer: <correct option letter>
+
+            Rules:
+            1. Randomize the correct answer position for each question.
+            2. Avoid repeating options, reusing the same distractors, or duplicating questions.
+            3. Keep wording clear, concise, and unambiguous.
+            4. Ensure at least one question per relevant Bloom's category for the chosen difficulty level.
+            5. Make questions challenging but fair, using context or examples related to '{course_title}'.
+            """
+            
 
         try:
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant that generates programming quiz questions."},
+                    {"role": "system", "content": "You are a helpful assistant that generates professional learning quiz questions."},
                     {"role": "user", "content": prompt},
                 ],
-                max_tokens=2000,
-                temperature=0.7,
+                max_tokens=6000,
+                temperature=0,
             )
 
             if not response.choices:
@@ -258,7 +587,7 @@ def generate_ai_questions(request):
         num_questions = int(request.POST.get('num_questions', 5))
         marks = int(request.POST.get('marks', 1))
         difficulty = request.POST.get('difficulty', 'medium').lower()  # 🔹 Read difficulty from form
-        print("🛠 DEBUG — Selected difficulty:", difficulty)  # <-- Debug line
+        # print("🛠 DEBUG — Selected difficulty:", difficulty)  # <-- Debug line
 
         try:
             assessment = TopicsAssessment.objects.get(id=assessment_id)
@@ -290,31 +619,45 @@ def generate_ai_questions(request):
             Answer: A
             """
         else:
-            prompt = f"""You are an expert Python tutor.
+           prompt = f"""
+            You are an expert in learning assessment.
 
-            Generate {num_questions} {difficulty}-level multiple-choice Python questions 
-            on the topic '{topic_title}'.
-            Strictly follow this format (no explanations or extra text):
+            Generate {num_questions} {difficulty}-level multiple-choice questions based strictly on the topic '{topic_title}'. 
+            Questions must follow Bloom's Taxonomy and include at least one question from each relevant category for the selected difficulty:
 
-            Question: What is Python?
-            A. A snake
-            B. A type of car
-            C. A programming language
-            D. A fruit
-            Answer: C
+            - Easy: Remembering, Understanding
+            - Medium: Remembering, Understanding, Applying, Analyzing
+            - Hard: Remembering, Understanding, Applying, Analyzing, Evaluating, Creating
 
-            Randomize correct answer position. Avoid repeating options or questions.
+            Each question must directly test knowledge, comprehension, application, analysis, evaluation, or creation related to '{topic_title}' using accurate and realistic information.
+
+            Strictly follow this format (no explanations, no extra text, no numbering):
+
+            Question: <question text>
+            A. <option>
+            B. <option>
+            C. <option>
+            D. <option>
+            Answer: <correct option letter>
+
+            Rules:
+            1. Randomize the correct answer position for each question.
+            2. Avoid repeating options, reusing the same distractors, or duplicating questions.
+            3. Keep wording clear, concise, and unambiguous.
+            4. Ensure at least one question per relevant Bloom's category for the chosen difficulty level.
+            5. Make questions challenging but fair, using context or examples related to '{topic_title}'.
             """
-
+           
+        
         try:
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant that generates programming quiz questions."},
                     {"role": "user", "content": prompt},
                 ],
-                max_tokens=2000,
-                temperature=0.7,
+                max_tokens=6000,
+                temperature=0,
             )
 
             if not response.choices:
@@ -379,7 +722,7 @@ def take_exams_view(request):
     }
     return render(request, 'quiz/dashboard/take_exams.html', context=context)
 
-from sms.models import Topics, Courses
+from sms.models import Categories, Topics, Courses
 from django.shortcuts import redirect, render, get_object_or_404
 from urllib.parse import unquote
 from string import ascii_uppercase  # Import uppercase letters

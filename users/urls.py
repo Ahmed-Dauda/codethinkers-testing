@@ -7,6 +7,9 @@ from .views import become_referrer
 app_name = 'users'
 
 urlpatterns = [
+    path('api/online-users/', views.online_users_api, name='online_users_api'),
+
+    path('dashboard/', views.dashboard_view, name='quick_dashboard'),
     path('school-signupp/', SchoolSignupView.as_view(), name='school_signup'),
     path('schoolstudentview/', SchoolStudentView, name='schoolstudentview'),
     path('referral-signup/<str:referrer_code>/', ReferralSignupView.as_view(), name='referral_signup'),

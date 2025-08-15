@@ -46,6 +46,7 @@ class CustomUserManager(BaseUserManager):
 
 class NewUser(AbstractBaseUser, PermissionsMixin):
 
+    last_activity = models.DateTimeField(null=True, blank=True)  # add this field
     email = models.EmailField(max_length=254, unique=True)
     username = models.CharField(max_length=35,  blank=True)
     school = models.ForeignKey('quiz.School', on_delete=models.SET_NULL, blank=True, null=True)

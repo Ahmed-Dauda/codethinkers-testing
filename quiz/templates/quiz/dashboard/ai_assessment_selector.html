@@ -1,20 +1,25 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <title>Choose AI Assessment</title>
 </head>
 <body>
+    
+    {% if request.user.is_superuser %}
     <h1>Select AI Assessment Tool</h1>
     <form method="POST">
         {% csrf_token %}
         <label for="selected_option">Choose an option:</label>
-        <select id="selected_option" name="selected_option" required>
-            <option value="" disabled selected>Select an option</option>
+        
+        <!-- Input with a datalist for type-to-search -->
+        <input list="options_list" id="selected_option" name="selected_option" required placeholder="Type to search...">
+        <datalist id="options_list">
             {% for option in options %}
-                <option value="{{ option.url }}">{{ option.name }}</option>
+                <option value="{{ option.name }}" data-url="{{ option.url }}"></option>
             {% endfor %}
-        </select>
+        </datalist>
+        
         <button type="submit">Go</button>
     </form>
 
@@ -26,5 +31,28 @@
             <li><a href="{{ option.url }}">{{ option.name }}</a></li>
         {% endfor %}
     </ul>
+{% endif %}
+
+    <script>
+        // When form is submitted, find the matching URL
+        document.querySelector("form").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const input = document.getElementById("selected_option").value;
+            const dataListOptions = document.querySelectorAll("#options_list option");
+
+            let matchedUrl = null;
+            dataListOptions.forEach(opt => {
+                if (opt.value.toLowerCase() === input.toLowerCase()) {
+                    matchedUrl = opt.getAttribute("data-url");
+                }
+            });
+
+            if (matchedUrl) {
+                window.location.href = matchedUrl;
+            } else {
+                alert("No matching option found.");
+            }
+        });
+    </script>
 </body>
 </html>

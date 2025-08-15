@@ -1,0 +1,130 @@
+{% block content %}
+<style>
+  table input[type="text"] {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  table textarea {
+    width: 100%;      /* changed here */
+    min-height: 200px;
+    font-size: 16px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .container h2 {
+    margin-bottom: 1.5rem;
+  }
+
+  .btn {
+    min-width: 150px;
+  }
+
+  .alert {
+    margin-top: 1rem;
+  }
+</style>
+
+<div class="container mt-4">
+  <h2>🤖 AI Topics Generator</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% if not preview_topics %}
+  <form method="post" class="mb-4">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label>Category</label>
+      <select name="category" class="form-select" required>
+        {% for category in categories %}
+          <option value="{{ category.id }}">{{ category }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label>Course</label>
+      <select name="course" class="form-select" required>
+        {% for course in courses %}
+          <option value="{{ course.id }}">{{ course.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label>Number of Topics</label>
+      <input type="number" name="num_topics" class="form-control" value="5" min="1" required>
+    </div>
+
+    <div class="mb-3">
+      <label>Difficulty</label>
+      <select name="difficulty" class="form-select">
+        <option value="easy">Easy</option>
+        <option value="medium" selected>Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Generate Topics</button>
+  </form>
+  {% endif %}
+
+  {% if preview_topics %}
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="confirm_save" value="1">
+    <input type="hidden" name="category_id" value="{{ category_id }}">
+    <input type="hidden" name="course_id" value="{{ course_id }}">
+    <input type="hidden" name="total_topics" value="{{ preview_topics|length }}">
+
+    <h4>Preview Topics</h4>
+    <div class="table-responsive">
+      <table class="table table-bordered mt-3 align-middle">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Title</th>
+            <th style="width: 75%;">Description (Editable)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for topic in preview_topics %}
+          <tr>
+            <td>
+              <input type="text" name="title_{{ forloop.counter }}" value="{{ topic.title }}">
+            </td>
+            <td>
+              <textarea name="desc_{{ forloop.counter }}">{{ topic.desc }}</textarea>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <button type="submit" class="btn btn-success mt-3">Save Topics</button>
+  </form>
+  {% endif %}
+</div>
+
+
+{% endblock %}
