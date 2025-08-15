@@ -144,7 +144,9 @@
 
             <!-- Divider -->
             <hr class="sidebar-divider">
-
+            {% if request.user.is_superuser %}
+<a style="color: white;" href="{% url 'users:quick_dashboard' %}">Dashboard</a>
+             {% endif %}
           
             <!-- Nav Item - Pages Collapse Menu -->
             {% if object_list %}
@@ -168,9 +170,6 @@
                          <a class="collapse-item" href="{% url 'sms:courseslistdesc' course.pk %}"> {{course.title|safe}}</a>
                           {% endfor %}
                           
-                        <!-- <a class="collapse-item" href="">View Certificate (s)</a> -->
-                        <!-- <a class="collapse-item" href="{% url 'sms:admin_result' %}">Overall Exams Score</a> -->
-
                         <div class="collapse-divider"></div>      
                     </div>
                 </div>

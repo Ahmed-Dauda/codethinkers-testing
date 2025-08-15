@@ -19,14 +19,8 @@ from import_export.widgets import ForeignKeyWidget
 
 class NewUserResource(resources.ModelResource):
     
-    # courses = fields.Field(
-    #     column_name= 'user',
-    #     attribute='user',
-    #     widget=ForeignKeyWidget(NewUser,'username') )
-    
     class Meta:
         model = NewUser
-        # fields = ('title',)
                
 class NewUserAdmin(ImportExportModelAdmin):
     list_display = ['id', 'email', 'username', 'phone_number', 'first_name', 'last_name', 'student_class', 'school', 'countries', 'is_staff', 'is_superuser', 'is_active', 'last_login', 'date_joined']

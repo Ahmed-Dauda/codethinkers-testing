@@ -173,28 +173,6 @@ class CertificatePayment(models.Model):
         return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_t}"
 
 
-
-    # def __str__(self):
-    #     # Get a comma-separated list of course titles
-    #     course_titles = ', '.join(course.title for course in self.courses.all())
-    #     # Get the associated Profile
-    #     payment_user_profile = self.payment_user
-
-    #     # Initialize referrer_code as None
-    #     referrer_code = None
-
-    #     # Check if the user has a profile
-    #     if payment_user_profile:
-    #         # Check if the profile has a referrer_profile
-    #         referrer_profile = payment_user_profile.referrer_profile
-    #         if referrer_profile:
-    #             # Get the referrer code
-    #             referrer_code = referrer_profile.referral_code
-
-    #     return f"{self.payment_user} - {self.content_type} Payment - Amount: {self.amount} - Courses: {course_titles} - Referrer Code: {referrer_code}"
-     
-
-
 class DocPayment(models.Model):
     payment_user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
     pdfdocument = models.ManyToManyField(PDFDocument, related_name='docpayments')

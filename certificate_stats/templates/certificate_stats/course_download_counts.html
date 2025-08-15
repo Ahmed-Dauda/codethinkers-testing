@@ -1,0 +1,9 @@
+<!-- student/dashboard/course_download_counts.html -->
+<h3>Certificate Downloads by Course</h3>
+<ul>
+  {% for c in courses %}
+    <li>{{ c.course_name }} {{ c.downloads }}</li>
+  {% empty %}
+    <li>No courses found.</li>
+  {% endfor %}
+</ul>

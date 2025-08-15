@@ -32,8 +32,9 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path("webprojects/", include("webprojects.urls")),
     path('tinymce/', include('tinymce.urls')),
-    
+    path('certificate-stats/', include('certificate_stats.urls')),
 
+    
     # path('tinymce/', include('tinymce.urls')),
     
     # path('verify', include('student.urls')),

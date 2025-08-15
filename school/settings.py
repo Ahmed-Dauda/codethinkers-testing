@@ -100,6 +100,7 @@ INSTALLED_APPS = [
     'import_export',
     'mathfilters',
     'webprojects',
+    'certificate_stats',
     
     
     
@@ -276,6 +277,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'users.middleware.BotSignupProtectionMiddleware',  # Your custom middleware
 ]
+
+
+MIDDLEWARE += ['users.middleware.UpdateLastActivityMiddleware']
 
 CSRF_COOKIE_SECURE=False
 
