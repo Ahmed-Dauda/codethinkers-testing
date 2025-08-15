@@ -1,333 +1,181 @@
-
-
 {% extends 'sms/dashboard/base.html' %}
-
 {% load hitcount_tags %}
-{% block title %} My Profile {% endblock %}
 
+{% block title %}My Profile{% endblock %}
 
+{% block content %}
 
-{% block content %} 
-
- 
 <div class="portlet light bordered card-body">
+
+  <!-- User Profile Info -->
+  {% for profile in user_profile %}
   <div class="row list-separated profile-stat">
-      
-  <div class="col-md-4 col-sm-4 col-xs-6">
-      {% for profile in user_profile %}
+
+    <!-- Profile Image & Basic Info -->
+    <div class="col-md-4 col-sm-4 col-xs-6 text-center">
       {% if profile.pro_img %}
-      <img src="{{ profile.pro_img.url}}" width="100px" height="100px"  class="rounded-circle" alt=""><hr>
+        <img src="{{ profile.pro_img.url }}" width="100" height="100" class="rounded-circle mb-2" alt="Profile Image">
       {% else %}
-  <img src="/static/sms/images/newlogo3.jpg" width="100px" height="100px" class="rounded-circle" alt=""><hr>
+        <img src="/static/sms/images/newlogo3.jpg" width="100" height="100" class="rounded-circle mb-2" alt="Default Image">
       {% endif %}
+      <hr>
+      <p class="font-weight-bold">Names: {{ profile.first_name }} {{ profile.last_name }}</p>
+      <p>Last Profile Update: {{ profile.updated|timesince }}</p>
+      <p>Sex: {{ profile.gender }}</p>
+      <p>Username: {{ profile.username }}</p>
+    </div>
+
+    <!-- Contact & Links -->
+    <div class="col-md-4 col-sm-4 col-xs-6">
+      <p>Email: {{ profile.user }}</p>
+      <p>Country: {{ profile.countries }}</p>
+      <a class="btn btn-primary mb-2" href="https://wa.me/23409031568177">Customer Support</a>
       
-      <div class="uppercase profile-stat-text">Names : {{ profile.first_name}} | {{ profile.last_name}}</div>
-      <div class="uppercase profile-stat-title"> <p>Last Profile Update : {{ profile.updated|timesince }}</p></div>
-      <div class="uppercase profile-stat-title"> <p>Sex : {{ profile.gender}}</p></div>
-      <div class="uppercase profile-stat-title"> <p>username : {{ profile.username}}</p></div>
-      
- 
-  </div>
-  
-  <div class="col-md-4 col-sm-4 col-xs-6">
-      <div class="uppercase profile-stat-title"><p>Email : {{ profile.user}}</p></div>
-      <div class="uppercase profile-stat-text">  <p>Country : {{ profile.countries}}</p></div>
-      <button  class="btn text-center text-white" ><a class="btn btn-primary text-center"  href="https://wa.me/23409031568177"> Customer Support</a>  </button>
-     
       {% if request.user.is_superuser %}
-          <a style="font-size: 20px; color: red;" href="{% url 'users:schoolstudentview' %}">School Student View</a>
+        <div class="mt-2">
+          <a class="btn btn-danger mb-1 d-block" href="{% url 'users:schoolstudentview' %}">School Student View</a>
+          <a class="btn btn-secondary d-block" href="{% url 'users:quick_dashboard' %}">Dashboard</a>
+        </div>
       {% endif %}
-      
+    </div>
+
+    <!-- Additional Info -->
+    <div class="col-md-4 col-sm-4 col-xs-6">
+      <p>Date Created: {{ profile.created }} ({{ profile.created|timesince }})</p>
+      <p>Biography: {{ profile.bio }}</p>
+      <hr style="color: rgb(16, 2, 37);">
+      <a href="{{ profile.get_absolute_url }}" class="btn btn-outline-primary">Edit Profile</a>
+    </div>
+
   </div>
-  
-  <div class="col-md-4 col-sm-4 col-xs-6">
-      <div class="uppercase profile-stat-title"><p>Date Created :{{ profile.created }} | {{ profile.created|timesince }}</p></div>
-      <div class=""><p>BIOGRAPHY : {{ profile.bio }}</p></div><hr style="color: rgb(16, 2, 37);">
-  </div>
-  
-  <div class="col-md-4 col-sm-4 col-xs-6"><hr>
-    <div class="uppercase profile-stat-text"> <a href="{% url 'sms:feedbackformview' %}">Feedback Form</a> </div>
-  </div> 
-  
-  <div class="col-md-4 col-sm-4 col-xs-6">
-      <div class="uppercase profile-stat-title"> <p>Last Profile Update : {{ profile.updated|timesince }}</p></div>
-      <div class="uppercase profile-stat-title"> <p>Sex : {{ profile.gender}}</p></div>
-      <div class="uppercase profile-stat-text"> <a href="{{ profile.get_absolute_url }}"> Edit Profile</a></div>
-  </div>
- 
+  {% endfor %}
+
   <hr>
 
+  <!-- School Name -->
   {% if school_name %}
-  <p style="color: red;">School Name: {{ school_name }}</p>
+    <p class="text-danger">School Name: {{ school_name }}</p>
   {% endif %}
 
+  <!-- Navigation -->
+  <div class="text-center mb-3">
+    <a href="{% url 'sms:homepage' %}">Go to Homepage</a>
+  </div>
 
-<!-- Assuming your template is myprofile.html -->
+  <!-- Completed Courses -->
+  <h3 class="text-center mb-3">Completed Courses</h3>
 
-<div class="text-center">
-  <a href="{%url 'sms:homepage' %}">Go to homepage</a>
-</div>
-<!-- free and paid cert-->
-<h3 class="text-center">Completed Courses</h3>
+  {% for course in courses %}
+    {% for course_max_marks in max_marks_per_course %}
+      {% if course|lower == course_max_marks.exam__course_name__title|lower %}
+        {% if course_max_marks.max_marks >= course.pass_mark %}
+          {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
+            <div class="d-flex align-items-center font-weight-bold mb-1">
+              {{ course }}
+              <a class="ml-2 btn btn-sm btn-success" href="{% url 'student:pdf_id_view' course.id %}">Download</a>
+            </div>
+            <p>&#10004; Great Work! You have passed all requirements and can view your course certificate now.</p>
+          {% endif %}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
 
- {% for course in courses %}
-  {% for course_max_marks in max_marks_per_course %}
- <!-- <h1>{{course|lower}} == {{course_max_marks.exam__course_name__title|lower }}</h1>  -->
-  {% if course|lower == course_max_marks.exam__course_name__title|lower %}
-  {% if course_max_marks.max_marks >= course.pass_mark %}
-
-  {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
-        <div class="" style="display: flex; align-items: center;font-weight: bold;">
-           {{ course }}
-          <a style="margin: 10px;" class="" href="{% url 'student:pdf_id_view' course.id %}">Download</a>
-         
+  <!-- Certificate Payments -->
+  {% for certificate_payment in certificate_payments %}
+    {% for certificate_pay in certificate_payment.courses.all %}
+      <div class="d-flex align-items-center font-weight-bold mb-1">
+        {{ certificate_pay }}
+        <a class="ml-2 btn btn-sm btn-success" href="{% url 'student:pdf_id_view' certificate_pay.id %}">Download</a>
       </div>
-      <p style="">&#10004; Great Work! You have passed all requirements and can view your course certificate now.</p>   
-  {% endif %}
-    <!-- <li>Course: {{ course_max_marks.exam__course_name__title }}, Maximum Marks: {{ course_max_marks.max_marks }}</li> -->
-
-    {% endif %}
-    {% endif %}
+      <p>&#10004; Great Work! You have passed all requirements and can view your course certificate now.</p>
     {% endfor %}
-    {% endfor %}
-
-
-
-
-<!-- {% for t in results %}
-
-{% for course in courses %} -->
-
-    <!-- {% if course == t.exam %}
-        {% if t.marks >= course.pass_mark %}
-        
-        {% if profile.user.profile ==  t.student  %} -->
-       
-        <!-- {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
-        <div class="card" style="display: flex; align-items: center;">
-            {{ course }}
-          <a class="" href="{% url 'student:pdf_id_view' course.id %}">free Download</a>
-      </div>   
-        {% endif %} -->
-    
-
-<!-- <br> -->
-
-
-      <!-- {% else %}
-       
-      {% endif %}
-      {% endif %}
-      {% endif %} -->
-      <!-- {% endfor %}
-      {% endfor %} -->
-      <!-- ppppppppppppppp -->
-
-<!-- end free and paid cert-->
-
-<!-- ccccccccccccc -->
-
-{% for certificate_payment in certificate_payments %}
-{% for certificate_pay in certificate_payment.courses.all %}
-<div class="" style="display: flex; align-items: center;font-weight: bold;">
-  {{certificate_pay}}
-<a style="margin: 10px;" class="" href="{% url 'student:pdf_id_view' certificate_pay.id %}">Download</a>
-</div>
-<p style="">&#10004; Great Work! You have passed all requirements and can view your course certificate now.</p>   
-{% endfor %}
-{% endfor %}
-
-<!-- ccccccccccccccc -->
-
-
-{% for zcourse in courses %}
-    {% for payment in payments %}
-        {% for course in payment.courses.all %}
-            {% if course.title|lower == zcourse|lower %}  
-
-               
-                        {% for course_max_marks in max_marks_per_course %}
-                        <!-- <h1>{{course|lower}} == {{course_max_marks.exam__course_name__title|lower }}</h1>  -->
-                         {% if zcourse|lower == course_max_marks.exam__course_name__title|lower %}
-                         {% if course_max_marks.max_marks >= zcourse.pass_mark %}
-                        {% if payment.amount == zcourse.course_name.price %}
-                            <div class="" style="display: flex; align-items: center;font-weight: bold;">
-                                {{ zcourse }}
-                                <a style="margin: 10px;" class="" href="{% url 'student:pdf_id_view' zcourse.id %}">Download</a>
-                            </div>
-                            <p style="">&#10004; Great Work! You have passed all requirements and can view your course certificate now.</p>   
-                        {% endif %}
-                        {% endif %}
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-        {% endfor %}
-    {% endfor %}
-{% endfor %}
-
-
-<hr>
-<br>
-
-         
-
-
-
-<!-- end of user_profile forloop -->
-
-
-{% endfor %}
-
-
-
-<!-- <h1>{{referrer_mentor}}</h1> -->
-
-<h1 style="color: red;">Referral Details</h1>
-<div>
-  {% if referrer_mentor == 0 %}
- <h3><a href="{% url 'users:become_referrer' %}">Become a Referrer, Click Here</a></h3> 
-  {% else %}
-  <div>
-    <p>Your Referral Link:</p>
-    <input type="text" id="referralLink" value="{{ request.scheme }}://{{ request.get_host }}{% url 'users:referral_signup' referrer_code=referrer_code %}" readonly>
-    <button onclick="copyToClipboard()">Copy</button>
-  </div>
-  {% endif  %}
-</div>
-
-
-<hr>
-
-{% for percentage in percentage_referer %}
-  <p style="color: green; text-align: center;">Note: Your earning is {{ percentage.referer_per }}% of the certificates purchased</p>
-{% endfor %}
-
-{% if referrer_mentor %}
-  <!-- Referrer Information -->
-  <a href="{% url 'student:referrer_mentor_detail' pk=referrer_mentor.pk %}" target="_blank" rel="noopener noreferrer">Update Account <Details></Details></a>
-
-  <p style="color: red;">Referrer Information</p>
-  <div style="overflow-x: auto;">
-    <table style="border-collapse: collapse; width: 100%;" border="1">
-      <tr>
-        <th style="border: 1px solid black; text-align: center;">Referral Code</th>
-        <th style="border: 1px solid black; text-align: center;">Purchases</th>
-        <!-- <th style="border: 1px solid black; text-align: center;">Referred Students Count</th> -->
-        <!-- <th style="border: 1px solid black; text-align: center;">Referred Students Count</th> -->
-        <th style="border: 1px solid black; text-align: center;">Total Earnings (#)</th>
-        <th style="border: 1px solid black; text-align: center;">Account Name</th>
-        <th style="border: 1px solid black; text-align: center;">Account Number</th>
-        <th style="border: 1px solid black; text-align: center;">Bank</th>
-        <th style="border: 1px solid black; text-align: center;">Phone Number</th>
-      </tr>
-      <tr>
-        <td style="border: 1px solid black; text-align: center;">{{ referrer_mentor.referrer_code }}</td>
-        <td style="border: 1px solid black; text-align: center;">{{ referrer_mentor.f_code_count }}</td>
-        <td style="border: 1px solid black; text-align: center;">{{ total_amount }} </td>
-        <td style="border: 1px solid black; text-align: center;">{{ account_name }}</td>
-        <td style="border: 1px solid black; text-align: center;">{{ account_number }}</td>
-        <td style="border: 1px solid black; text-align: center;">{{ bank }}</td>
-        <td style="border: 1px solid black; text-align: center;">{{ phone_no }}</td>
-      </tr>
-      <!-- Add more rows as needed -->
-    </table>
-  </div>
-      
-
-
-  <br> <br> <hr>
-  <!-- Referred Students -->
-  <p style="color: red;">Referred Students and course(s)</p>
-
-  <div style="overflow-x: auto;">
-    <table style="border-collapse: collapse; width: 100%;" border="1">
-      <tr>
-        <th style="border: 1px solid black; text-align: center;">Names</th>
-        <th style="border: 1px solid black; text-align: center;">Amount (#)</th>
-        <th style="border: 1px solid black; text-align: center;">Courses</th>
-        <th style="border: 1px solid black; text-align: center;">Date of Payment</th>
-      </tr>
-      {% for payment in referrer_mentor.related_payments %}
-        <tr>
-          <td style="border: 1px solid black; text-align: center;">{{ payment.first_name }} {{ payment.last_name }}</td>
-          <td style="border: 1px solid black; text-align: center;">{{ payment.amount }}</td>
-          <td style="border: 1px solid black; text-align: center;">{{ payment.content_type }} </td>
-
-          <td style="border: 1px solid black; text-align: center;">{{ payment.date_created }}</td>
-        </tr>
-      {% empty %}
-        <tr>
-          <td colspan="4" style="border: 1px solid black; text-align: center;">No payments found.</td>
-        </tr>
-      {% endfor %}
-
-      {% for payment in referrer_mentor.course_payments %}
-      <tr>
-        <td style="border: 1px solid black; text-align: center;">{{ payment.first_name }} {{ payment.last_name }}</td>
-        <td style="border: 1px solid black; text-align: center;">{{ payment.amount }}</td>
-        <td style="border: 1px solid black; text-align: center;">{{ payment.content_type }} </td>
-
-        <td style="border: 1px solid black; text-align: center;">{{ payment.date_created }}</td>
-      </tr>
-    {% empty %}
-      <tr>
-        <td colspan="4" style="border: 1px solid black; text-align: center;">No payments found.</td>
-      </tr>
-    {% endfor %}
-    </table>
-  </div>
-  
-  
-{% else %}
-  <p>You are not a referrer. If you have a referrer, they can provide you with a referral code.</p>
-{% endif %}
-
-
-
-<!-- Include other parts of your profile template as needed -->
+  {% endfor %}
 
   <hr>
-  </div>
-  </div>
-  <br><br><br>
-<table class="table table-resposive">
-  <thead style="background-color: black; color:white">
-    <tr>
-    
-      <th scope="col">Title</th>
-      <th scope="col">Course</th>
-      <th scope="col">Pass Mark</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for course in courses %}
-    {% if course  and course.pass_mark >= course.constant %}
-    <tr>
-    
-      <td>Check Course Progress</td>
-      <td><a href="{% url 'sms:certificates' course.id %}">{{course.course_name}} </a></td>
-      <td>{{course.constant}}</td>
-    </tr>
-    {% endif  %}
-    {% endfor %}
-  </tbody>
-</table>
 
+  <!-- Referral Section -->
+  <h1 class="text-danger">Referral Details</h1>
+  {% if referrer_mentor == 0 %}
+    <h3><a href="{% url 'users:become_referrer' %}">Become a Referrer, Click Here</a></h3>
+  {% else %}
+    <div class="mb-3">
+      <p>Your Referral Link:</p>
+      <input type="text" id="referralLink" value="{{ request.scheme }}://{{ request.get_host }}{% url 'users:referral_signup' referrer_code=referrer_code %}" readonly>
+      <button onclick="copyToClipboard()" class="btn btn-secondary btn-sm">Copy</button>
+    </div>
+
+    {% for percentage in percentage_referer %}
+      <p class="text-success text-center">Note: Your earning is {{ percentage.referer_per }}% of the certificates purchased</p>
+    {% endfor %}
+
+    <!-- Referrer Information Table -->
+    <p class="text-danger">Referrer Information</p>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead class="thead-dark">
+          <tr>
+            <th>Referral Code</th>
+            <th>Purchases</th>
+            <th>Total Earnings (#)</th>
+            <th>Account Name</th>
+            <th>Account Number</th>
+            <th>Bank</th>
+            <th>Phone Number</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ referrer_mentor.referrer_code }}</td>
+            <td>{{ referrer_mentor.f_code_count }}</td>
+            <td>{{ total_amount }}</td>
+            <td>{{ account_name }}</td>
+            <td>{{ account_number }}</td>
+            <td>{{ bank }}</td>
+            <td>{{ phone_no }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Referred Students Table -->
+    <p class="text-danger">Referred Students and Courses</p>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead class="thead-dark">
+          <tr>
+            <th>Names</th>
+            <th>Amount (#)</th>
+            <th>Courses</th>
+            <th>Date of Payment</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for payment in referrer_mentor.related_payments %}
+            <tr>
+              <td>{{ payment.first_name }} {{ payment.last_name }}</td>
+              <td>{{ payment.amount }}</td>
+              <td>{{ payment.content_type }}</td>
+              <td>{{ payment.date_created }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="text-center">No payments found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  {% endif %}
+
+</div>
 
 <script>
-  //   function copyToClipboard() {
-  //   var copyText = document.getElementById("referralLink");
-  //   copyText.setSelectionRange(0, copyText.value.length);
-  //   document.execCommand("copy");
-  //   alert("Copied the referral link: " + copyText.value);
-  // }
-  
-    function copyToClipboard() {
-      var copyText = document.getElementById("referralLink");
-      copyText.select();
-      document.execCommand("copy");
-      alert("Copied the referral link: " + copyText.value);
-    }
-  </script>
-  
-{% endblock %} 
+function copyToClipboard() {
+    var copyText = document.getElementById("referralLink");
+    copyText.select();
+    document.execCommand("copy");
+    alert("Copied the referral link: " + copyText.value);
+}
+</script>
+
+{% endblock %}
