@@ -1,110 +1,140 @@
 {% load static %}
-
 {% block content %}
 
 <style>
-    body {
-        background-color: #f4f6f8;
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-    }
+.dashboard-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
 
-    h2, h5, h6 {
-        margin: 0;
-    }
+.dashboard-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    background-color: #0056b3; /* darker blue on hover */
+    color: #fff;
+}
 
-    .container-fluid {
-        max-width: 1200px;
-        margin: auto;
-        padding: 20px;
-    }
+.dashboard-btn i {
+    font-size: 1.1rem;
+}
+</style>
 
-    /* Card Styles */
-    .card {
-        background: #fff;
-        border-radius: 10px;
-        padding: 15px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.06);
-        transition: transform 0.2s ease-in-out;
-    }
-    .card:hover {
-        transform: translateY(-2px);
-    }
+<style>
+body {
+    background-color: #f4f6f8;
+    font-family: "Segoe UI", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
 
-    .card-header {
-        background: #007bff;
-        color: #fff;
-        padding: 12px 15px;
-        border-radius: 8px 8px 0 0;
-        font-weight: bold;
-    }
+/* Container */
+.container-fluid {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
 
-    /* Table Styling */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-    thead {
-        background-color: #f0f2f5;
-    }
-    th, td {
-        padding: 10px;
-        text-align: left;
-        border-bottom: 1px solid #e0e0e0;
-    }
-    tr:hover {
-        background-color: #fafafa;
-    }
+/* Card */
+.card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease-in-out;
+}
+.card:hover {
+    transform: translateY(-3px);
+}
 
-    /* Badges */
-    .badge {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: bold;
-    }
-    .bg-success {
-        background-color: #28a745;
-        color: #fff;
-    }
+/* Card Header */
+.card-header {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: 600;
+    padding: 12px 15px;
+    border-radius: 8px 8px 0 0;
+}
 
-    /* Grid Layout */
-    .row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-    .col-md-4, .col-md-6 {
-        flex: 1;
-        min-width: 250px;
-    }
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+thead {
+    background-color: #f0f2f5;
+}
+tr:hover {
+    background-color: #fafafa;
+}
 
-    /* Text Colors */
-    .text-primary {
-        color: #007bff;
-    }
-    .text-muted {
-        color: #6c757d;
-    }
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+.bg-success {
+    background-color: #28a745;
+    color: #fff;
+}
 
-    /* Chart Container */
-    canvas {
-        width: 100% !important;
-        height: 300px !important;
-    }
+/* Text */
+.text-primary { color: #007bff; }
+.text-muted { color: #6c757d; }
+.fw-bold { font-weight: bold; }
+
+/* Grid */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+.col-md-4, .col-md-6 {
+    flex: 1;
+    min-width: 250px;
+}
+
+/* Online Status */
+.online-dot {
+    height: 10px;
+    width: 10px;
+    background: #4CAF50;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 8px;
+}
+
+/* Responsive Chart */
+canvas {
+    width: 100% !important;
+    height: 300px !important;
+}
 </style>
 
 <div class="container-fluid mt-4">
-<a href="{% url 'quiz:ai_assessment_selector' %}">Go to AI Assessment Selector</a>
 
-    <!-- Payment Stats Table -->
-    <div class="card shadow-sm p-3 border-0">
-        <div class="table-responsive">
-            <table id="payment-stats-table" class="table table-striped table-hover align-middle">
-                <thead class="table-light">
+    <!-- Quick Link -->
+ 
+    <!-- Payment Stats -->
+    <div class="card mb-4">
+        <div class="card-header">Payment Statistics</div>
+        <div class="table-responsive p-2">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
                     <tr>
                         <th>Type</th>
                         <th>Total Amount (₦)</th>
@@ -154,18 +184,23 @@
             </table>
         </div>
     </div>
+
+   <div class="mb-4">
+    <a href="{% url 'quiz:ai_assessment_selector' %}" class="btn btn-primary dashboard-btn">
+        <i class="fas fa-robot me-2"></i> Go to AI Assessment Selector
+    </a>
 </div>
 
 
 
     <!-- Online Users -->
-    <div class="card shadow-sm p-3 mt-4">
-        <h5 class="fw-bold">Currently Online</h5>
+    <div class="card mb-4">
+        <div class="card-header">Currently Online</div>
         <ul id="online-users-list" class="list-group list-group-flush">
             {% for user in online_users %}
                 <li class="list-group-item">
                     {{ user.username|default:user.email }}
-                    <span style="height:10px;width:10px;background:#4CAF50;border-radius:50%;display:inline-block;margin-left:5px;"></span>
+                    <span class="online-dot"></span>
                 </li>
             {% empty %}
                 <li class="list-group-item text-muted">No users online</li>
@@ -173,18 +208,52 @@
         </ul>
     </div>
 
-    <h2 class="mb-4 fw-bold text-primary">Quick Dashboard</h2>
+    <!-- Quick Stats Cards -->
+    <h2 class="mb-3 fw-bold text-primary">Quick Dashboard</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <h6 class="text-muted">Total Students</h6>
+                <h3 class="fw-bold text-primary">{{ total_students }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <h6 class="text-muted">Total Courses</h6>
+                <h3 class="fw-bold text-primary">{{ total_courses }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <h6 class="text-muted">Active Schools</h6>
+                <h3 class="fw-bold text-primary">{{ active_schools }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="card text-center">
+                <h6 class="text-muted">Quizzes Today</h6>
+                <h3 class="fw-bold text-primary">{{ quizzes_today }}</h3>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-center">
+                <h6 class="text-muted">Average Score</h6>
+                <h3 class="fw-bold text-primary">{{ avg_score|default:"0"|floatformat:2 }}</h3>
+            </div>
+        </div>
+    </div>
 
     <!-- Top Certificate Downloads -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Top Certificate Downloads</h5>
-        </div>
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white">Top Certificate Downloads</div>
         <div class="card-body">
             {% if course_downloads %}
                 <div class="table-responsive">
                     <table class="table table-striped table-hover align-middle">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
                                 <th>Course</th>
                                 <th>Downloads</th>
@@ -206,52 +275,12 @@
         </div>
     </div>
 
-    <!-- Quick Stats Cards -->
-    <div class="row g-3">
-        <div class="col-md-4">
-            <div class="card shadow-sm text-center p-3 border-0">
-                <h6 class="text-muted">Total Students</h6>
-                <h3 class="fw-bold text-primary">{{ total_students }}</h3>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm text-center p-3 border-0">
-                <h6 class="text-muted">Total Courses</h6>
-                <h3 class="fw-bold text-primary">{{ total_courses }}</h3>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm text-center p-3 border-0">
-                <h6 class="text-muted">Active Schools</h6>
-                <h3 class="fw-bold text-primary">{{ active_schools }}</h3>
-            </div>
-        </div>
-    </div>
-
-    <!-- More Stats -->
-    <div class="row g-3 mt-1">
-        <div class="col-md-6">
-            <div class="card shadow-sm text-center p-3 border-0">
-                <h6 class="text-muted">Quizzes Today</h6>
-                <h3 class="fw-bold text-primary">{{ quizzes_today }}</h3>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm text-center p-3 border-0">
-                <h6 class="text-muted">Average Score</h6>
-                <h3 class="fw-bold text-primary">
-                    {% if avg_score %}{{ avg_score|floatformat:2 }}{% else %}0{% endif %}
-                </h3>
-            </div>
-        </div>
-    </div>
-
     <!-- Top Students -->
-    <div class="card shadow-sm p-3 mt-4">
-        <h5 class="fw-bold">Top Students</h5>
-        <div class="table-responsive">
+    <div class="card mt-4">
+        <div class="card-header">Top Students</div>
+        <div class="card-body table-responsive">
             <table class="table table-striped align-middle">
-                <thead class="table-light">
+                <thead>
                     <tr>
                         <th>Username</th>
                         <th>Average Score</th>
@@ -275,30 +304,27 @@
 
 </div>
 
-<!-- AJAX script to refresh online users -->
 <script>
-    function fetchOnlineUsers() {
-        fetch("{% url 'users:online_users_api' %}")  // This should be your API endpoint
-            .then(response => response.json())
-            .then(data => {
-                let list = document.getElementById('online-users-list');
-                list.innerHTML = '';
-                if (data.users.length > 0) {
-                    data.users.forEach(user => {
-                        let li = document.createElement('li');
-                        li.className = 'list-group-item';
-                        li.innerHTML = `${user.username || user.email} 
-                            <span style="height:10px;width:10px;background:#4CAF50;border-radius:50%;display:inline-block;margin-left:5px;"></span>`;
-                        list.appendChild(li);
-                    });
-                } else {
-                    list.innerHTML = '<li class="list-group-item text-muted">No users online</li>';
-                }
-            });
-    }
+function fetchOnlineUsers() {
+    fetch("{% url 'users:online_users_api' %}")
+        .then(response => response.json())
+        .then(data => {
+            let list = document.getElementById('online-users-list');
+            list.innerHTML = '';
+            if (data.users.length > 0) {
+                data.users.forEach(user => {
+                    let li = document.createElement('li');
+                    li.className = 'list-group-item';
+                    li.innerHTML = `${user.username || user.email} <span class="online-dot"></span>`;
+                    list.appendChild(li);
+                });
+            } else {
+                list.innerHTML = '<li class="list-group-item text-muted">No users online</li>';
+            }
+        });
+}
 
-    // Refresh every 5 seconds
-    setInterval(fetchOnlineUsers, 5000);
+setInterval(fetchOnlineUsers, 5000);
 </script>
 
 {% endblock %}

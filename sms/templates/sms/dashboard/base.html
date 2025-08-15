@@ -144,14 +144,14 @@
 
             <!-- Divider -->
             <hr class="sidebar-divider">
-            {% if request.user.is_superuser %}
-<a style="color: white;" href="{% url 'users:quick_dashboard' %}">Dashboard</a>
-             {% endif %}
-          
+
             <!-- Nav Item - Pages Collapse Menu -->
+   
             {% if object_list %}
 
+          
             <li class="nav-item">
+ 
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true" aria-controls="collapsePages">
                     <i class="fas fa-fw fa-folder"></i>
                                         <span>All Available Courses</span>
