@@ -116,9 +116,11 @@ import re
 import time
 from django.contrib.auth.decorators import user_passes_test
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
-
 
 @login_required
 def ai_topics_generator(request):
@@ -126,9 +128,9 @@ def ai_topics_generator(request):
         messages.error(request, "Only superadmins can add topics.")
         return redirect('dashboard')
 
-    # Use default reverse relation 'topics_set' to prefetch related topics
-    categories = Categories.objects.prefetch_related('topics_set')
-    courses = Courses.objects.prefetch_related('topics_set')
+    # Use all categories/courses; avoid invalid prefetch_related
+    categories = Categories.objects.all()
+    courses = Courses.objects.all()
 
     # === Save confirmed topics ===
     if request.method == 'POST' and request.POST.get("confirm_save") == "1":
@@ -139,7 +141,8 @@ def ai_topics_generator(request):
         try:
             category_obj = Categories.objects.get(id=category_id)
             course_obj = Courses.objects.get(id=course_id)
-        except (Categories.DoesNotExist, Courses.DoesNotExist):
+        except (Categories.DoesNotExist, Courses.DoesNotExist) as e:
+            logger.error(f"Invalid category/course: {str(e)}")
             messages.error(request, "Invalid category or course selected.")
             return redirect('quiz:ai_topics_generator')
 
@@ -172,13 +175,14 @@ def ai_topics_generator(request):
         try:
             category_obj = Categories.objects.get(id=category_id)
             course_obj = Courses.objects.get(id=course_id)
-        except (Categories.DoesNotExist, Courses.DoesNotExist):
+        except (Categories.DoesNotExist, Courses.DoesNotExist) as e:
+            logger.error(f"Invalid category/course: {str(e)}")
             messages.error(request, "Invalid category or course selected.")
             return redirect('quiz:ai_topics_generator')
 
         course_title = course_obj.title or ""
 
-        # Prompt setup omitted for brevity — keep your previous prompt here
+        # Your existing prompt here
         prompt = f"""
 You are a JSON-only generator.
 
@@ -250,7 +254,6 @@ RULES:
    - No markdown, no extra arrays, no nested JSON, no trailing commas.
 """
 
-
         def clean_response(text):
             if text.startswith("```"):
                 text = text.strip("`").lstrip("json").strip()
@@ -267,23 +270,30 @@ RULES:
                         {"role": "system", "content": "You are a helpful assistant that outputs only valid JSON."},
                         {"role": "user", "content": prompt},
                     ],
-                    max_tokens=6000,
+                    max_tokens=10000,
                     temperature=0
                 )
+
+                if not response.choices:
+                    logger.error("OpenAI returned no choices")
+                    messages.error(request, "OpenAI returned no content.")
+                    return redirect('quiz:ai_topics_generator')
 
                 topics_text = response.choices[0].message.content.strip()
                 topics_json = json.loads(clean_response(topics_text))
                 break
 
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON parsing error: {str(e)}")
                 if attempt < max_retries - 1:
-                    import time
                     time.sleep(1)
                     continue
-                messages.error(request, "Failed to parse AI JSON output.")
+                messages.error(request, f"Failed to parse AI JSON output after {max_retries} attempts.")
                 return redirect('quiz:ai_topics_generator')
+
             except Exception as e:
-                messages.error(request, f"OpenAI error: {str(e)}")
+                logger.error(f"AI topic generation failed: {str(e)}")
+                messages.error(request, "Something went wrong with AI topic generation.")
                 return redirect('quiz:ai_topics_generator')
 
         preview_topics = [
@@ -308,7 +318,6 @@ RULES:
         'categories': categories,
         'courses': courses
     })
-
 
 
 # @login_required
