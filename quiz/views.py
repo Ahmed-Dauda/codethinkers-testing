@@ -301,17 +301,11 @@ RULES:
        3. The first paragraph must open with a learner-centered hook that clearly states the personal or professional benefit of mastering the topic.
 
         Hooks should vary in structure and wording across topics to avoid repetition while keeping the focus on learner benefits.
-
         Acceptable formats include:
-
         Direct benefit statement: "By learning to identify technology types, you can..."
-
         Action-result framing: "Mastering technology types gives you the ability to..."
-
         Impact-first framing: "Choosing the right technology can transform how you work and communicate."
-
         Problem-solution framing: "Without a clear understanding of technology types, it’s easy to waste time on the wrong tools—this topic will help you avoid that."
-
         Do not reuse the exact same phrase (e.g., “By learning to…”) more than once in consecutive topics.
 
        4. Paragraph transitions must be smooth and connected; avoid abrupt topic jumps by adding linking phrases between examples.
@@ -366,7 +360,7 @@ RULES:
                         {"role": "system", "content": "You are a helpful assistant that outputs only valid JSON."},
                         {"role": "user", "content": prompt},
                     ],
-                    max_tokens=6000,
+                    max_tokens=4000,
                     temperature=0
                 )
 
