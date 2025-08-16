@@ -366,7 +366,7 @@ RULES:
                         {"role": "system", "content": "You are a helpful assistant that outputs only valid JSON."},
                         {"role": "user", "content": prompt},
                     ],
-                    max_tokens=10000,
+                    max_tokens=6000,
                     temperature=0
                 )
 
