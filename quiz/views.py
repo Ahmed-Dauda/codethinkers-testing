@@ -119,7 +119,7 @@ import json
 import logging
 
 logger = logging.getLogger(__name__)
-
+from django.http import JsonResponse
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 @login_required
@@ -128,11 +128,10 @@ def ai_topics_generator(request):
         messages.error(request, "Only superadmins can add topics.")
         return redirect('dashboard')
 
-    # Use all categories/courses; avoid invalid prefetch_related
     categories = Categories.objects.all()
     courses = Courses.objects.all()
 
-    # === Save confirmed topics ===
+    # Save confirmed topics
     if request.method == 'POST' and request.POST.get("confirm_save") == "1":
         total_topics = int(request.POST.get("total_topics", 0))
         category_id = request.POST.get("category_id")
@@ -141,8 +140,7 @@ def ai_topics_generator(request):
         try:
             category_obj = Categories.objects.get(id=category_id)
             course_obj = Courses.objects.get(id=course_id)
-        except (Categories.DoesNotExist, Courses.DoesNotExist) as e:
-            logger.error(f"Invalid category/course: {str(e)}")
+        except (Categories.DoesNotExist, Courses.DoesNotExist):
             messages.error(request, "Invalid category or course selected.")
             return redirect('quiz:ai_topics_generator')
 
@@ -165,7 +163,7 @@ def ai_topics_generator(request):
         messages.success(request, f"{saved} topics saved successfully.")
         return redirect('quiz:ai_topics_generator')
 
-    # === Generate topics ===
+    # Generate topics
     elif request.method == 'POST':
         category_id = request.POST.get('category')
         course_id = request.POST.get('course')
@@ -175,134 +173,111 @@ def ai_topics_generator(request):
         try:
             category_obj = Categories.objects.get(id=category_id)
             course_obj = Courses.objects.get(id=course_id)
-        except (Categories.DoesNotExist, Courses.DoesNotExist) as e:
-            logger.error(f"Invalid category/course: {str(e)}")
+        except (Categories.DoesNotExist, Courses.DoesNotExist):
             messages.error(request, "Invalid category or course selected.")
             return redirect('quiz:ai_topics_generator')
 
         course_title = course_obj.title or ""
-
-        # Your existing prompt here
-        prompt = f"""
-You are a JSON-only generator.
-
-Generate exactly {num_topics} course topics for a {course_title} course.
-
-RULES:
-1. Always start with these topics in order:
-   1. "Introduction to {course_title}"
-   2. "Overview – {course_title}" – short, clear summary without examples or code.
-   3. "Learning Objectives – {course_title}" – numbered list of at least 12 objectives. Objective 5 must combine Objectives 1–4. Conclude with a summary paragraph.
-   4. Immediately after "Learning Objectives – {course_title}", the first generated topic must have its title exactly match Learning Objective #1, and its description must directly expand on that objective for learners. Continue in order with each subsequent learning objective becoming the exact title of the next topic.
-
-2. Determine course type from {course_title} (case-insensitive):
-   - Programming keywords: python, javascript, java, c++, c#, php, ruby, html, css, sql, programming, coding, development, data science, machine learning, artificial intelligence, ai, devops, blockchain, software engineering.
-   - Non-programming tech keywords: tech, technology, digital, IT, cybersecurity, networking, cloud computing, hardware, electronics, gadgets.
-   - Else: general course.
-
-3. After "Learning Objectives – {course_title}":
-   - Programming: generate topics with detailed explanation and at least 5 code examples each.
-   - Non-programming or general: generate topics with **exactly 5 paragraphs per description**, no more, no less. Paragraphs must be:
-       1. Substantial, coherent, and instructor-ready for learners to consume directly.
-       2. Use "\\n" for line breaks between paragraphs.
-       3. The first paragraph must open with a learner-centered hook that clearly states the personal or professional benefit of mastering the topic.
-
-        Hooks should vary in structure and wording across topics to avoid repetition while keeping the focus on learner benefits.
-
-        Acceptable formats include:
-
-        Direct benefit statement: "By learning to identify technology types, you can..."
-
-        Action-result framing: "Mastering technology types gives you the ability to..."
-
-        Impact-first framing: "Choosing the right technology can transform how you work and communicate."
-
-        Problem-solution framing: "Without a clear understanding of technology types, it’s easy to waste time on the wrong tools—this topic will help you avoid that."
-
-        Do not reuse the exact same phrase (e.g., “By learning to…”) more than once in consecutive topics.
-
-       4. Paragraph transitions must be smooth and connected; avoid abrupt topic jumps by adding linking phrases between examples.
-       5. Exactly one paragraph among the five MUST contain a numbered bullet-point list.
-          - The paragraph must begin with a **short, contextual title line** that clearly frames the list in relation to the topic — for example: "Key ethical issues in technology include:" or "Core components of a successful marketing strategy are:".
-          - All list items must begin with a **consistent category-style format** (e.g., "Communication Devices – ..." rather than mixing styles).
-          - Numbered list must be in this exact format, with each item starting on its own line:
-
-          First item
-          Second item
-          Third item
-          Fourth item
-          (and so on, with at least 4 items)
-
-          - No embedding of numbers inside sentences — the list must be clean and standalone.
-          - The contextual title line should immediately precede the list in the same paragraph.
-          - If the platform supports bold text, make the contextual title line bold for visual scanning.
-       6. All other paragraphs must be plain text without bullet points.
-       7. Each paragraph builds on the previous one for a coherent narrative.
-       8. Include relevant, real-world examples in each paragraph.
-
-4. At least one paragraph in each topic’s description (preferably the third) must include a real-life teaching story using this structure:
-      - Setup – Introduce the person, company, or setting quickly.
-      - Challenge – The problem they faced (related to the course topic).
-      - Action – What they did.
-      - Outcome – What happened (positive or negative).
-      - Lesson learned – Tie directly back to the teaching point.
-   The story should be engaging but primarily instructional.
-
-5. Output: single valid JSON array of {num_topics} objects with keys "title" and "description" only. 
-   - The "title" must exactly match the corresponding Learning Objective text (except for the first three topics).
-   - The "description" should contain the 5 learner-ready paragraphs separated by "\\n".
-   - No markdown, no extra arrays, no nested JSON, no trailing commas.
-"""
+        batch_size = 5
+        all_topics = []
+        completed_objectives = []  # Track used objectives for sequential generation
 
         def clean_response(text):
             if text.startswith("```"):
                 text = text.strip("`").lstrip("json").strip()
             import re
             match = re.search(r"(\[.*\])", text, re.DOTALL)
-            return match.group(1).strip() if match else text.strip()
+            if match:
+                return match.group(1).strip()
+            return text.strip()
 
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant that outputs only valid JSON."},
-                        {"role": "user", "content": prompt},
-                    ],
-                    max_tokens=12000,
-                    temperature=0
-                )
+        def build_topic_description(topic_dict):
+            """
+            Converts structured topic dict into a single string for HTMLField.
+            """
+            if isinstance(topic_dict, str):
+                return topic_dict.strip()
 
-                if not response.choices:
-                    logger.error("OpenAI returned no choices")
-                    messages.error(request, "OpenAI returned no content.")
-                    return redirect('quiz:ai_topics_generator')
+            parts = []
+            if isinstance(topic_dict, dict):
+                if 'hook' in topic_dict and topic_dict['hook']:
+                    parts.append(topic_dict['hook'])
+                if 'content' in topic_dict and isinstance(topic_dict['content'], list):
+                    parts.extend(topic_dict['content'])
+                if 'realLifeStory' in topic_dict and topic_dict['realLifeStory']:
+                    parts.append("Real-Life Story: " + topic_dict['realLifeStory'])
+            elif isinstance(topic_dict, list):
+                parts.extend(str(p) for p in topic_dict)
+            return "\n".join(parts).strip()
 
-                topics_text = response.choices[0].message.content.strip()
-                topics_json = json.loads(clean_response(topics_text))
-                break
+        def generate_batch(num_in_batch, start_index, used_objectives):
+            objectives_text = ""
+            if used_objectives:
+                objectives_text = "Previously generated objectives: " + ", ".join(used_objectives)
 
-            except json.JSONDecodeError as e:
-                logger.error(f"JSON parsing error: {str(e)}")
-                if attempt < max_retries - 1:
-                    time.sleep(1)
-                    continue
-                messages.error(request, f"Failed to parse AI JSON output after {max_retries} attempts.")
-                return redirect('quiz:ai_topics_generator')
+            prompt = f"""
+You are a JSON-only generator.
 
-            except Exception as e:
-                logger.error(f"AI topic generation failed: {str(e)}")
-                messages.error(request, "Something went wrong with AI topic generation.")
-                return redirect('quiz:ai_topics_generator')
+Generate exactly {num_in_batch} course topics for a {course_title} course,
+starting from topic index {start_index}.
 
+{objectives_text}
+
+Follow all original rules: include Learning Objectives, hooks, 5-paragraph descriptions,
+numbered lists, real-life stories, etc.
+
+Output: single valid JSON array of {num_in_batch} objects with keys "title" and "description".
+"""
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {"role": "system", "content": "You are a helpful assistant that outputs only valid JSON."},
+                            {"role": "user", "content": prompt},
+                        ],
+                        max_tokens=6000,
+                        temperature=0
+                    )
+
+                    if not response.choices:
+                        raise Exception("OpenAI returned no content.")
+
+                    topics_text = clean_response(response.choices[0].message.content)
+                    batch_json = json.loads(topics_text)
+
+                    # Update completed objectives
+                    for topic in batch_json:
+                        if "title" in topic:
+                            used_objectives.append(str(topic["title"]).strip())
+
+                    return batch_json
+
+                except json.JSONDecodeError:
+                    if attempt < max_retries - 1:
+                        import time
+                        time.sleep(1)
+                        continue
+                    else:
+                        raise
+                except Exception as e:
+                    raise e
+
+        # Generate all batches sequentially
+        for i in range(0, num_topics, batch_size):
+            current_batch_size = min(batch_size, num_topics - i)
+            batch_topics = generate_batch(current_batch_size, i + 1, completed_objectives)
+            all_topics.extend(batch_topics)
+
+        # Prepare preview topics
         preview_topics = [
             {
-                "title": topic.get("title", "").strip(),
-                "desc": topic.get("description", "").strip(),
+                "title": str(topic.get("title", "")).strip(),
+                "desc": build_topic_description(topic.get("description", {})),
                 "transcript": ""
             }
-            for topic in topics_json
+            for topic in all_topics
         ]
 
         return render(request, 'quiz/dashboard/ai_topics_generator.html', {
@@ -313,11 +288,12 @@ RULES:
             'course_id': course_id
         })
 
-    # === GET request ===
+    # GET request
     return render(request, 'quiz/dashboard/ai_topics_generator.html', {
         'categories': categories,
         'courses': courses
     })
+
 
 
 # @login_required
