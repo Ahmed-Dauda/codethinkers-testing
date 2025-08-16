@@ -187,13 +187,11 @@ class CustomTinyMCEWidget(TinyMCE):
         kwargs['attrs'] = {'cols': '40', 'rows': '4'}  # Set the desired width and height here
         super().__init__(*args, **kwargs)
 
-
 class Topics(models.Model):
-    
     categories = models.ForeignKey(Categories, on_delete=models.CASCADE)
     courses = models.ForeignKey(Courses, on_delete=models.CASCADE) 
     title = models.CharField(max_length=500, blank=True, null=True)
-    slug = models.SlugField(unique=True, blank=True, null=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)  # Increased max_length
     is_completed = models.BooleanField(default=False)
     completed_by = models.ManyToManyField('users.Profile', through='CompletedTopics')
     desc = HTMLField(null=True)
@@ -210,13 +208,44 @@ class Topics(models.Model):
         ordering = ['title']
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
+        if not self.slug and self.title:
+            # slugify and trim to fit in max_length
+            self.slug = slugify(self.title)[:250]  
 
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.title} - {self.courses}'
+    
+# class Topics(models.Model):
+    
+#     categories = models.ForeignKey(Categories, on_delete=models.CASCADE)
+#     courses = models.ForeignKey(Courses, on_delete=models.CASCADE) 
+#     title = models.CharField(max_length=500, blank=True, null=True)
+#     slug = models.SlugField(unique=True, blank=True, null=True)
+#     is_completed = models.BooleanField(default=False)
+#     completed_by = models.ManyToManyField('users.Profile', through='CompletedTopics')
+#     desc = HTMLField(null=True)
+#     transcript = models.TextField(blank=True, null=True)  # New field for transcript
+#     img_topic = CloudinaryField('topic image', blank=True, null=True)
+#     video = EmbedVideoField(blank=True, null=True)
+#     topics_url = models.CharField(max_length=500, blank=True, null=True)
+#     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+#     updated = models.DateTimeField(auto_now=True, blank=True, null=True) 
+#     id = models.BigAutoField(primary_key=True)
+#     hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
+
+#     class Meta:
+#         ordering = ['title']
+
+#     def save(self, *args, **kwargs):
+#         if not self.slug:
+#             self.slug = slugify(self.title)
+
+#         super().save(*args, **kwargs)
+
+#     def __str__(self):
+#         return f'{self.title} - {self.courses}'
 
 
 class CompletedTopics(models.Model):
