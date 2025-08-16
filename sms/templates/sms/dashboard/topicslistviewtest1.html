@@ -443,7 +443,12 @@ table-layout: fixed; // ***********add this
                 <br>
 
                 {% if forloop.last %}
-                    <h4 style="color: green;text-align:center">Congratulations! You have completed this course h</h4> <br>
+                    <h4 style="color: green; text-align: center; font-weight: bold;">
+                    Congratulations! You’ve successfully completed this course.  
+                    We’re incredibly proud of your hard work and dedication – keep pushing forward, your journey has just begun! 
+                    </h4>
+                    <br>
+
                     <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
                     
                 {% else %}
