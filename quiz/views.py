@@ -178,7 +178,7 @@ def ai_topics_generator(request):
             return redirect('quiz:ai_topics_generator')
 
         course_title = course_obj.title or ""
-        batch_size = 5
+        batch_size = 2
         all_topics = []
         completed_objectives = []  # Track used objectives for sequential generation
 
