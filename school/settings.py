@@ -392,6 +392,8 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # django hit count 
 # HITCOUNT_KEEP_HIT_ACTIVE = {'seconds': 2}
 
+
+
 HITCOUNT_HITS_PER_IP_LIMIT = 0
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
