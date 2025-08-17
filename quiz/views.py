@@ -209,10 +209,6 @@ Generate exactly {num_topics} course topics for a {course_title} course.
 
 RULES:
 1. Always start with these topics in order:
-   1. "Introduction to {course_title}"
-   2. "Overview – {course_title}" – short, clear summary without examples or code.
-   
-   4. Immediately after "Learning Objectives – {course_title}", the first generated topic must have its title exactly match Learning Objective #1, and its description must directly expand on that objective for learners. Continue in order with each subsequent learning objective becoming the exact title of the next topic.
 
 2. Determine course type from {course_title} (case-insensitive):
    - Programming keywords: python, javascript, java, c++, c#, php, ruby, html, css, sql, programming, coding, development, data science, machine learning, artificial intelligence, ai, devops, blockchain, software engineering.
