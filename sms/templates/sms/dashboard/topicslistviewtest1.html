@@ -393,7 +393,7 @@ table-layout: fixed; // ***********add this
                 <span id="tick-icon-{{ topic.id }}" class="{% if topic.id in completed_topic_ids %}visible{% else %}d-none{% endif %}">
                     <i style="color: green;" class="fas fa-check-circle"></i>
                 </span>
-                <span style="font-size: 14px;" class="">{{ topic.title }}</span>
+                <h4 style="font-size: 14px; color: black; font-weight: bold;" class="">{{ topic.title }}</h4>
             </div>
         {% endfor %}
     </div>
@@ -411,7 +411,8 @@ table-layout: fixed; // ***********add this
                    {% else %} 
                
                    <div style="text-align: left;" class=" code-block">
-                    <h4 style="color: black;">{{topic.title|safe}}</h4>
+                    <h4 style="color: black; font-weight: bold;">{{topic.title|safe}}</h4>
+
                     <small style="color: black;">
                         created: {{topic.created|timesince}} <br> last updated: {{topic.updated}}
                     </small> <br>
