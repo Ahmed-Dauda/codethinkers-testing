@@ -51,7 +51,7 @@
                 <p class="score">{{ results.2.percentage }}%</p>
                 <small>{{ results.2.marks }}/{{ course.show_questions }}</small>
                 <!-- Download Badge Button -->
-                <a href="{% url 'download_badge' results.2.student.id course.id 3 %}" 
+                <a href="{% url 'sms:download_badge' results.2.student.id course.id 3 %}" 
                    class="btn btn-sm btn-outline-danger mt-2">
                    Download Bronze Badge
                 </a>
