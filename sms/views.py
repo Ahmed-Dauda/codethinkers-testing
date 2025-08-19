@@ -1421,15 +1421,16 @@ from reportlab.pdfbase import pdfmetrics
 from django.http import HttpResponse
 import os
 
-from PIL import Image, ImageDraw, ImageFont
+import os
+from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.conf import settings
 from django.contrib.staticfiles import finders
-import os
+from PIL import Image, ImageDraw, ImageFont
+from users.models import Profile
 
-def download_and_share_badge(request, student_id, course_id, rank):
-    # --- Fetch objects ---
+
+def download_badge_image(request, student_id, course_id, rank):
     result = get_object_or_404(Result, student__id=student_id, exam__id=course_id)
     course = get_object_or_404(Course, id=course_id)
 
@@ -1451,184 +1452,54 @@ def download_and_share_badge(request, student_id, course_id, rank):
         medal_emoji = "🥉"
 
     # --- Image settings ---
-    size = 800
-    center = size // 2
+    width, height = 800, 800
+    center = (width // 2, height // 2)
     badge_radius = 350
-
-    # Transparent base
-    img = Image.new("RGBA", (size, size), (255, 255, 255, 0))
+    img = Image.new("RGBA", (width, height), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
 
-    # Circular badge
-    draw.ellipse(
-        (center - badge_radius, center - badge_radius,
-         center + badge_radius, center + badge_radius),
-        fill=(245, 245, 245, 255),
-        outline=badge_color,
-        width=15
-    )
-
-    # --- Circular mask to enforce transparency outside ---
-    mask = Image.new("L", (size, size), 0)
-    mask_draw = ImageDraw.Draw(mask)
-    mask_draw.ellipse((0, 0, size, size), fill=255)
+    # --- Circular background ---
+    draw.ellipse([
+        (center[0] - badge_radius, center[1] - badge_radius),
+        (center[0] + badge_radius, center[1] + badge_radius)
+    ], fill=(245, 245, 245), outline=badge_color, width=15)
 
     # --- Logo watermark ---
-    logo_path = finders.find("images/logo.png")
-    if logo_path and os.path.exists(logo_path):
+    logo_path = os.path.join("static", "images", "logo.png")
+    if os.path.exists(logo_path):
         logo = Image.open(logo_path).convert("RGBA")
         logo = logo.resize((150, 150))
         alpha = logo.split()[3].point(lambda i: i * 0.1)
         logo.putalpha(alpha)
-        img.paste(logo, (center - 75, center - 75), mask=logo)
+        img.paste(logo, (center[0]-75, center[1]-75), mask=logo)
 
     # --- Fonts ---
-    font_bold_path = finders.find("fonts/arialbd.ttf")
-    font_regular_path = finders.find("fonts/arial.ttf")
-    title_font = ImageFont.truetype(font_bold_path, 50)
-    subtitle_font = ImageFont.truetype(font_regular_path, 30)
-    name_font = ImageFont.truetype(font_bold_path, 40)
-    course_font = ImageFont.truetype(font_bold_path, 35)
-    score_font = ImageFont.truetype(font_bold_path, 30)
-    footer_font = ImageFont.truetype(font_bold_path, 25)
+    font_path_bold = os.path.join("static", "fonts", "arialbd.ttf")
+    font_path = os.path.join("static", "fonts", "arial.ttf")
+    title_font = ImageFont.truetype(font_path_bold, 50)
+    subtitle_font = ImageFont.truetype(font_path, 30)
+    name_font = ImageFont.truetype(font_path_bold, 40)
+    course_font = ImageFont.truetype(font_path_bold, 35)
+    score_font = ImageFont.truetype(font_path_bold, 30)
+    footer_font = ImageFont.truetype(font_path_bold, 25)
 
     # --- Draw texts ---
-    y_start = center - 180
+    y_start = center[1] - 180
     spacing = 60
-    draw.text((center, y_start), f"{medal_emoji} {badge_name}", font=title_font, fill=badge_color, anchor="ms")
-    draw.text((center, y_start + spacing), "Awarded to:", font=subtitle_font, fill=(0, 0, 0), anchor="ms")
-    draw.text((center, y_start + spacing*2), f"{result.student.first_name} {result.student.last_name}", font=name_font, fill=(0, 0, 128), anchor="ms")
-    draw.text((center, y_start + spacing*3), "For outstanding performance in", font=subtitle_font, fill=(0, 0, 0), anchor="ms")
-    draw.text((center, y_start + spacing*4), f"{course.course_name}", font=course_font, fill=(0, 128, 0), anchor="ms")
-    draw.text((center, y_start + spacing*5), f"Score: {result.marks}%", font=score_font, fill=(0, 0, 0), anchor="ms")
-    draw.text((center, y_start + spacing*6 + 20), "Codethinkers Academy", font=footer_font, fill=(128, 128, 128), anchor="ms")
+    draw.text((center[0], y_start), f"{medal_emoji} {badge_name}", font=title_font, fill=badge_color, anchor="ms")
+    draw.text((center[0], y_start + spacing), "Awarded to:", font=subtitle_font, fill=(0,0,0), anchor="ms")
+    draw.text((center[0], y_start + spacing*2), f"{result.student.first_name} {result.student.last_name}", font=name_font, fill=(0,0,128), anchor="ms")
+    draw.text((center[0], y_start + spacing*3), "For outstanding performance in", font=subtitle_font, fill=(0,0,0), anchor="ms")
+    draw.text((center[0], y_start + spacing*4), f"{course.course_name}", font=course_font, fill=(0,128,0), anchor="ms")
+    draw.text((center[0], y_start + spacing*5), f"Score: {result.marks}%", font=score_font, fill=(0,0,0), anchor="ms")
+    draw.text((center[0], y_start + spacing*6 + 20), "Codethinkers Academy", font=footer_font, fill=(128,128,128), anchor="ms")
 
-    # --- Apply circular mask ---
-    final_img = Image.new("RGBA", (size, size))
-    final_img.paste(img, (0, 0), mask=mask)
-
-    # --- Save badge ---
-    badge_dir = os.path.join(settings.MEDIA_ROOT, "badges")
-    os.makedirs(badge_dir, exist_ok=True)
+    # --- Return response with forced download ---
+    response = HttpResponse(content_type="image/png")
     filename = f"{result.student.first_name}_{badge_name}.png"
-    badge_path = os.path.join(badge_dir, filename)
-    final_img.save(badge_path, "PNG")
-
-    # --- Badge URL for sharing ---
-    badge_url = request.build_absolute_uri(os.path.join(settings.MEDIA_URL, "badges", filename))
-
-    # --- Social share links ---
-    share_links = {
-        "whatsapp": f"https://wa.me/?text=I earned my {badge_name} in {course.course_name} at Codethinkers! Check out my badge: {badge_url}",
-        "twitter": f"https://twitter.com/intent/tweet?text=I earned my {badge_name} in {course.course_name} at Codethinkers! 🎓 {badge_url}",
-        "linkedin": f"https://www.linkedin.com/sharing/share-offsite/?url={badge_url}",
-        "facebook": f"https://www.facebook.com/sharer/sharer.php?u={badge_url}",
-    }
-
-    # --- HTML response ---
-    html_content = f"""
-    <html>
-    <head>
-        <title>{badge_name} Badge</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f9f9f9; }}
-            .badge-img {{
-                border-radius: 50%;
-                box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-                max-width: 400px;
-            }}
-            .share-btn {{ margin: 10px; padding: 10px 20px; border: none; border-radius: 5px; color: white; text-decoration: none; }}
-            .whatsapp {{ background-color: #25D366; }}
-            .twitter {{ background-color: #1DA1F2; }}
-            .linkedin {{ background-color: #0077B5; }}
-            .facebook {{ background-color: #3b5998; }}
-            .download {{ background-color: #555555; }}
-        </style>
-    </head>
-    <body>
-        <h1>{medal_emoji} {badge_name}</h1>
-        <img class="badge-img" src="{badge_url}" alt="Badge"/><br><br>
-        <a href="{badge_url}" download class="share-btn download">Download Badge</a><br><br>
-        <a href="{share_links['whatsapp']}" target="_blank" class="share-btn whatsapp">Share on WhatsApp</a>
-        <a href="{share_links['twitter']}" target="_blank" class="share-btn twitter">Share on Twitter</a>
-        <a href="{share_links['linkedin']}" target="_blank" class="share-btn linkedin">Share on LinkedIn</a>
-        <a href="{share_links['facebook']}" target="_blank" class="share-btn facebook">Share on Facebook</a>
-    </body>
-    </html>
-    """
-    return HttpResponse(html_content)
-
-
-# def download_badge_image(request, student_id, course_id, rank):
-#     result = get_object_or_404(Result, student__id=student_id, exam__id=course_id)
-#     course = get_object_or_404(Course, id=course_id)
-
-#     # --- Badge type ---
-#     badge_name = "Participant"
-#     badge_color = (0, 0, 0)
-#     medal_emoji = ""
-#     if rank == 1:
-#         badge_name = "GOLD BADGE"
-#         badge_color = (255, 215, 0)
-#         medal_emoji = "🏆"
-#     elif rank == 2:
-#         badge_name = "SILVER BADGE"
-#         badge_color = (192, 192, 192)
-#         medal_emoji = "🥈"
-#     elif rank == 3:
-#         badge_name = "BRONZE BADGE"
-#         badge_color = (205, 127, 50)
-#         medal_emoji = "🥉"
-
-#     # --- Image settings ---
-#     width, height = 800, 800
-#     center = (width // 2, height // 2)
-#     badge_radius = 350
-#     img = Image.new("RGBA", (width, height), (255, 255, 255, 0))
-#     draw = ImageDraw.Draw(img)
-
-#     # --- Circular background ---
-#     draw.ellipse([
-#         (center[0] - badge_radius, center[1] - badge_radius),
-#         (center[0] + badge_radius, center[1] + badge_radius)
-#     ], fill=(245, 245, 245), outline=badge_color, width=15)
-
-#     # --- Logo watermark ---
-#     logo_path = os.path.join("static", "images", "logo.png")
-#     if os.path.exists(logo_path):
-#         logo = Image.open(logo_path).convert("RGBA")
-#         logo = logo.resize((150, 150))
-#         alpha = logo.split()[3].point(lambda i: i * 0.1)
-#         logo.putalpha(alpha)
-#         img.paste(logo, (center[0]-75, center[1]-75), mask=logo)
-
-#     # --- Fonts ---
-#     font_path_bold = os.path.join("static", "fonts", "arialbd.ttf")
-#     font_path = os.path.join("static", "fonts", "arial.ttf")
-#     title_font = ImageFont.truetype(font_path_bold, 50)
-#     subtitle_font = ImageFont.truetype(font_path, 30)
-#     name_font = ImageFont.truetype(font_path_bold, 40)
-#     course_font = ImageFont.truetype(font_path_bold, 35)
-#     score_font = ImageFont.truetype(font_path_bold, 30)
-#     footer_font = ImageFont.truetype(font_path_bold, 25)
-
-#     # --- Draw texts ---
-#     y_start = center[1] - 180
-#     spacing = 60
-#     draw.text((center[0], y_start), f"{medal_emoji} {badge_name}", font=title_font, fill=badge_color, anchor="ms")
-#     draw.text((center[0], y_start + spacing), "Awarded to:", font=subtitle_font, fill=(0,0,0), anchor="ms")
-#     draw.text((center[0], y_start + spacing*2), f"{result.student.first_name} {result.student.last_name}", font=name_font, fill=(0,0,128), anchor="ms")
-#     draw.text((center[0], y_start + spacing*3), "For outstanding performance in", font=subtitle_font, fill=(0,0,0), anchor="ms")
-#     draw.text((center[0], y_start + spacing*4), f"{course.course_name}", font=course_font, fill=(0,128,0), anchor="ms")
-#     draw.text((center[0], y_start + spacing*5), f"Score: {result.marks}%", font=score_font, fill=(0,0,0), anchor="ms")
-#     draw.text((center[0], y_start + spacing*6 + 20), "Codethinkers Academy", font=footer_font, fill=(128,128,128), anchor="ms")
-
-#     # --- Return response with forced download ---
-#     response = HttpResponse(content_type="image/png")
-#     filename = f"{result.student.first_name}_{badge_name}.png"
-#     response['Content-Disposition'] = f'attachment; filename="{filename}"'
-#     img.save(response, "PNG")
-#     return response
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    img.save(response, "PNG")
+    return response
 
 
 # @login_required
