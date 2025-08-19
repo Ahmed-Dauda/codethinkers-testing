@@ -1422,35 +1422,13 @@ from django.http import HttpResponse
 import os
 
 # Register fonts
-pdfmetrics.registerFont(TTFont('Arial-Bold', 'arialbd.ttf'))
-pdfmetrics.registerFont(TTFont('Arial', 'arial.ttf'))
-# Register custom font
-# Register fonts
-pdfmetrics.registerFont(TTFont('Arial-Bold', 'arialbd.ttf'))
-pdfmetrics.registerFont(TTFont('Arial', 'arial.ttf'))
-
 from PIL import Image, ImageDraw, ImageFont
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-import os
-from PIL import Image, ImageDraw, ImageFont
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
 from django.conf import settings
 import os
 
-from PIL import Image, ImageDraw, ImageFont
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-import os
-from django.conf import settings
 def download_and_share_badge(request, student_id, course_id, rank):
-    from PIL import Image, ImageDraw, ImageFont
-    import os
-    from django.conf import settings
-    from django.shortcuts import get_object_or_404
-    from django.http import HttpResponse
-
     # --- Fetch objects ---
     result = get_object_or_404(Result, student__id=student_id, exam__id=course_id)
     course = get_object_or_404(Course, id=course_id)
@@ -1474,22 +1452,17 @@ def download_and_share_badge(request, student_id, course_id, rank):
 
     # --- Image settings ---
     size = 800
-    center = (size // 2, size // 2)
-    badge_radius = size // 2 - 25
+    center = size // 2
+    img = Image.new("RGBA", (size, size), (255, 255, 255, 0))  # fully transparent background
+    draw = ImageDraw.Draw(img)
 
-    # --- Base image with full transparency ---
-    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))  # fully transparent
+    # --- Circular badge ---
+    draw.ellipse((0, 0, size, size), fill=(245, 245, 245), outline=badge_color, width=15)
 
-    # --- Circular badge layer ---
-    badge_layer = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(badge_layer)
-    draw.ellipse(
-        (center[0]-badge_radius, center[1]-badge_radius,
-         center[0]+badge_radius, center[1]+badge_radius),
-        fill=(245, 245, 245),
-        outline=badge_color,
-        width=15
-    )
+    # --- Circular mask for edges ---
+    mask = Image.new("L", (size, size), 0)
+    mask_draw = ImageDraw.Draw(mask)
+    mask_draw.ellipse((0, 0, size, size), fill=255)
 
     # --- Logo watermark ---
     logo_path = os.path.join(settings.STATIC_ROOT, "images", "logo.png")
@@ -1499,62 +1472,65 @@ def download_and_share_badge(request, student_id, course_id, rank):
         logo = logo.resize((logo_size, logo_size))
         alpha = logo.split()[3].point(lambda i: i * 0.1)
         logo.putalpha(alpha)
-        badge_layer.paste(logo, (center[0]-logo_size//2, center[1]-logo_size//2), mask=logo)
+        img.paste(logo, (center - logo_size // 2, center - logo_size // 2), mask=logo)
 
-    # --- Fonts ---
-    font_path_bold = os.path.join(settings.STATIC_ROOT, "fonts", "arialbd.ttf")
-    font_path = os.path.join(settings.STATIC_ROOT, "fonts", "arial.ttf")
-    title_font = ImageFont.truetype(font_path_bold, 50)
-    subtitle_font = ImageFont.truetype(font_path, 30)
-    name_font = ImageFont.truetype(font_path_bold, 40)
-    course_font = ImageFont.truetype(font_path_bold, 35)
-    score_font = ImageFont.truetype(font_path_bold, 30)
-    footer_font = ImageFont.truetype(font_path_bold, 25)
+    # --- Fonts from static folder ---
+    font_bold_path = os.path.join(settings.STATIC_ROOT, "fonts", "arialbd.ttf")
+    font_regular_path = os.path.join(settings.STATIC_ROOT, "fonts", "arial.ttf")
+
+    title_font = ImageFont.truetype(font_bold_path, 50)
+    subtitle_font = ImageFont.truetype(font_regular_path, 30)
+    name_font = ImageFont.truetype(font_bold_path, 40)
+    course_font = ImageFont.truetype(font_bold_path, 35)
+    score_font = ImageFont.truetype(font_bold_path, 30)
+    footer_font = ImageFont.truetype(font_bold_path, 25)
 
     # --- Draw texts ---
-    y_start = center[1] - 180
+    y_start = center - 180
     spacing = 60
-    draw.text((center[0], y_start), f"{medal_emoji} {badge_name}", font=title_font, fill=badge_color, anchor="ms")
-    draw.text((center[0], y_start + spacing), "Awarded to:", font=subtitle_font, fill=(0,0,0), anchor="ms")
-    draw.text((center[0], y_start + spacing*2), f"{result.student.first_name} {result.student.last_name}", font=name_font, fill=(0,0,128), anchor="ms")
-    draw.text((center[0], y_start + spacing*3), "For outstanding performance in", font=subtitle_font, fill=(0,0,0), anchor="ms")
-    draw.text((center[0], y_start + spacing*4), f"{course.course_name}", font=course_font, fill=(0,128,0), anchor="ms")
-    draw.text((center[0], y_start + spacing*5), f"Score: {result.marks}%", font=score_font, fill=(0,0,0), anchor="ms")
-    draw.text((center[0], y_start + spacing*6 + 20), "Codethinkers Academy", font=footer_font, fill=(128,128,128), anchor="ms")
+    draw.text((center, y_start), f"{medal_emoji} {badge_name}", font=title_font, fill=badge_color, anchor="ms")
+    draw.text((center, y_start + spacing), "Awarded to:", font=subtitle_font, fill=(0,0,0), anchor="ms")
+    draw.text((center, y_start + spacing*2), f"{result.student.first_name} {result.student.last_name}", font=name_font, fill=(0,0,128), anchor="ms")
+    draw.text((center, y_start + spacing*3), "For outstanding performance in", font=subtitle_font, fill=(0,0,0), anchor="ms")
+    draw.text((center, y_start + spacing*4), f"{course.course_name}", font=course_font, fill=(0,128,0), anchor="ms")
+    draw.text((center, y_start + spacing*5), f"Score: {result.marks}%", font=score_font, fill=(0,0,0), anchor="ms")
+    draw.text((center, y_start + spacing*6 + 20), "Codethinkers Academy", font=footer_font, fill=(128,128,128), anchor="ms")
 
-    # --- Apply circular mask ---
-    mask = Image.new("L", (size, size), 0)
-    mask_draw = ImageDraw.Draw(mask)
-    mask_draw.ellipse((0, 0, size, size), fill=255)
-    img.paste(badge_layer, (0, 0), mask=mask)
+    # --- Apply circular mask for transparent edges ---
+    circular_img = Image.new("RGBA", (size, size), (255,255,255,0))
+    circular_img.paste(img, (0,0), mask=mask)
 
     # --- Save badge ---
     badge_dir = os.path.join(settings.MEDIA_ROOT, "badges")
     os.makedirs(badge_dir, exist_ok=True)
     filename = f"{result.student.first_name}_{badge_name}.png"
     badge_path = os.path.join(badge_dir, filename)
-    img.save(badge_path, "PNG")  # fully transparent corners
+    circular_img.save(badge_path, "PNG")
 
-    # --- Badge URL ---
+    # --- Badge URL for sharing ---
     badge_url = request.build_absolute_uri(os.path.join(settings.MEDIA_URL, "badges", filename))
 
     # --- Social share links ---
     share_links = {
-        "whatsapp": f"https://wa.me/?text=I earned my {badge_name} in {course.course_name} at Codethinkers! Check it out: {badge_url}",
+        "whatsapp": f"https://wa.me/?text=I earned my {badge_name} in {course.course_name} at Codethinkers! Check out my badge: {badge_url}",
         "twitter": f"https://twitter.com/intent/tweet?text=I earned my {badge_name} in {course.course_name} at Codethinkers! 🎓 {badge_url}",
         "linkedin": f"https://www.linkedin.com/sharing/share-offsite/?url={badge_url}",
         "facebook": f"https://www.facebook.com/sharer/sharer.php?u={badge_url}",
     }
 
-    # --- HTML page ---
+    # --- HTML page with circular preview ---
     html_content = f"""
     <html>
     <head>
         <title>{badge_name} Badge</title>
         <style>
             body {{ font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f9f9f9; }}
-            .badge-img {{ border-radius: 50%; max-width: 400px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }}
-            .share-btn {{ margin: 10px; padding: 10px 20px; border-radius: 5px; color: white; text-decoration: none; }}
+            .badge-img {{
+                border-radius: 50%;
+                box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+                max-width: 400px;
+            }}
+            .share-btn {{ margin: 10px; padding: 10px 20px; border: none; border-radius: 5px; color: white; text-decoration: none; }}
             .whatsapp {{ background-color: #25D366; }}
             .twitter {{ background-color: #1DA1F2; }}
             .linkedin {{ background-color: #0077B5; }}
