@@ -9,13 +9,17 @@ from import_export import fields,resources
 from import_export.widgets import ForeignKeyWidget
 from users.models import Profile
 from quiz.models import (
-    Question, Course, Result,Topics,
+    Question, Course, Result,Topics,ExamType, Session, Term,
     QuestionAssessment, TopicsAssessment, ResultAssessment, School
    
     )
 # Register your models here.
 # admin.site.register(Course)
 admin.site.register(School)
+# admin.site.register(Session)
+# admin.site.register(ExamType)
+# admin.site.register(Term)
+
 # admin.site.register(TopicsAssessment)
 class TopicsAssessmentAdmin(admin.ModelAdmin):
     autocomplete_fields = ['course_name']
@@ -25,8 +29,20 @@ class TopicsAssessmentAdmin(admin.ModelAdmin):
 admin.site.register(TopicsAssessment, TopicsAssessmentAdmin)
 
 
-class CourseAdmin(admin.ModelAdmin):
-    list_display = ('id','course_name', 'question_number','total_marks', 'pass_mark', 'duration_minutes')
+class CourseAdmin(admin.ModelAdmin):    
+    list_display = ['show_questions','categories', 'course_name','question_number', 'total_marks', 'pass_mark','num_attemps', 'duration_minutes', 'created']
+    search_fields = ['course_name__title', 'schools__school_name']  # Add search field for course name and school name
+    # autocomplete_fields = ['schools']
+    # actions = [delete_unused_placeholder_courses]
+    
+    
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related('schools', 'course_name')
+
+    def get_school_name(self, obj):
+        return obj.schools.school_name if obj.schools else "Enable Exam"
+    get_school_name.short_description = 'School Name'
 
 admin.site.register(Course, CourseAdmin)
 

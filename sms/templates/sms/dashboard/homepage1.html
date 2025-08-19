@@ -539,63 +539,7 @@ p {
 /* end of the front page statisitc */
 
 /* flip card  */
-.hover-container {
-  display: inline-block;
-  cursor: pointer;
-  position: relative; /* Make the container relative for absolute positioning inside */
-  z-index: 1;
 
-}
-
-.flip-card {
-  width: 340px; /* Adjust the width as needed */
-  height: 0px;
-  perspective: 1000px;
-  transition: transform 0.3s;
-  position: absolute; /* Position the flip card absolutely within the hover container */
-  z-index: 2; 
-  
-}
-@media (min-width: 768px) {
-  .flip-card {
-    width: 800px;
-    padding-left: 20px;
-  }
-}
-.flip-card-inner {
-  position: relative;
-  width: 100%;
-  text-align: left;
-
-  transform-style: preserve-3d;
-  transition: transform 0.6s;
-}
-
-.hover-container:hover .flip-card {
-  transform: scale(1.1); /* Adjust the scaling factor as needed */
-
-
-}
-
-.flip-card-front, .flip-card-back {
-  position: absolute;
-  width: 100%;
-  backface-visibility: hidden;
-}
-
-.flip-card-back {
-  background-color: #f9f9f9; /* Set your desired background color here */
-
-}
-.text {
-  display: block;
-  font-size: 16px; /* Adjust the font size as needed */
-  padding-left: 10px;
-
-}
-.view-latest>*{
-  margin: 5px;
-}
 </style>
 
 <!-- school campaign css -->
@@ -663,7 +607,7 @@ p {
 <!-- end of popup -->
 
 
-<div class="hover-container" style="padding-left: 20px;">
+<!-- <div class="hover-container" style="padding-left: 20px;">
   <div class="flip-card">
     <div class="flip-card-inner">
       <div class="flip-card-front">
@@ -674,7 +618,7 @@ p {
         <div  class="card">
         {% for obj in object_list %}
         
-            <a class="text text-dark" href="{% url 'sms:courseslistdesc' obj.pk %}"> {{obj.title|safe|title}} </a> <hr>
+          <a class="text text-dark" href="{% url 'sms:courseslistdesc' obj.pk %}"> {{obj.title|safe|title}} </a> <hr>
       
         {% endfor %}
       </div>
@@ -682,21 +626,8 @@ p {
       </div>
     </div>
   </div>
-</div>
+</div> -->
 
-<!-- ff
-       
-        <div id="popup">
-          <p>Refer & Earn 50% commission on the certificates purchased by the referee.</p>
-          <p>
-              <a href="{% url 'users:become_referrer' %}">Become a Referrer, Click Here</a>
-             
-          </p>
-          <button onclick="closePopup()">Close</button>
-        </div>
-        
-        <div id="overlay"></div>
-ff -->
 
 <div  class="container">
   <div class="row">

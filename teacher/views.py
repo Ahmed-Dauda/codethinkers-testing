@@ -12,6 +12,25 @@ from teacher import forms as QFORM
 from users.models import NewUser
 
 
+@login_required(login_url='account_login')
+def student_dashboard_view(request):
+    # Fetch the student's profile based on the logged-in user
+    student_profile = NewUser.objects.get(email=request.user.email)
+
+    # Fetch the CourseGrade instances related to the student
+    enrolled_grades = CourseGrade.objects.filter(students=student_profile)
+
+    # Extract course information from the enrolled grades
+    enrolled_courses = [grade.subjects.all() for grade in enrolled_grades]
+
+    context = {
+        'student_profile': student_profile,
+        'enrolled_courses': enrolled_courses,
+    }
+
+    return render(request, 'teacher/dashboard/student_dashboard.html', context)
+
+
 #for showing signup/login button for teacher
 def teacherclick_view(request):
     if request.user.is_authenticated:

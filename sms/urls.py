@@ -53,7 +53,7 @@ app_name = 'sms'
 urlpatterns = [
     
 
-    # path('', Categorieslistview.as_view(), name='categorieslist'),
+    path("download-badge/<int:student_id>/<int:course_id>/<int:rank>/", views.download_and_share_badge, name="download_badge"),
 
     path('ebooks/<int:pk>/', Ebooks.as_view(), name='ebooks'),
     # path('pdf_document_detail/<str:pk>/', pdf_document_detail.as_view(), name='pdf_document_detail'),
@@ -78,8 +78,6 @@ urlpatterns = [
     path('userprofileform', UserProfileForm.as_view(), name ='userprofileform'),
     path('myprofile', UserProfilelistview.as_view(), name ='myprofile'),
 
-    
-    # path('certificates/<pk>/', views.Certificates, name ='certificates'),
     path('certificates/<pk>/', Certdetaillistview.as_view(), name='certificates'),
     path('bloglistview', Bloglistview.as_view(), name ='bloglistview'),
     path('blog/<slug:slug>/', Blogdetaillistview.as_view(), name='blogdetaillistview'),

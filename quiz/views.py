@@ -217,7 +217,7 @@ RULES:
 
 3. After "Learning Objectives – {course_title}":
    - Programming: generate topics with detailed explanation and at least 5 code examples each.
-   - Non-programming or general: generate topics with **exactly 5 paragraphs per description**, no more, no less. Paragraphs must be:
+   - Non-programming or general: generate topics with exactly 5 paragraphs per description, no more, no less. Paragraphs must be:
        1. Substantial, coherent, and instructor-ready for learners to consume directly.
        2. Use "\\n" for line breaks between paragraphs.
        3. The first paragraph must open with a learner-centered hook that clearly states the personal or professional benefit of mastering the topic.
@@ -226,7 +226,7 @@ RULES:
 
         Acceptable formats include:
 
-        Direct benefit statement: "By learning to identify technology types, you can..."
+        Direct benefit statement: "Learning to identify technology types enables you to…" (Do not reuse this exact phrase more than once.)
 
         Action-result framing: "Mastering technology types gives you the ability to..."
 
@@ -291,7 +291,7 @@ RULES:
 
 3. After "Learning Objectives – {course_title}":
    - Programming: generate topics with detailed explanation and at least 5 code examples each.
-   - Non-programming or general: generate topics with **exactly 5 paragraphs per description**, no more, no less. Paragraphs must be:
+   - Non-programming or general: generate topics with exactly 5 paragraphs per description, no more, no less. Paragraphs must be:
        1. Substantial, coherent, and instructor-ready for learners to consume directly.
        2. Use "\\n" for line breaks between paragraphs.
        3. The first paragraph must open with a learner-centered hook that clearly states the personal or professional benefit of mastering the topic.

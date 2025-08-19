@@ -1356,6 +1356,9 @@ class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
     def get_queryset(self):
         return Profile.objects.all()
 
+from django.db.models import OuterRef, Subquery
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 @login_required
 def Admin_detail_view(request, pk):
@@ -1368,30 +1371,320 @@ def Admin_detail_view(request, pk):
         exam_id=OuterRef('exam_id')
     ).order_by('-marks').values('id')
 
-    # Get the results with the highest marks
+    # Get only the highest marks per student for this course
     results = Result.objects.filter(
         id=Subquery(max_q[:1]),
         exam=course
-    ).order_by('-marks')
+    ).select_related('student', 'exam').order_by('-marks')
 
-    # Optionally delete results with marks = 1 that are not the highest
-    Result.objects.filter(
-        id__in=Subquery(max_q[1:]),
-        exam=course,
-        marks=1
-    ).delete()
+    # Process results: calculate percentage, rank, and status
+    show_q = course.show_questions if course.show_questions else 1
+    processed_results = []
+    rank = 0
+    prev_percentage = None
+    actual_rank = 0
 
-    # Count the number of questions in the course
-    questions_count =QMODEL.Question.objects.filter(course=course).count()
+    for res in results:
+        actual_rank += 1
+        percentage = round((res.marks / show_q) * 100, 2) if show_q > 0 else 0
+
+        # Handle ties in ranking
+        if percentage != prev_percentage:
+            rank = actual_rank
+        prev_percentage = percentage
+
+        processed_results.append({
+            'id': res.id,
+            'student': res.student,
+            'exam': res.exam,
+            'marks': res.marks,
+            'percentage': percentage,
+            'rank': rank,
+            'date': res.date,
+            'constant': course.pass_mark or 0,  # pass_mark from course
+        })
 
     context = {
-        'results': results,
+        'results': processed_results,
         'course': course,
         'st': request.user,
-        'q_count': questions_count
     }
 
     return render(request, 'sms/dashboard/admin_details.html', context)
+
+
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+from django.http import HttpResponse
+import os
+
+# Register fonts
+pdfmetrics.registerFont(TTFont('Arial-Bold', 'arialbd.ttf'))
+pdfmetrics.registerFont(TTFont('Arial', 'arial.ttf'))
+# Register custom font
+# Register fonts
+pdfmetrics.registerFont(TTFont('Arial-Bold', 'arialbd.ttf'))
+pdfmetrics.registerFont(TTFont('Arial', 'arial.ttf'))
+
+from PIL import Image, ImageDraw, ImageFont
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+import os
+from PIL import Image, ImageDraw, ImageFont
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.conf import settings
+import os
+
+from PIL import Image, ImageDraw, ImageFont
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+import os
+from django.conf import settings
+def download_and_share_badge(request, student_id, course_id, rank):
+    from PIL import Image, ImageDraw, ImageFont
+    import os
+    from django.conf import settings
+    from django.shortcuts import get_object_or_404
+    from django.http import HttpResponse
+
+    # --- Fetch objects ---
+    result = get_object_or_404(Result, student__id=student_id, exam__id=course_id)
+    course = get_object_or_404(Course, id=course_id)
+
+    # --- Badge type ---
+    badge_name = "Participant"
+    badge_color = (0, 0, 0)
+    medal_emoji = ""
+    if rank == 1:
+        badge_name = "GOLD BADGE"
+        badge_color = (255, 215, 0)
+        medal_emoji = "🏆"
+    elif rank == 2:
+        badge_name = "SILVER BADGE"
+        badge_color = (192, 192, 192)
+        medal_emoji = "🥈"
+    elif rank == 3:
+        badge_name = "BRONZE BADGE"
+        badge_color = (205, 127, 50)
+        medal_emoji = "🥉"
+
+    # --- Image settings ---
+    size = 800
+    center = (size // 2, size // 2)
+    badge_radius = size // 2 - 25
+
+    # --- Base image with full transparency ---
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))  # fully transparent
+
+    # --- Circular badge layer ---
+    badge_layer = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(badge_layer)
+    draw.ellipse(
+        (center[0]-badge_radius, center[1]-badge_radius,
+         center[0]+badge_radius, center[1]+badge_radius),
+        fill=(245, 245, 245),
+        outline=badge_color,
+        width=15
+    )
+
+    # --- Logo watermark ---
+    logo_path = os.path.join(settings.STATIC_ROOT, "images", "logo.png")
+    if os.path.exists(logo_path):
+        logo = Image.open(logo_path).convert("RGBA")
+        logo_size = 150
+        logo = logo.resize((logo_size, logo_size))
+        alpha = logo.split()[3].point(lambda i: i * 0.1)
+        logo.putalpha(alpha)
+        badge_layer.paste(logo, (center[0]-logo_size//2, center[1]-logo_size//2), mask=logo)
+
+    # --- Fonts ---
+    font_path_bold = os.path.join(settings.STATIC_ROOT, "fonts", "arialbd.ttf")
+    font_path = os.path.join(settings.STATIC_ROOT, "fonts", "arial.ttf")
+    title_font = ImageFont.truetype(font_path_bold, 50)
+    subtitle_font = ImageFont.truetype(font_path, 30)
+    name_font = ImageFont.truetype(font_path_bold, 40)
+    course_font = ImageFont.truetype(font_path_bold, 35)
+    score_font = ImageFont.truetype(font_path_bold, 30)
+    footer_font = ImageFont.truetype(font_path_bold, 25)
+
+    # --- Draw texts ---
+    y_start = center[1] - 180
+    spacing = 60
+    draw.text((center[0], y_start), f"{medal_emoji} {badge_name}", font=title_font, fill=badge_color, anchor="ms")
+    draw.text((center[0], y_start + spacing), "Awarded to:", font=subtitle_font, fill=(0,0,0), anchor="ms")
+    draw.text((center[0], y_start + spacing*2), f"{result.student.first_name} {result.student.last_name}", font=name_font, fill=(0,0,128), anchor="ms")
+    draw.text((center[0], y_start + spacing*3), "For outstanding performance in", font=subtitle_font, fill=(0,0,0), anchor="ms")
+    draw.text((center[0], y_start + spacing*4), f"{course.course_name}", font=course_font, fill=(0,128,0), anchor="ms")
+    draw.text((center[0], y_start + spacing*5), f"Score: {result.marks}%", font=score_font, fill=(0,0,0), anchor="ms")
+    draw.text((center[0], y_start + spacing*6 + 20), "Codethinkers Academy", font=footer_font, fill=(128,128,128), anchor="ms")
+
+    # --- Apply circular mask ---
+    mask = Image.new("L", (size, size), 0)
+    mask_draw = ImageDraw.Draw(mask)
+    mask_draw.ellipse((0, 0, size, size), fill=255)
+    img.paste(badge_layer, (0, 0), mask=mask)
+
+    # --- Save badge ---
+    badge_dir = os.path.join(settings.MEDIA_ROOT, "badges")
+    os.makedirs(badge_dir, exist_ok=True)
+    filename = f"{result.student.first_name}_{badge_name}.png"
+    badge_path = os.path.join(badge_dir, filename)
+    img.save(badge_path, "PNG")  # fully transparent corners
+
+    # --- Badge URL ---
+    badge_url = request.build_absolute_uri(os.path.join(settings.MEDIA_URL, "badges", filename))
+
+    # --- Social share links ---
+    share_links = {
+        "whatsapp": f"https://wa.me/?text=I earned my {badge_name} in {course.course_name} at Codethinkers! Check it out: {badge_url}",
+        "twitter": f"https://twitter.com/intent/tweet?text=I earned my {badge_name} in {course.course_name} at Codethinkers! 🎓 {badge_url}",
+        "linkedin": f"https://www.linkedin.com/sharing/share-offsite/?url={badge_url}",
+        "facebook": f"https://www.facebook.com/sharer/sharer.php?u={badge_url}",
+    }
+
+    # --- HTML page ---
+    html_content = f"""
+    <html>
+    <head>
+        <title>{badge_name} Badge</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f9f9f9; }}
+            .badge-img {{ border-radius: 50%; max-width: 400px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }}
+            .share-btn {{ margin: 10px; padding: 10px 20px; border-radius: 5px; color: white; text-decoration: none; }}
+            .whatsapp {{ background-color: #25D366; }}
+            .twitter {{ background-color: #1DA1F2; }}
+            .linkedin {{ background-color: #0077B5; }}
+            .facebook {{ background-color: #3b5998; }}
+            .download {{ background-color: #555555; }}
+        </style>
+    </head>
+    <body>
+        <h1>{medal_emoji} {badge_name}</h1>
+        <img class="badge-img" src="{badge_url}" alt="Badge"/><br><br>
+        <a href="{badge_url}" download class="share-btn download">Download Badge</a><br><br>
+        <a href="{share_links['whatsapp']}" target="_blank" class="share-btn whatsapp">Share on WhatsApp</a>
+        <a href="{share_links['twitter']}" target="_blank" class="share-btn twitter">Share on Twitter</a>
+        <a href="{share_links['linkedin']}" target="_blank" class="share-btn linkedin">Share on LinkedIn</a>
+        <a href="{share_links['facebook']}" target="_blank" class="share-btn facebook">Share on Facebook</a>
+    </body>
+    </html>
+    """
+    return HttpResponse(html_content)
+
+
+# def download_badge_image(request, student_id, course_id, rank):
+#     result = get_object_or_404(Result, student__id=student_id, exam__id=course_id)
+#     course = get_object_or_404(Course, id=course_id)
+
+#     # --- Badge type ---
+#     badge_name = "Participant"
+#     badge_color = (0, 0, 0)
+#     medal_emoji = ""
+#     if rank == 1:
+#         badge_name = "GOLD BADGE"
+#         badge_color = (255, 215, 0)
+#         medal_emoji = "🏆"
+#     elif rank == 2:
+#         badge_name = "SILVER BADGE"
+#         badge_color = (192, 192, 192)
+#         medal_emoji = "🥈"
+#     elif rank == 3:
+#         badge_name = "BRONZE BADGE"
+#         badge_color = (205, 127, 50)
+#         medal_emoji = "🥉"
+
+#     # --- Image settings ---
+#     width, height = 800, 800
+#     center = (width // 2, height // 2)
+#     badge_radius = 350
+#     img = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+#     draw = ImageDraw.Draw(img)
+
+#     # --- Circular background ---
+#     draw.ellipse([
+#         (center[0] - badge_radius, center[1] - badge_radius),
+#         (center[0] + badge_radius, center[1] + badge_radius)
+#     ], fill=(245, 245, 245), outline=badge_color, width=15)
+
+#     # --- Logo watermark ---
+#     logo_path = os.path.join("static", "images", "logo.png")
+#     if os.path.exists(logo_path):
+#         logo = Image.open(logo_path).convert("RGBA")
+#         logo = logo.resize((150, 150))
+#         alpha = logo.split()[3].point(lambda i: i * 0.1)
+#         logo.putalpha(alpha)
+#         img.paste(logo, (center[0]-75, center[1]-75), mask=logo)
+
+#     # --- Fonts ---
+#     font_path_bold = os.path.join("static", "fonts", "arialbd.ttf")
+#     font_path = os.path.join("static", "fonts", "arial.ttf")
+#     title_font = ImageFont.truetype(font_path_bold, 50)
+#     subtitle_font = ImageFont.truetype(font_path, 30)
+#     name_font = ImageFont.truetype(font_path_bold, 40)
+#     course_font = ImageFont.truetype(font_path_bold, 35)
+#     score_font = ImageFont.truetype(font_path_bold, 30)
+#     footer_font = ImageFont.truetype(font_path_bold, 25)
+
+#     # --- Draw texts ---
+#     y_start = center[1] - 180
+#     spacing = 60
+#     draw.text((center[0], y_start), f"{medal_emoji} {badge_name}", font=title_font, fill=badge_color, anchor="ms")
+#     draw.text((center[0], y_start + spacing), "Awarded to:", font=subtitle_font, fill=(0,0,0), anchor="ms")
+#     draw.text((center[0], y_start + spacing*2), f"{result.student.first_name} {result.student.last_name}", font=name_font, fill=(0,0,128), anchor="ms")
+#     draw.text((center[0], y_start + spacing*3), "For outstanding performance in", font=subtitle_font, fill=(0,0,0), anchor="ms")
+#     draw.text((center[0], y_start + spacing*4), f"{course.course_name}", font=course_font, fill=(0,128,0), anchor="ms")
+#     draw.text((center[0], y_start + spacing*5), f"Score: {result.marks}%", font=score_font, fill=(0,0,0), anchor="ms")
+#     draw.text((center[0], y_start + spacing*6 + 20), "Codethinkers Academy", font=footer_font, fill=(128,128,128), anchor="ms")
+
+#     # --- Return response with forced download ---
+#     response = HttpResponse(content_type="image/png")
+#     filename = f"{result.student.first_name}_{badge_name}.png"
+#     response['Content-Disposition'] = f'attachment; filename="{filename}"'
+#     img.save(response, "PNG")
+#     return response
+
+
+# @login_required
+# def Admin_detail_view(request, pk):
+#     course = get_object_or_404(Course, id=pk)
+#     student = get_object_or_404(Profile, user_id=request.user.id)
+
+#     # Find the max marks for each exam and student combination
+#     max_q = Result.objects.filter(
+#         student_id=OuterRef('student_id'),
+#         exam_id=OuterRef('exam_id')
+#     ).order_by('-marks').values('id')
+
+#     # Get the results with the highest marks
+#     results = Result.objects.filter(
+#         id=Subquery(max_q[:1]),
+#         exam=course
+#     ).order_by('-marks')
+
+#     # Optionally delete results with marks = 1 that are not the highest
+#     Result.objects.filter(
+#         id__in=Subquery(max_q[1:]),
+#         exam=course,
+#         marks=1
+#     ).delete()
+
+#     # Count the number of questions in the course
+#     questions_count =QMODEL.Question.objects.filter(course=course).count()
+
+#     context = {
+#         'results': results,
+#         'course': course,
+#         'st': request.user,
+#         'q_count': questions_count
+#     }
+
+#     return render(request, 'sms/dashboard/admin_details.html', context)
+
+
 
 # @login_required
 # def Admin_detail_view(request,pk):

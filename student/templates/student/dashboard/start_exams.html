@@ -1,5 +1,5 @@
 
-{% extends 'sms/dashboard/base.html' %}
+{% extends 'sms/dashboard/startexambase.html' %}
 
 
 {% load hitcount_tags %}
@@ -7,32 +7,52 @@
 {% load embed_video_tags %}
 {% block title %} Courses list view page {% endblock %}
 
+{% block content %} 
 
-{% block content %}    
-    
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.1/css/dataTables.dataTables.css">
-    <!-- Include necessary libraries (jQuery and DataTables) -->
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+
+<script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js"></script>
     
-    <!-- prism.css and prism.js -->
-    <link rel="stylesheet" type="text/css" href="/static/sms/prism.css">
-    <script src="/static/sms/prism.js"> </script>
-    
-
-     <!-- bootsrap back arrow-->
-     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">    
-      <!-- bootstrap link -->
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-      
+ <!-- Load MathJax for MathML rendering -->
   
-
 <style>
+div.quiz p {
+  text-align: left;
+}
+
+.quiz p {
+  text-align: left;
+}
+.quiz {
+  width: 100%;
+  display: flex;
+  border: 1px solid #ccc;
+
+}
+
+.quiz > * {
+  margin: 10px;
+  overflow-x: hidden;
+}
+
+.quiz input[type="radio"] {
+  transform: scale(1.5);
+  margin-right: 10px;
+}
+
+.quiz p {
+  text-align: left; /* Align paragraph text to the left */
+}
+
   
 .quiz {
   width: 100%;
   display: flex;
-  cursor: pointer;
   border: 1px solid #ccc; /* Add border to the .quiz container */
  
 }
@@ -46,8 +66,7 @@
 .quiz input[type="radio"] {
     transform: scale(1.5); /* Increase the size by adjusting the scale value */
     margin-right: 10px; /* Add some spacing between the radio input and label */
-    /* margin-top: -2px; */
-   
+    /* margin-top: -2px; */ 
 }
 
 .custom-container {
@@ -58,17 +77,8 @@
   margin: 5px; /* Add margin to separate entries */
 
 }
-/* .custom-td {
-  display: inline;
-  padding: 5px;
-  background-color: green; 
-  width: 100%;
-  color: white;
-} */
-      </style>
-   <!-- mark as completed -->
 
-<style>
+
   .pagination-box {
       display: inline-block;
       width: 100px;
@@ -84,793 +94,925 @@
       /* background-color: #00ff00; */
       background-color: rgb(211, 247, 211);
   }
-  </style>   
 
+/* desktop view of fixed header */
+  .question-table {
+            margin-top: 10px;
+            padding-top: 80px;
+        }
 
+    /* small screen view */
 
+    /* Default styles */
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
  
-  <script>
-  function goBack() {
-    window.history.back();
+/* new css  */
+ div.dataTables_wrapper div.dataTables_paginate {
+        float:none; text-align:center
+    } 
+</style>
+
+<style>
+  .custom-page-number {
+    cursor: pointer;
+    padding: 5px;
+    margin: 2px;
+    border: 1px solid #ccc;
+    user-select: none;
   }
- 
-  </script>
+  .active-page {
+    font-weight: bold;
+    text-decoration: underline;
+  }
+  .answered-page {
+    background-color: green;
+    color: white !important;
+    border-radius: 4px;
+  }
+  math {
+  font-size: 1.2em;
+  margin: 0 4px;
+  vertical-align: middle;
+}
 
- <!-- <h1>{{quiz_end_time}}</h1>  -->
+</style>
+
+<style>
+  #calculator button {
+    width: 48px;
+    height: 36px;
+    margin: 2px;
+    font-size: 14px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+  }
+
+  #calculator button:hover {
+    background-color: #e9ecef;
+  }
+</style>
 
 
- <!-- quiz timer  -->
- <div class='sticky-top' style="position: fixed; top: 70px; width: 100%; z-index: 1000;">
-  <div class="row justify-content-left">
-    <div class="col-mx-auto">
-      <div class="alert alert-success" role="alert">
-        <center>
-          <div id="timer" style="font-size: 20px; margin-bottom: 10px;">00:00</div>
-          <div style="display: flex; align-items: center; width: 80%; max-width: 600px; margin: 0 auto;">
-              <div style="flex: 1;">
-                  <div class="progress" style="height: 25px; background-color: #e9ecef;">
-                      <div class="progress-bar bg-success" 
-                           role="progressbar" 
-                           style="width: 0%; height: 100%; line-height: 25px; text-align: center; color: #fff;" 
-                           aria-valuenow="0" 
-                           aria-valuemin="0" 
-                           aria-valuemax="100">
-                          0% Complete
-                      </div>
-                  </div>
-              </div>
-              <div style="margin-left: 20px; font-size: 18px;">
-                  Welcome, {{ request.user.first_name }}, {{ request.user.last_name|upper }}
-              </div>
-          </div>
-      </center>
+<!-- MathJax for math rendering -->
+
+<form novalidate autocomplete="off" class="no-copy" id="quizf" action="/student/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
+    {% csrf_token %}
+
+    <input type="hidden" name="csrfmiddlewaretoken" value="C24rUotmdHawVQJL3KrqiWxvti8UffOFYUc8TRbZtLt36AVLdP3jbkzUVe3beRAa">
+   
+
+    <div class="sticky-top bg-light border-bottom shadow-sm py-2">
+  <div class="container-fluid">
+    <div class="row align-items-center text-center text-md-start">
       
-      
-        <!-- <center>
-          <div id="timer">00:00</div>
-          <div class="progress mt-4">
-          <div class="progress-bar bg-success" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0% Complete</div>
-        </div>
-        </center> -->
-        
+      <!-- Timer -->
+      <div class="col-12 col-md-4 mb-2 mb-md-0">
+        <div id="timer" class="fw-bold text-dark fs-4">00:00</div>
       </div>
-      
+
+      <!-- Exam Information -->
+      <div class="col-12 col-md-8">
+        <h6 class="fw-bold small text-uppercase mb-1">{{ course.course_name }}</h6>
+        <p class="mb-1">Number of Questions: {{ q_count }}</p>
+        <h5 class="fw-bold text-dark mb-0">
+          {{ request.user.first_name|upper }} {{ request.user.last_name|upper }}
+        </h5>
+      </div>
+
     </div>
   </div>
 </div>
- <!-- <div class='sticky-top' style="position: fixed; top: 70px; width: 100%; z-index: 1000;">
-  <div class="row justify-content-left">
-    <div class="col-mx-auto">
-      <div class="alert alert-success" role="alert">
-        <center><div id="timer">00:00</div></center>
-      </div>
-    </div>
-  </div>
-</div> -->
-<br> <br>
-<!--end quiz timer  -->
 
-
-  <div class="card">
-  <div class="card-header">
-   
-<hr>
-
-<form id="quizf" action="/student/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
-  {% csrf_token %}
-  <span style="padding: 5px 10px;font-size: 30px;" onclick="goBack()" class="bi bi-arrow-left "></span>
-
-  <input type="hidden" name="csrfmiddlewaretoken" value="C24rUotmdHawVQJL3KrqiWxvti8UffOFYUc8TRbZtLt36AVLdP3jbkzUVe3beRAa">
-    <h4>{{course.course_name}} Quiz</h4>
-    <h5>Number of Questions in the Quiz: {{q_count}}</h5>
-    <!-- <hr>
-    <p>pages {{page_obj}}</p> -->
-    
-    <hr>
-    <table id="example" class="display question-table" style="width:100%">
+    <table id="example" class="display question-table" style="width:98%;">
 
       <thead>
           <tr>
     
           </tr>
       </thead>
+     
       <tbody>
     
         {% for q in  page_obj %}
-          <tr>
+        <tr>
             <td colspan="4">
+            {% if q.img_quiz.url %}
+              <div  class="text-center" >
+                <img src="{{q.img_quiz.url|safe}}"  width="40%" height="250px" alt=""> 
+            </div><br>
+              {% endif %}
+          
               {% if q.img_quiz.url %}
-                <div  class="text-center" ><img src="{{q.img_quiz.url}}"  width="40%" height="250px" alt=""> </div><br>
-                {% endif %}
+              <label style="font-size: 18px; text-align: center; display: block;">
+              {{ q.question|safe }}
+            </label>
             
-                {% if q.img_quiz.url %}
-                <label style="font-size: 18px; text-align: center; display: block;">
-                  {{ q.question|safe }}
-                </label>
-                {% else %}
-                <label style="font-size: 18px;">
-                  {{ q.question|safe }}
-                </label>
-
-                {% endif %}
-                
-                <h6 style="text-align: right;">[marks {{q.marks}}]</h6>
+              {% else %}
+              <label style="font-size: 18px;">
+                {{ q.question|safe }}
+              </label>
     
-                {% if q.option1 %}
-                <div class="quiz"> 
-                  <input  class="radio-button"  type="radio" name="{{forloop.counter}}" id="option1"  value="Option1"  required>
-                  <label style="width: 100%;" data-original-text="{{ q.option1|safe|striptags }}" for="option1" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left"> {{q.option1|safe}}</label>
-                </div> 
-                {% endif %}
-              {% if q.option2 %}
-                <div class="quiz">
-                  <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option2"  value="Option2"  required>
-                  <label style="width: 100%;" data-original-text="{{ q.option2|safe|striptags }}" for="option2" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button  text-left">{{q.option2|safe}}</label>
-                </div>
-                
-                {% endif %}
-            {% if q.option3 %}
-                <div class="quiz" >
-                  <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option3"  value="Option3"  required>
-                  <label style="width: 100%;" data-original-text="{{ q.option3|safe|striptags }}" for="option3" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button  text-left">{{q.option3|safe}}</label>
-                </div>
-                {% endif %}
-            {% if q.option4 %}
-                <div class="quiz" >
-                  <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option4"  value="Option4"  required>
-                  
-                  <label style="width: 100%;" data-original-text="{{ q.option4|safe|striptags }}"  for="option4" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button text-left">{{q.option4|safe}}</label><br>
-                </div>
-                {% endif %}
+              {% endif %}
               
-              </td>
-          </tr>
-          {% endfor %}
+              <h6 style="text-align: right;">[marks {{q.marks}}]</h6>
+
+              
+  
+              {% if q.option1 %}
+                <div class="quiz">
+                    <div class="radio-container">
+                        <input class="radio-button" 
+                            type="radio" 
+                            name="{{ q.id }}" 
+                            id="option1-{{ q.id }}" 
+                            value="Option1" required>
+                        <label for="option1-{{ q.id }}">
+                            {{ q.option1|safe }}
+                        </label>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if q.option2 %}
+                <div class="quiz">
+                    <div class="radio-container">
+                        <input class="radio-button" 
+                            type="radio" 
+                            name="{{ q.id }}" 
+                            id="option2-{{ q.id }}" 
+                            value="Option2" required>
+                        <label for="option2-{{ q.id }}">
+                            {{ q.option2|safe }}
+                        </label>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if q.option3 %}
+                <div class="quiz">
+                    <div class="radio-container">
+                        <input class="radio-button" 
+                            type="radio" 
+                            name="{{ q.id }}" 
+                            id="option3-{{ q.id }}" 
+                            value="Option3" required>
+                        <label for="option3-{{ q.id }}">
+                            {{ q.option3|safe }}
+                        </label>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if q.option4 %}
+                <div class="quiz">
+                    <div class="radio-container">
+                        <input class="radio-button" 
+                            type="radio" 
+                            name="{{ q.id }}" 
+                            id="option4-{{ q.id }}" 
+                            value="Option4" required>
+                        <label for="option4-{{ q.id }}">
+                            {{ q.option4|safe }}
+                        </label>
+                    </div>
+               </div>
+                {% endif %}
+
+            </td>
+
+        </tr>
+        {% endfor %}
         
       </tbody>
-    
+   
     </table>
     
-   
 </form> 
 
-<!-- <div style="display: flex; justify-content: space-between;">
-  <button id="qui" onclick="disp()" class="btn btn-primary" type="submit">Submit</button>
-</div> -->
-<button id="submit" type="submit" >Submit Quiz</button>
+<!-- Button with inline CSS -->
 
-
-<br>
-  <div id="paginationBoxes"></div>
-
+<div onclick="resetTabSwitchCount();" class="container buttonheight" style="display: flex; justify-content: center; align-items: center; padding: 20px;">
+    <button   class="submit-button" id="submit" type="submit" 
+        style="background-color: #28a745; max-height: 50px; border-radius: 10px; border: none; color: white; font-size: 16px; padding: 10px 20px; margin: 0 5px; cursor: pointer; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); transition: background-color 0.3s ease, transform 0.2s ease;"
+        onmouseover="this.style.backgroundColor='#218838';"
+        onmouseout="this.style.backgroundColor='#28a745';"
+        onmousedown="this.style.backgroundColor='#1e7e34'; this.style.transform='scale(0.98)';"
+        onmouseup="this.style.backgroundColor='#218838'; this.style.transform='scale(1)';">
+        Submit
+    </button>
+ <div id="paginationWrapper" style="text-align: center; margin-top: 20px;">
+    <div id="paginationBoxes"></div>
 </div>
+
+    </div>
 </div>
 
 
-<!-- new js -->
-<script> 
 
+<script>
 $.fn.dataTable.ext.errMode = 'none';
+
+function isMobileView() {
+    return window.innerWidth <= 768;
+}
 
 var table = $('#example').DataTable({
     pageLength: 1,
-    order: [[3, 'desc']],
-    lengthChange: false, 
-    sDom: 'lrtip',
-    "ordering": false,
-   
-    dom: '<"top"fi>rt<"bottom"lp><"clear">',
+    lengthChange: false,
+    stateSave: true,
+    ordering: false,
+    dom: 'rtp',
+    pagingType: "simple", 
+    // pagingType: isMobileView() ? "simple" : "full_numbers",
     columnDefs: [
-        {
-            orderable: false,
-            targets: [1, 2, 3]
-        }
+        { orderable: false, targets: [1, 2, 3] }
     ]
-
-    
 });
 
-  
-  // $(document).ready(function() {
-  //     $('#submit').on('click', function (e) {
-  //         // Show a confirmation dialog
-  //         var confirmation = confirm("Are you sure you want to submit the quiz?");
-          
-  //         // If the user confirms, proceed with the submission
-  //         if (confirmation) {
-            
-  //             // Prevent the default form submission behavior
-  //             e.preventDefault();
-  //             // Serialize the input and select elements
-  //               // Gather form data
-  //   var formData = table.$('input, select').serialize(); // Serialize the form data within the table
-  //   var dataArray = formData.split('&'); // Split the serialized data into an array of key-value pairs
-  //   var pageInfo = table.page.info();
-  //   // Extract the total number of pages
-  //   var totalPages = pageInfo.pages;
+// ✅ Restore last visited page after table is initialized
+const lastPage = parseInt(localStorage.getItem('lastVisitedPage') || 0);
+table.page(lastPage).draw(false);
 
-  //   // Process each key-value pair
-  //   var quizData = {};
-  //   for (var i = 0; i < dataArray.length; i++) {
-  //       var keyValue = dataArray[i].split('=');
-  //       var questionIndex = parseInt(keyValue[0]);
-  //       var answer = keyValue[1];
-  //       quizData[questionIndex] = answer;
-  //   }
+var answeredPages = {};
 
-  //   // Convert data to JSON
-  //   var jsonData = JSON.stringify(quizData);
+function checkIfPageAnswered(pageNumber) {
+    const pageInfo = table.page.info();
+    const length = pageInfo.length;
+    const startIndex = pageNumber * length;
+    const endIndex = startIndex + length;
+    const rows = table.rows({ order: 'applied' }).nodes();
+    const pageRows = $(rows).slice(startIndex, endIndex);
 
-  //   console.log("jsonData", jsonData);
-  //             // Send the data to the calculate_marks view using AJAX
-  //             $.ajax({
-  //                 type: "POST",
-  //                 url: "/student/calculate_marks", // URL of the calculate_marks view
-  //                 data: jsonData,
-  //                 success: function(response) {
-
-  //                     // You can do further processing based on the response here
-  //                 },
-  //                 error: function(xhr, status, error) {
-  //                     // Handle error
-  //                     console.error("Error:", error);
-  //                 }
-  //             });
-  
-  //             // Or perform other actions based on your application logic
-  //             alert("Quiz submitted successfully!");
-  //             window.location.href = "{% url 'student:view_result' %}";
-  //             // alert('The following data would have been submitted to the server: \n\n' + data);
-    
-  //         }
-
-  //       });
-  //     });
-
-//   $(document).ready(function() {
-//     $('#submit').on('click', function (e) {
-//         // Show a confirmation dialog
-//         var confirmation = confirm("Are you sure you want to submit the quiz?");
-        
-//         // If the user confirms, proceed with the submission
-//         if (confirmation) {
-//             // Prevent the default form submission behavior
-//             e.preventDefault();
-
-//             // Serialize the input and select elements
-//             // Gather form data
-//             var formData = table.$('input, select').serialize(); // Serialize the form data within the table
-//             var dataArray = formData.split('&'); // Split the serialized data into an array of key-value pairs
-//             var pageInfo = table.page.info();
-//             // Extract the total number of pages
-//             var totalPages = pageInfo.pages;
-
-//             // Process each key-value pair
-//             var quizData = {};
-//             for (var i = 0; i < dataArray.length; i++) {
-//                 var keyValue = dataArray[i].split('=');
-//                 var questionIndex = parseInt(keyValue[0]);
-//                 var answer = keyValue[1];
-//                 quizData[questionIndex] = answer;
-//             }
-
-//             // Convert data to JSON
-//             var jsonData = JSON.stringify(quizData);
-
-//             // Send the data to the calculate_marks view using AJAX
-//             $.ajax({
-//                 type: "POST",
-//                 url: "/student/calculate_marks", // URL of the calculate_marks view
-//                 data: jsonData,
-//                 success: function(response) {
-//                     // Clear the timer local storage
-//                     localStorage.removeItem('remainingTime');
-//                     // You can do further processing based on the response here
-//                 },
-//                 error: function(xhr, status, error) {
-//                     // Handle error
-//                     console.error("Error:", error);
-//                 }
-//             });
-
-//             // Or perform other actions based on your application logic
-//             alert("Quiz submitted successfully!");
-//             window.location.href = "{% url 'student:view_result' %}";
-//             // alert('The following data would have been submitted to the server: \n\n' + data);
-//         }
-//     });
-// });
-
-  </script>
-
-
-
-<!-- end of new js -->
-    <!-- end of quiz timer --> 
-
-    <script>
-$(document).ready(function() {
-    var timerInterval; // Variable to store the timer interval ID
-    var timerElement = document.getElementById('timer'); // Define timerElement here
-
-    // Function to update the timer
-    function updateTimer(time) {
-        let storedTime = localStorage.getItem('remainingTime');
-        let remainingTime;
-
-        if (storedTime !== null) {
-            remainingTime = parseInt(storedTime);
-        } else {
-            remainingTime = time * 60; // Convert minutes to seconds
-            localStorage.setItem('remainingTime', remainingTime);
-        }
-
-        const timer = setInterval(() => {
-            let minutes = Math.floor(remainingTime / 60);
-            let seconds = remainingTime % 60;
-
-            let displayMinutes = minutes < 10 ? '0' + minutes : minutes;
-            let displaySeconds = seconds < 10 ? '0' + seconds : seconds;
-
-            timerElement.innerHTML = `<b>Time Left: ${displayMinutes}:${displaySeconds}</b>`;
-
-            if (remainingTime <= 0) {
-                clearInterval(timer);
-                localStorage.removeItem('remainingTime');
-                submitQuiz(); // Call the function to submit the quiz when time is over
-                return;
-            }
-
-            remainingTime--;
-            localStorage.setItem('remainingTime', remainingTime); // Update stored remaining time
-        }, 1000);
-
-        // Store the timer interval ID
-        timerInterval = timer;
-    }
-
-    // Call the updateTimer function
-    updateTimer({{ course.duration_minutes }});
-
-    // Event handler for manual submit button click
-    $('#submit').on('click', function (e) {
-        var confirmation = confirm("Are you sure you want to submit the quiz?");
-        if (confirmation) {
-            e.preventDefault();
-            
-            // Clear timer interval and local storage
-            clearInterval(timerInterval);
-            localStorage.removeItem('remainingTime');
-            
-            // Restart the timer
-            updateTimer({{ course.duration_minutes }});
-            
-            // Proceed with the quiz submission
-            var formData = table.$('input, select').serialize();
-            var dataArray = formData.split('&');
-            var quizData = {};
-            for (var i = 0; i < dataArray.length; i++) {
-                var keyValue = dataArray[i].split('=');
-                var questionIndex = parseInt(keyValue[0]);
-                var answer = keyValue[1];
-                quizData[questionIndex] = answer;
-            }
-            var jsonData = JSON.stringify(quizData);
-
-            $.ajax({
-                type: "POST",
-                url: "/student/calculate_marks",
-                data: jsonData,
-                success: function(response) {
-                    alert("Quiz submitted successfully!");
-                    window.location.href = "{% url 'student:view_result' %}";
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error:", error);
-                }
-            });
-        }
+    let answered = false;
+    pageRows.find('input[type=checkbox]:checked, input[type=radio]:checked').each(function() {
+        answered = true;
+        return false;
     });
-});
-
-
-document.addEventListener('DOMContentLoaded', function() {
-    var endTime = new Date("{{ quiz_end_time|date:"Y-m-d\TH:i:s" }}").getTime();
-    var timerElement = document.getElementById('timer');
-    var quizForm = document.getElementById('quizf');
-
-    // Function to update the time
-    
-    function updateTimer(time, timerElement) {
-        let storedTime = localStorage.getItem('remainingTime');
-        let remainingTime;
-
-        if (storedTime !== null) {
-            remainingTime = parseInt(storedTime);
-        } else {
-            remainingTime = time * 60; // Convert minutes to seconds
-            localStorage.setItem('remainingTime', remainingTime);
-        }
-
-        const timer = setInterval(() => {
-            let minutes = Math.floor(remainingTime / 60);
-            let seconds = remainingTime % 60;
-
-            let displayMinutes = minutes < 10 ? '0' + minutes : minutes;
-            let displaySeconds = seconds < 10 ? '0' + seconds : seconds;
-
-            timerElement.innerHTML = `<b>Time Left: ${displayMinutes}:${displaySeconds}</b>`;
-
-            if (remainingTime <= 0) {
-                clearInterval(timer);
-                localStorage.removeItem('remainingTime');
-                // submitQuiz(); // Call the function to submit the quiz when time is over
-                return;
-            }
-            if (minutes <= 0 && seconds <= 0) {
-                clearInterval(timer);
-                localStorage.removeItem('remainingTime');
-                submitQuiz(); // Call the function to submit the quiz when time is over
-            }
-
-            remainingTime--;
-            localStorage.setItem('remainingTime', remainingTime); // Update stored remaining time
-        }, 1000);
-
-        // Store the timer interval ID
-        window.timerInterval = timer; // Assigning to a global variable
-    }
-
-    // Call the updateTimer function
-    updateTimer({{ course.duration_minutes }}, timerElement); // Pass timerElement
-});
-
-        // function updateTimer(time) {
-        //   if (time.toString().length < 2) {
-        //     timerElement.innerHTML = `<b>0${time}:00</b>`;
-        //   } else {
-        //     timerElement.innerHTML = `<b>${time}:00</b>`;
-        //   }
-    
-        //   let minutes = time;
-        //   let seconds = 0;
-        //   let displaySeconds;
-        //   let displayMinutes;
-       
-        //   const timer = setInterval(() => {
-        //     seconds--;
-        //     if (seconds < 0) {
-        //       seconds = 59;
-        //       minutes--;
-        //     }
-            
-    
-        //     if (minutes.toString().length < 2) {
-        //       displayMinutes = '0' + minutes;
-        //     } else {
-        //       displayMinutes = minutes;
-        //     }
-        //     if (seconds.toString().length < 2) {
-        //       displaySeconds = '0' + seconds;
-        //     } else {
-        //       displaySeconds = seconds;
-        //     }
-        //     if (minutes <= 0 && seconds <= 0) {
-        //       clearInterval(timer);
-        //       submitQuiz(); // Call the function to submit the quiz when time is over
-        //     }
-    
-        //     timerElement.innerHTML = `<b>Time Left: ${displayMinutes}:${displaySeconds}</b>`;
-        //   }, 1000);
-        // }
-
-  
-function submitQuiz() {
-    // Clear local storage
-    localStorage.clear();
- 
-    // Gather form data
-    var formData = table.$('input, select').serialize(); // Serialize the form data within the table
-    var dataArray = formData.split('&'); // Split the serialized data into an array of key-value pairs
-    var pageInfo = table.page.info();
-    // Extract the total number of pages
-    var totalPages = pageInfo.pages;
-
-    // Process each key-value pair
-    var quizData = {};
-    for (var i = 0; i < dataArray.length; i++) {
-        var keyValue = dataArray[i].split('=');
-        var questionIndex = parseInt(keyValue[0]);
-        var answer = keyValue[1];
-        quizData[questionIndex] = answer;
-    }
-
-    // Convert data to JSON
-    var jsonData = JSON.stringify(quizData);
-    console.log("jsonData", jsonData);
-    // Send the data to the calculate_marks view using AJAX
-    $.ajax({
-        type: "POST",
-        url: "/student/calculate_marks", // URL of the calculate_marks view
-        contentType: "application/json",
-        data: jsonData,
-        success: function(response) {
-            // You can do further processing based on the response here
-        },
-        error: function(xhr, status, error) {
-            // Handle error
-            console.error("Error:", error);
-        }
-    });
-
-    alert("Quiz submitted automatically due to time expiration!");
-    window.location.href = "{% url 'student:view_result' %}";
+    return answered;
 }
 
-        //  test 
-    function updateTimer(time) {
-    const timerElement = document.getElementById('timer'); // Define timerElement here
-    let storedTime = localStorage.getItem('remainingTime');
+function renderCustomPagination(tableInstance) {
+    const pageInfo = tableInstance.page.info();
+    const totalPages = pageInfo.pages;
+    const currentPage = pageInfo.page;
+    const storedAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
+
+    answeredPages = {}; // Reset
+
+    for (let i = 0; i < totalPages; i++) {
+        let isAnswered = false;
+
+        const length = pageInfo.length;
+        const startIndex = i * length;
+        const endIndex = startIndex + length;
+        const rows = tableInstance.rows({ order: 'applied' }).nodes();
+        const pageRows = $(rows).slice(startIndex, endIndex);
+
+        if (pageRows.length === 0) continue;
+
+        pageRows.find('input[type=radio], input[type=checkbox]').each(function () {
+            const name = $(this).attr('name');
+            const value = $(this).val();
+            if (storedAnswers[name] && storedAnswers[name] == value) {
+                isAnswered = true;
+                return false; // Break loop
+            }
+        });
+
+        answeredPages[i] = isAnswered;
+    }
+
+    // Build pagination HTML
+    let html = '';
+    for (let i = 0; i < totalPages; i++) {
+        let classes = 'custom-page-number';
+        if (i === currentPage) classes += ' active-page';
+        if (answeredPages[i]) classes += ' answered-page';
+        html += `<span class="${classes}" data-page="${i}" style="cursor:pointer; padding:5px;">${i + 1}</span> `;
+    }
+
+    $('#paginationBoxes').html(html);
+}
+
+// Restore answers and render pagination on page load
+$(document).ready(function () {
+    // ✅ Clear quizAnswers only if this is the student's first time loading the page for this course
+    const courseKey = 'quizStartedForCourse_{{ course.id }}';
+    if (!localStorage.getItem(courseKey)) {
+        localStorage.removeItem('quizAnswers');  // Clear old answers
+        localStorage.setItem(courseKey, 'true'); // Mark this course as started
+    }
+
+    const storedAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
+    Object.keys(storedAnswers).forEach(function (questionId) {
+        const value = storedAnswers[questionId];
+        $(`input[name="${questionId}"][value="${value}"]`).prop('checked', true);
+    });
+
+    renderCustomPagination(table);
+});
+
+
+$('#example tbody').on('change', 'input[type=checkbox], input[type=radio]', function () {
+    const questionId = $(this).attr('name');
+    const selectedValue = $(this).val();
+
+    let storedAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
+    storedAnswers[questionId] = selectedValue;
+    localStorage.setItem('quizAnswers', JSON.stringify(storedAnswers));
+
+    renderCustomPagination(table);
+});
+
+$('#paginationBoxes').on('click', '.custom-page-number', function (e) {
+    e.preventDefault();
+    const page = $(this).data('page');
+    table.page(page).draw(false);
+    localStorage.setItem('lastVisitedPage', page); // ✅ Save page on click
+});
+
+$(document).on('keydown', function (e) {
+    const pageInfo = table.page.info();
+    const currentPage = pageInfo.page;
+
+    if (e.key === 'ArrowRight' && currentPage < pageInfo.pages - 1) {
+        table.page(currentPage + 1).draw(false);
+        localStorage.setItem('lastVisitedPage', currentPage + 1); // ✅ Save on right arrow
+    }
+
+    if (e.key === 'ArrowLeft' && currentPage > 0) {
+        table.page(currentPage - 1).draw(false);
+        localStorage.setItem('lastVisitedPage', currentPage - 1); // ✅ Save on left arrow
+    }
+});
+
+
+table.on('draw', function () {
+    const storedAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
+
+    Object.keys(storedAnswers).forEach(function (questionId) {
+        const value = storedAnswers[questionId];
+        const inputSelector = `input[name="${questionId}"][value="${value}"]`;
+        $(inputSelector).prop('checked', true);
+    });
+
+    renderCustomPagination(table);  // Re-render custom pagination
+});
+
+
+
+</script>
+
+
+
+<!-- working codes on timer-->
+
+
+<script>
+$(document).ready(function() {
+    var timerElement = document.getElementById('timer');
+
+    // Shared timer function
+function updateTimer(time, timerElement) {
+    let courseKey = 'remainingTime_{{ course.id }}'; // Unique key per subject
+    let storedTime = localStorage.getItem(courseKey);
     let remainingTime;
 
     if (storedTime !== null) {
         remainingTime = parseInt(storedTime);
     } else {
         remainingTime = time * 60; // Convert minutes to seconds
-        localStorage.setItem('remainingTime', remainingTime);
+        localStorage.setItem(courseKey, remainingTime);
     }
 
-    const timer = setInterval(() => {
+    // Clear any existing timer
+    if (window.timerInterval) {
+        clearInterval(window.timerInterval);
+    }
+
+    window.timerInterval = setInterval(() => {
         let minutes = Math.floor(remainingTime / 60);
         let seconds = remainingTime % 60;
 
         let displayMinutes = minutes < 10 ? '0' + minutes : minutes;
         let displaySeconds = seconds < 10 ? '0' + seconds : seconds;
 
-        timerElement.innerHTML = `<b>Time Left: ${displayMinutes}:${displaySeconds}</b>`;
+        timerElement.innerHTML = `<span>Time Left: ${displayMinutes}:${displaySeconds}</span>`;
 
         if (remainingTime <= 0) {
-            clearInterval(timer);
-            localStorage.removeItem('remainingTime');
-            submitQuiz(); // Call the function to submit the quiz when time is over
-            return;
-        }
+            clearInterval(window.timerInterval);
+            localStorage.removeItem(courseKey); // Only remove current subject's key
+            localStorage.clear();  
+            localStorage.removeItem('quizStartedForCourse_{{ course.id }}');  // Reset for next student
 
-        if (minutes <= 0 && seconds <= 0) {
-            clearInterval(timer);
-            localStorage.removeItem('remainingTime');
-            submitQuiz(); // Call the function to submit the quiz when time is over
+            submitQuiz(); // Submit on timeout
             return;
         }
 
         remainingTime--;
-        localStorage.setItem('remainingTime', remainingTime); // Update stored remaining time
+        localStorage.setItem(courseKey, remainingTime);
     }, 1000);
-
-    // Store the timer interval ID
-    window.timerInterval = timer;
 }
 
-    </script>
+    // Call updateTimer once on page load
+    updateTimer({{ course.duration_minutes }}, timerElement);
+
+    // Event handler for manual submit button
     
+});
 
-     <!-- <script>
+// OPTIONAL: If this was meant for end time management, handle it separately
+document.addEventListener('DOMContentLoaded', function() {
+    var endTime = new Date("{{ quiz_end_time|date:"Y-m-d\\TH:i:s" }}").getTime();
+    // This block could handle countdown until `endTime`, if needed.
+});
+</script>
 
-      document.addEventListener('DOMContentLoaded', function() {
-        var endTime = new Date("{{ quiz_end_time|date:"Y-m-d\TH:i:s" }}").getTime();
-        var timerElement = document.getElementById('timer');
-        var quizForm = document.getElementById('quizf');
-        
-        function updateTimer(time) {
-          if (time.toString().length < 2) {
-            timerElement.innerHTML = `<b>0${time}:00</b>`;
-          } else {
-            timerElement.innerHTML = `<b>${time}:00</b>`;
-          }
-    
-          let minutes = time;
-          let seconds = 0;
-          let displaySeconds;
-          let displayMinutes;
-       
-          const timer = setInterval(() => {
-            seconds--;
-            if (seconds < 0) {
-              seconds = 59;
-              minutes--;
-            }
-            
-    
-            if (minutes.toString().length < 2) {
-              displayMinutes = '0' + minutes;
-            } else {
-              displayMinutes = minutes;
-            }
-            if (seconds.toString().length < 2) {
-              displaySeconds = '0' + seconds;
-            } else {
-              displaySeconds = seconds;
-            }
-            if (minutes === 0 && seconds === 0) {
-              clearInterval(timer);
-          
-              
-
-            }
-
-            timerElement.innerHTML = `<b>Time Left: ${displayMinutes}:${displaySeconds}</b>`;
-          }, 1000);
-        }
-
-        updateTimer({{ course.duration_minutes }});
-      
-      });
-    </script> -->
-
-    
-    <!--end quiz timer  -->
-
-
-<!-- end of pagination -->
-      <!-- <script> 
-
-          function saveAns(){  
-              var ele = document.getElementsByTagName('input');
-              for(i = 0; i < ele.length; i++) { 
-                  if(ele[i].type="radio") { 
-                      if(ele[i].checked){       
-                        setCookie(ele[i].name,ele[i].value,3)
-                      }
-                  } 
-              } 
-                
-          }
-          
-        function setCookie(cname, cvalue, exdays) {
-        var d = new Date();
-        d.setTime(d.getTime() + (exdays*24*60*60*1000));
-        var expires = "expires="+ d.toUTCString();
-        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-      }
-    </script> 
-  -->
 
 <script>
-    function disp(){
-    alert('Note: You must answer all question before you will be able to submit')
-    } 
+// manual submission
+document.getElementById('submit').addEventListener('click', function () {
+    const confirmed = confirm("Are you sure you want to submit the quiz?");
+    if (!confirmed) return;
+
+    if (window.timerInterval) {
+        clearInterval(window.timerInterval);
+    }
+
+    const finalTabSwitchCount = parseInt(localStorage.getItem('tabSwitchCount')) || 0;
+    const courseKey = 'remainingTime_{{ course.id }}';
+
+    const storedAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
+    storedAnswers['tabSwitchCount'] = finalTabSwitchCount;
+
+    const jsonData = JSON.stringify(storedAnswers);
+
+    $.ajax({
+        type: "POST",
+        url: "/student/calculate_marks",
+        contentType: "application/json",
+        data: jsonData,
+        success: function (response) {
+            alert("Quiz submitted successfully!");
+
+            // Clear local storage for this course
+            localStorage.removeItem('quizAnswers');
+            localStorage.removeItem('lastVisitedPage');
+            localStorage.removeItem('tabSwitchCount');
+            localStorage.removeItem(courseKey);
+            localStorage.removeItem('quizStartedForCourse_{{ course.id }}');
+
+            // ✅ Redirect to certificate page
+            const certUrl = "{% url 'sms:certificates' course.id %}";
+            setTimeout(function () {
+                window.location.href = certUrl;
+            }, 1000);
+        },
+        error: function (xhr, status, error) {
+            console.error("Submission error:", error);
+        }
+    });
+});
+
+// document.getElementById('submit').addEventListener('click', function () {
+//     const confirmed = confirm("Are you sure you want to submit the quiz?");
+//     if (!confirmed) return;
+
+//     if (window.timerInterval) {
+//         clearInterval(window.timerInterval);
+//     }
+
+//     const finalTabSwitchCount = parseInt(localStorage.getItem('tabSwitchCount')) || 0;
+//     const courseKey = 'remainingTime_{{ course.id }}';
+
+//     const storedAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
+//     storedAnswers['tabSwitchCount'] = finalTabSwitchCount;
+
+//     const jsonData = JSON.stringify(storedAnswers);
+
+//     $.ajax({
+//         type: "POST",
+//         url: "/student/calculate_marks",
+//         contentType: "application/json",
+//         data: jsonData,
+//         success: function (response) {
+//             alert("Quiz submitted successfully!");
+
+//             // Clear local storage for this course
+//             localStorage.removeItem('quizAnswers');
+//             localStorage.removeItem('lastVisitedPage');
+//             localStorage.removeItem('tabSwitchCount');
+//             localStorage.removeItem(courseKey);
+//             localStorage.removeItem('quizStartedForCourse_{{ course.id }}');
+
+//             // Redirect to result page instead of reload
+//             const resultUrl = "{% url 'student:view_result' %}";
+//             setTimeout(function () {
+//                 window.location.href = resultUrl;
+//             }, 1000);
+//         },
+//         error: function (xhr, status, error) {
+//             console.error("Submission error:", error);
+//         }
+//     });
+// });
+
+
+// document.getElementById('submit').addEventListener('click', function () {
+//     const confirmed = confirm("Are you sure you want to submit the quiz?");
+//     if (!confirmed) return;
+
+//     if (window.timerInterval) {
+//         clearInterval(window.timerInterval);
+//     }
+
+//     const finalTabSwitchCount = parseInt(localStorage.getItem('tabSwitchCount')) || 0;
+//     const courseKey = 'remainingTime_{{ course.id }}';
+
+//     const storedAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
+//     storedAnswers['tabSwitchCount'] = finalTabSwitchCount;
+
+//     const jsonData = JSON.stringify(storedAnswers);
+
+//     $.ajax({
+//         type: "POST",
+//         url: "/student/calculate_marks",
+//         contentType: "application/json",
+//         data: jsonData,
+//         success: function (response) {
+//             alert("Quiz submitted successfully!");
+//             localStorage.removeItem('quizAnswers');
+//             localStorage.removeItem('lastVisitedPage');
+//             localStorage.removeItem('tabSwitchCount');
+//             localStorage.removeItem(courseKey);
+//             localStorage.removeItem('quizStartedForCourse_{{ course.id }}');
+
+//             setTimeout(function () {
+//                 window.location.reload();
+//             }, 1000);
+//         },
+//         error: function (xhr, status, error) {
+//             console.error("Submission error:", error);
+//         }
+//     });
+// });
+
+
+// quiz submit due to time expiration
+function submitQuiz() {
+    const finalTabSwitchCount = parseInt(localStorage.getItem('tabSwitchCount')) || 0;
+
+    isManuallySubmitting = true;
+    localStorage.setItem('tabSwitchCount', '0');
+    localStorage.removeItem('quizStartedForCourse_{{ course.id }}');
+
+    var storedAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
+    storedAnswers['tabSwitchCount'] = finalTabSwitchCount;
+
+    var jsonData = JSON.stringify(storedAnswers);
+
+    $.ajax({
+        type: "POST",
+        url: "/student/calculate_marks",
+        contentType: "application/json",
+        data: jsonData,
+        success: function(response) {
+            alert("Quiz submitted automatically due to time expiration!");
+            window.location.href = "{% url 'student:view_result' %}";
+        },
+        error: function(xhr, status, error) {
+            console.error("Error:", error);
+        }
+    });
+}
+
+
+</script>
+
+
+<!-- inactive working codes -->
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const shouldFullscreen = {{ course.full_screen|yesno:"true,false" }};
+
+    if (shouldFullscreen && !document.fullscreenElement) {
+        const el = document.documentElement;
+        if (el.requestFullscreen) {
+            el.requestFullscreen().catch(err => console.warn("Fullscreen error:", err));
+        } else if (el.webkitRequestFullscreen) {
+            el.webkitRequestFullscreen();
+        } else if (el.mozRequestFullScreen) {
+            el.mozRequestFullScreen();
+        } else if (el.msRequestFullscreen) {
+            el.msRequestFullscreen();
+        }
+    }
+});
+</script>
+
+
+<!-- codes to stop copy and paste on the platform -->
+<script type="text/javascript">
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    // Disable text selection
+    document.body.style.userSelect = 'none';
+
+    // Disable right-click context menu
+    document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+    });
+
+    // Disable copy event
+    document.addEventListener('copy', (e) => {
+        e.preventDefault();
+    });
+
+    // Disable text selection for specific elements
+    let elements = document.querySelectorAll('.no-copy');
+    elements.forEach((element) => {
+        element.style.userSelect = 'none';
+    });
+});
+  
+</script>
+
+
+<!-- network detector -->
+<style>
+  #network-status {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    z-index: 9999;
+    display: none;
+  }
+  #network-status.offline {
+    background-color: #d9534f; /* red */
+    display: block;
+  }
+  #network-status.online {
+    background-color: #5cb85c; /* green */
+    display: block;
+  }
+</style>
+
+<div id="network-status">You are currently offline. Your answers will be saved locally.</div>
+
+<script>
+  const networkStatusEl = document.getElementById('network-status');
+
+  function updateNetworkStatus() {
+    if (navigator.onLine) {
+      networkStatusEl.textContent = "Back online! Your exam is syncing...";
+      networkStatusEl.classList.remove('offline');
+      networkStatusEl.classList.add('online');
+
+      // Hide the message after 3 seconds
+      setTimeout(() => {
+        networkStatusEl.style.display = 'none';
+      }, 3000);
+    } else {
+      networkStatusEl.textContent = "You are currently offline.Wait for the internet before submitting.";
+      networkStatusEl.classList.remove('online');
+      networkStatusEl.classList.add('offline');
+      networkStatusEl.style.display = 'block';
+    }
+  }
+
+  // Initial check on page load
+  updateNetworkStatus();
+
+  // Listen for network status changes
+  window.addEventListener('online', updateNetworkStatus);
+  window.addEventListener('offline', updateNetworkStatus);
+</script>
+
+
+<!-- Calculator UI -->
+ <!-- TOGGLE BUTTON -->
+  
+<button onclick="toggleCalculator()" style="position: fixed; top: 10px; right: 10px; z-index: 9999;">Calculator</button>
+
+
+<div id="calculator" style="
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 260px;
+  background-color: #f8f9fa;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  display: none;
+  z-index: 9999;
+  font-family: Arial, sans-serif;
+">
+
+
+  <div id="calc-header" style="
+    cursor: move;
+    padding: 4px 8px;
+    background: #007bff;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  ">
+    <span>Calc</span>
+    <button onclick="toggleCalculator()" style="
+      background: none;
+      border: none;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+    " title="Close">✖</button>
+  </div>
+
+
+  <input type="text" id="calc-display" style="
+    width: 100%;
+    font-size: 16px;
+    padding: 6px;
+    box-sizing: border-box;
+    border: none;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    outline: none;
+  " readonly>
+
+
+  <div style="padding: 6px;">
+    <div>
+      <button onclick="appendCalc('7')">7</button>
+      <button onclick="appendCalc('8')">8</button>
+      <button onclick="appendCalc('9')">9</button>
+      <button onclick="appendCalc('/')">÷</button>
+    </div>
+    <div>
+      <button onclick="appendCalc('4')">4</button>
+      <button onclick="appendCalc('5')">5</button>
+      <button onclick="appendCalc('6')">6</button>
+      <button onclick="appendCalc('*')">×</button>
+    </div>
+    <div>
+      <button onclick="appendCalc('1')">1</button>
+      <button onclick="appendCalc('2')">2</button>
+      <button onclick="appendCalc('3')">3</button>
+      <button onclick="appendCalc('-')">−</button>
+    </div>
+    <div>
+      <button onclick="appendCalc('0')">0</button>
+      <button onclick="appendCalc('.')">.</button>
+      <button onclick="calculate()">=</button>
+      <button onclick="appendCalc('+')">+</button>
+    </div>
+    <div>
+      <button onclick="clearCalc()">C</button>
+      <button onclick="appendCalc('(')">(</button>
+      <button onclick="appendCalc(')')">)</button>
+      <button onclick="toggleScientific()">Sci</button>
+    </div>
+
+
+    <div id="scientific" style="display: none; margin-top: 6px;">
+      <button onclick="appendCalc('Math.sqrt(')">√</button>
+      <button onclick="appendCalc('Math.pow(')">xʸ</button>
+      <button onclick="appendCalc('Math.sin(')">sin</button>
+      <button onclick="appendCalc('Math.cos(')">cos</button>
+      <button onclick="appendCalc('Math.tan(')">tan</button>
+      <button onclick="appendCalc('Math.log(')">log</button>
+      <button onclick="appendCalc('Math.PI')">π</button>
+      <button onclick="appendCalc('Math.E')">e</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+<script>
+  function toggleCalculator() {
+    const calc = document.getElementById('calculator');
+    calc.style.display = (calc.style.display === 'none' || calc.style.display === '') ? 'block' : 'none';
+  }
+
+  function appendCalc(value) {
+    const display = document.getElementById('calc-display');
+    display.value += value;
+  }
+
+  function clearCalc() {
+    document.getElementById('calc-display').value = '';
+  }
+
+  function calculate() {
+    const display = document.getElementById('calc-display');
+    try {
+      display.value = eval(display.value);
+    } catch {
+      display.value = 'Error';
+    }
+  }
+
+  function toggleScientific() {
+    const sci = document.getElementById('scientific');
+    sci.style.display = (sci.style.display === 'none' || sci.style.display === '') ? 'block' : 'none';
+  }
+
+
+  document.addEventListener('keydown', function (e) {
+    const display = document.getElementById('calc-display');
+    if (document.getElementById('calculator').style.display === 'none') return;
+
+    if (
+      (e.key >= '0' && e.key <= '9') ||
+      ['+', '-', '*', '/', '.', '(', ')'].includes(e.key)
+    ) {
+      display.value += e.key;
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      calculate();
+    } else if (e.key === 'Backspace') {
+      display.value = display.value.slice(0, -1);
+    } else if (e.key === 'Escape') {
+      clearCalc();
+    }
+  });
+
+  // DRAGGING
+  dragElement(document.getElementById("calculator"));
+
+  function dragElement(elmnt) {
+    const header = document.getElementById("calc-header");
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+    if (header) {
+      header.onmousedown = dragMouseDown;
+    }
+
+    function dragMouseDown(e) {
+      e.preventDefault();
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+      e.preventDefault();
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+      elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
+  }
 </script>
 
 <script>
+$(document).on('keydown', function (e) {
+    const pageInfo = table.page.info();
+    const currentPage = pageInfo.page;
+    const totalPages = pageInfo.pages;
 
-
-  $(document).ready(function() {
-    // Function to update pagination boxes with values
-    function updatePagination() {
-        // Clear previous pagination content
-        $('#paginationBoxes').empty();
-        // Serialized data
-        var data = table.$('input, select').serialize();
-        // Get information about the table's paging state
-        var pageInfo = table.page.info();
-        // Extract the total number of pages
-        var totalPages = pageInfo.pages;
-        // Loop through each page
-        for (var i = 1; i <= totalPages; i++) {
-            // Create a pagination box element
-            var paginationBox = $('<div class="pagination-box"></div>');
-            // Check if the current page is clicked or not
-            var matchFound = false;
-            var serializedData = table.$('input, select').serialize(); 
-            var dataArray = serializedData.split('&');
-            var dataCount = 0;
-        // Count the number of key-value pairs in serialized data
-            if (serializedData) {
-                var keyValuePairs = dataArray;
-                dataCount = keyValuePairs.length;
-            }
-
-               // Calculate progress
-            var answeredCount = dataCount;
-            var progress = (answeredCount / totalPages) * 100;
-            // Update progress bar
-            $('.progress-bar').css('width', progress + '%').attr('aria-valuenow', progress).text(progress + '% Complete');  
-            
-            // test 
-            for (var j = 0; j < dataArray.length; j++) {
-          var keyValue = dataArray[j].split('=');
-
-          if (parseInt(keyValue[0]) === i) {      
-              matchFound = true;
-              //2222 console.log("id and name", keyValue[0], keyValue[1]);
-              var radioButtons = document.querySelectorAll('input[name="' + i + '"]');
-               radioButtons.forEach(function(radioButton) {
-                // Store the original label text
-                radioButton.dataset.originalText = "";
-                radioButton.addEventListener('change', function() {
-                    if (radioButton.checked) {
-                      radioButtons.forEach(function(rb) {
-                        // Restore original label text for all radio buttons
-                        radioButton.labels[0].textContent  = rb.dataset.originalText;
-                
-                    });
-                  
-                        
-                    }
-                });
-            });
-
-                paginationBox.addClass('clicked');
-                break; // exit the loop after finding a match
-            }
+    if (e.key === 'ArrowRight') {
+        if (currentPage < totalPages - 1) {
+            table.page(currentPage + 1).draw(false);
         }
-
-// Retrieve the stored value from local storage
-var storedCheckedValue = localStorage.getItem('checked');
-
-// Event listener to update local storage when radio button is clicked or changed
-document.addEventListener('change', function(event) {
-    var target = event.target;
-    if (target.matches('.radio-button')) {
-        var selectedValue = target.value;
-        var questionName = target.getAttribute('name');
-        // Store the selected value in local storage with a unique key for each question
-        localStorage.setItem('checked_' + questionName, selectedValue);
-    }
-});
-
-// Retrieve the stored value from local storage for each question
-var allRadioButtons = document.querySelectorAll('.radio-button');
-
-allRadioButtons.forEach(function(radioButton) {
-    var questionName = radioButton.getAttribute('name');
-    var storedCheckedValue = localStorage.getItem('checked_' + questionName);
-
-    if (storedCheckedValue !== null) {
-        if (radioButton.value === storedCheckedValue) {
-            radioButton.checked = true;
-            radioButton.nextElementSibling.textContent = radioButton.nextElementSibling.dataset.originalText;
-            radioButton.style.color = 'red';
-        } else {
-            radioButton.nextElementSibling.textContent = radioButton.nextElementSibling.dataset.originalText;
+    } else if (e.key === 'ArrowLeft') {
+        if (currentPage > 0) {
+            table.page(currentPage - 1).draw(false);
         }
     }
 });
 
-      // Event listener to clear local storage when submit button is clicked
-var submitButton = document.getElementById('submit');
-submitButton.addEventListener('click', function() {
-    localStorage.clear();
-});
-          // test
-
-            // Set the content of the pagination box
-            if (matchFound) {
-                paginationBox.text('answered: ' + i);
-                var answeredBoxCount = $('#paginationBoxes').length;
-
-            } else {
-                paginationBox.text(i);
-            }
-
-            // Append the pagination box to the paginationBoxes container
-            $('#paginationBoxes').append(paginationBox);
-        }
-    }
-    
-    // Call the updatePagination function initially
-    updatePagination();
-
-    // Set interval to update pagination boxes every second
-    // setInterval(updatePagination, 1000);
-    setInterval(updatePagination, 2000);
-
-    
-});
-
-
-  </script>
-
+</script>
+<!-- end -->
 <br><br><br><br><br><br>
+
 
 {% endblock %} 
