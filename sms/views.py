@@ -1429,70 +1429,113 @@ from django.contrib.staticfiles import finders
 from PIL import Image, ImageDraw, ImageFont
 from users.models import Profile
 
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.conf import settings
+from django.templatetags.static import static
+from PIL import Image, ImageDraw, ImageFont
+import os
+
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.conf import settings
+from PIL import Image, ImageDraw, ImageFont
+import os
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from PIL import Image, ImageDraw, ImageFont
+import os
+from django.conf import settings
+
+
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.conf import settings
+from PIL import Image, ImageDraw, ImageFont
+import os
+
+
+import os
+from django.conf import settings
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from PIL import Image, ImageDraw
+from sms.utils.fonts import get_badge_fonts   # ✅ use the configurable loader
+
+
+def draw_centered_text(draw, text, font, y, center_x, fill, max_width):
+    words = text.split()
+    lines, line = [], ""
+
+    for word in words:
+        test_line = f"{line} {word}".strip()
+        bbox = draw.textbbox((0, 0), test_line, font=font)
+        w = bbox[2] - bbox[0]
+        if w <= max_width:
+            line = test_line
+        else:
+            lines.append(line)
+            line = word
+    lines.append(line)
+
+    for line in lines:
+        bbox = draw.textbbox((0, 0), line, font=font)
+        line_width = bbox[2] - bbox[0]
+        line_height = bbox[3] - bbox[1]
+        x = center_x - line_width // 2
+        draw.text((x, y), line, font=font, fill=fill)
+        y += line_height + 12
+    return y
+
 
 def download_badge_image(request, student_id, course_id, rank):
     result = get_object_or_404(Result, student__id=student_id, exam__id=course_id)
-    course = get_object_or_404(Course, id=course_id)
+    course = get_object_or_404(Courses, id=course_id)
 
     # --- Badge type ---
-    badge_name = "Participant"
+    badge_name = "PARTICIPANT BADGE"
     badge_color = (0, 0, 0)
-    medal_emoji = ""
+
     if rank == 1:
-        badge_name = "GOLD BADGE"
-        badge_color = (255, 215, 0)
-        medal_emoji = "🏆"
+        badge_name, badge_color = "GOLD BADGE", (255, 215, 0)
     elif rank == 2:
-        badge_name = "SILVER BADGE"
-        badge_color = (192, 192, 192)
-        medal_emoji = "🥈"
+        badge_name, badge_color = "SILVER BADGE", (192, 192, 192)
     elif rank == 3:
-        badge_name = "BRONZE BADGE"
-        badge_color = (205, 127, 50)
-        medal_emoji = "🥉"
+        badge_name, badge_color = "BRONZE BADGE", (205, 127, 50)
 
     # --- Image settings ---
-    width, height = 800, 800
+    width, height = 1000, 1000
     center = (width // 2, height // 2)
-    badge_radius = 350
-    img = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+    badge_radius = 400
+    img = Image.new("RGBA", (width, height), (255, 255, 255, 255))
     draw = ImageDraw.Draw(img)
 
     # --- Circular background ---
     draw.ellipse([
         (center[0] - badge_radius, center[1] - badge_radius),
         (center[0] + badge_radius, center[1] + badge_radius)
-    ], fill=(245, 245, 245), outline=badge_color, width=15)
+    ], fill=(245, 245, 245), outline=badge_color, width=20)
 
-    # --- Logo watermark ---
-    logo_path = os.path.join("static", "images", "logo.png")
-    if os.path.exists(logo_path):
-        logo = Image.open(logo_path).convert("RGBA")
-        logo = logo.resize((150, 150))
-        alpha = logo.split()[3].point(lambda i: i * 0.1)
-        logo.putalpha(alpha)
-        img.paste(logo, (center[0]-75, center[1]-75), mask=logo)
-
-    # --- Fonts ---
-    font_path_bold = os.path.join("static", "fonts", "arialbd.ttf")
-    font_path = os.path.join("static", "fonts", "arial.ttf")
-    title_font = ImageFont.truetype(font_path_bold, 50)
-    subtitle_font = ImageFont.truetype(font_path, 30)
-    name_font = ImageFont.truetype(font_path_bold, 40)
-    course_font = ImageFont.truetype(font_path_bold, 35)
-    score_font = ImageFont.truetype(font_path_bold, 30)
-    footer_font = ImageFont.truetype(font_path_bold, 25)
+    # --- Fonts (loaded from settings.py) ---
+    fonts = get_badge_fonts()
+    title_font   = fonts["title"]
+    subtitle_font = fonts["subtitle"]
+    name_font    = fonts["name"]
+    course_font  = fonts["course"]
+    score_font   = fonts["score"]
+    footer_font  = fonts["footer"]
 
     # --- Draw texts ---
-    y_start = center[1] - 180
-    spacing = 60
-    draw.text((center[0], y_start), f"{medal_emoji} {badge_name}", font=title_font, fill=badge_color, anchor="ms")
-    draw.text((center[0], y_start + spacing), "Awarded to:", font=subtitle_font, fill=(0,0,0), anchor="ms")
-    draw.text((center[0], y_start + spacing*2), f"{result.student.first_name} {result.student.last_name}", font=name_font, fill=(0,0,128), anchor="ms")
-    draw.text((center[0], y_start + spacing*3), "For outstanding performance in", font=subtitle_font, fill=(0,0,0), anchor="ms")
-    draw.text((center[0], y_start + spacing*4), f"{course.course_name}", font=course_font, fill=(0,128,0), anchor="ms")
-    draw.text((center[0], y_start + spacing*5), f"Score: {result.marks}%", font=score_font, fill=(0,0,0), anchor="ms")
-    draw.text((center[0], y_start + spacing*6 + 20), "Codethinkers Academy", font=footer_font, fill=(128,128,128), anchor="ms")
+    y_start = center[1] - 250
+    max_width = width - 200
+
+    y = draw_centered_text(draw, badge_name, title_font, y_start, center[0], badge_color, max_width)
+    y = draw_centered_text(draw, "Awarded to:", subtitle_font, y + 20, center[0], (0, 0, 0), max_width)
+    y = draw_centered_text(draw, f"{result.student.first_name} {result.student.last_name}", name_font, y + 20, center[0], (0, 0, 128), max_width)
+    y = draw_centered_text(draw, "For outstanding performance in", subtitle_font, y + 30, center[0], (0, 0, 0), max_width)
+    y = draw_centered_text(draw, f"{course.title}", course_font, y + 20, center[0], (0, 128, 0), max_width)
+    y = draw_centered_text(draw, f"Score: {result.marks}%", score_font, y + 30, center[0], (0, 0, 0), max_width)
+    draw_centered_text(draw, "Codethinkers Academy", footer_font, y + 60, center[0], (128, 128, 128), max_width)
 
     # --- Return response with forced download ---
     response = HttpResponse(content_type="image/png")

@@ -359,6 +359,26 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
+# Font configuration for badge generator
+BADGE_FONT = {
+    "family": "Poppins",   # Google Font name
+    "weights": {
+        "title": "Bold",
+        "subtitle": "Regular",
+        "name": "Bold",
+        "course": "SemiBold",
+        "score": "Medium",
+        "footer": "Italic",
+    },
+    "sizes": {
+        "title": 70,
+        "subtitle": 45,
+        "name": 60,
+        "course": 55,
+        "score": 50,
+        "footer": 40,
+    }
+}
 
 
 # ADDITIONAL SITEs SECURITY
