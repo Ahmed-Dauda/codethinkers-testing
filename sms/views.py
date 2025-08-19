@@ -1421,11 +1421,11 @@ from reportlab.pdfbase import pdfmetrics
 from django.http import HttpResponse
 import os
 
-# Register fonts
 from PIL import Image, ImageDraw, ImageFont
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.conf import settings
+from django.contrib.staticfiles import finders
 import os
 
 def download_and_share_badge(request, student_id, course_id, rank):
@@ -1453,31 +1453,38 @@ def download_and_share_badge(request, student_id, course_id, rank):
     # --- Image settings ---
     size = 800
     center = size // 2
-    img = Image.new("RGBA", (size, size), (255, 255, 255, 0))  # fully transparent background
+    badge_radius = 350
+
+    # Transparent base
+    img = Image.new("RGBA", (size, size), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
 
-    # --- Circular badge ---
-    draw.ellipse((0, 0, size, size), fill=(245, 245, 245), outline=badge_color, width=15)
+    # Circular badge
+    draw.ellipse(
+        (center - badge_radius, center - badge_radius,
+         center + badge_radius, center + badge_radius),
+        fill=(245, 245, 245, 255),
+        outline=badge_color,
+        width=15
+    )
 
-    # --- Circular mask for edges ---
+    # --- Circular mask to enforce transparency outside ---
     mask = Image.new("L", (size, size), 0)
     mask_draw = ImageDraw.Draw(mask)
     mask_draw.ellipse((0, 0, size, size), fill=255)
 
     # --- Logo watermark ---
-    logo_path = os.path.join(settings.STATIC_ROOT, "images", "logo.png")
-    if os.path.exists(logo_path):
+    logo_path = finders.find("images/logo.png")
+    if logo_path and os.path.exists(logo_path):
         logo = Image.open(logo_path).convert("RGBA")
-        logo_size = 150
-        logo = logo.resize((logo_size, logo_size))
+        logo = logo.resize((150, 150))
         alpha = logo.split()[3].point(lambda i: i * 0.1)
         logo.putalpha(alpha)
-        img.paste(logo, (center - logo_size // 2, center - logo_size // 2), mask=logo)
+        img.paste(logo, (center - 75, center - 75), mask=logo)
 
-    # --- Fonts from static folder ---
-    font_bold_path = os.path.join(settings.STATIC_ROOT, "fonts", "arialbd.ttf")
-    font_regular_path = os.path.join(settings.STATIC_ROOT, "fonts", "arial.ttf")
-
+    # --- Fonts ---
+    font_bold_path = finders.find("fonts/arialbd.ttf")
+    font_regular_path = finders.find("fonts/arial.ttf")
     title_font = ImageFont.truetype(font_bold_path, 50)
     subtitle_font = ImageFont.truetype(font_regular_path, 30)
     name_font = ImageFont.truetype(font_bold_path, 40)
@@ -1489,23 +1496,23 @@ def download_and_share_badge(request, student_id, course_id, rank):
     y_start = center - 180
     spacing = 60
     draw.text((center, y_start), f"{medal_emoji} {badge_name}", font=title_font, fill=badge_color, anchor="ms")
-    draw.text((center, y_start + spacing), "Awarded to:", font=subtitle_font, fill=(0,0,0), anchor="ms")
-    draw.text((center, y_start + spacing*2), f"{result.student.first_name} {result.student.last_name}", font=name_font, fill=(0,0,128), anchor="ms")
-    draw.text((center, y_start + spacing*3), "For outstanding performance in", font=subtitle_font, fill=(0,0,0), anchor="ms")
-    draw.text((center, y_start + spacing*4), f"{course.course_name}", font=course_font, fill=(0,128,0), anchor="ms")
-    draw.text((center, y_start + spacing*5), f"Score: {result.marks}%", font=score_font, fill=(0,0,0), anchor="ms")
-    draw.text((center, y_start + spacing*6 + 20), "Codethinkers Academy", font=footer_font, fill=(128,128,128), anchor="ms")
+    draw.text((center, y_start + spacing), "Awarded to:", font=subtitle_font, fill=(0, 0, 0), anchor="ms")
+    draw.text((center, y_start + spacing*2), f"{result.student.first_name} {result.student.last_name}", font=name_font, fill=(0, 0, 128), anchor="ms")
+    draw.text((center, y_start + spacing*3), "For outstanding performance in", font=subtitle_font, fill=(0, 0, 0), anchor="ms")
+    draw.text((center, y_start + spacing*4), f"{course.course_name}", font=course_font, fill=(0, 128, 0), anchor="ms")
+    draw.text((center, y_start + spacing*5), f"Score: {result.marks}%", font=score_font, fill=(0, 0, 0), anchor="ms")
+    draw.text((center, y_start + spacing*6 + 20), "Codethinkers Academy", font=footer_font, fill=(128, 128, 128), anchor="ms")
 
-    # --- Apply circular mask for transparent edges ---
-    circular_img = Image.new("RGBA", (size, size), (255,255,255,0))
-    circular_img.paste(img, (0,0), mask=mask)
+    # --- Apply circular mask ---
+    final_img = Image.new("RGBA", (size, size))
+    final_img.paste(img, (0, 0), mask=mask)
 
     # --- Save badge ---
     badge_dir = os.path.join(settings.MEDIA_ROOT, "badges")
     os.makedirs(badge_dir, exist_ok=True)
     filename = f"{result.student.first_name}_{badge_name}.png"
     badge_path = os.path.join(badge_dir, filename)
-    circular_img.save(badge_path, "PNG")
+    final_img.save(badge_path, "PNG")
 
     # --- Badge URL for sharing ---
     badge_url = request.build_absolute_uri(os.path.join(settings.MEDIA_URL, "badges", filename))
@@ -1518,7 +1525,7 @@ def download_and_share_badge(request, student_id, course_id, rank):
         "facebook": f"https://www.facebook.com/sharer/sharer.php?u={badge_url}",
     }
 
-    # --- HTML page with circular preview ---
+    # --- HTML response ---
     html_content = f"""
     <html>
     <head>
