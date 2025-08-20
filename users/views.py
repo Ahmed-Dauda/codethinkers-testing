@@ -146,7 +146,6 @@ from .models import BadgeDownload
 #     return render(request, "users/quick_dashboard.html", context)
 
 from django.db.models import Q, Count, Sum, Avg
-
 def dashboard_view(request):
     now = timezone.now()
     
@@ -163,18 +162,23 @@ def dashboard_view(request):
     )
 
     # === Badge download stats ===
-    badge_downloads = (
-        BadgeDownload.objects
-        .values('course__course_name')
-        .annotate(
+    from django.db.models import F
+    courses = Course.objects.all()
+    badge_downloads = []
+
+    for course in courses:
+        counts = BadgeDownload.objects.filter(course=course).aggregate(
             total_downloads=Count('id'),
             gold_downloads=Count('id', filter=Q(rank=1)),
             silver_downloads=Count('id', filter=Q(rank=2)),
             bronze_downloads=Count('id', filter=Q(rank=3)),
-            participant_downloads=Count('id', filter=Q(rank__gt=3)),
+            participant_downloads=Count('id', filter=Q(rank__gt=3))
         )
-        .order_by('-total_downloads')[:5]
-    )
+        counts['course_name'] = course.course_name
+        badge_downloads.append(counts)
+
+    # Sort from highest to lowest total downloads
+    badge_downloads = sorted(badge_downloads, key=lambda x: x['total_downloads'], reverse=True)
 
     # === Online users in last 5 mins ===
     online_users = NewUser.objects.filter(
@@ -237,7 +241,6 @@ def dashboard_view(request):
     }
 
     return render(request, "users/quick_dashboard.html", context)
-
 
 
 def online_users_api(request):

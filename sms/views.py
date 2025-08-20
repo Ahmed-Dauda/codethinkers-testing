@@ -1410,7 +1410,7 @@ def Admin_detail_view(request, pk):
     # --- Badge download counts for this course ---
     badge_counts = (
         BadgeDownload.objects
-        .filter(course=course)
+        .filter(course=course)  # FIXED: use instance, not course_name
         .values('rank')
         .annotate(count=Count('id'))
     )
@@ -1440,6 +1440,8 @@ def Admin_detail_view(request, pk):
     }
 
     return render(request, 'sms/dashboard/admin_details.html', context)
+
+
 
 # @login_required
 # def Admin_detail_view(request, pk):
