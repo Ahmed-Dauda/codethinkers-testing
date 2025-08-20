@@ -61,7 +61,7 @@ from profile import Profile as NewProfile
 from student.models import EbooksPayment, PDFDocument, Payment, CertificatePayment
 from quiz import models as QMODEL
 from quiz.models import Result, Course
-from users.models import NewUser, Profile
+from users.models import BadgeDownload, NewUser, Profile
 from users.forms import userprofileform, SimpleSignupForm
 from sms.forms import feedbackform, PaymentForm
 
@@ -1360,6 +1360,8 @@ from django.db.models import OuterRef, Subquery
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
+from django.db.models import Count
+
 @login_required
 def Admin_detail_view(request, pk):
     course = get_object_or_404(Course, id=pk)
@@ -1404,13 +1406,91 @@ def Admin_detail_view(request, pk):
             'constant': course.pass_mark or 0,  # pass_mark from course
         })
 
+    # --- Badge download counts for this course ---
+    badge_counts = (
+        BadgeDownload.objects
+        .filter(course=course)
+        .values('rank')
+        .annotate(count=Count('id'))
+    )
+
+    badge_downloads = {
+        'gold': 0,
+        'silver': 0,
+        'bronze': 0,
+        'participant': 0,
+    }
+
+    for b in badge_counts:
+        if b['rank'] == 1:
+            badge_downloads['gold'] = b['count']
+        elif b['rank'] == 2:
+            badge_downloads['silver'] = b['count']
+        elif b['rank'] == 3:
+            badge_downloads['bronze'] = b['count']
+        else:
+            badge_downloads['participant'] += b['count']
+
     context = {
         'results': processed_results,
         'course': course,
         'st': request.user,
+        'badge_downloads': badge_downloads,  # Added for template
     }
 
     return render(request, 'sms/dashboard/admin_details.html', context)
+
+# @login_required
+# def Admin_detail_view(request, pk):
+#     course = get_object_or_404(Course, id=pk)
+#     student = get_object_or_404(Profile, user_id=request.user.id)
+
+#     # Find the max marks for each exam and student combination
+#     max_q = Result.objects.filter(
+#         student_id=OuterRef('student_id'),
+#         exam_id=OuterRef('exam_id')
+#     ).order_by('-marks').values('id')
+
+#     # Get only the highest marks per student for this course
+#     results = Result.objects.filter(
+#         id=Subquery(max_q[:1]),
+#         exam=course
+#     ).select_related('student', 'exam').order_by('-marks')
+
+#     # Process results: calculate percentage, rank, and status
+#     show_q = course.show_questions if course.show_questions else 1
+#     processed_results = []
+#     rank = 0
+#     prev_percentage = None
+#     actual_rank = 0
+
+#     for res in results:
+#         actual_rank += 1
+#         percentage = round((res.marks / show_q) * 100, 2) if show_q > 0 else 0
+
+#         # Handle ties in ranking
+#         if percentage != prev_percentage:
+#             rank = actual_rank
+#         prev_percentage = percentage
+
+#         processed_results.append({
+#             'id': res.id,
+#             'student': res.student,
+#             'exam': res.exam,
+#             'marks': res.marks,
+#             'percentage': percentage,
+#             'rank': rank,
+#             'date': res.date,
+#             'constant': course.pass_mark or 0,  # pass_mark from course
+#         })
+
+#     context = {
+#         'results': processed_results,
+#         'course': course,
+#         'st': request.user,
+#     }
+
+#     return render(request, 'sms/dashboard/admin_details.html', context)
 
 
 from reportlab.lib.pagesizes import A4
@@ -1492,6 +1572,13 @@ def download_badge_image(request, student_id, course_id, rank):
     result = get_object_or_404(Result, student__id=student_id, exam__id=course_id)
     course = get_object_or_404(Courses, id=course_id)
     course_name = get_object_or_404(Course, id=course_id)
+
+     # --- Record the download ---
+    BadgeDownload.objects.create(
+        student=result.student,
+        course=course,
+        rank=rank
+    )
 
     # --- Badge type ---
     badge_name = "PARTICIPANT BADGE"

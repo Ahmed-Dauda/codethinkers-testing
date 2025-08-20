@@ -17,118 +17,41 @@
 .dashboard-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-    background-color: #0056b3; /* darker blue on hover */
+    background-color: #0056b3;
     color: #fff;
 }
 
-.dashboard-btn i {
-    font-size: 1.1rem;
-}
-</style>
+.dashboard-btn i { font-size: 1.1rem; }
 
-<style>
-body {
-    background-color: #f4f6f8;
-    font-family: "Segoe UI", Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-}
-
-/* Container */
-.container-fluid {
-    max-width: 1200px;
-    margin: auto;
-    padding: 20px;
-}
-
-/* Card */
-.card {
-    background: #fff;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    transition: transform 0.2s ease-in-out;
-}
-.card:hover {
-    transform: translateY(-3px);
-}
-
-/* Card Header */
-.card-header {
-    background-color: #007bff;
-    color: #fff;
-    font-weight: 600;
-    padding: 12px 15px;
-    border-radius: 8px 8px 0 0;
-}
-
-/* Table */
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-th, td {
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid #e0e0e0;
-}
-thead {
-    background-color: #f0f2f5;
-}
-tr:hover {
-    background-color: #fafafa;
-}
-
-/* Badges */
-.badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: bold;
-}
-.bg-success {
-    background-color: #28a745;
-    color: #fff;
-}
-
-/* Text */
+body { background-color: #f4f6f8; font-family: "Segoe UI", Arial, sans-serif; margin: 0; padding: 0; }
+.container-fluid { max-width: 1200px; margin: auto; padding: 20px; }
+.card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.2s ease-in-out; }
+.card:hover { transform: translateY(-3px); }
+.card-header { background-color: #007bff; color: #fff; font-weight: 600; padding: 12px 15px; border-radius: 8px 8px 0 0; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+thead { background-color: #f0f2f5; }
+tr:hover { background-color: #fafafa; }
+.badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; }
+.bg-success { background-color: #28a745; color: #fff; }
 .text-primary { color: #007bff; }
 .text-muted { color: #6c757d; }
 .fw-bold { font-weight: bold; }
-
-/* Grid */
-.row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-.col-md-4, .col-md-6 {
-    flex: 1;
-    min-width: 250px;
-}
-
-/* Online Status */
-.online-dot {
-    height: 10px;
-    width: 10px;
-    background: #4CAF50;
-    border-radius: 50%;
-    display: inline-block;
-    margin-left: 8px;
-}
-
-/* Responsive Chart */
-canvas {
-    width: 100% !important;
-    height: 300px !important;
-}
+.row { display: flex; flex-wrap: wrap; gap: 20px; }
+.col-md-4, .col-md-6 { flex: 1; min-width: 250px; }
+.online-dot { height: 10px; width: 10px; background: #4CAF50; border-radius: 50%; display: inline-block; margin-left: 8px; }
+canvas { width: 100% !important; height: 300px !important; }
 </style>
 
 <div class="container-fluid mt-4">
 
     <!-- Quick Link -->
- 
+    <div class="mb-4">
+        <a href="{% url 'quiz:ai_assessment_selector' %}" class="btn btn-primary dashboard-btn">
+            <i class="fas fa-robot me-2"></i> Go to AI Assessment Selector
+        </a>
+    </div>
+
     <!-- Payment Stats -->
     <div class="card mb-4">
         <div class="card-header">Payment Statistics</div>
@@ -184,14 +107,6 @@ canvas {
             </table>
         </div>
     </div>
-
-   <div class="mb-4">
-    <a href="{% url 'quiz:ai_assessment_selector' %}" class="btn btn-primary dashboard-btn">
-        <i class="fas fa-robot me-2"></i> Go to AI Assessment Selector
-    </a>
-</div>
-
-
 
     <!-- Online Users -->
     <div class="card mb-4">
@@ -271,6 +186,43 @@ canvas {
                 </div>
             {% else %}
                 <p class="text-muted mb-0">No downloads yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Top Badge Downloads -->
+    <div class="card mt-4">
+        <div class="card-header bg-success text-white">Top Badge Downloads</div>
+        <div class="card-body">
+            {% if badge_downloads %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Course</th>
+                                <th>Total Downloads</th>
+                                <th>Gold</th>
+                                <th>Silver</th>
+                                <th>Bronze</th>
+                                <th>Participant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in badge_downloads %}
+                                <tr>
+                                    <td>{{ b.course__title }}</td>
+                                    <td><span class="badge bg-success">{{ b.total_downloads }}</span></td>
+                                    <td><span class="badge bg-warning text-dark">{{ b.gold_downloads }}</span></td>
+                                    <td><span class="badge bg-secondary text-white">{{ b.silver_downloads }}</span></td>
+                                    <td><span class="badge bg-danger">{{ b.bronze_downloads }}</span></td>
+                                    <td><span class="badge bg-primary">{{ b.participant_downloads }}</span></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">No badge downloads yet.</p>
             {% endif %}
         </div>
     </div>
