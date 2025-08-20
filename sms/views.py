@@ -1,4 +1,5 @@
 from asyncio import constants
+from datetime import date
 from tokenize import group
 from unittest import result
 from sweetify.views import SweetifySuccessMixin
@@ -1625,19 +1626,20 @@ def download_badge_image(request, student_id, course_id, rank):
     y = draw_centered_text(draw, badge_name, title_font, y_start, center[0], badge_color, max_width)
     y = draw_centered_text(draw, "Awarded to:", subtitle_font, y + 20, center[0], (0, 0, 0), max_width)
     y = draw_centered_text(draw, f"{result.student.first_name} {result.student.last_name}", name_font, y + 20, center[0], (0, 0, 128), max_width)
-    y = draw_centered_text(draw, "For outstanding performance in", subtitle_font, y + 30, center[0], (0, 0, 0), max_width)
-    y = draw_centered_text(draw, f"{course.title}", course_font, y + 20, center[0], (0, 128, 0), max_width)
+    y = draw_centered_text(draw, "for participating in", subtitle_font, y + 30, center[0], (0, 0, 0), max_width)
+    y = draw_centered_text(draw, f"{course}", course_font, y + 20, center[0], (0, 128, 0), max_width)
 
     # --- Score fraction + percentage ---
-    if course_name.show_questions and course_name.show_questions > 0:
-        percentage = round((result.marks / course_name.show_questions) * 100, 1)
-        score_text = f"Score: {percentage}/100%"
-    else:
-        score_text = f"Score: {result.marks} / 0 = 0%"
+    # if course_name.show_questions and course_name.show_questions > 0:
+    #     percentage = round((result.marks / course_name.show_questions) * 100, 1)
+    #     score_text = f"Score: {percentage}/100%"
+    # else:
+    #     score_text = f"Score: {result.marks} / 0 = 0%"
+    formatted_date = course.created.strftime("%b, %d, %Y")  # e.g., "Aug, 20, 2025"
 
-    y = draw_centered_text(draw, score_text, score_font, y + 30, center[0], (0, 0, 0), max_width)
+    y = draw_centered_text(draw, formatted_date, score_font, y + 30, center[0], (0, 0, 0), max_width)
 
-    draw_centered_text(draw, "https://codethinkers.org", footer_font, y + 60, center[0], (128, 128, 128), max_width)
+    draw_centered_text(draw, "https://www.codethinkers.org", footer_font, y + 60, center[0], (128, 128, 128), max_width)
 
     # --- Return response with forced download ---
     response = HttpResponse(content_type="image/png")
