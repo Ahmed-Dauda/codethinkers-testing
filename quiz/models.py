@@ -193,6 +193,7 @@ class Question(models.Model):
 
     def __str__(self):
         return f"{self.course} | {self.question}"
+
  
 class Result(models.Model):
     student = models.ForeignKey(Profile, on_delete=models.CASCADE, db_index=True)

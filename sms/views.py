@@ -1570,7 +1570,7 @@ def draw_centered_text(draw, text, font, y, center_x, fill, max_width):
 
 
 def download_badge_image(request, student_id, course_id, rank):
-    results = Result.objects.filter(student__id=student_id, exam__id=course_id)
+    result = Result.objects.filter(student__id=student_id, exam__id=course_id).order_by('-marks').first()
 
     # result = get_object_or_404(Result, student__id=student_id, exam__id=course_id)
     course = get_object_or_404(Courses, id=course_id)
@@ -1578,7 +1578,7 @@ def download_badge_image(request, student_id, course_id, rank):
 
      # --- Record the download ---
     BadgeDownload.objects.create(
-        student=result.student,
+        student=result.student,  
         course=course_name,
         rank=rank
     )
