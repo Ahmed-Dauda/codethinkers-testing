@@ -1576,7 +1576,7 @@ def download_badge_image(request, student_id, course_id, rank):
      # --- Record the download ---
     BadgeDownload.objects.create(
         student=result.student,
-        course=course,
+        course=course_name,
         rank=rank
     )
 
