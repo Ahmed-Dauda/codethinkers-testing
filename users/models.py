@@ -3,13 +3,9 @@ from django.contrib.auth.models import AbstractBaseUser, AbstractUser,    BaseUs
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-# from quiz.models import School
-# from django.contrib.auth import get_user_model
-# User = get_user_model()
-
-# from sms.models import Topics  # Update this import
-
 from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
+
 
 
 class CustomUserManager(BaseUserManager):
@@ -147,36 +143,21 @@ def userprofile_receiver(sender, instance, created, **kwargs):
 
 post_save.connect(userprofile_receiver, sender=settings.AUTH_USER_MODEL)
 
-# @receiver(post_save, sender=get_user_model())
-# def userprofile_receiver(sender, instance, created, *args, **kwargs):
-#     if created:
-#         Profile.objects.create(
-#             user=instance,
-#             username=instance.username,
-#             first_name=instance.first_name,
-#             last_name=instance.last_name,
-#             countries=instance.countries,
-#             # referral_code=instance.referral_code,
-#             # school=instance.school,
-#         )
 
-# post_save.connect(userprofile_receiver, sender=settings.AUTH_USER_MODEL)
-
-# def userprofile_receiver(sender, instance, created, *args, **kwargs):
-#     if created:
-#         profile = Profile.objects.create(user=instance, 
-#                                          username=instance.username, 
-#                                          first_name =instance.first_name, 
-#                                          last_name =instance.last_name,
-#                                          countries =instance.countries,
-#                                          referral_code =instance.referral_code
-#                                          )
+from quiz.models import Course # Adjust imports to your actual models
 
 
+class BadgeDownload(models.Model):
+    student = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    rank = models.PositiveSmallIntegerField()
+    timestamp = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        verbose_name = "Badge Download"
+        verbose_name_plural = "Badge Downloads"
 
-
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+    def __str__(self):
+        return f"{self.student} - {self.course} - Rank {self.rank}"
 
 

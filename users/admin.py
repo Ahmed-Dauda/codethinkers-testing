@@ -3,7 +3,7 @@
 # Register your models heres.
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from users.models import Profile, NewUser
+from users.models import Profile, NewUser,BadgeDownload
 
 from quiz.models import Course, Question, Result
 
@@ -14,7 +14,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export import fields,resources
 from import_export.widgets import ForeignKeyWidget
 
-
+admin.site.register(BadgeDownload)
 
 
 class NewUserResource(resources.ModelResource):

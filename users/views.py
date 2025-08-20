@@ -54,23 +54,125 @@ from django.utils import timezone
 from datetime import timedelta
 from django.utils.timezone import now
 from student.models import Payment, PDFDocument, DocPayment, CertificatePayment, EbooksPayment
+from django.db.models import Count
+from .models import BadgeDownload
+
+# Total downloads for a specific course
+# course_downloads = BadgeDownload.objects.filter(course=course).count()
+
+# # Total downloads by rank for a course
+# downloads_by_rank = (
+#     BadgeDownload.objects.filter(course=course)
+#     .values('rank')
+#     .annotate(total=Count('id'))
+# )
+
+
+# def dashboard_view(request):
+#     now = timezone.now()
+    
+#     # Get filter params from GET request
+#     month = request.GET.get('month', now.month)
+#     year = request.GET.get('year', now.year)
+
+#     # Ensure month/year are integers
+#     month = int(month)
+#     year = int(year)
+
+#     # === Course download stats ===
+#     course_downloads = (
+#         CertificateDownload.objects
+#         .values('certificate__title')
+#         .annotate(total_downloads=Count('id'))
+#         .order_by('-total_downloads')[:5]
+#     )
+
+#     # === Online users in last 5 mins ===
+#     online_users = NewUser.objects.filter(
+#         last_activity__gte=now - timedelta(minutes=5)
+#     )
+
+#     # Helper to calculate totals
+#     def calc_totals(model):
+#         all_time = model.objects.aggregate(
+#             total_amount=Sum('amount') or 0,
+#             total_count=Count('id')
+#         )
+#         month_total = model.objects.filter(
+#             date_created__year=year, date_created__month=month
+#         ).aggregate(total=Sum('amount'))['total'] or 0
+#         year_total = model.objects.filter(
+#             date_created__year=year
+#         ).aggregate(total=Sum('amount'))['total'] or 0
+#         return {
+#             'all_time_amount': all_time['total_amount'] or 0,
+#             'all_time_count': all_time['total_count'],
+#             'month_total': month_total,
+#             'year_total': year_total
+#         }
+
+#     payment_stats = {
+#         "general": calc_totals(Payment),
+#         "ebooks": calc_totals(EbooksPayment),
+#         "certificates": calc_totals(CertificatePayment),
+#         "documents": calc_totals(DocPayment),
+#     }
+
+#     # Total for month/year
+#     total_month = sum([p['month_total'] for p in payment_stats.values()])
+#     total_year = sum([p['year_total'] for p in payment_stats.values()])
+
+#     context = {
+#         "total_students": NewUser.objects.filter(is_staff=False).count(),
+#         "total_courses": Course.objects.count(),
+#         "quizzes_today": Result.objects.filter(created__date=now.date()).count(),
+#         "avg_score": Result.objects.aggregate(Avg('marks'))['marks__avg'],
+#         "active_schools": School.objects.count(),
+#         "top_students": (
+#             Result.objects
+#             .values('student__username')
+#             .annotate(avg_score=Avg('marks'))
+#             .order_by('-avg_score')[:5]
+#         ),
+#         "course_downloads": course_downloads,
+#         "online_users": online_users,
+#         "payment_stats": payment_stats,
+#         "total_month": total_month,
+#         "total_year": total_year,
+#         "selected_month": month,
+#         "selected_year": year,
+#     }
+
+#     return render(request, "users/quick_dashboard.html", context)
+
+from django.db.models import Q, Count, Sum, Avg
 
 def dashboard_view(request):
     now = timezone.now()
     
     # Get filter params from GET request
-    month = request.GET.get('month', now.month)
-    year = request.GET.get('year', now.year)
+    month = int(request.GET.get('month', now.month))
+    year = int(request.GET.get('year', now.year))
 
-    # Ensure month/year are integers
-    month = int(month)
-    year = int(year)
-
-    # === Course download stats ===
+    # === Certificate download stats ===
     course_downloads = (
         CertificateDownload.objects
         .values('certificate__title')
         .annotate(total_downloads=Count('id'))
+        .order_by('-total_downloads')[:5]
+    )
+
+    # === Badge download stats ===
+    badge_downloads = (
+        BadgeDownload.objects
+        .values('course__title')
+        .annotate(
+            total_downloads=Count('id'),
+            gold_downloads=Count('id', filter=Q(rank=1)),
+            silver_downloads=Count('id', filter=Q(rank=2)),
+            bronze_downloads=Count('id', filter=Q(rank=3)),
+            participant_downloads=Count('id', filter=Q(rank__gt=3)),
+        )
         .order_by('-total_downloads')[:5]
     )
 
@@ -109,19 +211,23 @@ def dashboard_view(request):
     total_month = sum([p['month_total'] for p in payment_stats.values()])
     total_year = sum([p['year_total'] for p in payment_stats.values()])
 
+    # Top students
+    top_students = (
+        Result.objects
+        .values('student__username')
+        .annotate(avg_score=Avg('marks'))
+        .order_by('-avg_score')[:5]
+    )
+
     context = {
         "total_students": NewUser.objects.filter(is_staff=False).count(),
         "total_courses": Course.objects.count(),
         "quizzes_today": Result.objects.filter(created__date=now.date()).count(),
         "avg_score": Result.objects.aggregate(Avg('marks'))['marks__avg'],
         "active_schools": School.objects.count(),
-        "top_students": (
-            Result.objects
-            .values('student__username')
-            .annotate(avg_score=Avg('marks'))
-            .order_by('-avg_score')[:5]
-        ),
+        "top_students": top_students,
         "course_downloads": course_downloads,
+        "badge_downloads": badge_downloads,
         "online_users": online_users,
         "payment_stats": payment_stats,
         "total_month": total_month,
@@ -131,6 +237,7 @@ def dashboard_view(request):
     }
 
     return render(request, "users/quick_dashboard.html", context)
+
 
 
 def online_users_api(request):
