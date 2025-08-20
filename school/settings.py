@@ -374,7 +374,7 @@ BADGE_FONT = {
         "title": 60,
         "subtitle": 35,
         "name": 50,
-        "course": 45,
+        "course": 35,
         "score": 40,
         "footer": 30,
     }

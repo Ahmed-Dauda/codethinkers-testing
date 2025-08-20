@@ -1491,6 +1491,7 @@ def draw_centered_text(draw, text, font, y, center_x, fill, max_width):
 def download_badge_image(request, student_id, course_id, rank):
     result = get_object_or_404(Result, student__id=student_id, exam__id=course_id)
     course = get_object_or_404(Courses, id=course_id)
+    course_name = get_object_or_404(Course, id=course_id)
 
     # --- Badge type ---
     badge_name = "PARTICIPANT BADGE"
@@ -1539,8 +1540,17 @@ def download_badge_image(request, student_id, course_id, rank):
     y = draw_centered_text(draw, f"{result.student.first_name} {result.student.last_name}", name_font, y + 20, center[0], (0, 0, 128), max_width)
     y = draw_centered_text(draw, "For outstanding performance in", subtitle_font, y + 30, center[0], (0, 0, 0), max_width)
     y = draw_centered_text(draw, f"{course.title}", course_font, y + 20, center[0], (0, 128, 0), max_width)
-    y = draw_centered_text(draw, f"Score: {result.marks}%", score_font, y + 30, center[0], (0, 0, 0), max_width)
-    draw_centered_text(draw, "Codethinkers Academy", footer_font, y + 60, center[0], (128, 128, 128), max_width)
+
+    # --- Score fraction + percentage ---
+    if course_name.show_questions and course_name.show_questions > 0:
+        percentage = round((result.marks / course_name.show_questions) * 100, 1)
+        score_text = f"Score: {percentage}/100%"
+    else:
+        score_text = f"Score: {result.marks} / 0 = 0%"
+
+    y = draw_centered_text(draw, score_text, score_font, y + 30, center[0], (0, 0, 0), max_width)
+
+    draw_centered_text(draw, "https://codethinkers.org", footer_font, y + 60, center[0], (128, 128, 128), max_width)
 
     # --- Return response with forced download ---
     response = HttpResponse(content_type="image/png")
