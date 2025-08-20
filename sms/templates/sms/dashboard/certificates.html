@@ -1,145 +1,95 @@
-
 {% extends 'sms/dashboard/base.html' %}
-
 {% load hitcount_tags %}
 
 {% block title %} Print your Certificate {% endblock %}
 
-  {% block content %} 
+{% block content %}
 
+<div class="container my-4">
 
-<!-- Contact Us Button -->
-<div class="text-end mb-3">
-  <a href="https://wa.me/23409031568177" target="_blank" class="btn btn-success">
-    <i class="bi bi-whatsapp"></i> Contact Us
-  </a>
-</div>
+    <div class="text-right mb-3">
+        <a href="https://wa.me/23409031568177" class="btn btn-success">Contact Us</a>
+    </div>
 
-<!-- Certificates Section -->
-<div class="container card shadow-sm p-4 mb-4">
-  <h2 class="text-center mb-4 text-primary">
-    {{ hitcount.total_hits }} Certificates Printed
-  </h2>
+    <div class="card p-3 mb-4 text-center">
+        <h2>{{ hitcount.total_hits }} Certificates Printed</h2>
+    </div>
 
-  <div class="table-responsive">
-    <table class="table table-striped table-hover align-middle text-center">
-      {% if results %}
-        <thead class="table-dark">
-          <tr>
-            <th>Names</th>
-            <th>Email</th>
-            <th>Exam Name</th>
-            <th>Score</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for t in results %}
-            <tr>
-              <td>{{ t.student.first_name }} {{ t.student.last_name }}</td>
-              <td>{{ t.student.user }}</td>
-              <td>{{ t.exam.course_name }}</td>
-              <td>{{ t.marks }}</td>
-              <td>
-                {% for course in courses %}
-                  {% if course == t.exam %}
-                    {% if t.marks >= course.pass_mark %}
-                      <div class="mb-2 text-success fw-bold">
-                        🎉 Congratulations {{ request.user.profile.first_name }}, you passed!
-                      </div>
+    {% if results %}
+        <div class="table-responsive card p-3">
+            <table class="table table-hover table-bordered text-center">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Exam Name</th>
+                        <th>Score</th>
+                        <th>Certificate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for t in results %}
+                    <tr>
+                        <td>{{ t.student.first_name }} {{ t.student.last_name }}</td>
+                        <td>{{ t.student.user.email }}</td>
+                        <td>{{ t.exam }}</td>
+                        <td>{{ t.marks }}</td>
+                        <td>
+                            {% for course in courses %}
+                                {% if course == t.exam %}
+                                    {% if t.marks >= course.pass_mark %}
+                                        <p class="text-success mb-2">Congratulations! You've passed.</p>
 
-                      <form id="paymentForm{{ forloop.counter }}" method="POST">
-                        <input type="hidden" id="email-address{{ forloop.counter }}" value="{{ request.user.email }}" />
+                                        {% if related_payments.exists or course_payments.exists or school_name %}
+                                            <a href="{% url 'student:pdf_id_view' course.id %}" class="btn btn-primary btn-sm">Print Certificate</a>
+                                        {% else %}
+                                            {% with amount=course.course_name.cert_price|default:course.course_name.price %}
+                                            <button class="btn btn-warning btn-sm" type="button"
+                                                onclick="payWithPaystack('{{ request.user.email }}', {{ amount }})">
+                                                Pay #{{ amount }} & Print
+                                            </button>
+                                            {% endwith %}
+                                        {% endif %}
 
-                        {% if course.course_name.cert_price %}
-                          <input type="hidden" id="amount{{ forloop.counter }}" value="{{ course.course_name.cert_price|safe }}" />
-                        {% else %}
-                          <input type="hidden" id="amount{{ forloop.counter }}" value="{{ course.course_name.price|safe }}" />
-                        {% endif %}
-
-                        {% if related_payments.exists or course_payments.exists or school_name %}
-                          <a href="{% url 'student:pdf_id_view' course.id %}" class="btn btn-success">
-                            <i class="bi bi-printer"></i> Print Certificate
-                          </a>
-                        {% elif qcourse.course_name.cert_price == None and qcourse.course_name.price == None or school_name %}
-                          <a href="{% url 'student:pdf_id_view' course.id %}" class="btn btn-success">
-                            <i class="bi bi-printer"></i> Print Certificate
-                          </a>
-                        {% else %}
-                          <button class="btn btn-primary" type="button"
-                            onclick="payWithPaystack('{{ forloop.counter }}')">
-                            Pay ₦{{ course.course_name.cert_price|default:course.course_name.price }} & Print Certificate
-                          </button>
-                        {% endif %}
-                      </form>
-
-                    {% else %}
-                      <div class="text-danger fw-semibold mb-2">
-                        ❌ Pass mark is {{ course.pass_mark }}. Please try again.
-                      </div>
-                      <a href="{% url 'student:take-exam' %}" class="btn btn-warning">
-                        Retake Exam
-                      </a>
-                    {% endif %}
-                  {% endif %}
+                                    {% else %}
+                                        <p class="text-danger">Passed mark is {{ course.pass_mark }}. Please try again.</p>
+                                        <a href="{% url 'student:take-exam' %}" class="btn btn-outline-primary btn-sm">Retake Exam</a>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                    </tr>
                 {% endfor %}
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      {% else %}
-        <tbody>
-          <tr>
-            <td colspan="5" class="text-center text-danger">
-              No exam record found
-              <div class="mt-2">
-                <a href="{% url 'student:take-exam' %}" class="btn btn-primary">
-                  Take Exam
-                </a>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      {% endif %}
-    </table>
-  </div>
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-danger text-center">
+            No exam records found.
+            <br>
+            <a href="{% url 'student:take-exam' %}" class="btn btn-primary mt-2">Take Exam</a>
+        </div>
+    {% endif %}
+
 </div>
 
-
+<script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
-
-const paymentForm = document.getElementById('paymentForm');
-paymentForm.addEventListener("submit", payWithPaystack, false);
-
-function payWithPaystack(e) {
-  e.preventDefault();
-
-  let handler = PaystackPop.setup({
-    key: '{{paystack_public_key}}', // Replace with your public key
-    email: document.getElementById("email-address").value,
-    amount: document.getElementById("amount").value * 100,
-    ref: ''+Math.floor((Math.random() * 1000000000) + 1), // generates a pseudo-unique reference. Please replace with a reference you generated. Or remove the line entirely so our API will generate one for you
-    // label: "Optional string that replaces customer email"
-    onClose: function(){
-      alert('Window closed.');
-    },
-    
-         callback: function (response) {
-          // If transaction successful, do this
-          var referenceid = response.reference;
-          window.location.href = "{% url 'student:view_result' %}"
-
+function payWithPaystack(email, amount) {
+    let handler = PaystackPop.setup({
+        key: '{{ paystack_public_key }}',
+        email: email,
+        amount: amount * 100, // Convert to kobo
+        ref: '' + Math.floor(Math.random() * 1000000000 + 1),
+        callback: function(response) {
+            window.location.href = "{% url 'student:view_result' %}";
         },
-        onClose: function () {
-          // Do stuff
+        onClose: function() {
+            alert('Payment cancelled.');
         }
-      });
-  
-  handler.openIframe();
+    });
+    handler.openIframe();
 }
-
 </script>
 
-
-{% endblock %} 
- 
+{% endblock %}

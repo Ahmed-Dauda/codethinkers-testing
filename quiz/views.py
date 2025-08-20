@@ -1064,47 +1064,43 @@ def start_exams_view(request, pk):
 from django.urls import reverse
 
 @login_required
-def calculate_marks_view(request):
-    if request.COOKIES.get('course_id') is not None:
+def calculate_marks_assessment(request):
+    if request.COOKIES.get('course_id'):
         course_id = request.COOKIES.get('course_id')
         course = get_object_or_404(TopicsAssessment, id=course_id)
-        options = []  # List to store the selected options
-        total_marks = 0
         questions = QuestionAssessment.objects.filter(course=course).order_by('id')
-        for i in range(len(questions)):
-            selected_ans = request.POST.get(str(i+1))
-            options.append(selected_ans)  # Add selected option to the list
-            actual_answer = questions[i].answer
-            if selected_ans == actual_answer:
-                total_marks += questions[i].marks
+        
+        total_marks = 0
+        selected_options = {}  # Store answers keyed by question id
+        
+        for q in questions:
+            selected_option = request.POST.get(str(q.id))
+            selected_options[str(q.id)] = selected_option
+            
+            # Compare safely
+            if selected_option and selected_option.strip() == q.answer.strip():
+                total_marks += q.marks
 
         student = get_object_or_404(Profile, user_id=request.user.id)
 
-        # Check if the result already exists
-        existing_result = ResultAssessment.objects.filter(marks=total_marks,student=student, exam=course).first()
+        # Check if result exists
+        result, created = ResultAssessment.objects.get_or_create(
+            exam=course,
+            student=student,
+            defaults={'marks': total_marks, 'option': selected_options}
+        )
 
-        if existing_result:
-            # Update the existing result
-            existing_result.marks = total_marks
-            existing_result.option = options  # Save selected options as a list
-            existing_result.save()
-            print(existing_result, 'updated result')
-        else:
-            # Create a new result
-            result = ResultAssessment.objects.create(
-                marks=total_marks,
-                exam=course,
-                student=student,
-                option=options  # Save selected options as a list
-            )
-            print(result, 'new result')
+        if not created:
+            # Update existing result
+            result.marks = total_marks
+            result.option = selected_options
+            result.save()
 
-     
-        
-        return HttpResponseRedirect(f'/quiz/start-exam/{course.pk}')
+        return redirect(reverse('quiz:start-exam', kwargs={'pk': course.pk}))
     else:
-        return HttpResponseRedirect('/quiz/take-exam')
-       
+        return HttpResponseRedirect('quiz:take-exam')
+
+
 # @login_required
 # def calculate_marks_view(request):
 #     if request.COOKIES.get('course_id') is not None:
