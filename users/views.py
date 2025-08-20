@@ -165,7 +165,7 @@ def dashboard_view(request):
     # === Badge download stats ===
     badge_downloads = (
         BadgeDownload.objects
-        .values('course__title')
+        .values('course__course_name')
         .annotate(
             total_downloads=Count('id'),
             gold_downloads=Count('id', filter=Q(rank=1)),
