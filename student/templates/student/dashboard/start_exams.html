@@ -159,6 +159,79 @@ div.quiz p {
   }
 </style>
 
+<!-- roller -->
+ <!-- Loader Overlay -->
+<div id="overlay">
+  <div class="spinner"></div>
+  <p>Submitting, please wait...</p>
+  <div class="progress">
+    <div class="progress-bar"></div>
+  </div>
+</div>
+
+<style>
+  #overlay {
+    position: fixed;
+    top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    z-index: 9999;
+    text-align: center;
+    color: #fff;
+    font-family: Arial, sans-serif;
+  }
+
+  .spinner {
+    margin: 20% auto 10px auto;
+    width: 60px;
+    height: 60px;
+    border: 8px solid rgba(255,255,255,0.3);
+    border-top: 8px solid #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+
+  .progress { width: 50%; margin:10px auto 0; height: 25px; background: rgba(255,255,255,0.2); border-radius: 12px; overflow:hidden; }
+  .progress-bar { width:0%; height:100%; background: #17a2b8; text-align:center; line-height:25px; color:#fff; border-radius:12px; transition: width 0.3s ease; }
+</style>
+
+<script>
+function showOverlay() {
+  document.getElementById('overlay').style.display = 'block';
+  const progressBar = document.querySelector('.progress-bar');
+  let width = 0;
+  const interval = setInterval(() => {
+    if(width >= 100){ clearInterval(interval); }
+    else {
+      width += 1;
+      progressBar.style.width = width + '%';
+      progressBar.textContent = width + '%';
+    }
+  }, 30);
+}
+
+function hideOverlay() {
+  document.getElementById('overlay').style.display = 'none';
+  const progressBar = document.querySelector('.progress-bar');
+  progressBar.style.width = '0%';
+  progressBar.textContent = '';
+}
+
+// Example: attach to submit button
+document.getElementById('submit').addEventListener('click', function(e) {
+  e.preventDefault();       // prevent default form submission
+  showOverlay();            // show loader
+
+  // Simulate AJAX submit
+  setTimeout(() => {
+    hideOverlay();          // hide loader after "submission"
+    alert('Submission complete!');
+  }, 3000); // 3 seconds simulated delay
+});
+</script>
+
 
 <!-- MathJax for math rendering -->
 
