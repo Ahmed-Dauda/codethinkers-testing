@@ -210,7 +210,7 @@ canvas { width: 100% !important; height: 300px !important; }
                         <tbody>
                             {% for b in badge_downloads %}
                                 <tr>
-                                    <td>course name: {{ b.course_name }}</td>
+                                    <td>{{ b.course_name }}</td>
                                     <td><span class="badge bg-success">{{ b.total_downloads }}</span></td>
                                     <td><span class="badge bg-warning text-dark">{{ b.gold_downloads }}</span></td>
                                     <td><span class="badge bg-secondary text-white">{{ b.silver_downloads }}</span></td>
