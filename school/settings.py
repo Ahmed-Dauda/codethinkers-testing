@@ -371,12 +371,12 @@ BADGE_FONT = {
         "footer": "Italic",
     },
     "sizes": {
-        "title": 70,
-        "subtitle": 45,
-        "name": 60,
-        "course": 55,
-        "score": 50,
-        "footer": 40,
+        "title": 60,
+        "subtitle": 35,
+        "name": 50,
+        "course": 45,
+        "score": 40,
+        "footer": 30,
     }
 }
 

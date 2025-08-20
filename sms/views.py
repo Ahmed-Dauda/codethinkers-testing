@@ -1507,14 +1507,19 @@ def download_badge_image(request, student_id, course_id, rank):
     width, height = 1000, 1000
     center = (width // 2, height // 2)
     badge_radius = 400
-    img = Image.new("RGBA", (width, height), (255, 255, 255, 255))
+    img = Image.new("RGBA", (width, height), (255, 255, 255, 0))  # fully transparent background
     draw = ImageDraw.Draw(img)
 
-    # --- Circular background ---
-    draw.ellipse([
-        (center[0] - badge_radius, center[1] - badge_radius),
-        (center[0] + badge_radius, center[1] + badge_radius)
-    ], fill=(245, 245, 245), outline=badge_color, width=20)
+    # --- White filled circle with colored outline ---
+    draw.ellipse(
+        [
+            (center[0] - badge_radius, center[1] - badge_radius),
+            (center[0] + badge_radius, center[1] + badge_radius)
+        ],
+        fill=(255, 255, 255, 255),   # white inside
+        outline=badge_color,         # colored border
+        width=20
+    )
 
     # --- Fonts (loaded from settings.py) ---
     fonts = get_badge_fonts()
