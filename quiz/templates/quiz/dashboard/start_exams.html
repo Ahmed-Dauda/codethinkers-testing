@@ -1,610 +1,146 @@
-
-
 {% extends 'sms/dashboard/base.html' %}
 
 {% load mathfilters %}
 {% load hitcount_tags %}
 {% load cloudinary %}
 {% load embed_video_tags %}
+
 {% block title %} Courses list view page {% endblock %}
 
+{% block content %}
 
-{% block content %} 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Include DataTables CSS -->
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.1/css/dataTables.dataTables.css">
-<!-- Include necessary libraries (jQuery and DataTables) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js"></script>
-<!-- prism.css and prism.js -->
-<link rel="stylesheet" type="text/css" href="/static/sms/prism.css">
-<script src="/static/sms/prism.js"> </script>
-<!-- bootsrap back arrow-->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">    
-
-
+<!-- Styles -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.1/css/dataTables.dataTables.css">
+<link rel="stylesheet" href="/static/sms/prism.css">
 
 <style>
-  
-  .quiz {
-    width: 100%;
-    display: flex;
-    cursor: pointer;
-    border: 1px solid #ccc; /* Add border to the .quiz container */
-   
-  }
-  
-  .quiz>* {
-    margin: 10px;
-    
-    overflow-x: hidden;
-  }
-  
-  .quiz input[type="radio"] {
-      transform: scale(1.5); /* Increase the size by adjusting the scale value */
-      margin-right: 10px; /* Add some spacing between the radio input and label */
-      /* margin-top: -10px; */
-     
-  }
-  
+  .quiz { width: 100%; display: flex; cursor: pointer; border: 1px solid #ccc; }
+  .quiz>* { margin: 10px; overflow-x: hidden; }
+  .quiz input[type="radio"] { transform: scale(1.5); margin-right: 10px; }
+
   .back-button {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #f9f9f9; /* Background color for the button */
-    border: 1px solid #ccc; /* Border for the button */
-    border-radius: 5px; /* Rounded corners for the button */
-    text-decoration: none;
-    color: #333; /* Text color */
-    font-size: 16px; /* Font size */
+    display: inline-block; padding: 10px 20px; background-color: #f9f9f9;
+    border: 1px solid #ccc; border-radius: 5px; text-decoration: none; color: #333; font-size: 16px;
   }
-  
-  .back-button:hover {
-    background-color: #e0e0e0; /* Background color on hover */
-  }
+  .back-button:hover { background-color: #e0e0e0; }
 
-
-  </style>
-
-<!-- mark as completed -->
-
-<style>
   .pagination-box {
-      display: inline-block;
-      width: 100px;
-      height: 30px;
-      border: 1px solid #ccc;
-      text-align: center;
-      line-height: 30px;
-      margin-right: 5px;
-      cursor: pointer;
+    display: inline-block; width: 100px; height: 30px; border: 1px solid #ccc;
+    text-align: center; line-height: 30px; margin-right: 5px; cursor: pointer;
   }
-  
-  .clicked {
-      /* background-color: #00ff00; */
-      background-color: rgb(211, 247, 211);
-  }
-  </style>
+  .clicked { background-color: rgb(211, 247, 211); }
+</style>
 
+<!-- Back button -->
 <a class="back-button" href="{% url 'sms:topicslistview' course.course_name.courses.id %}" style="font-size: 24px;">
   <span class="bi bi-arrow-left"></span>
 </a>
 
-<script>
-function goBack() {
-  window.history.back();
-}
-
-</script>
-
-<div class="card" >
+<!-- Quiz Results -->
+<div class="card mt-3">
   <div class="card-header">
-    <!-- <h1>tttttttttt{{ course.pass_mark }}</h1>  -->         
-      <h2>Quiz Results </h2>    
-      {% for t in results %}
-      
+    <h2>Quiz Results</h2>
+    {% for t in results %}
       <div class="container">
-      <span>Score: ({{ t.marks|mul:100|div:q_count }}  %)
-      {% if t.marks >= course.pass_mark %}
-          <p id="passText" style="color: green;">Congratulations! You have passed the assessment benchmark <span class="bi bi-emoji-smile"></span> 
-            <br> 
-            <a class="" href="{% url 'sms:topicslistview' course.course_name.courses.id %}" style="font-size: 24px;">
-              <span class="bi bi-arrow-left"></span>
-            </a>
-          </p>
-      {% else %}
-          <p id="failText" style="color: red;">Unfortunately, you did not pass this assessment. Don't be discouraged! Keep practicing and try again! <span class="bi bi-emoji-sad"></span></p>
-      {% endif %}
-    </span>
-    </div>
-
-    </div>
-      
-        <!-- <span>Score: <span id="score">{{ t.marks }}</span> / <span id="qCount">{{ q_count }}</span></span>
-        {% if t.marks >= course.pass_mark  %}
-            <p id="passText" style="color: green;">Congratulations! You have passed the assessment benchmark <span class="bi bi-emoji-smile"></span></p>
+        <span>Score: ({{ t.marks|mul:100|div:q_count }}/100%)</span>
+        {% if t.marks >= course.pass_mark %}
+          <p style="color: green;">Congratulations! You passed <span class="bi bi-emoji-smile"></span></p>
         {% else %}
-            <p id="failText" style="color: red;">Unfortunately, you did not pass this assessment. Don't be discouraged!. Keep practicing and try again! <span class="bi bi-emoji-sad"></span></p>
-        {% endif %} -->
-    
+          <p style="color: red;">Unfortunately, you did not pass. Keep practicing! <span class="bi bi-emoji-sad"></span></p>
+        {% endif %}
+      </div>
     {% endfor %}
-<hr>    
-
-<div class="container">
-
-<form id="quizForm"  action="/quiz/calculate_marks" onsubmit="return saveAns()" enctype="multipart/form-data"  method="POST">
-
-  {% csrf_token %}
-  <input type="hidden" name="csrfmiddlewaretoken" value="C24rUotmdHawVQJL3KrqiWxvti8UffOFYUc8TRbZtLt36AVLdP3jbkzUVe3beRAa">
-      <h4>{{course.course_name}} Quiz</h4>
-      <h5>Number of Questions in the Quiz: {{q_count}}</h5>
-      <!-- <hr>
-      <p>pages {{page_obj}}</p> -->
-      
-      <hr>
-
-<table id="example" class="display question-table" style="width:100%">
-
-  <thead>
-      <tr>
-
-      </tr>
-  </thead>
-  <tbody>
-
-    {% for q in  page_obj %}
-      <tr>
-        
-        <td colspan="4">
-          {% if q.img_quiz.url %}
-            <div  class="text-center" ><img src="{{q.img_quiz.url}}"  width="40%" height="250px" alt=""> </div><br>
-            {% endif %}
-        
-            {% if q.img_quiz.url %}
-            <label style="font-size: 18px; text-align: center; display: block;">
-              {{ q.question|safe }}
-            </label>
-            {% else %}
-            <label style="font-size: 18px;">
-              {{ q.question|safe }}
-            </label>
-
-            {% endif %}
-            
-            <h6 style="text-align: right;">[marks {{q.marks}}]</h6>
-
-            {% if q.option1 %}
-            <div class="quiz"> 
-              <input  class="radio-button"  type="radio" name="{{forloop.counter}}" id="option1"  value="Option1"  required>
-              <label style="width: 100%;" data-original-text="{{ q.option1|safe|striptags }}" for="option1" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left"> {{q.option1|safe}}</label>
-            </div> 
-            {% endif %}
-          {% if q.option2 %}
-            <div class="quiz">
-              <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option2"  value="Option2"  required>
-              <label style="width: 100%;" data-original-text="{{ q.option2|safe|striptags }}" for="option2" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button  text-left">{{q.option2|safe}}</label>
-            </div>
-            
-            {% endif %}
-        {% if q.option3 %}
-            <div class="quiz" >
-              <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option3"  value="Option3"  required>
-              <label style="width: 100%;" data-original-text="{{ q.option3|safe|striptags }}" for="option3" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button  text-left">{{q.option3|safe}}</label>
-            </div>
-            {% endif %}
-        {% if q.option4 %}
-            <div class="quiz" >
-              <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option4"  value="Option4"  required>
-              
-              <label style="width: 100%;" data-original-text="{{ q.option4|safe|striptags }}"  for="option4" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button text-left">{{q.option4|safe}}</label><br>
-            </div>
-            {% endif %}
-          
-          </td>
-      </tr>
-      {% endfor %}
-    
-  </tbody>
-
-</table>
-
-</form>
-
-<!-- <button style="display: n;" id="submit"  type="submit">Submit form</button> -->
-<button id="submit" type="submit" >Submit Quiz</button>
+  </div>
 </div>
 
-<br><br>
+<hr>
+
+<!-- Quiz Form -->
+<div class="container mt-4">
+  <form id="quizForm" action="{% url 'quiz:calculate_marks_assessment' %}" method="POST">
+    {% csrf_token %}
+
+    <h4 class="mb-3">{{ course.course_name }} Quiz</h4>
+    <h5 class="mb-4">Number of Questions: {{ q_count }}</h5>
+
+    <table class="table table-bordered question-table">
+      <tbody>
+        {% for q in page_obj %}
+        <tr>
+          <td>
+            {% if q.img_quiz %}
+            <div class="text-center mb-3">
+              <img src="{{ q.img_quiz.url }}" class="img-fluid" style="max-height:250px;" alt="Quiz Image">
+            </div>
+            {% endif %}
+
+            <label class="d-block mb-2" style="font-size:18px;">{{ q.question|safe }}</label>
+            <h6 class="text-end">[marks {{ q.marks }}]</h6>
+
+            {% if q.option1 %}
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="{{ q.id }}" id="option1-{{ q.id }}" value="Option1" required>
+              <label class="form-check-label" for="option1-{{ q.id }}">{{ q.option1|safe }}</label>
+            </div>
+            {% endif %}
+
+            {% if q.option2 %}
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="{{ q.id }}" id="option2-{{ q.id }}" value="Option2" required>
+              <label class="form-check-label" for="option2-{{ q.id }}">{{ q.option2|safe }}</label>
+            </div>
+            {% endif %}
+
+            {% if q.option3 %}
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="{{ q.id }}" id="option3-{{ q.id }}" value="Option3" required>
+              <label class="form-check-label" for="option3-{{ q.id }}">{{ q.option3|safe }}</label>
+            </div>
+            {% endif %}
+
+            {% if q.option4 %}
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="{{ q.id }}" id="option4-{{ q.id }}" value="Option4" required>
+              <label class="form-check-label" for="option4-{{ q.id }}">{{ q.option4|safe }}</label>
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <button class="btn btn-primary mt-3" type="submit">Submit Quiz</button>
+  </form>
+</div>
+
+<!-- Progress -->
 <div class="progress mt-4">
   <div class="progress-bar bg-success" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0% Complete</div>
 </div>
-  <div id="paginationBoxes"></div>
+<div id="paginationBoxes"></div>
 
+<!-- JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js"></script>
 
-  <!-- {% for q in  page_obj %}
-  <h1>group ID {{forloop.counter}}</h1>
-  <input class="radio-button"  type="radio" name="{{forloop.counter}}" id="option1"  value="Option1"  required>
-  <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option2"  value="Option2"  required>
-  <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option3"  value="Option3"  required>
-  <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option4"  value="Option4"  required>
-  
-  {% endfor %} -->
-  <!-- <hr>
-{% for q in  page_obj %}
-
-
-{% if q.option1 %}
-<div class="quiz"> 
-  <input class="radio-button"  type="radio" name="{{forloop.counter}}" id="option1"  value="Option1"  required>
-  <label style="width: 100%;" for="option1" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left"> {{q.option1|safe}}</label><br>
-</div> 
-{% endif %}
-{% if q.option2 %}
-<div class="quiz">
-  <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option2"  value="Option2"  required>
-  <label style="width: 100%;" for="option2" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option2|safe}}</label>
-</div>
-
-{% endif %}
-{% if q.option3 %}
-<div class="quiz" >
-  <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option3"  value="Option3"  required>
-  <label style="width: 100%;" for="option3" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option3|safe}}</label>
-</div>
-{% endif %}
-
-{% if q.option4 %}
-<div class="quiz" >
-  <input class="radio-button" type="radio" name="{{forloop.counter}}" id="option4"  value="Option4"  required>
-  <label style="width: 100%;"  for="option4" data-label="my-label-button" class="language-markup line-numbers copy-to-clipboard-button body-text text-left">{{q.option4|safe}}</label><br>
-</div>
-{% endif %}
-
-{% endfor %} -->
-
-<script> 
-
-$.fn.dataTable.ext.errMode = 'none';
-
-var table = $('#example').DataTable({
-    pageLength: 1,
-    order: [[3, 'desc']],
-    lengthChange: false, 
-    sDom: 'lrtip',
-    "ordering": false,
-   
-    dom: '<"top"fi>rt<"bottom"lp><"clear">',
-    columnDefs: [
-        {
-            orderable: false,
-            targets: [1, 2, 3]
-        }
-    ]
-
-    
-});
-
-
-// var data = table.$('input, select').serialize();
-// alert(
-//         'The following data would have been submitted to the server: \n\n' +
-//             data.substr(0, 120) +
-//             '...',
-//     );
-
+<script>
 $(document).ready(function() {
-    $('#submit').on('click', function (e) {
-        // Show a confirmation dialog
-        var confirmation = confirm("Are you sure you want to submit the quiz?");
-        
-        // If the user confirms, proceed with the submission
-        if (confirmation) {
-            // Prevent the default form submission behavior
-            e.preventDefault();
-            // Serialize the input and select elements
-            var data = table.$('input, select').serialize();
-            // Send the data to the calculate_marks view using AJAX
-            $.ajax({
-                type: "POST",
-                url: "/quiz/calculate_marks", // URL of the calculate_marks view
-                data: data,
-                success: function(response) {
-                    // Handle successful response from the Django view
-                    // console.log("Response from server:", response);
-                    // You can do further processing based on the response here
-                },
-                error: function(xhr, status, error) {
-                    // Handle error
-                    console.error("Error:", error);
-                }
-            });
+  // Initialize DataTable (if needed)
+  $('#example').DataTable({ paging: false, ordering: false });
 
-            // Or perform other actions based on your application logic
-            alert("Quiz submitted successfully!");
-            // alert('The following data would have been submitted to the server: \n\n' + data);
-        }
-    });
+  // Progress bar update based on answered questions
+  function updateProgress() {
+    var answered = $('input[type=radio]:checked').length;
+    var total = {{ q_count }};
+    var progress = (answered / total) * 100;
+    $('.progress-bar').css('width', progress + '%').attr('aria-valuenow', progress).text(Math.round(progress) + '% Complete');
+  }
+
+  $('input[type=radio]').on('change', updateProgress);
+  updateProgress();
 });
-
-
 </script>
 
-<!-- 
-<script>
-$('#submit').on('click', function (e) {
-    e.preventDefault();
- 
-// Serialized data
-var  data = table.$('input, select').serialize();
-// Get information about the table's paging state
-var pageInfo = table.page.info();
-// Extract the total number of pages
-var totalPages = pageInfo.pages;
-
-for (var i = 1; i <= totalPages; i++) {
-    // Serialize the data for the current page
-    var serializedData = table.$('input, select').serialize(); 
-    // Split the serialized data into an array of key-value pairs
-    var dataArray = serializedData.split('&');
-    // Loop through each key-value pair in the serialized data
-    // Get the reference to the div with ID "paginationControls"
-    var paginationControlsDiv = document.getElementById("paginationControls");
-
-for (var i = 1; i <= totalPages; i++) {
-    var matchFound = false;
-    for (var j = 0; j < dataArray.length; j++) {
-        var keyValue = dataArray[j].split('=');
-        if (parseInt(keyValue[0]) === i) {
-            matchFound = true;
-            var paragraph = document.createElement('p');
-            paragraph.textContent = 'clicked: ' + keyValue[0];
-            paragraph.style.color = 'green'; // Apply red color for clicked paragraphs
-            paginationControlsDiv.appendChild(paragraph); // Append the paragraph to the paginationControlsDiv
-            break;
-        }
-    }
-    if (!matchFound) {
-        var paragraph = document.createElement('p');
-        paragraph.textContent = 'keyValue[0]: ' + i;
-        paragraph.style.color = 'blue'; // Apply yellow color for unclicked paragraphs
-        paginationControlsDiv.appendChild(paragraph); // Append the paragraph to the paginationControlsDiv
-    }
-}
-    
-}
-
-});
-
-</script> -->
-
-<script>
-
-
-
-  $(document).ready(function() {
-    // Function to update pagination boxes with values
-    function updatePagination() {
-        // Clear previous pagination content
-        $('#paginationBoxes').empty();
-        // Serialized data
-        var data = table.$('input, select').serialize();
-        // Get information about the table's paging state
-        var pageInfo = table.page.info();
-        // Extract the total number of pages
-        var totalPages = pageInfo.pages;
-        // Loop through each page
-        for (var i = 1; i <= totalPages; i++) {
-            // Create a pagination box element
-            var paginationBox = $('<div class="pagination-box"></div>');
-            // Check if the current page is clicked or not
-            var matchFound = false;
-            var serializedData = table.$('input, select').serialize(); 
-            var dataArray = serializedData.split('&');
-            var dataCount = 0;
-        // Count the number of key-value pairs in serialized data
-            if (serializedData) {
-                var keyValuePairs = dataArray;
-                dataCount = keyValuePairs.length;
-            }
-            
-               // Calculate progress
-            var answeredCount = dataCount;
-            var progress = (answeredCount / totalPages) * 100;
-            // Update progress bar
-            $('.progress-bar').css('width', progress + '%').attr('aria-valuenow', progress).text(progress + '% Complete');  
-            // for (var j = 0; j < dataArray.length; j++) {
-            //     var keyValue = dataArray[j].split('=');
-
-            //     if (parseInt(keyValue[0]) === i) {      
-            //         matchFound = true;
-            //            //test
-            //            console.log("id and name", keyValue[0], keyValue[1])
-            //            var all = document.querySelectorAll('.radio-button');
-                     
-            //             // Change the color of radio buttons to blue if found matching
-
-            //             var radioButtons = document.querySelectorAll('input[name="' + (i) + '"]');
-            //             radioButtons.forEach(function(radioButton) {
-            //                 if (radioButton.value === keyValue[1]) { // Check if the value matches keyValue[1]
-            //                     radioButton.nextElementSibling.textContent = 'Yes'; // Update label content to 'Yes'  
-            //                     checked = True 
-            //                     radioButton.style.color = 'red'; // Change color to red
-            //                 } else {
-            //                     radioButton.nextElementSibling.textContent = ''; // Clear label content
-            //                     radioButton.style.color = ''; // Reset color
-            //                 }
-            //             });
-
-
-            //           //test
-            //     paginationBox.addClass('clicked');
-            //     break;
-            // }
-            
-            // }
-            // test 
-            for (var j = 0; j < dataArray.length; j++) {
-            var keyValue = dataArray[j].split('=');
-
-            if (parseInt(keyValue[0]) === i) {      
-                matchFound = true;
-                // console.log("id and name", keyValue[0], keyValue[1]);
-
-                var radioButtons = document.querySelectorAll('input[name="' + i + '"]');
-                radioButtons.forEach(function(radioButton) {
-                    if (radioButton.value === keyValue[1]) {
-                      //  radioButton.checked = true;
-                        radioButton.nextElementSibling.textContent = 'selected';
-                        radioButton.style.color = 'red';
-                    } else {
-                        radioButton.nextElementSibling.textContent = '';
-                        radioButton.style.color = '';
-                    }
-                });
-
-                paginationBox.addClass('clicked');
-
-                // Store the value of checked in local storage
-                // localStorage.setItem('checked', keyValue[1]);
-
-                break; // exit the loop after finding a match
-            }
-        }
-
-// Retrieve the stored value from local storage
-var storedCheckedValue = localStorage.getItem('checked');
-
-// Event listener to update local storage when radio button is clicked or changed
-document.addEventListener('change', function(event) {
-    var target = event.target;
-    if (target.matches('.radio-button')) {
-        var selectedValue = target.value;
-        var questionName = target.getAttribute('name');
-        // Store the selected value in local storage with a unique key for each question
-        localStorage.setItem('checked_' + questionName, selectedValue);
-    }
-});
-
-// Retrieve the stored value from local storage for each question
-var allRadioButtons = document.querySelectorAll('.radio-button');
-
-allRadioButtons.forEach(function(radioButton) {
-    var questionName = radioButton.getAttribute('name');
-    var storedCheckedValue = localStorage.getItem('checked_' + questionName);
-
-    if (storedCheckedValue !== null) {
-        if (radioButton.value === storedCheckedValue) {
-            radioButton.checked = true;
-            radioButton.nextElementSibling.textContent = radioButton.nextElementSibling.dataset.originalText;
-            radioButton.style.color = 'red';
-        } else {
-            radioButton.nextElementSibling.textContent = radioButton.nextElementSibling.dataset.originalText;
-        }
-    }
-});
-
-      // Event listener to clear local storage when submit button is clicked
-var submitButton = document.getElementById('submit');
-submitButton.addEventListener('click', function() {
-    localStorage.clear();
-});
-          // test
-
-            // Set the content of the pagination box
-            if (matchFound) {
-                paginationBox.text('answered: ' + i);
-                var answeredBoxCount = $('#paginationBoxes').length;
-
-            } else {
-                paginationBox.text('unanswered: ' + i);
-            }
-
-            // Append the pagination box to the paginationBoxes container
-            $('#paginationBoxes').append(paginationBox);
-        }
-    }
-    
-    // Call the updatePagination function initially
-    updatePagination();
-
-    // Set interval to update pagination boxes every second
-    // setInterval(updatePagination, 1000);
-    setInterval(updatePagination, 2000);
-
-    
-});
-
-
-  </script>
-  
-
-
-  <!-- <script>
-    $(document).ready(function() {
-        setInterval(function() {
-            $('#ardBdy').load(location.href + ' #ardBdy');
-        }, 5000); // 1000 milliseconds = 1 second
-    });
-
-</script> -->
-
-<!-- quiz page refresh -->
-<script>
-  document.getElementById('submit').addEventListener('click', function(event) {
-      event.preventDefault(); // Prevent the default form submission
-      document.getElementById('quizForm').submit(); // Submit the form programmatically
-
-      // Delay the page reload by 2 seconds (2000 milliseconds)
-      setTimeout(function() {
-          location.reload();
-      }, 2000);
-  });
-</script>
-
-<!-- 
-<script>
-
-
-
-var all = document.querySelectorAll('.radio-button');
-for (var i = 0; i < all.length; i++) {
-    var radioButton = all[i];
-    // console.log("Radio button value:", radioButton.value);
-    // console.log("Radio button name:", radioButton.name, radioButton.value);
-    // Add more properties as needed
-    if (radioButton.value === radioButton.id) {
-      // console.log("yes")
-        radioButton.checked = true;
-    }
-}
-
-
-</script> -->
-
-
-  <!-- <script>
-// Retrieve selected option from local storage
-function getSelectedOption() {
-  return localStorage.getItem('selectedOption');
-}
-
-// Save selected option to local storage
-function saveSelectedOption(option) {
-  localStorage.setItem('selectedOption', option);
-}
-
-
-document.addEventListener('DOMContentLoaded', function() {
-  const radioButtons = document.querySelectorAll('.radio-button');
-  radioButtons.forEach(function(radioButton) {
-
-    // console.log("radioButtontest", radioButton.name, radioButton.id)
-    radioButton.addEventListener('change', function(event) {
-      saveSelectedOption(event.target.id);
-    });
-  });
-});
-
-</script> -->
-
-{% endblock %} 
+{% endblock %}

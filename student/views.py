@@ -619,7 +619,7 @@ async def _calculate_marks_async(request):
 
     # If result already exists, redirect immediately
     if result_exists:
-        return redirect('certificates', pk=course.id)
+        return redirect('sms:certificates', pk=course.id)
 
     # Calculate marks
     total_marks = 0
