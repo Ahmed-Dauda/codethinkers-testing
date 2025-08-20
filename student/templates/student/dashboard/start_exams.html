@@ -160,78 +160,7 @@ div.quiz p {
 </style>
 
 <!-- roller -->
- <!-- Loader Overlay -->
-<div id="overlay">
-  <div class="spinner"></div>
-  <p>Submitting, please wait...</p>
-  <div class="progress">
-    <div class="progress-bar"></div>
-  </div>
-</div>
-
-<style>
-  #overlay {
-    position: fixed;
-    top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.5);
-    display: none;
-    z-index: 9999;
-    text-align: center;
-    color: #fff;
-    font-family: Arial, sans-serif;
-  }
-
-  .spinner {
-    margin: 20% auto 10px auto;
-    width: 60px;
-    height: 60px;
-    border: 8px solid rgba(255,255,255,0.3);
-    border-top: 8px solid #fff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
-
-  .progress { width: 50%; margin:10px auto 0; height: 25px; background: rgba(255,255,255,0.2); border-radius: 12px; overflow:hidden; }
-  .progress-bar { width:0%; height:100%; background: #17a2b8; text-align:center; line-height:25px; color:#fff; border-radius:12px; transition: width 0.3s ease; }
-</style>
-
-<script>
-function showOverlay() {
-  document.getElementById('overlay').style.display = 'block';
-  const progressBar = document.querySelector('.progress-bar');
-  let width = 0;
-  const interval = setInterval(() => {
-    if(width >= 100){ clearInterval(interval); }
-    else {
-      width += 1;
-      progressBar.style.width = width + '%';
-      progressBar.textContent = width + '%';
-    }
-  }, 30);
-}
-
-function hideOverlay() {
-  document.getElementById('overlay').style.display = 'none';
-  const progressBar = document.querySelector('.progress-bar');
-  progressBar.style.width = '0%';
-  progressBar.textContent = '';
-}
-
-// Example: attach to submit button
-document.getElementById('submit').addEventListener('click', function(e) {
-  e.preventDefault();       // prevent default form submission
-  showOverlay();            // show loader
-
-  // Simulate AJAX submit
-  setTimeout(() => {
-    hideOverlay();          // hide loader after "submission"
-    alert('Submission complete!');
-  }, 3000); // 3 seconds simulated delay
-});
-</script>
-
+ 
 
 <!-- MathJax for math rendering -->
 
@@ -633,7 +562,40 @@ document.getElementById('submit').addEventListener('click', function () {
         contentType: "application/json",
         data: jsonData,
         success: function (response) {
-            alert("Quiz submitted successfully!");
+            // Show loader
+            let overlay = document.createElement('div');
+            overlay.id = 'overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.background = 'rgba(0,0,0,0.7)';
+            overlay.style.display = 'flex';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+            overlay.style.flexDirection = 'column';
+            overlay.style.zIndex = '9999';
+            overlay.style.color = '#fff';
+            overlay.innerHTML = `
+                <div class="spinner" style="
+                    width: 60px;
+                    height: 60px;
+                    border: 8px solid rgba(255,255,255,0.3);
+                    border-top: 8px solid #fff;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                    margin-bottom: 20px;
+                "></div>
+                <p>Redirecting, please wait...</p>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+            document.body.appendChild(overlay);
 
             // Clear local storage for this course
             localStorage.removeItem('quizAnswers');
@@ -642,17 +604,61 @@ document.getElementById('submit').addEventListener('click', function () {
             localStorage.removeItem(courseKey);
             localStorage.removeItem('quizStartedForCourse_{{ course.id }}');
 
-            // ✅ Redirect to certificate page
+            // Redirect to certificate page
             const certUrl = "{% url 'sms:certificates' course.id %}";
             setTimeout(function () {
                 window.location.href = certUrl;
-            }, 1000);
+            }, 500); // short delay so loader is visible
         },
         error: function (xhr, status, error) {
             console.error("Submission error:", error);
         }
     });
 });
+
+// // manual submission
+// document.getElementById('submit').addEventListener('click', function () {
+//     const confirmed = confirm("Are you sure you want to submit the quiz?");
+//     if (!confirmed) return;
+
+//     if (window.timerInterval) {
+//         clearInterval(window.timerInterval);
+//     }
+
+//     const finalTabSwitchCount = parseInt(localStorage.getItem('tabSwitchCount')) || 0;
+//     const courseKey = 'remainingTime_{{ course.id }}';
+
+//     const storedAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
+//     storedAnswers['tabSwitchCount'] = finalTabSwitchCount;
+
+//     const jsonData = JSON.stringify(storedAnswers);
+
+//     $.ajax({
+//         type: "POST",
+//         url: "/student/calculate_marks",
+//         contentType: "application/json",
+//         data: jsonData,
+//         success: function (response) {
+//             alert("Quiz submitted successfully!");
+
+//             // Clear local storage for this course
+//             localStorage.removeItem('quizAnswers');
+//             localStorage.removeItem('lastVisitedPage');
+//             localStorage.removeItem('tabSwitchCount');
+//             localStorage.removeItem(courseKey);
+//             localStorage.removeItem('quizStartedForCourse_{{ course.id }}');
+
+//             // ✅ Redirect to certificate page
+//             const certUrl = "{% url 'sms:certificates' course.id %}";
+//             setTimeout(function () {
+//                 window.location.href = certUrl;
+//             }, 1000);
+//         },
+//         error: function (xhr, status, error) {
+//             console.error("Submission error:", error);
+//         }
+//     });
+// });
 
 // document.getElementById('submit').addEventListener('click', function () {
 //     const confirmed = confirm("Are you sure you want to submit the quiz?");
