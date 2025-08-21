@@ -105,132 +105,105 @@
   
     <!-- Page Wrapper -->
     <div id="wrapper" class="bg-white">
+<!-- Sidebar -->
+<!-- Sidebar -->
+<ul style="background-color: rgb(65, 65, 247);" 
+    class="navbar-nav sidebar sidebar-dark accordion toggled" id="accordionSidebar">
 
-        <!-- Sidebar -->
-        <ul  class="navbar-nav bg-primary sidebar sidebar-dark accordion toggled" id="accordionSidebar">
+    <!-- Sidebar - Brand -->
+    <a class="sidebar-brand d-flex align-items-center justify-content-start" href="{% url 'sms:homepage' %}">
+        <div class="sidebar-brand-icon rotate-n-0">
+            <i class="fas fa-home fa-fw"></i>
+        </div>
+        <div class="sidebar-brand-text ml-2">Codethinkers' Academy</div>
+    </a>
 
-            <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'sms:homepage' %}">
-                <div class="sidebar-brand-icon rotate-n-0">
-                    <i class="fas fa-home fa-fw "></i>
-                </div>
-                <div class="sidebar-brand-text mx-3">Codethinkers' Academy <sup></sup></div>
-            </a>
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
 
-            <!-- Divider -->
-            <hr class="sidebar-divider my-0">
-
-            <!-- Nav Item - Dashboard -->
-          
-            
-
-            <!-- Heading -->
-            
-
-            <!-- Nav Item - Pages Collapse Menu -->
-         
-
-            <!-- Nav Item - Utilities Collapse Menu -->
-            <li class="nav-item">
-                
-                <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Custom Utilities:</h6>
-                        <a class="collapse-item" href="dashboard/utilities-animation.html">Animations</a>
-
-                    </div>
-                </div>
-            </li>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-          
-            <!-- Nav Item - Pages Collapse Menu -->
-            {% if object_list %}
-
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-folder"></i>
-                                        <span>All Available Courses</span>
+    <!-- Nav Item - Courses Collapse -->
+    {% if object_list %}
+    <li class="nav-item {% if request.resolver_match.url_name == 'courseslistdesc' %}active{% endif %}">
+        <a class="nav-link collapsed d-flex align-items-center" href="#" data-toggle="collapse" data-target="#collapsePages"
+           aria-expanded="true" aria-controls="collapsePages">
+            <i class="fas fa-book fa-fw mr-2"></i>
+            <span>Courses</span>
+        </a>
+        <div id="collapsePages" class="collapse {% if request.resolver_match.url_name == 'courseslistdesc' %}show{% endif %}" 
+             aria-labelledby="headingPages" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header text-left">Select Your Courses Below:</h6>
+                <h3 class="text-center">{{courses_count}}</h3>
+                {% for course in coursess %}
+                <a class="collapse-item {% if request.resolver_match.kwargs.pk == course.pk %}active{% endif %}" 
+                   href="{% url 'sms:courseslistdesc' course.pk %}">
+                    {{course.title|safe}}
                 </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                       
-                        <h6 class="collapse-header">Select Your Courses Below:</h6>
-                        
-                        <!-- <a class="collapse-item" href="">Take Exam</a>  -->
-                     
-                        <h3 class="text-center">{{courses_count}}</h3>
-                       
-                        {% for course in coursess %}
-                       
-                         <a class="collapse-item" href="{% url 'sms:courseslistdesc' course.pk %}"> {{course.title|safe}}</a>
-                          {% endfor %}
-                          
-                        <!-- <a class="collapse-item" href="">View Certificate (s)</a> -->
-                        <!-- <a class="collapse-item" href="{% url 'sms:admin_result' %}">Overall Exams Score</a> -->
-
-                        <div class="collapse-divider"></div>      
-                    </div>
-                </div>
-                
-            </li>
-            {% endif %}
-            <!-- Nav Item - Tables -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'student:take-exam' %}">
-                    <i class="fas fa-fw fa-book"></i>
-                    <span>Take Exam</span></a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'student:view_result' %}">
-                    <i class="fas fa-fw fa-book"></i>
-                    <span>View Certificate (s)</span></a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'sms:admin_result' %}">
-                    <i class="fas fa-fw fa-book"></i>
-                    <span>Overall Exams Score</span></a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'sms:table' %}">
-                    <i class="fas fa-fw fa-table"></i>
-                    <span>Tables</span></a>
-            </li>
-            <!-- Nav Item - Feedback -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'sms:feedbackformview' %}">
-                    <i class="fas fa-bell fa-fw"></i>
-                    <span>Feedback</span></a>
-            </li>
-
-            <!-- Nav Item - Article Page -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'sms:bloglistview' %}">
-                    <i class="fas fa-book fa-lg "></i>
-                    <span>Article Page</span></a>
-            </li>
-            <!-- Nav Item - FAQS Page -->
-            <li class="nav-item">
-                <a class="nav-link" href="#faqs">
-                    <i class="fa fa-question-circle fa-lg" aria-hidden="true"></i>
-            
-                    <span>FAQS</span>
-                </a>
-            </li>
-            <!-- Divider -->
-            <hr class="sidebar-divider d-none d-md-block">
-
-            <!-- Sidebar Toggler (Sidebar) -->
-            <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+                {% endfor %}
+                <div class="collapse-divider"></div>
             </div>
+        </div>
+    </li>
+    {% endif %}
 
-            <!-- Sidebar Message -->
-            
+    <!-- Nav Links -->
+    <li class="nav-item {% if request.resolver_match.url_name == 'take-exam' %}active{% endif %}">
+        <a class="nav-link d-flex align-items-center" href="{% url 'student:take-exam' %}">
+            <i class="fas fa-pen fa-fw mr-2"></i>
+            <span>Take Exam</span>
+        </a>
+    </li>
 
-        </ul>
+    <li class="nav-item {% if request.resolver_match.url_name == 'view_result' %}active{% endif %}">
+        <a class="nav-link d-flex align-items-center" href="{% url 'student:view_result' %}">
+            <i class="fas fa-certificate fa-fw mr-2"></i>
+            <span>Certificates</span>
+        </a>
+    </li>
+
+    <li class="nav-item {% if request.resolver_match.url_name == 'admin_result' %}active{% endif %}">
+        <a class="nav-link d-flex align-items-center" href="{% url 'sms:admin_result' %}">
+            <i class="fas fa-chart-line fa-fw mr-2"></i>
+            <span>Exams Scores</span>
+        </a>
+    </li>
+
+    <li class="nav-item {% if request.resolver_match.url_name == 'table' %}active{% endif %}">
+        <a class="nav-link d-flex align-items-center" href="{% url 'sms:table' %}">
+            <i class="fas fa-table fa-fw mr-2"></i>
+            <span>Tables</span>
+        </a>
+    </li>
+
+    <li class="nav-item {% if request.resolver_match.url_name == 'feedbackformview' %}active{% endif %}">
+        <a class="nav-link d-flex align-items-center" href="{% url 'sms:feedbackformview' %}">
+            <i class="fas fa-comment-dots fa-fw mr-2"></i>
+            <span>Feedback</span>
+        </a>
+    </li>
+
+    <li class="nav-item {% if request.resolver_match.url_name == 'bloglistview' %}active{% endif %}">
+        <a class="nav-link d-flex align-items-center" href="{% url 'sms:bloglistview' %}">
+            <i class="fas fa-newspaper fa-fw mr-2"></i>
+            <span>Articles</span>
+        </a>
+    </li>
+
+    <li class="nav-item {% if request.resolver_match.url_name == 'faqs' %}active{% endif %}">
+        <a class="nav-link d-flex align-items-center" href="#faqs">
+            <i class="fas fa-question-circle fa-fw mr-2"></i>
+            <span>FAQS</span>
+        </a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider d-none d-md-block">
+
+    <!-- Sidebar Toggler -->
+    <div class="text-left d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
+</ul>
 
         <!-- End of Sidebar -->
 
@@ -261,14 +234,6 @@
                         </div>
                     </form>
                     
-
-                    <!-- <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true" aria-controls="collapsePages">
-                        <i class="fas fa-fw fa-folder"></i>
-                        
-                        <span style="font-size: 12; padding-right: 20px;">All Courses</span>
-
-                    </a>
-                     -->
 
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto" >
@@ -386,20 +351,33 @@
             <!-- Footer -->
            <br><br><br><br>
         
-            <footer class="sticky-footer bg-dark "> 
-            <div style="margin: 0 auto;" class=" text-center col-lg-4 my-3 my-lg-0">
-                    
-                <a class="text-center bg-white btn btn-white btn-social mx-2" href="https://youtube.com/channel/UCZLdq1lpQOZAO7fDc6n8GtQ" role="button"><i class="fab fa-youtube"></i></a>        
-                <a class="text-center bg-white btn btn-white btn-social mx-2" href="https://web.facebook.com/addatainsight"><i class="fab fa-facebook"></i></a>
-            </div>
-            <br>
-                <div class="container my-auto">
-                    <div class="copyright text-center text-white my-auto">
-                        <span>Copyright © Codethinkers' Academy 2023</span>
-                    </div>
-                </div>
-                <br>   <br>   <br>   <br>   
-            </footer>
+            <footer style="background-color: rgb(65, 65, 247); position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1000;" class="py-3">
+    <div class="text-center col-lg-4 mx-auto my-2 my-lg-0">
+        <!-- YouTube -->
+        <a class="mx-2" href="https://youtube.com/channel/UCZLdq1lpQOZAO7fDc6n8GtQ" target="_blank" style="color: white; font-size: 28px;">
+            <i class="fab fa-youtube"></i>
+        </a>
+        <!-- Facebook -->
+        <a class="mx-2" href="https://web.facebook.com/addatainsight" target="_blank" style="color: white; font-size: 28px;">
+            <i class="fab fa-facebook"></i>
+        </a>
+        <!-- Twitter -->
+        <a class="mx-2" href="https://twitter.com" target="_blank" style="color: white; font-size: 28px;">
+            <i class="fab fa-twitter"></i>
+        </a>
+        <!-- LinkedIn -->
+        <a class="mx-2" href="https://linkedin.com" target="_blank" style="color: white; font-size: 28px;">
+            <i class="fab fa-linkedin"></i>
+        </a>
+    </div>
+
+    <div class="container my-auto">
+        <div class="copyright text-center text-white my-auto" style="font-size: 14px;">
+            <span>Copyright © Codethinkers' Academy 2023</span>
+        </div>
+    </div>
+</footer>
+
             <!-- End of Footer -->
 
         </div>
