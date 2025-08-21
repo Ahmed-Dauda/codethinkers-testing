@@ -1,867 +1,884 @@
 {% extends 'sms/dashboard/base.html' %}
 {% load hitcount_tags %}
 
-
 {% block title %} Course Details {% endblock %}
 
-  {% block content %}  
+{% block content %}  
 <style>
-  .benefits{
-    width: 200px;
-    height: 50px;
+  :root {
+    --primary: #7890f9;
+    --secondary: #5660ed;
+    --accent: #151516;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --success: #4cc9f0;
+    --warning: #f72585;
+    --gray: #6c757d;
+    --light-gray: #e9ecef;
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --hover-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  }
   
+  .course-hero {
+    background: rgb(244, 242, 240);
+    color: rgb(16, 1, 1);
+    padding: 2.5rem 1.5rem;
+    border-radius: 0 0 20px 20px;
+    margin-bottom: 2rem;
+    box-shadow: var(--card-shadow);
+  }
+  
+  .course-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .instructor-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  .instructor-info {
+    flex: 1;
+  }
+  
+  .course-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+  
+  .enrollment-count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    display: inline-block;
+    margin-bottom: 1rem;
+  }
+  
+  .pricing-badge {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 1rem 0;
+    padding: 0.6rem 1.2rem;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    display: inline-block;
+  }
+  
+  .category-tags {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    gap: 0.8rem;
+    margin: 1.2rem 0;
   }
-  .benefits >*{
-   flex: 1 1 auto;
-   width: 10px;
-   margin: -10px;
   
-
-  }
-  [aria-expanded="false"] > .expanded,
-[aria-expanded="true"] > .collapsed {
-  display: none;
-}
- .page{
-  display: flex;
-  flex-wrap: wrap;
- }
- .page > *{
-  flex: 1 1 auto;
-  margin: 5px;
- }
- .rounded{
-  width: 30px;
-  height: 150px;
- }
-
- .gallery {
+  .category-tag {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
     display: flex;
-    overflow-x: auto;
-    height: 400px;
-    overflow-y: hidden;       
-}
-.gallery>* {
-   flex: 1 1 auto;
-   margin: 10px;
-       
-}
-
-.card-hover:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.rounded{
-  width: 50px;
-  height: 53px;
-}
-
-.course-owner{
-  display: flex;
-  flex-wrap: wrap;
-}
-.course-owner >*{
-
-  margin: 5px;
-}
-.sta{
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.sta >*{
-  flex: 1 1 auto;
-  margin: 10px;
-
-}
-.name{
-  padding: 20px;
-}
-
-  /* ebooks */
-  .child-review{
-  display: flex;
-  margin-top: -25px;
-}
-
-.child-review >*{
-  margin: 10px;
-}
-.flex-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.card-review{
-  width: 300px;
-}
-.card-review:hover {
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    align-items: center;
+  }
+  
+  .category-tag i {
+    margin-right: 0.5rem;
+    font-size: 0.8rem;
+  }
+  
+  .course-description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    max-width: 800px;
+  }
+  
+  .cta-container {
+    margin: 2rem 0 1rem;
+  }
+  
+  .btn-primary {
+    background: var(--accent);
+    border: none;
+    padding: 0.8rem 2rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(114, 9, 183, 0.3);
+  }
+  
+  .btn-primary:hover {
+    background: #5a08a0;
     transform: translateY(-2px);
-}
-.flex-container >*{
-  margin: 10px;
-}
-
- /* end of ebooks */
-
-  /* fixed-bottom */
-  .fixed-bottom {
-      position: fixed;
-      bottom: 0;
-      right: 0;
-      margin: 25px;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s, visibility 0.3s;
-    }
-
-    .fixed-bottom.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    @media (min-width: 768px) {
-      .fixed-bottom {
-        display: none;
-      }
-    }
-
-  /* end fixed-bottom */
-
-  /* whatyouwilllearn */
-  .whatyouwilllearn{
-    display: flex;
-    flex-wrap: wrap;
-    background-color: black;
-    color: white;
-    min-height: 370px;
+    box-shadow: 0 8px 20px rgba(114, 9, 183, 0.4);
   }
-  .whatyouwilllearn >*{
-    margin: 10px;
-  }
-  .card:hover {
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
-
-.desc-hidden {
-      display: none;
-  }
-
-  .center {
-            text-align: center;
-        }
   
+  .section-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .section-card:hover {
+    box-shadow: var(--hover-shadow);
+  }
+  
+  .section-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--light-gray);
+    font-weight: 700;
+    color: var(--dark);
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  .section-header i {
+    margin-right: 0.8rem;
+    color: var(--primary);
+  }
+  
+  .section-body {
+    padding: 1.5rem;
+  }
+  
+  .read-more-toggle {
+    color: var(--primary);
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  
+  .read-more-toggle i {
+    margin-left: 0.5rem;
+    transition: transform 0.3s ease;
+  }
+  
+  .read-more-toggle[aria-expanded="true"] i {
+    transform: rotate(180deg);
+  }
+  
+  .prerequisites-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .prerequisites-list li {
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--light-gray);
+    display: flex;
+    align-items: center;
+  }
+  
+  .prerequisites-list li:last-child {
+    border-bottom: none;
+  }
+  
+  .prerequisites-list li i {
+    color: var(--success);
+    margin-right: 1rem;
+  }
+  
+  .prerequisites-list a {
+    color: var(--dark);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  .prerequisites-list a:hover {
+    color: var(--primary);
+  }
+  
+  .benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .benefit-card {
+    background: var(--light);
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+  
+  .benefit-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--card-shadow);
+  }
+  
+  .benefit-icon {
+    background: var(--primary);
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+  }
+  
+  .learning-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .learning-card {
+    background: var(--light);
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .learning-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--card-shadow);
+  }
+  
+  .learning-card-header {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+  }
+  
+  .learning-card-header i {
+    margin-right: 0.8rem;
+  }
+  
+  .learning-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+  
+  .learning-item i {
+    color: var(--success);
+    margin-right: 0.8rem;
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+  }
+  
+  .skill-badge {
+    display: inline-block;
+    background: rgba(67, 97, 238, 0.1);
+    color: var(--primary);
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    margin: 0 0.5rem 0.5rem 0;
+    font-size: 0.9rem;
+  }
+  
+  .accordion-button {
+    font-weight: 600;
+    padding: 1.2rem 1.5rem;
+    color: var(--dark);
+  }
+  
+  .accordion-button:not(.collapsed) {
+    background-color: rgba(67, 97, 238, 0.05);
+    color: var(--primary);
+  }
+  
+  .accordion-button::after {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%234361ee'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+  }
+  
+  .accordion-button:not(.collapsed)::after {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%234361ee'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+  }
+  
+  .review-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+  
+  .review-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--hover-shadow);
+  }
+  
+  .review-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto;
+    border: 3px solid var(--light-gray);
+  }
+  
+  .rating-stars {
+    color: #ffc107;
+    margin: 0.5rem 0;
+  }
+  
+  .related-courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .related-course-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+  
+  .related-course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--hover-shadow);
+  }
+  
+  .course-image {
+    height: 160px;
+    object-fit: cover;
+  }
+  
+  .course-provider {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.8rem;
+  }
+  
+  .provider-logo {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 0.8rem;
+  }
+  
+  .course-price {
+    font-weight: 700;
+    color: var(--primary);
+  }
+  
+  .fixed-bottom-cta {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+  }
+  
+  .fixed-bottom-cta.show {
+    transform: translateY(0);
+  }
+  
+  .fixed-price {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--primary);
+  }
+  
+  .certificate-img {
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+    margin: 1.5rem 0;
+  }
+  
+  @media (max-width: 768px) {
+    .course-title {
+      font-size: 1.8rem;
+    }
+    
+    .benefits-grid,
+    .learning-grid,
+    .related-courses-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .fixed-bottom-cta {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+    }
+    
+    .header-container {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .instructor-info {
+      margin-top: 1rem;
+    }
+  }
 </style>
 
-
-  <div  style="padding-left: 20px; padding-right: 20px;background-color: rgb(240, 238, 235)" class="">
-    <br> <br>
-    <div class="course-owner d-flex ">
-      {% if object.course_logo.url %}
-      <img  class="rounded" src="{{ object.course_logo.url }}"  alt=""> 
-      <p>{{object.course_owner|safe}}</p>
-      {% else %}
-      <img  class="rounded" src=" /static/sms/images/newlogo3.jpg"  alt="">
-      <p  class="text-dark ">Codethinkers Academy</p>
-    {% endif %}
-    </div>
-    
-    <br>
-  <h6>{{ object.title|safe }}</h6>
-  <!-- <p>{{enrollment_count}} + students already enrolled  </p> -->
-
-  <p>
-    {% get_hit_count for object as hit_count %}
-    {{ hit_count|add:100 }} students already enrolled
-  </p>
-  
-
-  <!-- {% get_hit_count for object %}  -->
-  {% if school_name %}
-  <h4>Premium</h4>
-  {% else %}
-  {% if object.status_type == 'Premium' %}
-  <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}} |  &#8358;{{object.price|safe|floatformat:"0g"}}</p> 
-
-  {% else %}
-  <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{object.status_type|safe}}</p> 
-  {% endif %}
-
-  {% endif %}
-  <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.categories.name|safe|title}} level</small> <br>
-  <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{object.course_type|safe}}</small>
-
-    <br> <br>
-    <p class=" pr-3">{{ object.desc|truncatechars:300|safe }}</p>
- 
-
-<!-- payment logics -->
-<div style="text-align: center; padding-right: 25px;">
-
-  {% if course.status_type == 'Free' %}
-  <!-- For free courses, always display the "Enroll" button -->
-  <a href="{% url 'sms:topicslistview' course.id %}">
-    <button class="btn btn-primary">Start Learning</button>
-    <!-- <button class="btn btn-primary">Enroll {{ course.title|safe }}</button> -->
-  </a>
-{% elif related_payments %}
-  <!-- If there are related payments -->
-  <a href="{% url 'sms:topicslistview' course.id %}">
-    <button class="btn btn-primary">Start Learning</button>
-  </a>
-{% elif associated_schools %}
-  <!-- If there are associated schools -->
-  {% for school in associated_schools %}
-    {% if school.school_name == school_name %}
-      <!-- Inside the loop, check if the school name matches -->
-      <a href="{% url 'sms:topicslistview' course.id %}">
-        <button class="btn btn-primary">Start Learning</button>
-        <!-- <button class="btn btn-primary">Enroll {{ object.title }}</button> -->
-      </a>
-      {% else %}
-      <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
-        <button class="btn btn-primary">Make payment to proceed</button>
-       </a>
-    {% endif %}
-  {% endfor %}
-{% else %}
-  <!-- For cases other than free courses, related payments, and associated schools -->
-  <!-- Add your logic here -->
-  <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
-    <button class="btn btn-primary">Make payment to proceed</button>
-   </a>
-{% endif %}
-
-<!--end of payment logics -->
-
-<!-- {% if course.status_type == 'Free' %}
-
-  <a href="{% url 'sms:topicslistview' course.id %}">
-    <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
-  </a>
-
-{% endif %}
-
-{% for school in associated_schools %}
-{% if school.school_name  == school_name %}
-    <a href="{% url 'sms:topicslistview' course.id %}">
-        <button class="btn btn-primary">Enroll {{ object.title }}</button>
-    </a>
-{% endif %}
-{% endfor %}
-
-{% if related_payments %}
-    <a href="{% url 'sms:topicslistview' course.id %}">
-        <button class="btn btn-primary">Enroll {{ object.title }}</button>
-    </a>
-{% else %}
-{% if  school.school_name   %}
-   
+<div class="course-hero">
+  <div class="course-header">
+    {% if object.course_logo.url %}
+      <img class="instructor-img" src="{{ object.course_logo.url }}" alt="Instructor"> 
     {% else %}
-    <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
-      <button class="btn btn-primary">Make payment to proceed</button>
-  </a>
+      <img class="instructor-img" src="/static/sms/images/newlogo3.jpg" alt="Codethinkers Academy">
     {% endif %}
-{% endif %} -->
-
-
-
-
-{% if related_payments.exists and not payment_success %}
-<!-- Add a hidden input field to hold the payment success flag -->
-
-<input type="hidden" id="paymentSuccess" value="true">
-
-
-{% endif %}
-
-</div>
-<!--end payment logics -->
- 
-      
-
-<br> <br>
-<!-- <p>{{num_students|floatformat:"0g"}}  students already enrolled </p> -->
-
-  </div>
-
-
-
-
-<div class="pl-3 pr-3">
-
-  <h3>About this Course</h3>
-
-  <!-- <p class="pl-3">{% get_hit_count for object %} <i class="fas fa-eye"></i> recent views</p> -->
-
-  <p id="myLink" class=" pr-3">{{ object.desc|linebreaksbr|truncatechars:200|safe }}</p>
-  
-  <p class="collapse" id="block-id"> {{ object.desc|linebreaksbr|safe }}</p>
-
-  <p>
-    <!-- aria-expanded attribute is mandatory -->
-    <!-- bootstrap changes it to true/false on toggle -->
-   
-    <a href="#block-id" class="" data-toggle="collapse" aria-expanded="false" aria-controls="block-id">
-      <span onclick="toggleElement()" class="collapsed">
-        Show more
-      </span>
-      <span onclick="toggleElement()" class="expanded">
-        Show Less
-      </span>
-    </a>
-  </p>
-
- 
-</div>
-
-
-<br><br><br>
-<div class="pl-3 pr-3">
-<h3>Course Prerequisites</h3>
-{% if prerequisites %}
-    <ul >
-        {% for prerequisite in prerequisites %}
-            <li >
-                <a href="{% url 'sms:courseslistdesc' prerequisite.id %}">{{ prerequisite.title }}</a>
-                
-            </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No prerequisites for this course.</p>
-{% endif %}
-</div>
-
-
-  <!-- ebooks section endign -->
-
-  <br> <br> <br>
-  <div class="row d-flex justify-content-center">
-    <div class="col-md-10 col-xl-8 text-center">
-     
-      <p class="mb-4 pb-2 mb-md-5 pb-md-0">
-  
-      </p>
-    </div>
-  </div>
-  
-
-  <div  class=" sta">
-
-    <div class="card mb-4 py-3  border-bottom-primary pl-3">
-      <h6 style="color: black;" class="mb-4">
-        Some Benefit Associated with the Courses:
-      </h6>
-        <div class="card-body">
-          <ul>
-            <li> 100% online </li>
-            <li>   Flexible deadlines</li>
-            <li> Collaborators</li>
-            <li> Jobs opportunities</li>
-            <li> Certificate of completion</li>
-            <li>  Language: English</li>
-          </ul>
-         
-  
-        </div>
-    </div>
-
-    <div class="card mb-4 py-3  border-bottom-primary pl-3">
-      <h6 style="color: black; " class="mb-4">
-       Offered by
-      </h>
-      <div class="card-body">
-        <div class="course-owner">
-          {% if object.course_logo.url %}
-          <img  class="" src="{{ object.course_logo.url }}" width="100px" height="100px" alt=""> 
-          <p class="name">{{object.course_owner|safe}}</p>
-          {% else %}
-          <img  class="" src=" /static/sms/images/newlogo3.jpg" width="100px" height="100px"  alt="">
-          <p style="name" class="text-dark ">Codethinkers Academy </p>
-        {% endif %}
-        </div>
-        
-      </div>
-  </div>
-
-
-</div>
-
-<br> <br> <br>
-<div class="pl-3 pr-3">
-<h3>About Course Owner</h3>
-
-{% if aboutcourseowners %}
-{% for aboutcourseowner in aboutcourseowners %}
-
-<p id="myLink2" class=" pr-3">{{ aboutcourseowner.desc|linebreaksbr|truncatechars:200|safe }}</p>
-  
-<p class="collapse" id="block-id"> {{ aboutcourseowner.desc|linebreaksbr|safe }}</p>
-
-<p>
-  <!-- aria-expanded attribute is mandatory -->
-  <!-- bootstrap changes it to true/false on toggle -->
- 
-  <a href="#block-id" class="" data-toggle="collapse" aria-expanded="false" aria-controls="block-id">
-    <span onclick="toggleElement2()" class="collapsed">
-      Show more
-    </span>
-    <span onclick="toggleElement2()" class="expanded">
-      Show Less
-    </span>
-  </a>
-</p>
-{% empty %}
-<h3 class="card text-center text-danger">No Record here</h3>
-{% endfor %}
-
-{% else %}
-<p>
-Welcome to CodeThinkers Academy, your gateway to the exciting world of coding and technology!
-Why CodeThinkers Academy?
-Unlock Endless Opportunities: In today's tech-driven world, …
-Welcome to CodeThinkers Academy, your gateway to the exciting world of coding and technology!
-Why CodeThinkers Academy?
-Unlock Endless Opportunities: In today's tech-driven world, coding skills are more valuable than ever. At CodeThinkers Academy, we empower you to unlock endless opportunities in the tech industry, from web development to app creation and beyond.
-Expert Instructors: Learn from the best! Our team of experienced and passionate instructors will guide you through every step of your coding journey. They are dedicated to your success and will ensure you grasp complex concepts with ease.
-Hands-on Learning: At CodeThinkers Academy, we believe in learning by doing. Our curriculum is designed to offer hands-on projects and real-world scenarios, giving you the confidence to tackle any coding challenge.
-Tailored for All Levels: Whether you're a complete beginner or an experienced programmer looking to upskill, we have the right courses for you. Choose from our diverse range of courses, designed to meet your unique learning needs.
-Why Choose CodeThinkers Academy?
-Flexible Learning Options: We offer both in-person and online learning options, so you can choose what suits your schedule best.
-Affordable Pricing: Quality education shouldn't come with a hefty price tag. We offer competitive pricing and various payment options to fit your budget.
-Community and Networking: Join our vibrant community of learners, share experiences, and collaborate on exciting projects. Networking opportunities abound!
-Career Support: Our commitment to your success goes beyond the classroom. Benefit from our career support services, including resume reviews and interview preparation.
-</p>
-{% endif %}
-</div
->
-<br><br><br>
-
-<div class="container ">
-  <div  class="row">
-    <div  class="col-lg-4">
-      <div  class="card mb-4 py-3 border-bottom-primary pl-3">
-        <h6 class="mb-4">WHAT YOU WILL LEARN</h6>
-        <div class="card-body whatyouwilllearn">
-          {% for obj in whatyouwilllearn %}
-          <div class="d-flex">
-            <img src="https://th.bing.com/th/id/OIP.K2XmktPQf-TO5XMjz-l_DAHaHa?w=187&h=188&c=7&r=0&o=5&pid=1.7" width="20px" height="20px" alt="">
-            <!-- <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button body-text text-left">{{ obj.desc|safe }}</p> -->
-
-            <p id="myLink3" id="myLink3" class=" pr-3">{{ obj.desc|linebreaksbr|truncatechars:150|safe }}</p>
-            <p class="collapse" id="myLink3"> {{ obj.desc|linebreaksbr|safe }}</p>
-          
-            <p>
-              <!-- aria-expanded attribute is mandatory -->
-              <!-- bootstrap changes it to true/false on toggle -->
-             
-              <a href="#block-id" class="" data-toggle="collapse" aria-expanded="false" aria-controls="block-id">
-                <span onclick="toggleElement3()" class="collapsed">
-                  Show more
-                </span>
-                <span onclick="toggleElement3()" class="expanded">
-                  Show Less
-                </span>
-              </a>
-            </p>
-
-          </div>
-          {% empty %}
-          <h1 class="card text-center text-danger">No Record here</h1>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-4">
-      <div class="card mb-4 py-3 border-bottom-primary pl-3">
-        <h6 class="mb-4">WHAT YOU WILL GAIN</h6>
-        <div class="card-body whatyouwilllearn">
-          {% for category in skillyouwillgain %}
-          <div class="d-flex">
-            <img src="https://th.bing.com/th/id/OIP.K2XmktPQf-TO5XMjz-l_DAHaHa?w=187&h=188&c=7&r=0&o=5&pid=1.7" width="20px" height="20px" alt="">
-            <p class="card-title">{{ category.title|safe }}</p>
-          </div>
-          {% empty %}
-          <h3 class="card text-center text-danger">No Record here</h3>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-4">
-      <div class="card mb-4 py-3 border-bottom-primary pl-3">
-        <h6 class="mb-4">WHAT YOU WILL BUILD</h6>
-        <div class="card-body whatyouwilllearn">
-          {% for category in whatyouwillbuild %}
-          <div class="d-flex">
-            <img src="https://th.bing.com/th/id/OIP.K2XmktPQf-TO5XMjz-l_DAHaHa?w=187&h=188&c=7&r=0&o=5&pid=1.7" width="20px" height="20px" alt="">
-            <p class="card-title">{{ category.desc|safe }}</p>
-          </div>
-          {% empty %}
-          <h3 class="card text-center text-danger">No Record here</h3>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-</div>
-
-
-
-
-<br> <br> <br>
-
-<!-- FAQ -->
-<div class="container">
-  <h3 id="faqs" style="text-align:center" class="text-danger"> Frequently Asked Questions </h3>
-</div>
-
-<br>
-
-<div class="container4" style="width: 90%; margin: 0 auto;">
-  <div class="accordion" id="faqAccordion">
-    {% for faq in faqs %}
-    <div class="card">
-
-      <div class="card-header" id="faqHeading{{ faq.id }}">
-        <p class="mb-0">
-          <button style="font-size: 12px;" class="btn btn-link" type="button" data-toggle="collapse" data-target="#faqCollapse{{ faq.id }}" aria-expanded="true" aria-controls="faqCollapse{{ faq.id }}">
-            {{ faq.title|safe }}
-            <i class="fas fa-chevron-down"></i>
-          </button>
-        </p>
-      </div>
-
-      <div id="faqCollapse{{ faq.id }}" class="collapse" aria-labelledby="faqHeading{{ faq.id }}" data-parent="#faqAccordion">
-        <div class="card-body">
-          {{ faq.desc|safe }}
-        </div>
-      </div>
-
-    </div>
-
-    {% endfor %}
-  </div>
-</div>
-
-<br>
-<!-- end FAQ -->
-
-
-
-<br> <br> <br>
-
-<!-- FAQ -->
-<div class="container">
-  <h3 id="faqs" style="text-align: center;" class="text-danger">Career Opportunities</h3>
-</div>
-
-<br>
-
-<div class="container4" style="width: 90%; margin: 0 auto;">
-  <div class="accordion" id="faqAccordion">
-    {% for obj in careeropportunities %}
-    <div class="card">
-
-      <div class="card-header" id="faqHeading{{ faq.id }}">
-        <p class="mb-0 ">
-          <button style="font-size: 12px;" class="btn btn-link " type="button" data-toggle="collapse" data-target="#faqCollapse{{ faq.id }}" aria-expanded="true" aria-controls="faqCollapse{{ faq.id }}">
-          {{ obj.courses|safe }}
-            <i class="fas fa-chevron-down"></i>
-          </button>
-        </p>
-      </div>
-
-      <div id="faqCollapse{{ faq.id }}" class="collapse" aria-labelledby="faqHeading{{ faq.id }}" data-parent="#faqAccordion">
-        <div data-label="my-label-button" class="line-numbers copy-to-clipboard-button " class="card-body">
-          {{ obj.desc|safe }}
-        </div>
-      </div>
-
-    </div>
-   
-    {% endfor %}
-  </div>
-</div>
-
-<br>
-<!-- end FAQ -->
-
-<br> <br> <br>
-
-  <!-- <img style="width:100%;" src="/static/sms/images/designcertificate2.png" class="card-img"  height="auto alt=""> -->
-  <div class="center">
-    <h3>Shareable Certificate</h3>
-    <!-- https://freeimage.host/ -->
-    <img style="width:60%;" src="https://iili.io/dwR2F3b.png" class="card-img" height="auto" alt="">
-    <!-- <img style="width:60%;" src="https://i.ibb.co/vDy6zfw/Copy-of-Blue-Orange-Elegant-Company-Certificate-Landscape-1.png" class="card-img" height="auto" alt=""> -->
-    <p>You can share your Certificate with friends and family, on printed resumes, CVs, or other important documents.</p>
-  </div>
-  
-
-
-<br>
-<div class="text-center" style="margin: 0 auto;">
-  <h3 class="text-center text-danger">Start Learning Today</h3> <br>
-
-  <ul style="text-align: center; padding-right: 25px;" class="text-center">
-  <!-- payment logics -->
-
-<!-- {% if course.status_type == 'Free' %}
-
-<a href="{% url 'sms:topicslistview' course.id %}">
-  <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
-</a>
-{% else %}
-{% if not related_payments.exists %}
- 
-  <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
-    <button class="btn btn-primary">Make payment to proceed</button>
-  </a>
-{% else %}
-
-  <a href="{% url 'sms:topicslistview' course.id %}">
-    <button class="btn btn-primary">Enroll {{ course.title|safe }}</button>
-  </a>
-{% endif %}
-{% endif %} -->
-
-{% if related_payments.exists and not payment_success %}
-<!-- Add a hidden input field to hold the payment success flag -->
-
-{% endif %}
-
-<!--end payment logics -->
-
-  </ul>
-  
-</div>
-
-<br>
- 
-<!--Review-->
-<br> <br> <br>
-
-<div style="color: black; font-size: 18px; font-weight: bold;" class="card-body">
-  <h3 class="text-center">Learners' Reviews</h3>
-</div>
-
-
-<div class="flex-container">
-  {% for obj in courseLearnerReviews %}
-  <div class="card card-review">
-    <!-- <img src="{{ category.img_cat.url }}" class="card-img-top" alt="Category Image"> -->
-    <div class="card-body child-ebooks">
-      <!-- <img class="" src="{{ alert.img_ebook.url }}" width="100px" height="130px" alt="{{ obj.desc }}"> -->
-      <div class="text-center">
-        <img src=" /static/sms/images/blankavater.png" width="100px" class="rounded-circle img-fluid" /> <hr>
-       <h6>{{ obj.title }}</h6>
-       <img src="/static/sms/images/star-rating-icon-21.jpg" width="100px" alt="">
-      </div>
-      <p class=""> {{ obj.desc }}</p>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-
-<!-- <a href="#" class="btn btn-primary fixed-bottom">Click Me</a> -->
-<br> <br> <br>
-
-<!--  related courses -->
-<div style="color: black; font-size: 18px; font-weight: bold;" class="card-body">
-  <h3 class="text-center">Related Courses</h3>
-</div>
-
-
-<div class="flex-container">
-  {% for obj in related_courses %}
-  <div class="card card-review">
-
-    <a style="height: 10px;" class=""  href="{% url 'sms:courseslistdesc' obj.pk %}">
-    <div class="card-body child-ebooks">
-      <a  class=""  href="{% url 'sms:courseslistdesc' obj.pk %}">
-      <div class="">
-        {% if obj.img_course %}
-        <img class="" src="{{obj.img_course.url}}" width="100%" height="200px" alt="cetagory image">
-        
-        {% endif %}
-        <br>
-        <div class="pl-2">
-        <div class="d-flex ">
-
-        {% if obj.course_logo.url %}
-        <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-        {% else %}
-        <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-      {% endif %}
-
-      {% if obj.course_owner %}
-      <small class="text-dark">{{obj.course_owner|safe}}</small>
-      {% else %}
-      <small class="text-dark">Codethinkers Academy</small>
-      {% endif %}
     
-      </div>
+    <div class="instructor-info">
+      <h6 class="mb-0">{{ object.course_owner|default:"Codethinkers Academy"|safe }}</h6>
+      <small>Course Instructor</small>
     </div>
-
-      <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
-     
-      {% if obj.status_type == 'Premium' %}
-     
-      <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe}}</p> 
-      {% else %}
-      <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-      {% endif %}
-     
-      <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}</small> <br>
-      <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-      <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
-      </div>
-  
-    </div>
-    </a>
-    
   </div>
-  {% endfor %}
-</div>
-<!-- end of related courses -->
-
-
-<ul>
-
-
-  <!-- payment logics -->
-
-  <!-- payment logics -->
-<div style="text-align: center; padding-right: 25px;">
-
-  {% if course.status_type == 'Free' %}
-  <!-- For free courses, always display the "Enroll" button -->
-  <a href="{% url 'sms:topicslistview' course.id %}">
-    <button class="btn btn-primary fixed-bottom">Start Learning</button>
-  </a>
-{% elif related_payments %}
-  <!-- If there are related payments -->
-  <a href="{% url 'sms:topicslistview' course.id %}">
-    <button class="btn btn-primary fixed-bottom">Start Learning</button>
-  </a>
-{% elif associated_schools %}
-  <!-- If there are associated schools -->
-  {% for school in associated_schools %}
-    {% if school.school_name == school_name %}
-      <!-- Inside the loop, check if the school name matches -->
-      <a href="{% url 'sms:topicslistview' course.id %}">
-        <button class="btn btn-primary fixed-bottom">Start Learning</button>
+  
+  <h1 class="course-title">{{ object.title|safe }}</h1>
+  
+  <div class="enrollment-count">
+    <i class="fas fa-users mr-1"></i>
+    {% get_hit_count for object as hit_count %}
+    {{ hit_count|add:100 }}+ students enrolled
+  </div>
+  
+  {% if school_name %}
+    <div class="pricing-badge">Premium Course</div>
+  {% else %}
+    {% if object.status_type == 'Premium' %}
+      <div class="pricing-badge">{{ object.status_type|safe }} | &#8358;{{ object.price|safe|floatformat:"0g" }}</div>
+    {% else %}
+      <div class="pricing-badge">{{ object.status_type|safe }}</div>
+    {% endif %}
+  {% endif %}
+  
+  <div class="category-tags">
+    <span class="category-tag">
+      <i class="fas fa-tag"></i> {{ object.categories.name|safe|title }} level
+    </span>
+    <span class="category-tag">
+      <i class="fas fa-graduation-cap"></i> {{ object.course_type|safe }}
+    </span>
+  </div>
+  
+  <p class="course-description">{{ object.desc|truncatechars:300|safe }}</p>
+  
+  <div class="cta-container">
+    {% if course.status_type == 'Free' %}
+      <a href="{% url 'sms:topicslistview' course.id %}" class="btn btn-primary">
+        <i class="fas fa-play-circle mr-2"></i>Start Learning
       </a>
-      {% else %}
-      <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
-        <button class="btn btn-primary fixed-bottom">Make payment to proceed</button>
-       </a>
+    {% elif related_payments %}
+      <a href="{% url 'sms:topicslistview' course.id %}" class="btn btn-primary">
+        <i class="fas fa-play-circle mr-2"></i>Continue Learning
+      </a>
+    {% elif associated_schools %}
+      {% for school in associated_schools %}
+        {% if school.school_name == school_name %}
+          <a href="{% url 'sms:topicslistview' course.id %}" class="btn btn-primary">
+            <i class="fas fa-play-circle mr-2"></i>Start Learning
+          </a>
+        {% else %}
+          <a href="{% url 'sms:course' course.id %}" class="btn btn-primary">
+            <i class="fas fa-lock mr-2"></i>Enroll Now
+          </a>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <a href="{% url 'sms:course' course.id %}" class="btn btn-primary">
+        <i class="fas fa-lock mr-2"></i>Enroll Now
+      </a>
     {% endif %}
-  {% endfor %}
-{% else %}
-  <!-- For cases other than free courses, related payments, and associated schools -->
-  <!-- Add your logic here -->
-  <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
-    <button class="btn btn-primary fixed-bottom">Make payment to proceed</button>
-   </a>
-{% endif %}
+  </div>
+</div>
 
-<!--end of payment logics -->
+<div class="container">
+  <!-- About Course Section -->
+  <div class="section-card">
+    <div class="section-header">
+      <i class="fas fa-info-circle"></i>About This Course
+    </div>
+    <div class="section-body">
+      <p>{{ object.desc|linebreaksbr|truncatechars:200|safe }}</p>
+      <div class="collapse" id="courseDescription">
+        <p>{{ object.desc|linebreaksbr|safe }}</p>
+      </div>
+      <a data-toggle="collapse" href="#courseDescription" class="read-more-toggle" aria-expanded="false" aria-controls="courseDescription">
+        <span class="collapsed">Show more</span>
+        <span class="expanded">Show less</span>
+        <i class="fas fa-chevron-down"></i>
+      </a>
+    </div>
+  </div>
 
-<!-- {% if course.status_type == 'Free' %}
-<a href="{% url 'sms:topicslistview' course.id %}">
-  <button class="btn btn-primary fixed-bottom">Enroll {{ course.title|safe }}</button>
-</a>
-{% else %}
-{% if not related_payments.exists %}
-  <a style="height: 10px;" class="" href="{% url 'sms:course' course.id %}">
-    <button class="btn btn-primary fixed-bottom">Make payment to proceed</button>
-  </a>
-{% else %}
-  <a href="{% url 'sms:topicslistview' course.id %}">
-    <button class="btn btn-primary fixed-bottom">Enroll {{ course.title|safe }}</button>
-  </a>
-{% endif %}
-{% endif %} -->
+  <!-- Prerequisites Section -->
+  <div class="section-card">
+    <div class="section-header">
+      <i class="fas fa-clipboard-list"></i>Course Prerequisites
+    </div>
+    <div class="section-body">
+      {% if prerequisites %}
+        <ul class="prerequisites-list">
+          {% for prerequisite in prerequisites %}
+            <li>
+              <i class="fas fa-check-circle"></i>
+              <a href="{% url 'sms:courseslistdesc' prerequisite.id %}">{{ prerequisite.title }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">No prerequisites for this course.</p>
+      {% endif %}
+    </div>
+  </div>
 
+  <!-- Benefits Section -->
+  <div class="section-card">
+    <div class="section-header">
+      <i class="fas fa-star"></i>Course Benefits
+    </div>
+    <div class="section-body">
+      <div class="benefits-grid">
+        <div class="benefit-card">
+          <div class="benefit-icon"><i class="fas fa-laptop"></i></div>
+          <div>100% online courses</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon"><i class="fas fa-calendar-alt"></i></div>
+          <div>Flexible deadlines</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon"><i class="fas fa-users"></i></div>
+          <div>Collaborative learning</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon"><i class="fas fa-briefcase"></i></div>
+          <div>Career opportunities</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon"><i class="fas fa-certificate"></i></div>
+          <div>Certificate of completion</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon"><i class="fas fa-globe"></i></div>
+          <div>English language</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-{% if related_payments.exists and not payment_success %}
-<!-- Add a hidden input field to hold the payment success flag -->
-{% endif %}
+  <!-- Instructor Section -->
+  <div class="section-card">
+    <div class="section-header">
+      <i class="fas fa-user-tie"></i>About the Instructor
+    </div>
+    <div class="section-body">
+      <div class="d-flex align-items-center mb-4">
+        {% if object.course_logo.url %}
+          <img class="instructor-img" src="{{ object.course_logo.url }}" alt="Instructor"> 
+        {% else %}
+          <img class="instructor-img" src="/static/sms/images/newlogo3.jpg" alt="Codethinkers Academy">
+        {% endif %}
+        <div class="ml-3">
+          <h5 class="mb-0">{{ object.course_owner|default:"Codethinkers Academy"|safe }}</h5>
+          <p class="text-muted mb-0">Course Instructor</p>
+        </div>
+      </div>
+      
+      {% if aboutcourseowners %}
+        {% for aboutcourseowner in aboutcourseowners %}
+          <p>{{ aboutcourseowner.desc|linebreaksbr|truncatechars:200|safe }}</p>
+          <div class="collapse" id="instructorBio">
+            <p>{{ aboutcourseowner.desc|linebreaksbr|safe }}</p>
+          </div>
+          <a data-toggle="collapse" href="#instructorBio" class="read-more-toggle" aria-expanded="false" aria-controls="instructorBio">
+            <span class="collapsed">Read more</span>
+            <span class="expanded">Show less</span>
+            <i class="fas fa-chevron-down"></i>
+          </a>
+        {% empty %}
+          <p class="text-muted">No information available about the instructor.</p>
+        {% endfor %}
+      {% else %}
+        <p>Welcome to CodeThinkers Academy, your gateway to the exciting world of coding and technology! At CodeThinkers Academy, we empower you to unlock endless opportunities in the tech industry.</p>
+        <div class="collapse" id="instructorBio">
+          <p>Why CodeThinkers Academy? Unlock Endless Opportunities: In today's tech-driven world, coding skills are more valuable than ever. At CodeThinkers Academy, we empower you to unlock endless opportunities in the tech industry, from web development to app creation and beyond. Expert Instructors: Learn from the best! Our team of experienced and passionate instructors will guide you through every step of your coding journey. They are dedicated to your success and will ensure you grasp complex concepts with ease. Hands-on Learning: At CodeThinkers Academy, we believe in learning by doing. Our curriculum is designed to offer hands-on projects and real-world scenarios, giving you the confidence to tackle any coding challenge.</p>
+        </div>
+        <a data-toggle="collapse" href="#instructorBio" class="read-more-toggle" aria-expanded="false" aria-controls="instructorBio">
+          <span class="collapsed">Read more</span>
+          <span class="expanded">Show less</span>
+          <i class="fas fa-chevron-down"></i>
+        </a>
+      {% endif %}
+    </div>
+  </div>
 
-<!--end payment logics -->
+  <!-- Learning Objectives Section -->
+  <div class="section-card">
+    <div class="section-header">
+      <i class="fas fa-bullseye"></i>What You'll Learn
+    </div>
+    <div class="section-body">
+      <div class="learning-grid">
+        <div class="learning-card">
+          <div class="learning-card-header">
+            <i class="fas fa-brain"></i>Knowledge
+          </div>
+          {% for obj in whatyouwilllearn %}
+            <div class="learning-item">
+              <i class="fas fa-check text-success"></i>
+              <div>{{ obj.desc|safe }}</div>
+            </div>
+          {% empty %}
+            <p class="text-muted">No learning objectives defined yet.</p>
+          {% endfor %}
+        </div>
+        
+        <div class="learning-card">
+          <div class="learning-card-header">
+            <i class="fas fa-tools"></i>Skills
+          </div>
+          {% for category in skillyouwillgain %}
+            <div class="learning-item">
+              <i class="fas fa-check text-success"></i>
+              <div>{{ category.title|safe }}</div>
+            </div>
+          {% empty %}
+            <p class="text-muted">No skills information available.</p>
+          {% endfor %}
+        </div>
+        
+        <div class="learning-card">
+          <div class="learning-card-header">
+            <i class="fas fa-project-diagram"></i>Projects
+          </div>
+          {% for category in whatyouwillbuild %}
+            <div class="learning-item">
+              <i class="fas fa-check text-success"></i>
+              <div>{{ category.desc|safe }}</div>
+            </div>
+          {% empty %}
+            <p class="text-muted">No project information available.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
 
-</ul>
+  <!-- FAQ Section -->
+  <div class="section-card">
+    <div class="section-header">
+      <i class="fas fa-question-circle"></i>Frequently Asked Questions
+    </div>
+    <div class="section-body">
+      <div class="accordion" id="faqAccordion">
+        {% for faq in faqs %}
+          <div class="card mb-2">
+            <div class="card-header p-0" id="faqHeading{{ faq.id }}">
+              <h2 class="mb-0">
+                <button class="accordion-button collapsed" type="button" data-toggle="collapse" data-target="#faqCollapse{{ faq.id }}" aria-expanded="false" aria-controls="faqCollapse{{ faq.id }}">
+                  {{ faq.title|safe }}
+                </button>
+              </h2>
+            </div>
+            <div id="faqCollapse{{ faq.id }}" class="collapse" aria-labelledby="faqHeading{{ faq.id }}" data-parent="#faqAccordion">
+              <div class="card-body">
+                {{ faq.desc|safe }}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
 
+  <!-- Career Opportunities Section -->
+  <div class="section-card">
+    <div class="section-header">
+      <i class="fas fa-briefcase"></i>Career Opportunities
+    </div>
+    <div class="section-body">
+      <div class="accordion" id="careerAccordion">
+        {% for obj in careeropportunities %}
+          <div class="card mb-2">
+            <div class="card-header p-0" id="careerHeading{{ forloop.counter }}">
+              <h2 class="mb-0">
+                <button class="accordion-button collapsed" type="button" data-toggle="collapse" data-target="#careerCollapse{{ forloop.counter }}" aria-expanded="false" aria-controls="careerCollapse{{ forloop.counter }}">
+                  {{ obj.courses|safe }}
+                </button>
+              </h2>
+            </div>
+            <div id="careerCollapse{{ forloop.counter }}" class="collapse" aria-labelledby="careerHeading{{ forloop.counter }}" data-parent="#careerAccordion">
+              <div class="card-body">
+                {{ obj.desc|safe }}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
 
-<!-- about scroll top to see enrollment -->
+  <!-- Certificate Section -->
+  <div class="section-card">
+    <div class="section-header">
+      <i class="fas fa-award"></i>Shareable Certificate
+    </div>
+    <div class="section-body text-center">
+      <img src="https://iili.io/dwR2F3b.png" class="certificate-img" alt="Certificate">
+      <p>You can share your Certificate with friends and family, on printed resumes, CVs, or other important documents.</p>
+    </div>
+  </div>
+
+  <!-- Reviews Section -->
+  <div class="section-card">
+    <div class="section-header">
+      <i class="fas fa-star"></i>Learners' Reviews
+    </div>
+    <div class="section-body">
+      <div class="row">
+        {% for obj in courseLearnerReviews %}
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="review-card card h-100">
+              <div class="card-body text-center">
+                <img src="/static/sms/images/blankavater.png" class="review-avatar mb-3" />
+                <h6>{{ obj.title }}</h6>
+                <div class="rating-stars">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star-half-alt"></i>
+                </div>
+                <p class="card-text mt-3">"{{ obj.desc }}"</p>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Courses Section -->
+  <div class="section-card">
+    <div class="section-header">
+      <i class="fas fa-book"></i>Related Courses
+    </div>
+    <div class="section-body">
+      <div class="related-courses-grid">
+        {% for obj in related_courses %}
+          <div class="related-course-card card">
+            {% if obj.img_course %}
+              <img src="{{ obj.img_course.url }}" class="course-image card-img-top" alt="Course image">
+            {% endif %}
+            <div class="card-body">
+              <h5 class="card-title">{{ obj.title }}</h5>
+              
+              <div class="course-provider">
+                {% if obj.course_logo.url %}
+                  <img src="{{ obj.course_logo.url }}" class="provider-logo" alt="Provider logo">
+                {% else %}
+                  <img src="/static/sms/images/newlogo3.jpg" class="provider-logo" alt="Codethinkers Academy">
+                {% endif %}
+                <small>{{ object.course_owner|default:"Codethinkers Academy"|safe }}</small>
+              </div>
+              
+              {% if obj.status_type == 'Premium' %}
+                <div class="course-price">{{ obj.status_type|safe }} | &#8358;{{ obj.price|safe }}</div>
+              {% else %}
+                <div class="course-price text-success">{{ obj.status_type|safe }}</div>
+              {% endif %}
+              
+              <div class="d-flex flex-wrap mt-3">
+                <span class="skill-badge">{{ obj.categories.name|safe|title }}</span>
+                <span class="skill-badge">{{ obj.course_type|safe }}</span>
+              </div>
+              
+              <a href="{% url 'sms:courseslistdesc' obj.pk %}" class="btn btn-outline-primary btn-block mt-3">View Course</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fixed Bottom CTA -->
+<div class="fixed-bottom-cta" id="fixedCta">
+  <div>
+    <h5 class="mb-0">{{ object.title|safe }}</h5>
+    {% if object.status_type == 'Premium' %}
+      <div class="fixed-price">&#8358;{{ object.price|safe|floatformat:"0g" }}</div>
+    {% else %}
+      <div class="fixed-price">Free</div>
+    {% endif %}
+  </div>
+  <div>
+    {% if course.status_type == 'Free' %}
+      <a href="{% url 'sms:topicslistview' course.id %}" class="btn btn-primary">
+        Start Learning
+      </a>
+    {% elif related_payments %}
+      <a href="{% url 'sms:topicslistview' course.id %}" class="btn btn-primary">
+        Continue Learning
+      </a>
+    {% elif associated_schools %}
+      {% for school in associated_schools %}
+        {% if school.school_name == school_name %}
+          <a href="{% url 'sms:topicslistview' course.id %}" class="btn btn-primary">
+            Start Learning
+          </a>
+        {% else %}
+          <a href="{% url 'sms:course' course.id %}" class="btn btn-primary">
+            Enroll Now
+          </a>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <a href="{% url 'sms:course' course.id %}" class="btn btn-primary">
+        Enroll Now
+      </a>
+    {% endif %}
+  </div>
+</div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
+    // Show/hide fixed CTA based on scroll position
     window.addEventListener("scroll", function() {
-      var button = document.querySelector(".fixed-bottom");
-      var scrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
-
-      if (scrollPosition > 500) {
-        button.classList.add("show");
+      var cta = document.getElementById("fixedCta");
+      if (window.pageYOffset > 300) {
+        cta.classList.add("show");
       } else {
-        button.classList.remove("show");
+        cta.classList.remove("show");
       }
     });
   });
 </script>
 
-<!-- about course descriptions -->
-<script>
-  function toggleElement() {
-    var link = document.getElementById("myLink");
-    if (link.style.display === "none") {
-      link.style.display = "inline";
-    } else {
-      link.style.display = "none";
-    }
-  }
-
-
-  // about the course owner section
-  function toggleElement2() {
-    var links = document.getElementById("myLink2");
-    if (links.style.display === "none") {
-      links.style.display = "inline";
-    } else {
-      links.style.display = "none";
-    }
-  }
-  // end about the course owner section
-
-    // what you will learn section
-    function toggleElement3() {
-    var link3 = document.getElementById("myLink3");
-    if (link3.style.display === "none") {
-      link3.style.display = "inline";
-    } else {
-      link3.style.display = "none";
-    }
-  }
-  // end what you will learn section
-
-</script>
-
-<!-- about the course owner -->
+{% if related_payments.exists and not payment_success %}
+  <input type="hidden" id="paymentSuccess" value="true">
+{% endif %}
 
 <script>
   // Check if the payment success flag is present
@@ -889,8 +906,4 @@ Career Support: Our commitment to your success goes beyond the classroom. Benefi
   }
 </script>
 
-  {% endblock %} 
-
-
-
-
+{% endblock %}
