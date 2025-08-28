@@ -6,11 +6,6 @@
 *.docx
 *.pptx
 *.txt
-!requirements.txt   # <-- keep requirements.txt
-
-# Ignore local uploads and media (use Cloudinary instead)
-media/
-staticfiles/
 
 # Ignore Python cache
 __pycache__/
