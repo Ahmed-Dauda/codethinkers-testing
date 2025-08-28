@@ -1,0 +1,8 @@
+
+{% block content %}
+<h3>Preview: {{ file.name }}</h3>
+<div>
+    {{ df_html|safe }}
+</div>
+<a href="{% url 'file_detail' file.project.id file.id %}" class="btn btn-secondary mt-2">Back to Editor</a>
+{% endblock %}

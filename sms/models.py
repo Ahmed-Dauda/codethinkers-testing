@@ -74,6 +74,8 @@ class Courses(models.Model):
     hit_count_generic = GenericRelation(
         HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
     
+    # NEW FIELD to mark programming courses
+    is_programming = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.title}'
@@ -186,6 +188,7 @@ class CustomTinyMCEWidget(TinyMCE):
     def __init__(self, *args, **kwargs):
         kwargs['attrs'] = {'cols': '40', 'rows': '4'}  # Set the desired width and height here
         super().__init__(*args, **kwargs)
+
 
 class Topics(models.Model):
     categories = models.ForeignKey(Categories, on_delete=models.CASCADE)

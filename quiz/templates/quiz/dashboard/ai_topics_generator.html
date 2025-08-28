@@ -9,7 +9,7 @@
   }
 
   table textarea {
-    width: 100%;      /* changed here */
+    width: 100%;
     min-height: 200px;
     font-size: 16px;
     padding: 8px;
@@ -44,7 +44,6 @@
 <div class="container mt-4">
   <h2>🤖 AI Topics Generator</h2>
 
-
   {% if messages %}
     {% for message in messages %}
       <div class="alert alert-{{ message.tags }}">{{ message }}</div>
@@ -52,6 +51,7 @@
   {% endif %}
 
   {% if not preview_topics %}
+  <!-- Generate Topics Form -->
   <form method="post" class="mb-4">
     {% csrf_token %}
     <div class="mb-3">
@@ -85,25 +85,29 @@
         <option value="hard">Hard</option>
       </select>
     </div>
-<div class="mb-3">
-  <label for="num_objectives">Learning Objectives</label>
-  <textarea 
-      name="num_objectives" 
-      id="num_objectives" 
-      class="form-control" 
-      placeholder="Enter learning objectives, one per line"
-      style="width: 100%; height: 150px; padding: 10px; font-size: 14px; resize: vertical;"
-  ></textarea>
-</div>
 
+    <div class="mb-3">
+      <label for="num_objectives">Learning Objectives</label>
+      <textarea 
+        name="num_objectives" 
+        id="num_objectives" 
+        class="form-control tinymce" 
+        placeholder="Enter learning objectives, one per line"
+        style="height: 150px;"
+      ></textarea>
+    </div>
 
-
+    <div class="mb-3">
+      <label>Number of Objectives</label>
+      <input type="number" name="real_learning_obj" class="form-control" value="10" min="1" required>
+    </div>
 
     <button type="submit" class="btn btn-primary">Generate Topics</button>
   </form>
   {% endif %}
 
   {% if preview_topics %}
+  <!-- Preview & Save Topics Form -->
   <form method="post">
     {% csrf_token %}
     <input type="hidden" name="confirm_save" value="1">
@@ -127,7 +131,7 @@
               <input type="text" name="title_{{ forloop.counter }}" value="{{ topic.title }}">
             </td>
             <td>
-              <textarea name="desc_{{ forloop.counter }}">{{ topic.desc }}</textarea>
+              <textarea class="tinymce" name="desc_{{ forloop.counter }}">{{ topic.desc|safe }}</textarea>
             </td>
           </tr>
           {% endfor %}
@@ -140,5 +144,25 @@
   {% endif %}
 </div>
 
-
+<!-- TinyMCE Init -->
+ 
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  tinymce.init({
+    selector: 'textarea.tinymce',
+    height: 400,
+    menubar: false,
+    plugins: 'link image preview codesample contextmenu table code mathjax lists',
+    toolbar: 'undo redo | styleselect | bold italic | link image | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | codesample | mathjax',
+    entity_encoding: 'raw',
+    forced_root_block: false, // do not wrap in <p>
+    content_style: "body { font-family:Arial,sans-serif; font-size:14px }",
+    valid_elements: '*[*]',   // allow all tags and attributes
+    extended_valid_elements: 'math[*],mrow[*],mfrac[*],mi[*],mn[*],mo[*]',
+    mathjax: {
+        lib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML',
+        symbols: { mathml: true }
+    }
+  });
+</script>
 {% endblock %}
