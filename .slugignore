@@ -1,0 +1,27 @@
+# Ignore data files
+*.csv
+*.xlsx
+*.xls
+*.pdf
+*.docx
+*.pptx
+*.txt
+
+# Ignore local uploads and media (use Cloudinary instead)
+media/
+staticfiles/
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore version control & CI
+.git/
+.github/
+
+# Ignore dev & docs
+*.log
+*.md
+docs/
+tests/
