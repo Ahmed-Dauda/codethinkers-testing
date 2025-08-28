@@ -1,0 +1,37 @@
+# Ignore data dump & test files
+*.csv
+*.xlsx
+*.xls
+*.pdf
+*.docx
+*.pptx
+
+# BUT keep requirements.txt (important!)
+!requirements.txt
+
+# Ignore local media & static (since you use Cloudinary / collectstatic)
+media/
+staticfiles/
+
+# Python cache & bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+*.log
+
+# Git & CI/CD
+.git/
+.github/
+
+# Documentation & dev stuff
+*.md
+docs/
+tests/
+
+# Virtual environments (should never be pushed)
+env/
+venv/
+ENV/
+.venv/
