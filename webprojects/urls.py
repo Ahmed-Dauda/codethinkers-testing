@@ -1,10 +1,10 @@
 from django.urls import path
-from webprojects.views import ai_python_completion,ai_suggest_code, auto_save_view, create_file, create_folder, create_project, explain_code_view, project_detail, file_detail, public_folder_view, run_python_code, share_preview_view, upload_image_ajax, view_rendered_file
+from webprojects.views import ai_python_completion,ai_suggest_code, auto_save_view, create_file, create_folder, create_project, explain_code_view, file_delete, file_preview, project_detail, file_detail, public_folder_view, run_python_code, share_preview_view, upload_file_ajax, view_rendered_file
 
 urlpatterns = [
-   
-    # urls.py
-    path('<int:project_id>/upload-image-ajax/',upload_image_ajax, name='upload_image_ajax'),
+path('project/<int:project_id>/file/<int:file_id>/delete/', file_delete, name='file_delete'),
+ path('projects/<int:project_id>/file/<int:file_id>/preview/', file_preview, name='file_preview'),
+path('<int:project_id>/upload-file-ajax/', upload_file_ajax, name='upload_file_ajax'),
 
     path("autosave/", auto_save_view, name="file_autosave"),
 

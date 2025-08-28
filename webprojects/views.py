@@ -123,36 +123,70 @@ def create_project(request):
 
 # editor/views.py
 # views.py
-
 @csrf_exempt
-def upload_image_ajax(request, project_id):
-    if request.method == 'POST' and request.FILES.get('image'):
-        image_file = request.FILES['image']
-        image_name = request.POST.get('name', image_file.name)
+def upload_file_ajax(request, project_id):
+    if request.method == 'POST' and request.FILES.get('file'):
+        upload = request.FILES['file']
+        file_name = request.POST.get('name', upload.name)
+        ext = os.path.splitext(file_name)[1].lower().replace('.', '')
 
         project = get_object_or_404(Project, id=project_id)
 
-        # Create a file record with the uploaded image
-        file = File.objects.create(
-            project=project,
-            name=image_name,
-            image=image_file,
-        )
-
-        # Optionally store image URL in content
-        if hasattr(file.image, 'url'):
-            file.content = file.image.url
-            file.save()
+        # Decide where to save: CloudinaryField (image) or FileField (other)
+        if ext in ["jpg", "jpeg", "png", "gif", "svg", "webp"]:
+            file = File.objects.create(
+                project=project,
+                name=file_name,
+                image=upload  # goes to Cloudinary
+            )
+        else:
+            file = File.objects.create(
+                project=project,
+                name=file_name,
+                file=upload  # goes to local FileField
+            )
 
         return JsonResponse({
             'success': True,
             'file_id': file.id,
-            'image_url': file.image.url
+            'file_url': file.file_url(),
+            'ext': ext,
         })
 
-    return JsonResponse({'success': False, 'error': 'No image uploaded'})
+    return JsonResponse({'success': False, 'error': 'No file uploaded'})
 
- 
+
+# @csrf_exempt
+# def upload_image_ajax(request, project_id):
+#     if request.method == 'POST' and request.FILES.get('image'):
+#         image_file = request.FILES['image']
+#         image_name = request.POST.get('name', image_file.name)
+
+#         project = get_object_or_404(Project, id=project_id)
+
+#         # Create a file record with the uploaded image
+#         file = File.objects.create(
+#             project=project,
+#             name=image_name,
+#             image=image_file,
+#         )
+
+#         # Optionally store image URL in content
+#         if hasattr(file.image, 'url'):
+#             file.content = file.image.url
+#             file.save()
+
+#         return JsonResponse({
+#             'success': True,
+#             'file_id': file.id,
+#             'image_url': file.image.url
+#         })
+
+#     return JsonResponse({'success': False, 'error': 'No image uploaded'})
+
+
+
+
 # views.py
 from bs4 import BeautifulSoup
 
@@ -236,105 +270,197 @@ def auto_save_view(request):
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
     return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
 
+
+import os
+import pandas as pd
+from django.conf import settings
+
+
+import os
+import io
+import json
+import base64
+import traceback
+import contextlib
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from django.shortcuts import get_object_or_404, render
+from django.http import JsonResponse
+from django.conf import settings
+from .models import File, Project, Folder
+
+def file_preview(request, project_id, file_id):
+    file = get_object_or_404(File, id=file_id, project_id=project_id)
+
+    if not file.is_excel():
+        return render(request, "webprojects/preview_error.html", {"message": "File type not supported for preview."})
+
+    # Full path
+    file_path = os.path.join(settings.MEDIA_ROOT, str(file.file))
+
+    # Read the file
+    try:
+        if file.extension() == "csv":
+            df = pd.read_csv(file_path)
+        else:
+            df = pd.read_excel(file_path)
+    except Exception as e:
+        return render(request, "webprojects/preview_error.html", {"message": str(e)})
+
+    # Limit rows for preview
+    preview_df = df.head(20)
+
+    return render(request, "webprojects/file_preview.html", {
+        "file": file,
+        "df_html": preview_df.to_html(classes="table table-bordered table-sm", index=False)
+    })
+
+
+def file_delete(request, project_id, file_id):
+    if request.method == "POST":
+        file = get_object_or_404(File, id=file_id, project_id=project_id)
+        file.delete()  # This triggers post_delete and removes the file physically
+        return JsonResponse({"status": "success", "message": "File deleted."})
+    return JsonResponse({"status": "error", "message": "Invalid request."}, status=400)
+
+    
 def file_detail(request, project_id, file_id):
     file = get_object_or_404(File, id=file_id, project_id=project_id)
     files = file.project.files.all()
     project = get_object_or_404(Project, id=project_id)
     folders = Folder.objects.filter(project=file.project)
 
-    # Group file extensions for sidebar
+    # Sidebar file extensions
     exts = sorted({
         os.path.splitext(f.name)[1].lstrip('.').lower()
         for f in files if '.' in f.name
     })
 
-    # ✅ Detect if file is an image
+    # Detect if file is an image
     is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+
+    # Full path to the file
+    file_path = os.path.join(settings.MEDIA_ROOT, str(file.file))
 
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
+            data = json.loads(request.body or "{}")
+            new_content = data.get("content", "")
+            run_plot = data.get("run_plot", False)
+            run_table = data.get("run_table", False)
 
+            # Prevent mismatched file updates
             if data.get("file_id") and data.get("file_id") != file.id:
                 return JsonResponse({"error": "Mismatched file ID"}, status=400)
 
-            new_content = data.get("content", "")
-            updated_timestamp = data.get("timestamp")
-            run_plot = data.get("run_plot", False)
+            # Save content for text-based files
+            if new_content:
+                file.content = new_content
+                file.save()
 
-            if updated_timestamp:
-                from django.utils.dateparse import parse_datetime
-                new_time = parse_datetime(updated_timestamp)
-                if new_time and new_time < file.updated:
-                    return JsonResponse({
-                        "status": "skipped",
-                        "message": "Stale update ignored."
-                    })
+            ext = file.name.lower().split(".")[-1]
+            response_table = ""
+            images = []
 
-            file.content = new_content
-            file.save()
+            # Automatically load CSV/Excel as df
+            df = None
+            if ext in ["csv", "xls", "xlsx"]:
+                try:
+                    if ext == "csv":
+                        df = pd.read_csv(file_path)
+                    else:
+                        df = pd.read_excel(file_path)
+                    if run_table:
+                        response_table = df.head(20).to_html(
+                            classes="table table-bordered table-sm",
+                            index=False
+                        )
+                except Exception as e:
+                    return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
-            # ✅ Execute Python if requested
-            if run_plot and file.name.lower().endswith(".py"):
+            # Execute Python code (mini Jupyter)
+            if run_plot or new_content.strip():
                 buffer_out = io.StringIO()
                 buffer_err = io.StringIO()
                 plt.clf()
                 plt.close('all')
 
-                local_vars = {}
+                # Save original pandas functions
+                # Save the original functions once
+                if not hasattr(pd, "_original_read_csv"):
+                    pd._original_read_csv = pd.read_csv
+                if not hasattr(pd, "_original_read_excel"):
+                    pd._original_read_excel = pd.read_excel
+
+                # Patch read_csv and read_excel
+                def patched_read_csv(name, *args, **kwargs):
+                    path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
+                    return pd._original_read_csv(path, *args, **kwargs)
+
+                def patched_read_excel(name, *args, **kwargs):
+                    path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
+                    return pd._original_read_excel(path, *args, **kwargs)
+
+                # Use patched versions inside exec
+                local_vars = {"pd": pd}
+                pd.read_csv = patched_read_csv
+                pd.read_excel = patched_read_excel
+
+                # Monkeypatch plt.show to save plots
+                def fake_show(*args, **kwargs):
+                    buf = io.BytesIO()
+                    plt.savefig(buf, format="png", bbox_inches="tight")
+                    buf.seek(0)
+                    img_base64 = base64.b64encode(buf.read()).decode("utf-8")
+                    images.append(f"data:image/png;base64,{img_base64}")
+                    plt.close()
+
+                plt.show = fake_show
 
                 try:
                     with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
-                        exec(new_content, {}, local_vars)
+                        exec(new_content, local_vars)
 
                     printed_output = buffer_out.getvalue()
                     error_output = buffer_err.getvalue()
 
-                    # Return error if there was stderr
                     if error_output:
                         return JsonResponse({
                             "status": "error",
                             "message": error_output
                         }, status=500)
 
-                    # Capture DataFrame (if any)
-                    table_html = ""
-                    for var in local_vars.values():
-                        if isinstance(var, pd.DataFrame):
-                            table_html = var.to_html(classes="table table-bordered", index=False)
-                            break
-
-                    # Capture matplotlib plots
-                    images = []
+                    # Capture open matplotlib figures
                     for i in plt.get_fignums():
                         fig = plt.figure(i)
-                        buffer = io.BytesIO()
-                        fig.savefig(buffer, format='png', bbox_inches='tight')
-                        plt.close(fig)
-                        buffer.seek(0)
-                        img_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+                        buf = io.BytesIO()
+                        fig.savefig(buf, format="png", bbox_inches="tight")
+                        buf.seek(0)
+                        img_base64 = base64.b64encode(buf.read()).decode("utf-8")
                         images.append(f"data:image/png;base64,{img_base64}")
+                        plt.close(fig)
 
                     return JsonResponse({
-                        "status": "plot_generated",
-                        "images": images,
+                        "status": "success",
                         "output": printed_output or "[No output]",
-                        "table": table_html
+                        "table": response_table,
+                        "images": images
                     })
 
                 except Exception:
-                    # Catch and return full traceback
-                    traceback_output = traceback.format_exc()
                     return JsonResponse({
                         "status": "error",
-                        "message": traceback_output
+                        "message": traceback.format_exc()
                     }, status=500)
 
+            # Default response
             return JsonResponse({"status": "saved", "message": "File saved successfully."})
 
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+        except Exception:
+            return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
 
+    # GET request
     return render(request, 'webprojects/file_detail.html', {
         'file': file,
         'files': files,
@@ -343,6 +469,115 @@ def file_detail(request, project_id, file_id):
         'project': project,
         'is_image': is_image,
     })
+
+
+# def file_detail(request, project_id, file_id):
+#     file = get_object_or_404(File, id=file_id, project_id=project_id)
+#     files = file.project.files.all()
+#     project = get_object_or_404(Project, id=project_id)
+#     folders = Folder.objects.filter(project=file.project)
+
+#     # Group file extensions for sidebar
+#     exts = sorted({
+#         os.path.splitext(f.name)[1].lstrip('.').lower()
+#         for f in files if '.' in f.name
+#     })
+
+#     # ✅ Detect if file is an image
+#     is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+
+#             if data.get("file_id") and data.get("file_id") != file.id:
+#                 return JsonResponse({"error": "Mismatched file ID"}, status=400)
+
+#             new_content = data.get("content", "")
+#             updated_timestamp = data.get("timestamp")
+#             run_plot = data.get("run_plot", False)
+
+#             if updated_timestamp:
+#                 from django.utils.dateparse import parse_datetime
+#                 new_time = parse_datetime(updated_timestamp)
+#                 if new_time and new_time < file.updated:
+#                     return JsonResponse({
+#                         "status": "skipped",
+#                         "message": "Stale update ignored."
+#                     })
+
+#             file.content = new_content
+#             file.save()
+
+#             # ✅ Execute Python if requested
+#             if run_plot and file.name.lower().endswith(".py"):
+#                 buffer_out = io.StringIO()
+#                 buffer_err = io.StringIO()
+#                 plt.clf()
+#                 plt.close('all')
+
+#                 local_vars = {}
+
+#                 try:
+#                     with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
+#                         exec(new_content, {}, local_vars)
+
+#                     printed_output = buffer_out.getvalue()
+#                     error_output = buffer_err.getvalue()
+
+#                     # Return error if there was stderr
+#                     if error_output:
+#                         return JsonResponse({
+#                             "status": "error",
+#                             "message": error_output
+#                         }, status=500)
+
+#                     # Capture DataFrame (if any)
+#                     table_html = ""
+#                     for var in local_vars.values():
+#                         if isinstance(var, pd.DataFrame):
+#                             table_html = var.to_html(classes="table table-bordered", index=False)
+#                             break
+
+#                     # Capture matplotlib plots
+#                     images = []
+#                     for i in plt.get_fignums():
+#                         fig = plt.figure(i)
+#                         buffer = io.BytesIO()
+#                         fig.savefig(buffer, format='png', bbox_inches='tight')
+#                         plt.close(fig)
+#                         buffer.seek(0)
+#                         img_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+#                         images.append(f"data:image/png;base64,{img_base64}")
+
+#                     return JsonResponse({
+#                         "status": "plot_generated",
+#                         "images": images,
+#                         "output": printed_output or "[No output]",
+#                         "table": table_html
+#                     })
+
+#                 except Exception:
+#                     # Catch and return full traceback
+#                     traceback_output = traceback.format_exc()
+#                     return JsonResponse({
+#                         "status": "error",
+#                         "message": traceback_output
+#                     }, status=500)
+
+#             return JsonResponse({"status": "saved", "message": "File saved successfully."})
+
+#         except Exception as e:
+#             return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+#     return render(request, 'webprojects/file_detail.html', {
+#         'file': file,
+#         'files': files,
+#         'folders': folders,
+#         'exts': exts,
+#         'project': project,
+#         'is_image': is_image,
+#     })
 
 
 

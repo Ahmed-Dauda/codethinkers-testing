@@ -93,6 +93,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'cloudinary',
+    'cloudinary_storage',
     'embed_video',
     'xhtml2pdf',
     'tinymce',
@@ -210,8 +211,35 @@ SOCIALACCOUNT_PROVIDERS = {
 # secure = True
 
 
+# import cloudinary
+# import os
+# import environ
+
+# env = environ.Env()
+# environ.Env.read_env()
+
+# cloudinary.config(
+#     cloud_name = env("CLOUDINARY_CLOUD_NAME"),
+#     api_key    = env("CLOUDINARY_API_KEY"),
+#     api_secret = env("CLOUDINARY_API_SECRET"),
+#     secure     = True
+# )
+
+
+# CLOUDINARY_STORAGE = {
+#     'CLOUD_NAME': 'ds5l3gqr6',
+#     'API_KEY': '671667183251344',
+#     'API_SECRET': 'P5WKA1qweMmd1i4TkU2W_ZY9ZuA',
+# }
+
+# CLOUDINARY_URL = env('CLOUDINARY_URL')
+# DEFAULT_FILE_STORAGE = env('DEFAULT_FILE_STORAGE')
+
+# DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
+
 import cloudinary
-import os
 import environ
 
 env = environ.Env()
@@ -223,8 +251,15 @@ cloudinary.config(
     api_secret = env("CLOUDINARY_API_SECRET"),
     secure     = True
 )
-CLOUDINARY_URL = env('CLOUDINARY_URL')
-DEFAULT_FILE_STORAGE = env('DEFAULT_FILE_STORAGE')
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': env("CLOUDINARY_CLOUD_NAME"),
+    'API_KEY': env("CLOUDINARY_API_KEY"),
+    'API_SECRET': env("CLOUDINARY_API_SECRET"),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
 
 
 # cloudinary.config( 
@@ -233,6 +268,7 @@ DEFAULT_FILE_STORAGE = env('DEFAULT_FILE_STORAGE')
 #   api_secret = "P5WKA1qweMmd1i4TkU2W_ZY9ZuA",
 #   secure = True
 # )
+
 
 # email settings
 
@@ -384,22 +420,22 @@ BADGE_FONT = {
 # ADDITIONAL SITEs SECURITY
 # HTTPS and secure headers
 
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# SECURE_SSL_REDIRECT = True
-# SECURE_BROWSER_XSS_FILTER = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# X_FRAME_OPTIONS = 'DENY'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
 
-# # HSTS (HTTP Strict Transport Security)
-# SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
+# HSTS (HTTP Strict Transport Security)
+SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
-# # Cookies and sessions
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIE_SECURE = True
-# SESSION_COOKIE_HTTPONLY = True
-# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# Cookies and sessions
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # # Optional - block embedding your site in iframes entirely
 # SECURE_FRAME_DENY = True  # Already handled by X_FRAME_OPTIONS = 'DENY'
@@ -455,7 +491,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # for TinyMCE 
-
 TINYMCE_DEFAULT_CONFIG = {
     'height': 360,
     'width': 700,
@@ -464,53 +499,135 @@ TINYMCE_DEFAULT_CONFIG = {
     'custom_undo_redo_levels': 20,
     'selector': 'textarea',
     'plugins': 'link image preview codesample contextmenu table code mathjax',
-    'toolbar': 'undo redo | styleselect | bold italic | link image | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | codesample | mathjax',
+    'toolbar': (
+        'undo redo | styleselect | bold italic | link image | '
+        'alignleft aligncenter alignright alignjustify | '
+        'bullist numlist outdent indent | table | codesample | mathjax'
+    ),
     'theme': 'silver',
 
-    # Additional configuration for MathML
-    'extended_valid_elements': 'math[*],mrow[*],mfrac[*],mi[*],mn[*],mo[*]',
-    'custom_elements': 'math,mrow,mfrac,mi,mn,mo',
-    'content_style': "math, mrow, mfrac, mi, mn, mo",
-    'mathjax': {
-        'lib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML',
-        'symbols': {'mathml': True}
-    },
-    'init_instance_callback': '''
-        function (editor) {
-            console.log('Editor is initialized.');
+    # ✅ Allow pre/code fully
+    'extended_valid_elements': 'pre[class|style],code[class|style]',
+    'valid_elements': '*[*]',
 
-            // Add event listener for MathML elements
-            editor.on('click', function(e) {
-                if (e.target.nodeName === 'MATH' || e.target.closest('math')) {
-                    editor.focus();
-                }
-            });
+    # ✅ Protect code blocks so TinyMCE does NOT "parse" inside them
+    'protect': [
+        r'<!--[\s\S]*?-->',     # HTML comments
+        r'<pre[^>]*>[\s\S]*?</pre>',  # Protect <pre>…</pre>
+        r'<code[^>]*>[\s\S]*?</code>' # Protect <code>…</code>
+    ],
+
+    # ✅ Styling for code blocks
+    'content_style': """
+        pre code {
+            display: block;
+            background: #1e1e1e;
+            color: #f8f8f2;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre;
+            overflow-x: auto;
         }
-    ''',
+    """,
 
-    # Prevent wrapping text in <p> tags
-    'forced_root_block': ' ',  # Use <div> instead of <p>
-    'forced_root_block_attrs': {},  # Clears any forced attributes
-    'br_in_pre': True,  # Insert <br> tags instead of wrapping in <p> tags
-
-    # Allow all elements and attributes
-    'valid_elements': '*[*]',  # Allow all elements
-    'valid_children': '+body[style|link|script|iframe|section],+section[div|p],+div[math|mrow|mfrac|mi|mn|mo]',
+    # ✅ Prevent auto <p> wrapping
+    'forced_root_block': False,
+    'br_in_pre': True,
 }
 
 # TINYMCE_DEFAULT_CONFIG = {
 #     'height': 360,
 #     'width': 700,
+#     'entity_encoding': "raw",            # Preserve <, >, & etc.
 #     'cleanup_on_startup': True,
 #     'custom_undo_redo_levels': 20,
 #     'selector': 'textarea',
-#     'plugins': 'link image preview codesample contextmenu table code',
-#     'toolbar': 'undo redo | styleselect | bold italic | link image | codesample | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | code',
+#     'plugins': 'link image preview codesample contextmenu table code mathjax',
+#     'toolbar': (
+#         'undo redo | styleselect | bold italic | link image | '
+#         'alignleft aligncenter alignright alignjustify | '
+#         'bullist numlist outdent indent | table | codesample | mathjax'
+#     ),
 #     'theme': 'silver',
+
+#     # MathML support
+#     'extended_valid_elements': 'math[*],mrow[*],mfrac[*],mi[*],mn[*],mo[*]',
+#     'custom_elements': 'math,mrow,mfrac,mi,mn,mo',
+#     'content_style': "math, mrow, mfrac, mi, mn, mo",
+#     'mathjax': {
+#         'lib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML',
+#         'symbols': {'mathml': True}
+#     },
+#     'init_instance_callback': '''
+#         function (editor) {
+#             console.log('Editor is initialized.');
+#             editor.on('click', function(e) {
+#                 if (e.target.nodeName === 'MATH' || e.target.closest('math')) {
+#                     editor.focus();
+#                 }
+#             });
+#         }
+#     ''',
+
+#     # Preserve AI-generated paragraphs and lists exactly
+#     'forced_root_block': False,          # Disable automatic <p> wrapping
+#     'forced_root_block_attrs': {},       
+#     'br_in_pre': True,                   # Preserve line breaks in <pre>
+
+#     # Allow all elements and attributes
+#     'valid_elements': '*[*]',
+#     'valid_children': (
+#         '+body[style|link|script|iframe|section],'
+#         '+section[div|p],'
+#         '+div[math|mrow|mfrac|mi|mn|mo]'
+#     ),
 # }
 
+# TINYMCE_DEFAULT_CONFIG = {
+#     'height': 360,
+#     'width': 700,
+#     'entity_encoding': "raw",
+#     'cleanup_on_startup': True,
+#     'custom_undo_redo_levels': 20,
+#     'selector': 'textarea',
+#     'plugins': 'link image preview codesample contextmenu table code mathjax',
+#     'toolbar': 'undo redo | styleselect | bold italic | link image | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | codesample | mathjax',
+#     'theme': 'silver',
 
-# r5ebxl5femg5gy8yvid6alg59ohekm45qlmxptc20qeu5jgw
+#     # Additional configuration for MathML
+#     'extended_valid_elements': 'math[*],mrow[*],mfrac[*],mi[*],mn[*],mo[*]',
+#     'custom_elements': 'math,mrow,mfrac,mi,mn,mo',
+#     'content_style': "math, mrow, mfrac, mi, mn, mo",
+#     'mathjax': {
+#         'lib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML',
+#         'symbols': {'mathml': True}
+#     },
+#     'init_instance_callback': '''
+#         function (editor) {
+#             console.log('Editor is initialized.');
+
+#             // Add event listener for MathML elements
+#             editor.on('click', function(e) {
+#                 if (e.target.nodeName === 'MATH' || e.target.closest('math')) {
+#                     editor.focus();
+#                 }
+#             });
+#         }
+#     ''',
+
+#     # Prevent wrapping text in <p> tags
+#     'forced_root_block': ' ',  # Use <div> instead of <p>
+#     'forced_root_block_attrs': {},  # Clears any forced attributes
+#     'br_in_pre': True,  # Insert <br> tags instead of wrapping in <p> tags
+
+#     # Allow all elements and attributes
+#     'valid_elements': '*[*]',  # Allow all elements
+#     'valid_children': '+body[style|link|script|iframe|section],+section[div|p],+div[math|mrow|mfrac|mi|mn|mo]',
+# }
+
 
 TINYMCE_JS_URL = 'https://cdn.tiny.cloud/1/r5ebxl5femg5gy8yvid6alg59ohekm45qlmxptc20qeu5jgw/tinymce/6/tinymce.min.js'
 TINYMCE_COMPRESSOR = False

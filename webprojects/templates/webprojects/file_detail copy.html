@@ -228,104 +228,6 @@
 }
 
 </style>
-<style>
-/* Folder toggle header */
-.folder-toggle {
-    background-color: #2b2b2b;
-    color: #fff;
-    padding: 10px 15px;
-    margin-top: 10px;
-    cursor: pointer;
-    border-radius: 6px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: bold;
-    transition: background 0.3s;
-}
-
-.folder-toggle:hover {
-    background-color: #444;
-}
-
-/* File group container */
-.file-group {
-    padding-left: 20px;
-    margin-bottom: 10px;
-    display: none; /* Hidden by default, toggle with JS */
-}
-
-/* Individual file item */
-.file-item {
-    padding: 6px 10px;
-    margin-bottom: 4px;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background-color: #f5f5f5;
-    transition: background 0.3s;
-}
-
-.file-item a {
-    text-decoration: none;
-    color: #333;
-    flex-grow: 1;
-}
-
-.file-item a:hover {
-    text-decoration: underline;
-    color: #007bff;
-}
-
-/* Buttons */
-.btn {
-    padding: 2px 6px;
-    font-size: 0.8rem;
-    border-radius: 4px;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.btn-sm {
-    font-size: 0.75rem;
-    padding: 2px 5px;
-}
-
-.btn-primary {
-    background-color: #007bff;
-    color: #fff;
-}
-
-.btn-primary:hover {
-    background-color: #0056b3;
-}
-
-.btn-danger {
-    background-color: #dc3545;
-    color: #fff;
-}
-
-.btn-danger:hover {
-    background-color: #b02a37;
-}
-
-/* Highlight selected file */
-.file-item a[style*="font-weight:bold"] {
-    background-color: #007bff;
-    color: #fff !important;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
-/* Image file color */
-.file-item a[onclick*="showImageModal"] {
-    color: #4fa;
-    font-weight: bold;
-}
-</style>
 
 {% endblock %}
 
@@ -339,21 +241,13 @@
 
 {% block sidebar %}
 
+
+<!-- <h4 style="color: #ccc;">📤 Upload Image</h4> -->
 <div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
-  Drop File Here or 
-  <label for="fileInput" style="color: #4fa; cursor:pointer;">Browse</label>
-  <input type="file" id="fileInput" 
-         accept=".png,.jpg,.jpeg,.gif,.xls,.xlsx,.csv" 
-         style="display:none;">
-</div>
-<small style="color: #888;">Images and Excel files will be added to your files</small>
-
-
-<!-- <div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
   Drop Image Here or <label for="imageInput" style="color: #4fa;">Browse</label>
   <input type="file" id="imageInput" accept="image/*" style="display:none;">
 </div>
-<small style="color: #888;">Image will be added to your files</small> -->
+<small style="color: #888;">Image will be added to your files</small>
 
 <div style="margin-bottom: 20px;">
   <input type="text" id="newFileName" placeholder="📝 New file name (e.g., index.html)" style="width: 100%; padding: 5px; margin-bottom: 5px; font-size: 0.9em;">
@@ -361,42 +255,27 @@
 </div>
 
 <hr>
+
 {% for ext in exts %}
   {% with files|dictsort:"name" as sorted_files %}
     <div class="folder-toggle" data-ext="{{ ext }}">
-      📁 {{ ext|upper }} Files <span>⮟</span>
+   📁 {{ ext|upper }} Files <span>⮟</span>
     </div>
     <div class="file-group">
       {% for f in sorted_files %}
         {% if f.name|has_ext:ext %}
           {% with f.name|lower as fname %}
             <div class="file-item">
-
               {% if fname|slice:"-4:" == ".png" or fname|slice:"-4:" == ".jpg" or fname|slice:"-5:" == ".jpeg" or fname|slice:"-4:" == ".gif" %}
                 <!-- 👇 Image File: Open Modal -->
                 <a href="javascript:void(0);" onclick="showImageModal('{{ f.image.url }}')" style="color:#4fa;">🖼️ {{ f.name }}</a>
-
               {% else %}
                 <!-- 👇 Normal File: Go to Editor -->
                 <a href="{% url 'file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
-
                 {% if ".html" in f.name|lower %}
-                  <a href="{% url 'share_preview' f.project.id f.id %}" target="_blank">🔗Share</a>
+                  <a href="{% url 'share_preview' f.project.id f.id %}" target="_blank">🔗Share Preview</a>
                 {% endif %}
-
-                {% if f.is_excel %}
-                  <!-- 👇 Excel/CSV Preview Button -->
-                  <a href="{% url 'file_preview' f.project.id f.id %}" class="btn btn-sm ">View</a>
-                {% endif %}
-
               {% endif %}
-
-              <!-- 👇 Delete Button for all files -->
-              <form method="POST" action="{% url 'file_delete' f.project.id f.id %}" class="delete-file-form d-inline">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
-              </form>
-
             </div>
           {% endwith %}
         {% endif %}
@@ -441,49 +320,6 @@
   </select>
   <button id="runBtn" onclick="runAIAction()">🚀 Run AI Action</button>
 </div>
-
-<!-- delete js  -->
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const deleteForms = document.querySelectorAll('.delete-file-form');
-
-    deleteForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();  // prevent normal form submission
-
-            if (!confirm("Are you sure you want to delete this file?")) return;
-
-            const url = form.getAttribute('action');
-            const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Remove file item from DOM
-                    form.closest('.file-item').remove();
-                } else {
-                    alert(data.message || 'Failed to delete file.');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert('Error deleting file.');
-            });
-        });
-    });
-});
-</script>
-
-
-
 
 <script>
   function toggleAITools() {
@@ -1296,63 +1132,91 @@ function getLanguage(fileName) {
 }
 
 function runCode() {
-    const code = editor.getValue();
-    const output = document.getElementById("outputText");
-    const tablePreview = document.getElementById("tablePreview");
-    const plotPreview = document.getElementById("plotPreview");
+  const code = editor.getValue();
+  const output = document.getElementById("outputText");
+  const tablePreview = document.getElementById("tablePreview");
+  const plotPreview = document.getElementById("plotPreview");
+  const ext = "{{ file.name|lower }}".split('.').pop();
 
-    // Show spinner
-    output.innerHTML = `⏳ Running... <span class="spinner"></span>`;
-    tablePreview.innerHTML = "";
-    plotPreview.innerHTML = "";
+  output.innerHTML = `⏳ Running... <span class="spinner"></span>`;
+  tablePreview.innerHTML = "";
+  plotPreview.innerHTML = "";
 
+  if (ext === "js") {
+    try {
+      const logs = [];
+      const originalLog = console.log;
+      console.log = function (...args) {
+        logs.push(args.join(" "));
+      };
+
+      const result = eval(code);
+      console.log = originalLog;
+
+      let outputText = logs.join("\n");
+      if (result !== undefined) {
+        outputText += "\n➡️ Result: " + result;
+      }
+
+      // output.textContent = outputText || "[No output]";
+      output.textContent = outputText;
+    } catch (err) {
+      output.innerHTML = `<span style="color:red;">❌ JavaScript Error: ${escapeHTML(err.message)}</span>`;
+    }
+  }
+
+  else if (ext === "py") {
     fetch("{% url 'file_detail' file.project.id file.id %}", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: JSON.stringify({ 
-            content: code,
-            run_plot: true,
-            run_table: true
-        })
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({
+        content: code,
+        run_plot: true
+      })
     })
     .then(res => res.json())
     .then(data => {
-        if (data.status === "error") {
-            output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`;
-        } else {
-            // Text output
-            output.textContent = data.output || "[No output]";
+      if (data.status === "error") {
+        output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`;
+      } else {
+        const textOut = data.output || data.error || "[No output]";
+        output.textContent = textOut;
+      }
 
-            // Table preview (first 20 rows of CSV or resulting DataFrame)
-            if (data.table) {
-                tablePreview.innerHTML = data.table;
-                tablePreview.style.display = "block";
-            } else {
-                tablePreview.style.display = "none";
-            }
+      // Table
+      if (data.table) {
+        tablePreview.innerHTML = data.table;
+        tablePreview.style.display = "block";
+      } else {
+        tablePreview.style.display = "none";
+      }
 
-            // Plot preview
-            plotPreview.innerHTML = "";
-            if (Array.isArray(data.images) && data.images.length > 0) {
-                data.images.forEach(src => {
-                    const img = document.createElement("img");
-                    img.src = src;
-                    img.style.maxWidth = "100%";
-                    img.style.marginBottom = "10px";
-                    plotPreview.appendChild(img);
-                });
-                plotPreview.style.display = "block";
-            } else {
-                plotPreview.style.display = "none";
-            }
-        }
+      // Plot
+      plotPreview.innerHTML = "";
+      if (Array.isArray(data.images) && data.images.length > 0) {
+        data.images.forEach(src => {
+          const img = document.createElement("img");
+          img.src = src;
+          img.style.maxWidth = "100%";
+          img.style.marginBottom = "10px";
+          plotPreview.appendChild(img);
+        });
+        plotPreview.style.display = "block";
+      } else {
+        plotPreview.style.display = "none";
+      }
     })
     .catch(err => {
-        output.innerHTML = `<span style="color:red;">❌ Request Failed: ${escapeHTML(err.message)}</span>`;
+      output.innerHTML = `<span style="color:red;">❌ Request Failed: ${escapeHTML(err.message)}</span>`;
     });
+  }
+
+  else {
+    output.innerHTML = `<span style="color:orange;">⚠️ Unsupported file type: ${escapeHTML(ext)}</span>`;
+  }
 }
 
 function escapeHTML(str) {
@@ -1364,6 +1228,7 @@ function escapeHTML(str) {
     "'": "&#39;"
   }[tag]));
 }
+
 
 </script>
 
@@ -1603,11 +1468,12 @@ function createNewFile() {
   .catch(err => alert("❌ Request failed: " + err));
 }
 
+
 </script>
-<!-- uppload file js  -->
+
 <script>
 const dropZone = document.getElementById('dropZone');
-const fileInput = document.getElementById('fileInput');
+const imageInput = document.getElementById('imageInput');
 
 dropZone.addEventListener('dragover', e => {
   e.preventDefault();
@@ -1623,74 +1489,40 @@ dropZone.addEventListener('drop', e => {
   e.preventDefault();
   dropZone.style.backgroundColor = '';
   const file = e.dataTransfer.files[0];
-  if (file) uploadFile(file);
+  if (file && file.type.startsWith('image/')) {
+    uploadImage(file);
+  }
 });
 
-fileInput.addEventListener('change', () => {
-  const file = fileInput.files[0];
-  if (file) uploadFile(file);
+imageInput.addEventListener('change', () => {
+  const file = imageInput.files[0];
+  if (file && file.type.startsWith('image/')) {
+    uploadImage(file);
+  }
 });
 
-function uploadFile(file) {
+function uploadImage(file) {
   const formData = new FormData();
-  formData.append('file', file);  // ✅ universal field
+  formData.append('image', file);
   formData.append('name', file.name);
 
-  fetch("{% url 'upload_file_ajax' project.id %}", {
+  fetch("{% url 'upload_image_ajax' project.id %}", {
     method: 'POST',
-    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
     body: formData
   })
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      showToast(`✅ Uploaded: ${file.name}`);
-      addFileToList(data.file_id, file.name, data.file_url || "");
+      alert("✅ Image uploaded!");
+      location.reload();  // or dynamically add the file to the sidebar
     } else {
-      showToast(`❌ Upload failed: ${data.error || ''}`);
+      alert("❌ Upload failed.");
     }
   })
-  .catch(() => showToast("⚠️ Upload error"));
-}
-
-function addFileToList(fileId, fileName, fileUrl) {
-  const ext = fileName.split('.').pop().toLowerCase();
-  const groups = document.querySelectorAll('.file-group');
-
-  groups.forEach(group => {
-    if (group.previousElementSibling.dataset.ext === ext) {
-      const div = document.createElement('div');
-      div.classList.add('file-item');
-
-      if (["png", "jpg", "jpeg", "gif", "svg", "webp"].includes(ext)) {
-        div.innerHTML = `<a href="javascript:void(0);" onclick="showImageModal('${fileUrl}')" style="color:#4fa;">🖼️ ${fileName}</a>`;
-      } 
-      else if (["xls", "xlsx", "csv"].includes(ext)) {
-        div.innerHTML = `<a href="${fileUrl}" target="_blank" style="color:#f1c40f;">📊 ${fileName}</a>`;
-      } 
-      else if (["pdf"].includes(ext)) {
-        div.innerHTML = `<a href="${fileUrl}" target="_blank" style="color:#e74c3c;">📄 ${fileName}</a>`;
-      } 
-      else if (["doc", "docx"].includes(ext)) {
-        div.innerHTML = `<a href="${fileUrl}" target="_blank" style="color:#3498db;">📑 ${fileName}</a>`;
-      } 
-      else if (["txt", "md"].includes(ext)) {
-        div.innerHTML = `<a href="${fileUrl}" target="_blank" style="color:#9b59b6;">📝 ${fileName}</a>`;
-      } 
-      else {
-        div.innerHTML = `<a href="/file/${fileId}/" style="color:#fff;">📦 ${fileName}</a>`;
-      }
-
-      group.appendChild(div);
-    }
-  });
-}
-
-function showToast(message) {
-  const toast = document.getElementById("toastMessage");
-  toast.textContent = message;
-  toast.style.display = "block";
-  setTimeout(() => { toast.style.display = "none"; }, 2500);
+  .catch(() => alert("❌ Upload error"));
 }
 </script>
 
