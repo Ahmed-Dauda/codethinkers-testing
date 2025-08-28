@@ -1,4 +1,4 @@
-# Ignore data files
+# Ignore data files (except requirements.txt)
 *.csv
 *.xlsx
 *.xls
@@ -6,6 +6,7 @@
 *.docx
 *.pptx
 *.txt
+!requirements.txt   # <-- keep requirements.txt
 
 # Ignore local uploads and media (use Cloudinary instead)
 media/
