@@ -1,6 +1,4 @@
-uploads/
-staticfiles/
-media/
+
 *.csv
 *.xlsx
 *.pdf
