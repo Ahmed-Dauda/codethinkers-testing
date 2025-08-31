@@ -290,6 +290,7 @@ from django.http import JsonResponse
 from django.conf import settings
 from .models import File, Project, Folder
 
+
 def file_preview(request, project_id, file_id):
     file = get_object_or_404(File, id=file_id, project_id=project_id)
 

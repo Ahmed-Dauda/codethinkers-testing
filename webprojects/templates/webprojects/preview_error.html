@@ -1,0 +1,8 @@
+
+{% block content %}
+<div class="container text-center mt-5">
+  <h2 class="text-danger">Preview Error</h2>
+  <p>We couldn’t load the preview for this file.</p>
+  <a href="{% url 'webprojects:project_detail' project.id %}" class="btn btn-primary">Back to Project</a>
+</div>
+{% endblock %}

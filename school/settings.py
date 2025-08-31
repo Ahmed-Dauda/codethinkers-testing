@@ -211,35 +211,8 @@ SOCIALACCOUNT_PROVIDERS = {
 # secure = True
 
 
-# import cloudinary
-# import os
-# import environ
-
-# env = environ.Env()
-# environ.Env.read_env()
-
-# cloudinary.config(
-#     cloud_name = env("CLOUDINARY_CLOUD_NAME"),
-#     api_key    = env("CLOUDINARY_API_KEY"),
-#     api_secret = env("CLOUDINARY_API_SECRET"),
-#     secure     = True
-# )
-
-
-# CLOUDINARY_STORAGE = {
-#     'CLOUD_NAME': 'ds5l3gqr6',
-#     'API_KEY': '671667183251344',
-#     'API_SECRET': 'P5WKA1qweMmd1i4TkU2W_ZY9ZuA',
-# }
-
-# CLOUDINARY_URL = env('CLOUDINARY_URL')
-# DEFAULT_FILE_STORAGE = env('DEFAULT_FILE_STORAGE')
-
-# DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-# STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
-
 import cloudinary
+import os
 import environ
 
 env = environ.Env()
@@ -252,14 +225,36 @@ cloudinary.config(
     secure     = True
 )
 
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': env("CLOUDINARY_CLOUD_NAME"),
-    'API_KEY': env("CLOUDINARY_API_KEY"),
-    'API_SECRET': env("CLOUDINARY_API_SECRET"),
-}
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+CLOUDINARY_URL = env('CLOUDINARY_URL')
+DEFAULT_FILE_STORAGE = env('DEFAULT_FILE_STORAGE')
+
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
+
+
+# before the changes
+# import cloudinary
+# import environ
+
+# env = environ.Env()
+# environ.Env.read_env()
+
+# cloudinary.config(
+#     cloud_name = env("CLOUDINARY_CLOUD_NAME"),
+#     api_key    = env("CLOUDINARY_API_KEY"),
+#     api_secret = env("CLOUDINARY_API_SECRET"),
+#     secure     = True
+# )
+
+# CLOUDINARY_STORAGE = {
+#     'CLOUD_NAME': env("CLOUDINARY_CLOUD_NAME"),
+#     'API_KEY': env("CLOUDINARY_API_KEY"),
+#     'API_SECRET': env("CLOUDINARY_API_SECRET"),
+# }
+
+# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
 
 
 # cloudinary.config( 
