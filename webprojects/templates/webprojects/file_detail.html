@@ -327,6 +327,14 @@
 }
 </style>
 
+<!-- roller -->
+ <style>
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
 {% endblock %}
 
 {% block header %}
@@ -348,6 +356,27 @@
 </div>
 <small style="color: #888;">Images and Excel files will be added to your files</small>
 
+<!-- Global Upload Spinner -->
+<!-- 🔄 Upload Loader -->
+<div id="upload-loader" style="
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.4);
+  z-index:9999;
+  justify-content:center;
+  align-items:center;
+">
+  <div style="
+    width:50px; height:50px;
+    border:5px solid #f3f3f3;
+    border-top:5px solid #3498db;
+    border-radius:50%;
+    animation: spin 1s linear infinite;
+  "></div>
+</div>
+
 
 <!-- <div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
   Drop Image Here or <label for="imageInput" style="color: #4fa;">Browse</label>
@@ -361,6 +390,7 @@
 </div>
 
 <hr>
+
 {% for ext in exts %}
   {% with files|dictsort:"name" as sorted_files %}
     <div class="folder-toggle" data-ext="{{ ext }}">
@@ -1604,6 +1634,7 @@ function createNewFile() {
 }
 
 </script>
+
 <!-- uppload file js  -->
 <script>
 const dropZone = document.getElementById('dropZone');
@@ -1633,8 +1664,11 @@ fileInput.addEventListener('change', () => {
 
 function uploadFile(file) {
   const formData = new FormData();
-  formData.append('file', file);  // ✅ universal field
+  formData.append('file', file);
   formData.append('name', file.name);
+
+  const loader = document.getElementById("upload-loader");
+  loader.style.display = "flex"; // show loader
 
   fetch("{% url 'upload_file_ajax' project.id %}", {
     method: 'POST',
@@ -1646,12 +1680,72 @@ function uploadFile(file) {
     if (data.success) {
       showToast(`✅ Uploaded: ${file.name}`);
       addFileToList(data.file_id, file.name, data.file_url || "");
+
+      // ✅ reload after 1.5 seconds
+      setTimeout(() => {
+        location.reload();
+      }, 1500);
     } else {
       showToast(`❌ Upload failed: ${data.error || ''}`);
     }
   })
-  .catch(() => showToast("⚠️ Upload error"));
+  .catch(() => showToast("⚠️ Upload error"))
+  .finally(() => {
+    loader.style.display = "none"; // hide loader
+  });
 }
+
+// working
+// function uploadFile(file) {
+//   const formData = new FormData();
+//   formData.append('file', file);
+//   formData.append('name', file.name);
+
+//   const loader = document.getElementById("upload-loader");
+//   loader.style.display = "flex"; // show loader
+
+//   fetch("{% url 'upload_file_ajax' project.id %}", {
+//     method: 'POST',
+//     headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+//     body: formData
+//   })
+//   .then(res => res.json())
+//   .then(data => {
+//     if (data.success) {
+//       showToast(`✅ Uploaded: ${file.name}`);
+//       addFileToList(data.file_id, file.name, data.file_url || "");
+      
+//     } else {
+//       showToast(`❌ Upload failed: ${data.error || ''}`);
+//     }
+//   })
+//   .catch(() => showToast("⚠️ Upload error"))
+//   .finally(() => {
+//     loader.style.display = "none"; // hide loader
+//   });
+// }
+
+// function uploadFile(file) {
+//   const formData = new FormData();
+//   formData.append('file', file);  // ✅ universal field
+//   formData.append('name', file.name);
+
+//   fetch("{% url 'upload_file_ajax' project.id %}", {
+//     method: 'POST',
+//     headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+//     body: formData
+//   })
+//   .then(res => res.json())
+//   .then(data => {
+//     if (data.success) {
+//       showToast(`✅ Uploaded: ${file.name}`);
+//       addFileToList(data.file_id, file.name, data.file_url || "");
+//     } else {
+//       showToast(`❌ Upload failed: ${data.error || ''}`);
+//     }
+//   })
+//   .catch(() => showToast("⚠️ Upload error"));
+// }
 
 function addFileToList(fileId, fileName, fileUrl) {
   const ext = fileName.split('.').pop().toLowerCase();
