@@ -59,6 +59,26 @@ from django.http import JsonResponse
 from collections import defaultdict
 from sms.models import Topics
 
+import os
+import pandas as pd
+from django.conf import settings
+
+
+import os
+import io
+import json
+import base64
+import traceback
+import contextlib
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from django.shortcuts import get_object_or_404, render
+from django.http import JsonResponse
+from django.conf import settings
+from .models import File, Project, Folder
+client = OpenAI(api_key=settings.OPENAI_API_KEY) 
+
 @login_required
 def create_project(request):
     if request.method == 'POST':
@@ -271,24 +291,6 @@ def auto_save_view(request):
     return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
 
 
-import os
-import pandas as pd
-from django.conf import settings
-
-
-import os
-import io
-import json
-import base64
-import traceback
-import contextlib
-import pandas as pd
-import matplotlib.pyplot as plt
-
-from django.shortcuts import get_object_or_404, render
-from django.http import JsonResponse
-from django.conf import settings
-from .models import File, Project, Folder
 
 
 def file_preview(request, project_id, file_id):
@@ -325,7 +327,21 @@ def file_delete(request, project_id, file_id):
         return JsonResponse({"status": "success", "message": "File deleted."})
     return JsonResponse({"status": "error", "message": "Invalid request."}, status=400)
 
-    
+
+def project_files_json(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+
+    html_file = project.files.filter(name="index.html").first()
+    css_file = project.files.filter(name="style.css").first()
+    js_file = project.files.filter(name="script.js").first()
+
+    return JsonResponse({
+        "html": html_file.content if html_file else "",
+        "css": css_file.content if css_file else "",
+        "js": js_file.content if js_file else "",
+    })
+   
+
 def file_detail(request, project_id, file_id):
     file = get_object_or_404(File, id=file_id, project_id=project_id)
     files = file.project.files.all()
@@ -333,10 +349,7 @@ def file_detail(request, project_id, file_id):
     folders = Folder.objects.filter(project=file.project)
 
     # Sidebar file extensions
-    exts = sorted({
-        os.path.splitext(f.name)[1].lstrip('.').lower()
-        for f in files if '.' in f.name
-    })
+    exts = sorted({os.path.splitext(f.name)[1].lstrip('.').lower() for f in files if '.' in f.name})
 
     # Detect if file is an image
     is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
@@ -350,12 +363,100 @@ def file_detail(request, project_id, file_id):
             new_content = data.get("content", "")
             run_plot = data.get("run_plot", False)
             run_table = data.get("run_table", False)
+            prompt = data.get("prompt", "")  # Safe access
+            # ===== AI Prompt Handling =====
+            if prompt:
+                try:
+                    # ✅ Fetch existing files (create empty ones if missing)
+                    html_file, _ = File.objects.get_or_create(project=project, name="index.html")
+                    css_file, _ = File.objects.get_or_create(project=project, name="style.css")
+                    js_file, _ = File.objects.get_or_create(project=project, name="script.js")
+
+                    # ✅ System instruction (force JSON output only)
+                    system_message = (
+                        "You are an expert web developer. Update the given HTML, CSS, and JS project "
+                        "based on the user's request. Only modify what is necessary. "
+                        "Always return a VALID JSON object with keys: html, css, js. "
+                        "Do NOT include explanations, markdown, or extra text. "
+                        "Example: {\"html\": \"<h1>Hello</h1>\", \"css\": \"body {color:red;}\", \"js\": \"console.log('hi');\"}"
+                    )
+
+                    # ✅ Include current project state
+                    user_message = f"""
+                    Current project:
+                    HTML:
+                    {html_file.content}
+
+                    CSS:
+                    {css_file.content}
+
+                    JS:
+                    {js_file.content}
+
+                    User request:
+                    {prompt}
+                    """
+
+                    response = client.chat.completions.create(
+                        model="gpt-4.1",
+                        messages=[
+                            {"role": "system", "content": system_message},
+                            {"role": "user", "content": user_message}
+                        ],
+                        max_tokens=4000,
+                        temperature=0
+                    )
+
+                    ai_text = response.choices[0].message.content.strip()
+
+                    # 🛡️ Extract only JSON portion
+                    start = ai_text.find("{")
+                    end = ai_text.rfind("}")
+                    if start != -1 and end != -1:
+                        ai_text = ai_text[start:end+1]
+
+                    # 🛡️ Try parsing JSON safely
+                    try:
+                        ai_generated = json.loads(ai_text)
+                    except json.JSONDecodeError:
+                        cleaned = ai_text.replace("\n", " ").replace("\r", " ").strip()
+                        try:
+                            ai_generated = json.loads(cleaned)
+                        except Exception:
+                            ai_generated = {"html": ai_text, "css": "", "js": ""}
+
+                    # ✅ Update only if AI returned something new
+                    if ai_generated.get("html"):
+                        html_file.content = ai_generated["html"]
+                        html_file.save()
+
+                    if ai_generated.get("css"):
+                        css_file.content = ai_generated["css"]
+                        css_file.save()
+
+                    if ai_generated.get("js"):
+                        js_file.content = ai_generated["js"]
+                        js_file.save()
+
+                    return JsonResponse({
+                        "status": "success",
+                        "ai_content": ai_generated,
+                        "message": "AI project updated and saved into index.html, style.css, script.js"
+                    })
+
+                except Exception as e:
+                    return JsonResponse({
+                        "status": "error",
+                        "message": str(e),
+                        "trace": traceback.format_exc()
+                    }, status=500)
+            # ===== End AI Prompt =====
 
             # Prevent mismatched file updates
             if data.get("file_id") and data.get("file_id") != file.id:
                 return JsonResponse({"error": "Mismatched file ID"}, status=400)
 
-            # Save content for text-based files
+            # Save new content
             if new_content:
                 file.content = new_content
                 file.save()
@@ -364,7 +465,7 @@ def file_detail(request, project_id, file_id):
             response_table = ""
             images = []
 
-            # Automatically load CSV/Excel as df
+            # CSV/Excel handling
             df = None
             if ext in ["csv", "xls", "xlsx"]:
                 try:
@@ -380,21 +481,18 @@ def file_detail(request, project_id, file_id):
                 except Exception as e:
                     return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
-            # Execute Python code (mini Jupyter)
+            # Python execution (mini Jupyter)
             if run_plot or new_content.strip():
                 buffer_out = io.StringIO()
                 buffer_err = io.StringIO()
                 plt.clf()
                 plt.close('all')
 
-                # Save original pandas functions
-                # Save the original functions once
                 if not hasattr(pd, "_original_read_csv"):
                     pd._original_read_csv = pd.read_csv
                 if not hasattr(pd, "_original_read_excel"):
                     pd._original_read_excel = pd.read_excel
 
-                # Patch read_csv and read_excel
                 def patched_read_csv(name, *args, **kwargs):
                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
                     return pd._original_read_csv(path, *args, **kwargs)
@@ -403,12 +501,9 @@ def file_detail(request, project_id, file_id):
                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
                     return pd._original_read_excel(path, *args, **kwargs)
 
-                # Use patched versions inside exec
-                local_vars = {"pd": pd}
                 pd.read_csv = patched_read_csv
                 pd.read_excel = patched_read_excel
 
-                # Monkeypatch plt.show to save plots
                 def fake_show(*args, **kwargs):
                     buf = io.BytesIO()
                     plt.savefig(buf, format="png", bbox_inches="tight")
@@ -421,18 +516,13 @@ def file_detail(request, project_id, file_id):
 
                 try:
                     with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
-                        exec(new_content, local_vars)
+                        exec(new_content, {"pd": pd})
 
                     printed_output = buffer_out.getvalue()
                     error_output = buffer_err.getvalue()
-
                     if error_output:
-                        return JsonResponse({
-                            "status": "error",
-                            "message": error_output
-                        }, status=500)
+                        return JsonResponse({"status": "error", "message": error_output}, status=500)
 
-                    # Capture open matplotlib figures
                     for i in plt.get_fignums():
                         fig = plt.figure(i)
                         buf = io.BytesIO()
@@ -448,14 +538,10 @@ def file_detail(request, project_id, file_id):
                         "table": response_table,
                         "images": images
                     })
-
                 except Exception:
-                    return JsonResponse({
-                        "status": "error",
-                        "message": traceback.format_exc()
-                    }, status=500)
+                    return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
 
-            # Default response
+            # Default save response
             return JsonResponse({"status": "saved", "message": "File saved successfully."})
 
         except Exception:
@@ -470,6 +556,175 @@ def file_detail(request, project_id, file_id):
         'project': project,
         'is_image': is_image,
     })
+
+
+# views.py
+def load_project_files(request, project_id):
+    try:
+        project = Project.objects.get(id=project_id)
+
+        html_file = File.objects.filter(project=project, name="index.html").first()
+        css_file = File.objects.filter(project=project, name="style.css").first()
+        js_file = File.objects.filter(project=project, name="script.js").first()
+
+        return JsonResponse({
+            "status": "success",
+            "html": html_file.content if html_file else "",
+            "css": css_file.content if css_file else "",
+            "js": js_file.content if js_file else ""
+        })
+    except Project.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Project not found"}, status=404)
+
+
+# working before adding ai prompt    
+# def file_detail(request, project_id, file_id):
+#     file = get_object_or_404(File, id=file_id, project_id=project_id)
+#     files = file.project.files.all()
+#     project = get_object_or_404(Project, id=project_id)
+#     folders = Folder.objects.filter(project=file.project)
+
+#     # Sidebar file extensions
+#     exts = sorted({
+#         os.path.splitext(f.name)[1].lstrip('.').lower()
+#         for f in files if '.' in f.name
+#     })
+
+#     # Detect if file is an image
+#     is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+
+#     # Full path to the file
+#     file_path = os.path.join(settings.MEDIA_ROOT, str(file.file))
+
+#     # ai prompts
+#     # end ai prompt
+
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body or "{}")
+#             new_content = data.get("content", "")
+#             run_plot = data.get("run_plot", False)
+#             run_table = data.get("run_table", False)
+
+#             # Prevent mismatched file updates
+#             if data.get("file_id") and data.get("file_id") != file.id:
+#                 return JsonResponse({"error": "Mismatched file ID"}, status=400)
+
+#             # Save content for text-based files
+#             if new_content:
+#                 file.content = new_content
+#                 file.save()
+
+#             ext = file.name.lower().split(".")[-1]
+#             response_table = ""
+#             images = []
+
+#             # Automatically load CSV/Excel as df
+#             df = None
+#             if ext in ["csv", "xls", "xlsx"]:
+#                 try:
+#                     if ext == "csv":
+#                         df = pd.read_csv(file_path)
+#                     else:
+#                         df = pd.read_excel(file_path)
+#                     if run_table:
+#                         response_table = df.head(20).to_html(
+#                             classes="table table-bordered table-sm",
+#                             index=False
+#                         )
+#                 except Exception as e:
+#                     return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+#             # Execute Python code (mini Jupyter)
+#             if run_plot or new_content.strip():
+#                 buffer_out = io.StringIO()
+#                 buffer_err = io.StringIO()
+#                 plt.clf()
+#                 plt.close('all')
+
+#                 # Save original pandas functions
+#                 # Save the original functions once
+#                 if not hasattr(pd, "_original_read_csv"):
+#                     pd._original_read_csv = pd.read_csv
+#                 if not hasattr(pd, "_original_read_excel"):
+#                     pd._original_read_excel = pd.read_excel
+
+#                 # Patch read_csv and read_excel
+#                 def patched_read_csv(name, *args, **kwargs):
+#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
+#                     return pd._original_read_csv(path, *args, **kwargs)
+
+#                 def patched_read_excel(name, *args, **kwargs):
+#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
+#                     return pd._original_read_excel(path, *args, **kwargs)
+
+#                 # Use patched versions inside exec
+#                 local_vars = {"pd": pd}
+#                 pd.read_csv = patched_read_csv
+#                 pd.read_excel = patched_read_excel
+
+#                 # Monkeypatch plt.show to save plots
+#                 def fake_show(*args, **kwargs):
+#                     buf = io.BytesIO()
+#                     plt.savefig(buf, format="png", bbox_inches="tight")
+#                     buf.seek(0)
+#                     img_base64 = base64.b64encode(buf.read()).decode("utf-8")
+#                     images.append(f"data:image/png;base64,{img_base64}")
+#                     plt.close()
+
+#                 plt.show = fake_show
+
+#                 try:
+#                     with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
+#                         exec(new_content, local_vars)
+
+#                     printed_output = buffer_out.getvalue()
+#                     error_output = buffer_err.getvalue()
+
+#                     if error_output:
+#                         return JsonResponse({
+#                             "status": "error",
+#                             "message": error_output
+#                         }, status=500)
+
+#                     # Capture open matplotlib figures
+#                     for i in plt.get_fignums():
+#                         fig = plt.figure(i)
+#                         buf = io.BytesIO()
+#                         fig.savefig(buf, format="png", bbox_inches="tight")
+#                         buf.seek(0)
+#                         img_base64 = base64.b64encode(buf.read()).decode("utf-8")
+#                         images.append(f"data:image/png;base64,{img_base64}")
+#                         plt.close(fig)
+
+#                     return JsonResponse({
+#                         "status": "success",
+#                         "output": printed_output or "[No output]",
+#                         "table": response_table,
+#                         "images": images
+#                     })
+
+#                 except Exception:
+#                     return JsonResponse({
+#                         "status": "error",
+#                         "message": traceback.format_exc()
+#                     }, status=500)
+
+#             # Default response
+#             return JsonResponse({"status": "saved", "message": "File saved successfully."})
+
+#         except Exception:
+#             return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
+
+#     # GET request
+#     return render(request, 'webprojects/file_detail.html', {
+#         'file': file,
+#         'files': files,
+#         'folders': folders,
+#         'exts': exts,
+#         'project': project,
+#         'is_image': is_image,
+#     })
 
 
 # def file_detail(request, project_id, file_id):
@@ -665,8 +920,8 @@ def create_folder(request, project_id):
 # openai.api_key = "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"
 
 # client = OpenAI(api_key="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")
-client = OpenAI(api_key=settings.OPENAI_API_KEY)  # Use your settings variable
-# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+ # Use your settings variable
+#client = OpenAI(api_key=settings.OPENAI_API_KEY) 
 
 @csrf_exempt
 def ai_suggest_code(request):

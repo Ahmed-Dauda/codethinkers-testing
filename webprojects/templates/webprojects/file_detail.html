@@ -4,6 +4,9 @@
 {% block title %}{{ file.name }} | {{ file.project.name }}{% endblock %}
 
 {% block extra_head %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
 <style>
   html, body {
@@ -333,6 +336,10 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* prompts css */
+
+
 </style>
 
 {% endblock %}
@@ -377,12 +384,6 @@
   "></div>
 </div>
 
-
-<!-- <div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
-  Drop Image Here or <label for="imageInput" style="color: #4fa;">Browse</label>
-  <input type="file" id="imageInput" accept="image/*" style="display:none;">
-</div>
-<small style="color: #888;">Image will be added to your files</small> -->
 
 <div style="margin-bottom: 20px;">
   <input type="text" id="newFileName" placeholder="📝 New file name (e.g., index.html)" style="width: 100%; padding: 5px; margin-bottom: 5px; font-size: 0.9em;">
@@ -444,12 +445,18 @@
   </div>
 </div>
 
-
-
 {% endblock %}
 
 
 {% block content %}
+
+<div style="display: none;" class="preview-section"> 
+  <h4>Preview</h4>
+  <iframe id="preview" style="width:100%; height:400px; border:1px solid #ccc;"></iframe>
+</div>
+
+<!-- end -->
+
 <div style="padding: 8px 12px; background: #222; border-bottom: 1px solid #444; text-align: right;">
  <button id="runBtnCode" onclick="runCode()" style="background:#2ecc71; color:white;">▶ Run Code</button> 
   <button id="toggleAI" onclick="toggleAITools()" style="background: #444; color: #fff; padding: 6px 12px; border: none; border-radius: 4px;">
@@ -543,14 +550,37 @@ document.addEventListener('DOMContentLoaded', function() {
   <!-- Resize handle -->
   <div id="resizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
 
+  <div class="ai-prompt-container" style="display: flex; gap: 10px; padding: 10px; border-top: 1px solid #ccc; background: #f9f9f9;">
+    <input
+      type="text"
+      id="aiPrompt"
+      placeholder="Ask AI to generate a project (e.g., 'Create a bouncing ball game')"
+      style="flex: 1; padding: 10px 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 2px;"
+    />
+    
+    <button
+      id="runAIPrompt"
+      style="padding: 10px 18px; background: #007bff; color: #fff; font-size: 15px; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s, transform 0.1s;"
+      onmouseover="this.style.background='#0056b3'"
+      onmouseout="this.style.background='#007bff'"
+      onmousedown="this.style.transform='scale(0.96)'"
+      onmouseup="this.style.transform='scale(1)'"
+    >
+      Run AI
+    </button>
+  </div>
+</div>
+
   <!-- Output panel -->
   <div id="outputPanel" style="height: 160px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
-    <strong>🔽 Output:</strong>
+    <strong>🔽 Output:2</strong>
     <pre id="outputText" style="white-space: pre-wrap;"></pre>
     <div id="tablePreview" style="margin-top: 15px;display: none;"></div>
     <div id="plotPreview" style="display: none;"></div>
   </div>
 </div>
+
+
 
     <!-- AI Suggestion Preview Modal -->
 <div id="aiModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%);
@@ -585,6 +615,96 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 <!-- js section -->
+
+<!-- prompts js -->
+
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const runButton = document.getElementById("runAIPrompt");
+    const aiPrompt = document.getElementById("aiPrompt");
+    const preview = document.getElementById("preview");
+
+    const FILE_ID = {{ file.id }};
+    const PROJECT_ID = {{ project.id }};
+    const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    // ✅ Helper: Render into iframe
+    function renderPreview(html, css, js) {
+      preview.srcdoc = `
+        <html>
+          <head>
+            <style>${css || ""}</style>
+          </head>
+          <body>
+            ${html || ""}
+            <script>${js || ""}<\/script>
+          </body>
+        </html>`;
+    }
+
+    // ✅ Load saved project files on page load
+    async function loadSavedProject() {
+      try {
+        const res = await fetch(`/webprojects/${PROJECT_ID}/load-files/`);
+        const data = await res.json();
+        if (data.status === "success") {
+          renderPreview(data.html, data.css, data.js);
+        } else {
+          console.warn("No saved project files found");
+        }
+      } catch (err) {
+        console.error("Error loading saved project:", err);
+      }
+    }
+
+    // ✅ Run AI and update project
+    runButton.addEventListener("click", async () => {
+      const promptText = aiPrompt.value.trim();
+      if (!promptText) return alert("Enter a prompt");
+
+      runButton.disabled = true;
+      runButton.textContent = "Generating...";
+
+      try {
+        const res = await fetch(`/webprojects/${PROJECT_ID}/file/${FILE_ID}/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+          },
+          body: JSON.stringify({ file_id: FILE_ID, prompt: promptText })
+        });
+
+        const data = await res.json();
+        console.log("AI Response:", data);
+
+        if (data.status === "success" && data.ai_content) {
+          // ✅ Render new AI output immediately
+          renderPreview(
+            data.ai_content.html,
+            data.ai_content.css,
+            data.ai_content.js
+          );
+        } else {
+          alert("AI generation failed: " + (data.message || JSON.stringify(data)));
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert("Error contacting AI backend: " + err.message);
+      } finally {
+        runButton.disabled = false;
+        runButton.textContent = "✨ Generate";
+      }
+    });
+
+    // ✅ Initial load
+    loadSavedProject();
+  });
+</script>
+
+
+
 <!-- your sidebar content below... -->
  <script>
   document.addEventListener('DOMContentLoaded', () => {
