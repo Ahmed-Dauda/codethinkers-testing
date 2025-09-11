@@ -19,12 +19,13 @@ https://docs.djangoproject.com/en/3.2/howto/deployment/asgi/
 import os
 import django
 from django.core.asgi import get_asgi_application
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from django.urls import path
 from django.http import JsonResponse
 from starlette.middleware.wsgi import WSGIMiddleware
+from starlette.applications import Starlette
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "school.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "yourproject.settings")
 django.setup()
 
 # Django ASGI app
@@ -33,13 +34,12 @@ django_app = get_asgi_application()
 # FastAPI app
 fastapi_app = FastAPI()
 
-@fastapi_app.get("/api/hello")
-async def hello(name: str = "World"):
+# ✅ Add /generate endpoint
+@fastapi_app.get("/generate")
+async def generate(name: str = "World"):
     return {"message": f"Hello, {name}!"}
 
 # Combine Django + FastAPI
-from starlette.applications import Starlette
-
 application = Starlette()
-application.mount("/", WSGIMiddleware(django_app))       # Django handles normal routes
-application.mount("/fastapi", fastapi_app)               # FastAPI under /fastapi/*
+application.mount("/", WSGIMiddleware(django_app))  # Django handles normal routes
+application.mount("/", fastapi_app)                 # FastAPI also mounted at root
