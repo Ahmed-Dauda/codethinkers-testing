@@ -21,26 +21,27 @@ import django
 from django.core.asgi import get_asgi_application
 from fastapi import FastAPI
 from starlette.middleware.wsgi import WSGIMiddleware
+from starlette.applications import Starlette
+from starlette.routing import Mount
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'school.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "school.settings")
+
 django.setup()
 
-# Create FastAPI app
+# Django ASGI application
+django_app = get_asgi_application()
+
+# FastAPI application
 fastapi_app = FastAPI()
 
-@fastapi_app.get("/fastapi/api/hello")
+@fastapi_app.get("/api/hello")
 async def hello(name: str = "World"):
     return {"message": f"Hello, {name} from FastAPI!"}
 
-# Mount Django as ASGI
-django_asgi_app = get_asgi_application()
-
-# Main app that includes both
-from starlette.middleware.wsgi import WSGIMiddleware
-from starlette.routing import Mount
-from starlette.applications import Starlette
-
-application = Starlette(routes=[
-    Mount("/fastapi", app=fastapi_app),
-    Mount("/", app=django_asgi_app),  # Django at root
-])
+# Combine both apps under Starlette
+application = Starlette(
+    routes=[
+        Mount("/fastapi", app=fastapi_app),  # All FastAPI routes live here
+        Mount("/", app=django_app),          # Django handles everything else
+    ]
+)
