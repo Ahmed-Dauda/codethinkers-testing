@@ -31,10 +31,12 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('accounts/', include('allauth.urls')),
     path("webprojects/", include("webprojects.urls")),
+    path("api/v1/", include("django_fastapi.urls")),
+
     path('tinymce/', include('tinymce.urls')),
     path('certificate-stats/', include('certificate_stats.urls')),
 
-    
+      
     # path('tinymce/', include('tinymce.urls')),
     
     # path('verify', include('student.urls')),

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Django + FastAPI Demo</title>
+</head>
+<body>
+  <h2>🚀 Django Frontend + FastAPI Backend</h2>
+  
+  <input id="name" type="text" placeholder="Enter your name">
+  <button onclick="callFastAPI()">Call FastAPI</button>
+
+  <h3>Response:</h3>
+  <pre id="response" style="color: green; font-weight: bold;"></pre>
+
+  <script>
+    async function callFastAPI() {
+      const name = document.getElementById("name").value || "world";
+      try {
+        const res = await fetch(`http://127.0.0.1:8001/generate?name=${name}`);
+        if (!res.ok) {
+          throw new Error("FastAPI request failed with " + res.status);
+        }
+        const data = await res.json();
+        console.log("FastAPI Response:", data);  // ✅ Debug in browser console
+        document.getElementById("response").innerText = data.message;
+      } catch (err) {
+        document.getElementById("response").innerText = "❌ Error: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>

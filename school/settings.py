@@ -102,6 +102,7 @@ INSTALLED_APPS = [
     'mathfilters',
     'webprojects',
     'certificate_stats',
+     "django_fastapi",
     
     
     
