@@ -195,20 +195,21 @@ def ai_topics_generator(request):
         category_rules = {
             "beginner": """
             Focus on foundational knowledge and understanding.
-            Use Bloom’s verbs like: define, describe, identify, recognize, explain, understand.
+            Use Bloom’s verbs like: define, describe, identify, recognize, explain, understand, list, recall.
             Objectives should be simple, clear, and practical.
             """,
             "intermediate": """
             Focus on applying, analyzing, and comparing.
-            Use Bloom’s verbs like: apply, demonstrate, analyze, differentiate, evaluate, design.
+            Use Bloom’s verbs like: apply, demonstrate, analyze, differentiate, evaluate, design, implement.
             Objectives should link concepts to real-world applications.
             """,
             "advanced": """
             Focus on creating, evaluating, innovating, and leading.
-            Use Bloom’s verbs like: evaluate, formulate, create, develop, propose, integrate, critique.
+            Use Bloom’s verbs like: evaluate, formulate, create, develop, propose, integrate, critique, synthesize.
             Objectives should include advanced problem-solving, case studies, and professional practice.
             """
         }
+
 
         category_instruction = category_rules.get(category_title, category_rules["intermediate"])
 
@@ -290,34 +291,83 @@ def ai_topics_generator(request):
 
         if is_programming:
             prompt += f"""
-        RULES:
-        Always start with these topics in order:
-        1. "Introduction to {course_title}"
-        2. "Overview – {course_title}" – short, clear summary without examples or code.
-        3. "Learning Objectives – {course_title}" – numbered list of at least {real_learning_obj} objectives. Objective 5 must combine Objectives 1-4 into one integrative objective. Conclude with a summary paragraph.
-        4. Immediately after "Learning Objectives – {course_title}", the first topic title must match Learning Objective #1, with description expanding on it. Continue sequentially for all objectives.
-        5. For each topic:
-        - Provide a detailed explanation of the concept.
-        - Include at least 5 runnable code examples demonstrating practical usage.
-        - Provide solutions for any exercises or challenges mentioned.
-        - Include a mini-project or small practical assignment based on the topics to reinforce the topic.
-        - Give real-world examples showing where this concept is applied based on the topics on the next line.
-        - Explain the mini-project or the small practical assignment.
-        6. if the codes is python or html related, follow these rules strictly:
-            ```python
-            def explain_python():
-                return 'Python is widely used in AI due to its simplicity.'
-            print(explain_python())
-            ```
-        7. If the course is HTML or web-related:
-            * The "description" field must **never contain raw HTML tags**. 
-            * Detect **any HTML tag** (headings, links, lists, divs, spans, images, etc.) and always escape them as `&lt;` and `&gt;`.
-            * This applies everywhere: in normal text, explanations, examples, inline mentions, and pitfalls.
-            * Only include the **full HTML structure** (`&lt;!DOCTYPE html&gt; ... &lt;/html&gt;`) if the lesson specifically requires a complete page.
-            * Otherwise, show just the snippet in `<pre><code class="language-html">...</code></pre>`.
+          RULES (STRICT JSON-SAFE):
 
-        8. Output: single valid JSON array of {num_topics} objects with keys "title" and "description" only. Use \\n for line breaks in descriptions. make sure the description is details based on the title.
-        """
+            1. Always start with these topics in order:
+            a. "Introduction to {course_title}" – broad introduction to the course.  
+            b. "Overview – {course_title}" – short, clear summary without examples or code.  
+            c. "Learning Objectives – {course_title}" – numbered list of at least {real_learning_obj} objectives.  
+                - Objective 5 must combine Objectives 1–4 into one integrative objective.
+
+            2. Immediately after "Learning Objectives – {course_title}", the first topic title must match Learning Objective #1, with the description expanding on it. Continue sequentially for all objectives.
+
+            3. For each topic:
+           - The "description" must **strictly and completely match every word, phrase, and item in the learning objective title**. It must fully expand each part with clear definitions, detailed explanations, multiple examples, practical applications, and, where relevant, comparisons. No element from the title may be skipped or only partially covered.
+                (Example: If the title is "Explain and apply data types, variables, and operators in Python," the description must include and explain all three parts: data types, variables, and operators, not just one or two of them.)  
+            - Write "description" as **lesson-style text** with definition, explanations, examples, and applications.  
+            - Always use **double backslashes for newlines** (`\\n`).  
+            - Escape all double quotes inside strings as `\"`.  
+            - Include **at least 5 runnable code examples** (if relevant), formatted properly, each with **line-by-line comments**.  
+            - Provide **solutions** for exercises or challenges.  
+            - Include **real-world examples** where this concept applies.  
+            - End each topic with a **mini-project or small assignment**, explained step by step.
+
+            4. Python lessons:
+            - Always format code exactly as:
+                ```python
+                def sample_function():
+                    return "Example"  # This function returns the string "Example"
+
+                print(sample_function())  # This line prints the result of the function
+                ```
+            - Every line of code must have a **comment below it**, explaining what it does.
+
+            5. HTML or web-related lessons:
+            - The "description" field must **never contain raw HTML tags**.  
+            - Detect and **escape all HTML tags** (`<div>` → `&lt;div&gt;`).  
+            - Only include the **full HTML structure** (`&lt;!DOCTYPE html&gt; ... &lt;/html&gt;`) if the lesson requires a complete page.  
+            - Otherwise, show just the snippet wrapped inside:
+                <pre><code class="language-html"> ... </code></pre>
+
+            6. Output format:
+            - A single valid **JSON array** of {num_topics} objects.  
+            - Each object must have exactly 2 keys:  
+                - "title"  
+                - "description"  
+            - Do not include any extra text outside the JSON.  
+            - Always escape special characters:  
+                - Newlines → `\\n`  
+                - Double quotes → `\"`  
+                - Tabs → `\\t`
+
+        # RULES:
+        # Always start with these topics in order:
+        # 1. "Introduction to {course_title}"
+        # 2. "Overview – {course_title}" – short, clear summary without examples or code.
+        # 3. "Learning Objectives – {course_title}" – numbered list of at least {real_learning_obj} objectives. Objective 5 must combine Objectives 1-4 into one integrative objective.
+        # 4. Immediately after "Learning Objectives – {course_title}", the first topic title must match Learning Objective #1, with description expanding on it. Continue sequentially for all objectives.
+        # 5. For each topic:
+        # - Provide a detailed explanation of the concept based on the learning objectives.
+        # - Include at least 5 runnable code examples demonstrating practical usage with addintional comments side by side.
+        # - Provide solutions for any exercises or challenges mentioned.
+        # - Each learning objective title must be expanded into a clear and detailed description that fully explains the concept.
+        # - Give real-world examples showing where this concept is applied based on the topics on the next line.
+        # - Explain and demostrate the mini-project or the small practical assignment.
+        # 6. if the codes is python, follow these rules strictly and make sure you add comments below each code:
+        #     ```python
+        #     def explain_python(): 
+        #         return 'Python is widely used in AI due to its simplicity.'
+        #     print(explain_python())
+        #     ```
+        # 7. If the course is HTML or web-related:
+        #     * The "description" field must **never contain raw HTML tags**. 
+        #     * Detect **any HTML tag** (headings, links, lists, divs, spans, images, etc.) and always escape them as `&lt;` and `&gt;`.
+        #     * This applies everywhere: in normal text, explanations, examples, inline mentions, and pitfalls.
+        #     * Only include the **full HTML structure** (`&lt;!DOCTYPE html&gt; ... &lt;/html&gt;`) if the lesson specifically requires a complete page.
+        #     * Otherwise, show just the snippet in `<pre><code class="language-html">...</code></pre>`.
+
+        # 8. Output: single valid JSON array of {num_topics} objects with keys "title" and "description" only. Use \\n for line breaks in descriptions. make sure the description is details based on the title.
+        # """
         else:
             prompt += f"""
         RULES:
