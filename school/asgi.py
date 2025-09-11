@@ -25,7 +25,7 @@ from django.http import JsonResponse
 from starlette.middleware.wsgi import WSGIMiddleware
 from starlette.applications import Starlette
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "yourproject.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "school.settings")
 django.setup()
 
 # Django ASGI app
