@@ -342,182 +342,6 @@ def project_files_json(request, project_id):
     })
    
 
-# #working on this
-# def file_detail(request, project_id, file_id):
-#     file = get_object_or_404(File, id=file_id, project_id=project_id)
-#     files = file.project.files.all()
-#     project = get_object_or_404(Project, id=project_id)
-#     folders = Folder.objects.filter(project=file.project)
-
-#     # Sidebar file extensions
-#     exts = sorted({os.path.splitext(f.name)[1].lstrip('.').lower() for f in files if '.' in f.name})
-
-#     # Detect if file is an image
-#     is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
-
-#     # Full path to the file
-#     file_path = os.path.join(settings.MEDIA_ROOT, str(file.file))
-
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body or "{}")
-#             new_content = data.get("content", "")
-#             run_plot = data.get("run_plot", False)
-#             run_table = data.get("run_table", False)
-#             prompt = data.get("prompt", "")  # Safe access
-
-#             import requests
-#             # ===== AI Prompt Handling =====
-#             if prompt:
-#                 # Fetch current files
-#                 html_file, _ = File.objects.get_or_create(project=project, name="index.html")
-#                 css_file, _ = File.objects.get_or_create(project=project, name="style.css")
-#                 js_file, _ = File.objects.get_or_create(project=project, name="script.js")
-
-#                 # ✅ Send request to FastAPI
-#                 fastapi_url = "http://127.0.0.1:8001/api/generate"
-#                 payload = {
-#                     "html": html_file.content or "",
-#                     "css": css_file.content or "",
-#                     "js": js_file.content or "",
-#                     "prompt": prompt
-#                 }
-
-#                 response = requests.post(fastapi_url, json=payload)
-#                 if response.status_code == 200:
-#                     ai_generated = response.json()
-
-#                     # Save AI response back into DB
-#                     if ai_generated.get("html"):
-#                         html_file.content = ai_generated["html"]
-#                         html_file.save()
-#                     if ai_generated.get("css"):
-#                         css_file.content = ai_generated["css"]
-#                         css_file.save()
-#                     if ai_generated.get("js"):
-#                         js_file.content = ai_generated["js"]
-#                         js_file.save()
-
-#                     return JsonResponse({
-#                         "status": "success",
-#                         "ai_content": ai_generated,
-#                         "message": "AI project updated via FastAPI"
-#                     })
-#                 else:
-#                     return JsonResponse({
-#                         "status": "error",
-#                         "message": f"FastAPI error: {response.text}"
-#                     }, status=500)
-
-#             # ===== Normal File Handling =====
-
-#             # Prevent mismatched file updates
-#             if data.get("file_id") and data.get("file_id") != file.id:
-#                 return JsonResponse({"error": "Mismatched file ID"}, status=400)
-
-#             # Save new content
-#             if new_content:
-#                 file.content = new_content
-#                 file.save()
-
-#             ext = file.name.lower().split(".")[-1]
-#             response_table = ""
-#             images = []
-
-#             # CSV/Excel handling
-#             df = None
-#             if ext in ["csv", "xls", "xlsx"]:
-#                 try:
-#                     if ext == "csv":
-#                         df = pd.read_csv(file_path)
-#                     else:
-#                         df = pd.read_excel(file_path)
-#                     if run_table:
-#                         response_table = df.head(20).to_html(
-#                             classes="table table-bordered table-sm",
-#                             index=False
-#                         )
-#                 except Exception as e:
-#                     return JsonResponse({"status": "error", "message": str(e)}, status=500)
-
-#             # Python execution (mini Jupyter)
-#             if run_plot or new_content.strip():
-#                 buffer_out = io.StringIO()
-#                 buffer_err = io.StringIO()
-#                 plt.clf()
-#                 plt.close('all')
-
-#                 if not hasattr(pd, "_original_read_csv"):
-#                     pd._original_read_csv = pd.read_csv
-#                 if not hasattr(pd, "_original_read_excel"):
-#                     pd._original_read_excel = pd.read_excel
-
-#                 def patched_read_csv(name, *args, **kwargs):
-#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
-#                     return pd._original_read_csv(path, *args, **kwargs)
-
-#                 def patched_read_excel(name, *args, **kwargs):
-#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
-#                     return pd._original_read_excel(path, *args, **kwargs)
-
-#                 pd.read_csv = patched_read_csv
-#                 pd.read_excel = patched_read_excel
-
-#                 def fake_show(*args, **kwargs):
-#                     buf = io.BytesIO()
-#                     plt.savefig(buf, format="png", bbox_inches="tight")
-#                     buf.seek(0)
-#                     img_base64 = base64.b64encode(buf.read()).decode("utf-8")
-#                     images.append(f"data:image/png;base64,{img_base64}")
-#                     plt.close()
-
-#                 plt.show = fake_show
-
-#                 try:
-#                     with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
-#                         exec(new_content, {"pd": pd})
-
-#                     printed_output = buffer_out.getvalue()
-#                     error_output = buffer_err.getvalue()
-#                     if error_output:
-#                         return JsonResponse({"status": "error", "message": error_output}, status=500)
-
-#                     for i in plt.get_fignums():
-#                         fig = plt.figure(i)
-#                         buf = io.BytesIO()
-#                         fig.savefig(buf, format="png", bbox_inches="tight")
-#                         buf.seek(0)
-#                         img_base64 = base64.b64encode(buf.read()).decode("utf-8")
-#                         images.append(f"data:image/png;base64,{img_base64}")
-#                         plt.close(fig)
-
-#                     return JsonResponse({
-#                         "status": "success",
-#                         "output": printed_output or "[No output]",
-#                         "table": response_table,
-#                         "images": images
-#                     })
-#                 except Exception:
-#                     return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
-
-#             # Default save response
-#             return JsonResponse({"status": "saved", "message": "File saved successfully."})
-
-#         except Exception:
-#             return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
-
-#     # GET request
-#     return render(request, 'webprojects/file_detail.html', {
-#         'file': file,
-#         'files': files,
-#         'folders': folders,
-#         'exts': exts,
-#         'project': project,
-#         'is_image': is_image,
-#     })
-
-
-#working code
 
 def file_detail(request, project_id, file_id):
     file = get_object_or_404(File, id=file_id, project_id=project_id)
@@ -733,6 +557,225 @@ def file_detail(request, project_id, file_id):
         'project': project,
         'is_image': is_image,
     })
+
+
+
+#working code
+
+# def file_detail(request, project_id, file_id):
+#     file = get_object_or_404(File, id=file_id, project_id=project_id)
+#     files = file.project.files.all()
+#     project = get_object_or_404(Project, id=project_id)
+#     folders = Folder.objects.filter(project=file.project)
+
+#     # Sidebar file extensions
+#     exts = sorted({os.path.splitext(f.name)[1].lstrip('.').lower() for f in files if '.' in f.name})
+
+#     # Detect if file is an image
+#     is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+
+#     # Full path to the file
+#     file_path = os.path.join(settings.MEDIA_ROOT, str(file.file))
+
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body or "{}")
+#             new_content = data.get("content", "")
+#             run_plot = data.get("run_plot", False)
+#             run_table = data.get("run_table", False)
+#             prompt = data.get("prompt", "")  # Safe access
+#             # ===== AI Prompt Handling =====
+#             if prompt:
+#                 try:
+#                     # ✅ Fetch existing files (create empty ones if missing)
+#                     html_file, _ = File.objects.get_or_create(project=project, name="index.html")
+#                     css_file, _ = File.objects.get_or_create(project=project, name="style.css")
+#                     js_file, _ = File.objects.get_or_create(project=project, name="script.js")
+
+#                     # ✅ System instruction (force JSON output only)
+#                     system_message = (
+#                         "You are an expert web developer. Update the given HTML, CSS, and JS project "
+#                         "based on the user's request. Only modify what is necessary. "
+#                         "Always return a VALID JSON object with keys: html, css, js. "
+#                         "Do NOT include explanations, markdown, or extra text. "
+#                         "Example: {\"html\": \"<h1>Hello</h1>\", \"css\": \"body {color:red;}\", \"js\": \"console.log('hi');\"}"
+#                     )
+
+#                     # ✅ Include current project state
+#                     user_message = f"""
+#                     Current project:
+#                     HTML:
+#                     {html_file.content}
+
+#                     CSS:
+#                     {css_file.content}
+
+#                     JS:
+#                     {js_file.content}
+
+#                     User request:
+#                     {prompt}
+#                     """
+
+#                     response = client.chat.completions.create(
+#                         model="gpt-4.1",
+#                         messages=[
+#                             {"role": "system", "content": system_message},
+#                             {"role": "user", "content": user_message}
+#                         ],
+#                         max_tokens=4000,
+#                         temperature=0
+#                     )
+
+#                     ai_text = response.choices[0].message.content.strip()
+
+#                     # 🛡️ Extract only JSON portion
+#                     start = ai_text.find("{")
+#                     end = ai_text.rfind("}")
+#                     if start != -1 and end != -1:
+#                         ai_text = ai_text[start:end+1]
+
+#                     # 🛡️ Try parsing JSON safely
+#                     try:
+#                         ai_generated = json.loads(ai_text)
+#                     except json.JSONDecodeError:
+#                         cleaned = ai_text.replace("\n", " ").replace("\r", " ").strip()
+#                         try:
+#                             ai_generated = json.loads(cleaned)
+#                         except Exception:
+#                             ai_generated = {"html": ai_text, "css": "", "js": ""}
+
+#                     # ✅ Update only if AI returned something new
+#                     if ai_generated.get("html"):
+#                         html_file.content = ai_generated["html"]
+#                         html_file.save()
+
+#                     if ai_generated.get("css"):
+#                         css_file.content = ai_generated["css"]
+#                         css_file.save()
+
+#                     if ai_generated.get("js"):
+#                         js_file.content = ai_generated["js"]
+#                         js_file.save()
+
+#                     return JsonResponse({
+#                         "status": "success",
+#                         "ai_content": ai_generated,
+#                         "message": "AI project updated and saved into index.html, style.css, script.js"
+#                     })
+
+#                 except Exception as e:
+#                     return JsonResponse({
+#                         "status": "error",
+#                         "message": str(e),
+#                         "trace": traceback.format_exc()
+#                     }, status=500)
+#             # ===== End AI Prompt =====
+
+#             # Prevent mismatched file updates
+#             if data.get("file_id") and data.get("file_id") != file.id:
+#                 return JsonResponse({"error": "Mismatched file ID"}, status=400)
+
+#             # Save new content
+#             if new_content:
+#                 file.content = new_content
+#                 file.save()
+
+#             ext = file.name.lower().split(".")[-1]
+#             response_table = ""
+#             images = []
+
+#             # CSV/Excel handling
+#             df = None
+#             if ext in ["csv", "xls", "xlsx"]:
+#                 try:
+#                     if ext == "csv":
+#                         df = pd.read_csv(file_path)
+#                     else:
+#                         df = pd.read_excel(file_path)
+#                     if run_table:
+#                         response_table = df.head(20).to_html(
+#                             classes="table table-bordered table-sm",
+#                             index=False
+#                         )
+#                 except Exception as e:
+#                     return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+#             # Python execution (mini Jupyter)
+#             if run_plot or new_content.strip():
+#                 buffer_out = io.StringIO()
+#                 buffer_err = io.StringIO()
+#                 plt.clf()
+#                 plt.close('all')
+
+#                 if not hasattr(pd, "_original_read_csv"):
+#                     pd._original_read_csv = pd.read_csv
+#                 if not hasattr(pd, "_original_read_excel"):
+#                     pd._original_read_excel = pd.read_excel
+
+#                 def patched_read_csv(name, *args, **kwargs):
+#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
+#                     return pd._original_read_csv(path, *args, **kwargs)
+
+#                 def patched_read_excel(name, *args, **kwargs):
+#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
+#                     return pd._original_read_excel(path, *args, **kwargs)
+
+#                 pd.read_csv = patched_read_csv
+#                 pd.read_excel = patched_read_excel
+
+#                 def fake_show(*args, **kwargs):
+#                     buf = io.BytesIO()
+#                     plt.savefig(buf, format="png", bbox_inches="tight")
+#                     buf.seek(0)
+#                     img_base64 = base64.b64encode(buf.read()).decode("utf-8")
+#                     images.append(f"data:image/png;base64,{img_base64}")
+#                     plt.close()
+
+#                 plt.show = fake_show
+
+#                 try:
+#                     with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
+#                         exec(new_content, {"pd": pd})
+
+#                     printed_output = buffer_out.getvalue()
+#                     error_output = buffer_err.getvalue()
+#                     if error_output:
+#                         return JsonResponse({"status": "error", "message": error_output}, status=500)
+
+#                     for i in plt.get_fignums():
+#                         fig = plt.figure(i)
+#                         buf = io.BytesIO()
+#                         fig.savefig(buf, format="png", bbox_inches="tight")
+#                         buf.seek(0)
+#                         img_base64 = base64.b64encode(buf.read()).decode("utf-8")
+#                         images.append(f"data:image/png;base64,{img_base64}")
+#                         plt.close(fig)
+
+#                     return JsonResponse({
+#                         "status": "success",
+#                         "output": printed_output or "[No output]",
+#                         "table": response_table,
+#                         "images": images
+#                     })
+#                 except Exception:
+#                     return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
+
+#             # Default save response
+#             return JsonResponse({"status": "saved", "message": "File saved successfully."})
+
+#         except Exception:
+#             return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
+
+#     # GET request
+#     return render(request, 'webprojects/file_detail.html', {
+#         'file': file,
+#         'files': files,
+#         'folders': folders,
+#         'exts': exts,
+#         'project': project,
+#         'is_image': is_image,
+#     })
 
 
 # views.py
