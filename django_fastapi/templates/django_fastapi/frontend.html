@@ -1,31 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Django + FastAPI Demo</title>
+  <meta charset="UTF-8">
+  <title>AI Test Page</title>
 </head>
 <body>
-  <h2>🚀 Django Frontend + FastAPI Backend</h2>
-  
-  <input id="name" type="text" placeholder="Enter your name">
-  <button onclick="callFastAPI()">Call FastAPI</button>
+  <h2>🔮 Test AI with FastAPI</h2>
 
-  <h3>Response:</h3>
-  <pre id="response" style="color: green; font-weight: bold;"></pre>
+  <textarea id="promptInput" rows="4" cols="50" placeholder="Type your AI prompt here..."></textarea>
+  <br><br>
+  <button onclick="testAI()">🚀 Ask AI</button>
+
+  <h3>AI Response:</h3>
+  <pre id="aiOutput">[waiting...]</pre>
 
   <script>
-    async function callFastAPI() {
-      const name = document.getElementById("name").value || "world";
-      try {
-        const res = await fetch(`http://127.0.0.1:8001/generate?name=${name}`);
-        if (!res.ok) {
-          throw new Error("FastAPI request failed with " + res.status);
-        }
-        const data = await res.json();
-        console.log("FastAPI Response:", data);  // ✅ Debug in browser console
-        document.getElementById("response").innerText = data.message;
-      } catch (err) {
-        document.getElementById("response").innerText = "❌ Error: " + err.message;
-      }
+    function testAI() {
+      const prompt = document.getElementById("promptInput").value;
+      const output = document.getElementById("aiOutput");
+
+      fetch("{% url 'proxy_fastapi_test' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ prompt: prompt })
+      })
+      .then(res => res.json())
+      .then(data => {
+        output.textContent = data.ai_text || data.error || "No response";
+      })
+      .catch(err => {
+        output.textContent = "Error: " + err;
+      });
     }
   </script>
 </body>
