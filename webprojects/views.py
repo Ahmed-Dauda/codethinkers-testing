@@ -400,13 +400,24 @@ def file_detail(request, project_id, file_id):
 
                     response = client.chat.completions.create(
                         model="gpt-4.1",
+                        
                         messages=[
                             {"role": "system", "content": system_message},
                             {"role": "user", "content": user_message}
                         ],
-                        max_tokens=4000,
+                        max_completion_tokens=4000,
                         temperature=0
                     )
+                #     response = client.chat.completions.create(
+                #     model="gpt-5-chat-latest",
+                #     messages=[
+                #         {"role": "system", "content": system_message},
+                #         {"role": "user", "content": user_message}
+                #     ],
+                #     max_completion_tokens=4000,
+                #     temperature=0
+                # )
+
 
                     ai_text = response.choices[0].message.content.strip()
 

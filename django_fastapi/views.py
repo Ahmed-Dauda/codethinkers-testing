@@ -35,6 +35,7 @@ import httpx
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
+
 @csrf_exempt  # for testing
 async def test_fastapi_async(request):
     message = {"html": "", "css": "", "js": ""}
@@ -44,7 +45,8 @@ async def test_fastapi_async(request):
         async with httpx.AsyncClient() as client:
             try:
                 r = await client.post(
-                    "http://127.0.0.1:8001/ai/generate",
+                    "https://codethinkers.org/ai/generate",
+                    # "http://127.0.0.1:8001/ai/generate",
                     json={"prompt": prompt}
                 )
                 message = r.json()

@@ -16,32 +16,21 @@ https://docs.djangoproject.com/en/3.2/howto/deployment/asgi/
 # application = get_asgi_application()
 
 
-import os
-import django
-from django.core.asgi import get_asgi_application
+# asgi.py
 from fastapi import FastAPI
 from starlette.middleware.wsgi import WSGIMiddleware
 from starlette.applications import Starlette
 from starlette.routing import Mount
+from django.core.asgi import get_asgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "school.settings")
-
-django.setup()
-
-# Django ASGI application
-django_app = get_asgi_application()
-
-# FastAPI application
+django_asgi_app = get_asgi_application()
 fastapi_app = FastAPI()
 
-@fastapi_app.get("/api/hello")
-async def hello(name: str = "World"):
-    return {"message": f"Hello, {name} from FastAPI!"}
+@fastapi_app.get("/welcome")
+async def welcome():
+    return {"message": "Welcome to Codethinkers Academy 🚀"}
 
-# Combine both apps under Starlette
-application = Starlette(
-    routes=[
-        Mount("/fastapi", app=fastapi_app),  # All FastAPI routes live here
-        Mount("/", app=django_app),          # Django handles everything else
-    ]
-)
+application = Starlette(routes=[
+    Mount("/", app=WSGIMiddleware(django_asgi_app)),
+    Mount("/api", app=fastapi_app)  # mounted under /api
+])
