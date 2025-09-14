@@ -1,57 +1,43 @@
+import httpx
 from django.shortcuts import render
-
-def frontend(request):
-    return render(request, "django_fastapi/frontend.html")
-
-import json
-import requests
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+import requests
+FASTAPI_URL = "https://fastapi-service-tk85.onrender.com/"
 
-FASTAPI_URL = "http://127.0.0.1:8001/api/test-ai"  # your FastAPI app
 
-@csrf_exempt
-def proxy_fastapi_test(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid request method"}, status=405)
-
-    try:
-        data = json.loads(request.body)
-
-        response = requests.post(
-            FASTAPI_URL,
-            json=data,
-            headers={"Content-Type": "application/json"}
-        )
-
-        return JsonResponse(response.json(), safe=False, status=response.status_code)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-from django.shortcuts import render
 
 
 import httpx
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
+from asgiref.sync import sync_to_async
 
-
-@csrf_exempt  # for testing
-async def test_fastapi_async(request):
-    message = {"html": "", "css": "", "js": ""}
-
-    if request.method == "POST":
-        prompt = request.POST.get("prompt", "Welcome to Codethinkers Academy 🚀")
+async def test_fastapi(request):
+    message = "Error: could not connect to FastAPI"
+    try:
         async with httpx.AsyncClient() as client:
-            try:
-                r = await client.post(
-                    "https://codethinkers.org/ai/generate",
-                    # "http://127.0.0.1:8001/ai/generate",
-                    json={"prompt": prompt}
-                )
-                message = r.json()
-            except Exception as e:
-                message = {"html": f"Error: {e}", "css": "", "js": ""}
-
+            r = await client.get("https://fastapi-service-tk85.onrender.com/welcome")
+            data = r.json()
+            message = data.get("message", message)
+    except Exception as e:
+        message = f"Error: {e}"
 
     return render(request, "django_fastapi/test_fastapi.html", {"message": message})
+
+
+import httpx
+import asyncio
+from django.http import JsonResponse
+
+async def test_async_speed(request):
+    urls = [
+        "https://fastapi-service-tk85.onrender.com/slow",
+        "https://fastapi-service-tk85.onrender.com/slow",
+        "https://fastapi-service-tk85.onrender.com/slow",
+    ]
+
+    async with httpx.AsyncClient() as client:
+        tasks = [client.get(url) for url in urls]
+        responses = await asyncio.gather(*tasks)
+
+    data = [r.json() for r in responses]
+    return JsonResponse({"results": data})

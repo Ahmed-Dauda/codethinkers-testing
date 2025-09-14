@@ -2,21 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>FastAPI Integration Test</title>
-    <style>{{ message.css }}</style>
+    <title>Django ↔ FastAPI Test</title>
 </head>
 <body>
-    <div id="app">
-        {{ message.html|safe }}
-    </div>
-    <script>
-        {{ message.js|safe }}
-    </script>
-
-    <form method="POST">
-        {% csrf_token %}
-        <input type="text" name="prompt" placeholder="Enter prompt" />
-        <button type="submit">Send to FastAPI</button>
-    </form>
+    <h1>{{ message }}</h1>
 </body>
 </html>
