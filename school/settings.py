@@ -342,15 +342,6 @@ WSGI_APPLICATION = 'school.wsgi.application'
 PROJECT_PATH =os.path.dirname(os.path.abspath(__file__))
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-
-
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -467,15 +458,33 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Heroku: Update database configuration from $DATABASE_URL.
 
+# import dj_database_url
+# # Update database configuration from $DATABASE_URL.
 
+# db_from_env = dj_database_url.config(conn_max_age=0)
+# DATABASES['default'].update(db_from_env)
 
-import dj_database_url
-# Update database configuration from $DATABASE_URL.
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'fastapidb',
+        'USER': 'fastapiuser',
+        'PASSWORD': 'fastapi37811',  
+        'HOST': 'localhost',   # or your DB server host
+        'PORT': '5432',        # default postgres port
+    }
+}
 
-db_from_env = dj_database_url.config(conn_max_age=0)
-DATABASES['default'].update(db_from_env)
+# psql -U postgres -d your_db_name
+# GRANT ALL PRIVILEGES ON DATABASE your_db_name TO your_db_user;
+# GRANT ALL PRIVILEGES ON SCHEMA public TO your_db_user;
 
 
 # STATIC_ROOT = BASE_DIR / 'staticfiles'
