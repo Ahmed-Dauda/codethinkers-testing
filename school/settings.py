@@ -471,6 +471,8 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -481,6 +483,10 @@ DATABASES = {
         'PORT': '5432',        # default postgres port
     }
 }
+
+import dj_database_url
+db_from_env = dj_database_url.config(conn_max_age=0)
+DATABASES['default'].update(db_from_env)
 
 # psql -U postgres -d your_db_name
 # GRANT ALL PRIVILEGES ON DATABASE your_db_name TO your_db_user;
