@@ -2,14 +2,10 @@ import httpx
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 import requests
+from asgiref.sync import sync_to_async
+
 FASTAPI_URL = "https://fastapi-service-tk85.onrender.com/"
 
-
-
-
-import httpx
-from django.shortcuts import render
-from asgiref.sync import sync_to_async
 
 async def test_fastapi(request):
     message = "Error: could not connect to FastAPI"
@@ -41,3 +37,19 @@ async def test_async_speed(request):
 
     data = [r.json() for r in responses]
     return JsonResponse({"results": data})
+
+
+import httpx
+from django.shortcuts import render
+
+async def async_program_pages_list_view(request):
+    pages = []
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            response = await client.get("https://fastapi-service-tk85.onrender.com/api/program-pages")
+            if response.status_code == 200:
+                pages = response.json()
+    except Exception as e:
+        pages = [{"title": f"Error fetching FastAPI data: {e}", "subtitle": "", "description": "", "cta_text": "", "benefits": []}]
+
+    return render(request, "django_fastapi/program_pages_list.html", {"pages": pages})

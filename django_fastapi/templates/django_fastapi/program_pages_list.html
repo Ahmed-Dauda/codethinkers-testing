@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Program Pages</title>
+</head>
+<body>
+    <h1>Our Programs</h1>
+    <ul>
+        {% for page in pages %}
+        <li>
+            <h2>{{ page.title }}</h2>
+            <h4>{{ page.subtitle }}</h4>
+            <p>{{ page.description }}</p>
+            <strong>{{ page.cta_text }}</strong>
+            <ul>
+                {% for benefit in page.benefits %}
+                <li>{{ benefit }}</li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
