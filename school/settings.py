@@ -472,25 +472,26 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 #     }
 # }
 
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'fastapidb',
-        'USER': 'fastapiuser',
-        'PASSWORD': 'fastapi37811',  
-        'HOST': 'localhost',   # or your DB server host
-        'PORT': '5432',        # default postgres port
-    }
-}
-
 import dj_database_url
 db_from_env = dj_database_url.config(conn_max_age=0)
 DATABASES['default'].update(db_from_env)
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'fastapidb',
+#         'USER': 'fastapiuser',
+#         'PASSWORD': 'fastapi37811',  
+#         'HOST': 'localhost',   # or your DB server host
+#         'PORT': '5432',        # default postgres port
+#     }
+# }
+
+
+# CREATE DATABASE fastapidb;
 # psql -U postgres -d your_db_name
-# GRANT ALL PRIVILEGES ON DATABASE your_db_name TO your_db_user;
-# GRANT ALL PRIVILEGES ON SCHEMA public TO your_db_user;
+# CREATE USER fastapiuser WITH PASSWORD 'fastapi37811';
+# GRANT ALL PRIVILEGES ON DATABASE fastapidb TO fastapiuser;
 
 
 # STATIC_ROOT = BASE_DIR / 'staticfiles'
