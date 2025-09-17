@@ -2,24 +2,127 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Program Pages</title>
+    <title>Our Programs</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9fafb;
+            color: #333;
+        }
+
+        header {
+            background: #2563eb;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .program-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .program-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .program-card h2 {
+            margin: 0 0 0.5rem;
+            font-size: 1.5rem;
+            color: #1e40af;
+        }
+
+        .program-card h4 {
+            margin: 0 0 1rem;
+            color: #64748b;
+            font-weight: normal;
+        }
+
+        .program-card p {
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .program-card strong {
+            display: inline-block;
+            margin-bottom: 1rem;
+            padding: 0.5rem 1rem;
+            background: #2563eb;
+            color: white;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .benefits {
+            list-style: none;
+            padding: 0;
+        }
+
+        .benefits li {
+            padding-left: 1.5rem;
+            position: relative;
+            margin-bottom: 0.5rem;
+        }
+
+        .benefits li::before {
+            content: "✔";
+            position: absolute;
+            left: 0;
+            color: #16a34a;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1rem;
+            margin-top: 2rem;
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
-    <h1>Our Programs</h1>
-    <ul>
+    <header>
+        <h1>Our Programs</h1>
+        <p>Explore the programs we offer and the benefits you’ll gain</p>
+    </header>
+
+    <main class="container">
         {% for page in pages %}
-        <li>
+        <div class="program-card">
             <h2>{{ page.title }}</h2>
             <h4>{{ page.subtitle }}</h4>
             <p>{{ page.description }}</p>
+            <p>ff{{ page.benefits }}</p>
             <strong>{{ page.cta_text }}</strong>
-            <ul>
-                {% for benefit in page.benefits %}
-                <li>{{ benefit }}</li>
-                {% endfor %}
-            </ul>
-        </li>
+    
+        </div>
         {% endfor %}
-    </ul>
+    </main>
+
+    <footer>
+        &copy; Codethinkers Academy © Your Organization. All rights reserved.
+    </footer>
 </body>
 </html>
