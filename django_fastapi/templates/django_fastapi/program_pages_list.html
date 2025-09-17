@@ -112,13 +112,22 @@
         {% for page in pages %}
         <div class="program-card">
             <h2>{{ page.title }}</h2>
-            <h4>{{ page.subtitle }}</h4>
             <p>{{ page.description }}</p>
-            <p>ff{{ page.benefits }}</p>
-            <strong>{{ page.cta_text }}</strong>
-    
+
+            <h3>Benefits for Schools and Organizations</h3>
+
+           <ul class="benefits">
+                <li>Customized Certificates of Completion with your School or Organization Logo</li>
+                <li>Inclusion of Head's Signature and Name on Certificates</li>
+                <li>Option to Add Portfolio Information on Certificates</li>
+                <li>Effortless Management – We Handle It All!</li>
+            </ul>
+
+    <a href="{% url 'users:school_signup' %}" class="cta-button">Sign Up Now</a>
+         
         </div>
         {% endfor %}
+        
     </main>
 
     <footer>
