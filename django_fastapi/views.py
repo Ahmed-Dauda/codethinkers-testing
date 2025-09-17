@@ -46,7 +46,7 @@ async def async_program_pages_list_view(request):
     pages = []
     try:
         async with httpx.AsyncClient(timeout=5) as client:
-            response = await client.get("https://fastapi-service-tk85.onrender.com/program-pages")
+            response = await client.get("https://fastapi-service-tk85.onrender.com/api/program-pages")
             if response.status_code == 200:
                 pages = response.json()
     except Exception as e:
