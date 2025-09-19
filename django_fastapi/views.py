@@ -46,11 +46,28 @@ async def async_program_pages_list_view(request):
     pages = []
     try:
         async with httpx.AsyncClient(timeout=5) as client:
-            # response = await client.get("http://127.0.0.1:8001/api/program-pages")
+            # response = await client.get("http://127.0.0.1:8010/api/program-pages")
             response = await client.get("https://fastapi-service-tk85.onrender.com/api/program-pages")
             if response.status_code == 200:
                 pages = response.json()
-    except Exception as e:
-        pages = [{"title": f"Error fetching FastAPI data: {e}", "subtitle": "", "description": "", "cta_text": "", "benefits": []}]
+            else:
+                pages = [{"title": f"FastAPI error {response.status_code}", "description": "", "benefits": ""}]
+    except httpx.RequestError as e:
+        pages = [{"title": f"Error fetching FastAPI data: {e}", "description": "", "benefits": ""}]
 
     return render(request, "django_fastapi/program_pages_list.html", {"pages": pages})
+
+
+
+# async def async_program_pages_list_view(request):
+#     pages = []
+#     try:
+#         async with httpx.AsyncClient(timeout=5) as client:
+#             response = await client.get("http://127.0.0.1:8001/api/program-pages")
+#             # response = await client.get("https://fastapi-service-tk85.onrender.com/api/program-pages")
+#             if response.status_code == 200:
+#                 pages = response.json()
+#     except Exception as e:
+#         pages = [{"title": f"Error fetching FastAPI data: {e}", "subtitle": "", "description": "", "cta_text": "", "benefits": []}]
+
+#     return render(request, "django_fastapi/program_pages_list.html", {"pages": pages})
