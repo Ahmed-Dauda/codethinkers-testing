@@ -77,7 +77,7 @@ from .models import File, Project, Folder
 import os
 from openai import OpenAI
 
-# Initialize OpenAI client
+#Initialize OpenAI client
 from openai import OpenAI
 import os
 
