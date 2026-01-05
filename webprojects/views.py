@@ -11,17 +11,12 @@ from .models import File, Project
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 
-import openai
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-import json
 
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.conf import settings
 import json
-from openai import OpenAI
-import io
+
 import contextlib
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseBadRequest
@@ -59,7 +54,7 @@ from django.http import JsonResponse
 from collections import defaultdict
 from sms.models import Topics
 
-import os
+
 import pandas as pd
 from django.conf import settings
 
@@ -77,7 +72,17 @@ from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
 from django.conf import settings
 from .models import File, Project, Folder
-client = OpenAI(api_key=settings.OPENAI_API_KEY) 
+
+
+import os
+from openai import OpenAI
+
+# Initialize OpenAI client
+from openai import OpenAI
+import os
+
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
 
 @login_required
 def create_project(request):
@@ -343,11 +348,23 @@ def project_files_json(request, project_id):
    
 
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, render
+from django.http import JsonResponse
+import os, json, traceback, io, base64, contextlib
+import pandas as pd
+import matplotlib.pyplot as plt
+from .models import Project, File, Folder
+from django.conf import settings
+
+@login_required
 def file_detail(request, project_id, file_id):
-    file = get_object_or_404(File, id=file_id, project_id=project_id)
-    files = file.project.files.all()
-    project = get_object_or_404(Project, id=project_id)
-    folders = Folder.objects.filter(project=file.project)
+    # Ensure the project belongs to the logged-in user
+    project = get_object_or_404(Project, id=project_id, user=request.user)
+    file = get_object_or_404(File, id=file_id, project=project)
+    
+    files = project.files.all()
+    folders = Folder.objects.filter(project=project)
 
     # Sidebar file extensions
     exts = sorted({os.path.splitext(f.name)[1].lstrip('.').lower() for f in files if '.' in f.name})
@@ -364,25 +381,24 @@ def file_detail(request, project_id, file_id):
             new_content = data.get("content", "")
             run_plot = data.get("run_plot", False)
             run_table = data.get("run_table", False)
-            prompt = data.get("prompt", "")  # Safe access
+            prompt = data.get("prompt", "")
+
+            # ===== AI Prompt Handling =====
             # ===== AI Prompt Handling =====
             if prompt:
                 try:
-                    # ✅ Fetch existing files (create empty ones if missing)
+                    # Only fetch or create files for this verified project
                     html_file, _ = File.objects.get_or_create(project=project, name="index.html")
                     css_file, _ = File.objects.get_or_create(project=project, name="style.css")
                     js_file, _ = File.objects.get_or_create(project=project, name="script.js")
 
-                    # ✅ System instruction (force JSON output only)
                     system_message = (
                         "You are an expert web developer. Update the given HTML, CSS, and JS project "
                         "based on the user's request. Only modify what is necessary. "
                         "Always return a VALID JSON object with keys: html, css, js. "
-                        "Do NOT include explanations, markdown, or extra text. "
-                        "Example: {\"html\": \"<h1>Hello</h1>\", \"css\": \"body {color:red;}\", \"js\": \"console.log('hi');\"}"
+                        "Do NOT include explanations, markdown, or extra text."
                     )
 
-                    # ✅ Include current project state
                     user_message = f"""
                     Current project:
                     HTML:
@@ -400,7 +416,6 @@ def file_detail(request, project_id, file_id):
 
                     response = client.chat.completions.create(
                         model="gpt-4.1",
-                        
                         messages=[
                             {"role": "system", "content": system_message},
                             {"role": "user", "content": user_message}
@@ -408,26 +423,15 @@ def file_detail(request, project_id, file_id):
                         max_completion_tokens=4000,
                         temperature=0
                     )
-                #     response = client.chat.completions.create(
-                #     model="gpt-5-chat-latest",
-                #     messages=[
-                #         {"role": "system", "content": system_message},
-                #         {"role": "user", "content": user_message}
-                #     ],
-                #     max_completion_tokens=4000,
-                #     temperature=0
-                # )
-
 
                     ai_text = response.choices[0].message.content.strip()
 
-                    # 🛡️ Extract only JSON portion
+                    # Extract only JSON portion
                     start = ai_text.find("{")
                     end = ai_text.rfind("}")
                     if start != -1 and end != -1:
                         ai_text = ai_text[start:end+1]
 
-                    # 🛡️ Try parsing JSON safely
                     try:
                         ai_generated = json.loads(ai_text)
                     except json.JSONDecodeError:
@@ -437,15 +441,13 @@ def file_detail(request, project_id, file_id):
                         except Exception:
                             ai_generated = {"html": ai_text, "css": "", "js": ""}
 
-                    # ✅ Update only if AI returned something new
+                    # ✅ Save AI updates only for files belonging to this project
                     if ai_generated.get("html"):
                         html_file.content = ai_generated["html"]
                         html_file.save()
-
                     if ai_generated.get("css"):
                         css_file.content = ai_generated["css"]
                         css_file.save()
-
                     if ai_generated.get("js"):
                         js_file.content = ai_generated["js"]
                         js_file.save()
@@ -464,6 +466,7 @@ def file_detail(request, project_id, file_id):
                     }, status=500)
             # ===== End AI Prompt =====
 
+
             # Prevent mismatched file updates
             if data.get("file_id") and data.get("file_id") != file.id:
                 return JsonResponse({"error": "Mismatched file ID"}, status=400)
@@ -481,15 +484,9 @@ def file_detail(request, project_id, file_id):
             df = None
             if ext in ["csv", "xls", "xlsx"]:
                 try:
-                    if ext == "csv":
-                        df = pd.read_csv(file_path)
-                    else:
-                        df = pd.read_excel(file_path)
+                    df = pd.read_csv(file_path) if ext == "csv" else pd.read_excel(file_path)
                     if run_table:
-                        response_table = df.head(20).to_html(
-                            classes="table table-bordered table-sm",
-                            index=False
-                        )
+                        response_table = df.head(20).to_html(classes="table table-bordered table-sm", index=False)
                 except Exception as e:
                     return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
@@ -500,6 +497,7 @@ def file_detail(request, project_id, file_id):
                 plt.clf()
                 plt.close('all')
 
+                # Patch pandas read methods to use MEDIA_ROOT/uploads
                 if not hasattr(pd, "_original_read_csv"):
                     pd._original_read_csv = pd.read_csv
                 if not hasattr(pd, "_original_read_excel"):
@@ -516,6 +514,7 @@ def file_detail(request, project_id, file_id):
                 pd.read_csv = patched_read_csv
                 pd.read_excel = patched_read_excel
 
+                # Capture plots as base64
                 def fake_show(*args, **kwargs):
                     buf = io.BytesIO()
                     plt.savefig(buf, format="png", bbox_inches="tight")
@@ -570,9 +569,7 @@ def file_detail(request, project_id, file_id):
     })
 
 
-
-#working code
-
+#real
 # def file_detail(request, project_id, file_id):
 #     file = get_object_or_404(File, id=file_id, project_id=project_id)
 #     files = file.project.files.all()
@@ -630,13 +627,15 @@ def file_detail(request, project_id, file_id):
 
 #                     response = client.chat.completions.create(
 #                         model="gpt-4.1",
+                        
 #                         messages=[
 #                             {"role": "system", "content": system_message},
 #                             {"role": "user", "content": user_message}
 #                         ],
-#                         max_tokens=4000,
+#                         max_completion_tokens=4000,
 #                         temperature=0
 #                     )
+                
 
 #                     ai_text = response.choices[0].message.content.strip()
 
@@ -787,6 +786,8 @@ def file_detail(request, project_id, file_id):
 #         'project': project,
 #         'is_image': is_image,
 #     })
+
+
 
 
 # views.py
@@ -1148,11 +1149,6 @@ def create_folder(request, project_id):
 
 
 # Use your actual OpenAI API key here
-# openai.api_key = "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"
-
-# client = OpenAI(api_key="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")
- # Use your settings variable
-#client = OpenAI(api_key=settings.OPENAI_API_KEY) 
 
 @csrf_exempt
 def ai_suggest_code(request):

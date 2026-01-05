@@ -374,12 +374,8 @@ USE_L10N = True
 
 USE_TZ = True
 
-import os
-from dotenv import load_dotenv
-load_dotenv()
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
-# Now you can use:
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
 # Font configuration for badge generator
@@ -407,25 +403,25 @@ BADGE_FONT = {
 # ADDITIONAL SITEs SECURITY
 # HTTPS and secure headers
 
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# SECURE_SSL_REDIRECT = True
-# SECURE_BROWSER_XSS_FILTER = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# X_FRAME_OPTIONS = 'DENY'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
 
-# # HSTS (HTTP Strict Transport Security)
-# SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
+# HSTS (HTTP Strict Transport Security)
+SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
-# # Cookies and sessions
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIE_SECURE = True
-# SESSION_COOKIE_HTTPONLY = True
-# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# Cookies and sessions
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# # Optional - block embedding your site in iframes entirely
-# SECURE_FRAME_DENY = True  # Already handled by X_FRAME_OPTIONS = 'DENY'
+# Optional - block embedding your site in iframes entirely
+SECURE_FRAME_DENY = True  # Already handled by X_FRAME_OPTIONS = 'DENY'
 
 # end of new security
 
@@ -476,16 +472,16 @@ import dj_database_url
 db_from_env = dj_database_url.config(conn_max_age=0)
 DATABASES['default'].update(db_from_env)
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'fastapidb',
-#         'USER': 'fastapiuser',
-#         'PASSWORD': 'fastapi37811',  
-#         'HOST': 'localhost',   # or your DB server host
-#         'PORT': '5432',        # default postgres port
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'fastapidb',
+        'USER': 'fastapiuser',
+        'PASSWORD': 'fastapi37811',  
+        'HOST': 'localhost',   # or your DB server host
+        'PORT': '5432',        # default postgres port
+    }
+}
 
 
 # CREATE DATABASE fastapidb;

@@ -7,6 +7,10 @@ For more information on this file, see
 https://docs.djangoproject.com/en/3.2/howto/deployment/asgi/
 """
 
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=".env", override=True)
+
+
 import os
 
 from django.core.asgi import get_asgi_application
