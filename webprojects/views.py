@@ -368,307 +368,184 @@ import re
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
-
 @csrf_protect
 @require_http_methods(["POST"])
 def file_chat(request, project_id, file_id):
     """
-    VS Code-style AI file editor with two modes:
-    
-    ASK MODE: Provides explanation of proposed changes without modifying the file
-    APPLY MODE: Applies changes and saves the file to the database
-    
-    This endpoint supports intelligent editing of any text-based file type
-    with context-aware AI assistance.
+    AI-powered file editor endpoint (ASK / APPLY)
+    GUARANTEED JSON RESPONSES ONLY
     """
-    
-    # ================= REQUEST PARSING =================
+
+    # ================= SAFE JSON PARSING =================
     try:
+        if request.content_type != "application/json":
+            return JsonResponse({
+                "status": "error",
+                "message": "Content-Type must be application/json"
+            }, status=400)
+
         data = json.loads(request.body.decode("utf-8"))
         prompt = data.get("prompt", "").strip()
         apply_changes = bool(data.get("apply", False))
-        
-        print("=" * 80)
-        print(f"🤖 AI File Chat Request")
-        print(f"   Project ID: {project_id}")
-        print(f"   File ID: {file_id}")
-        print(f"   Mode: {'APPLY' if apply_changes else 'ASK'}")
-        print(f"   Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
-        print("=" * 80)
-        
-    except json.JSONDecodeError as e:
+
+    except json.JSONDecodeError:
         return JsonResponse({
             "status": "error",
-            "message": "Invalid JSON in request body",
-            "error_detail": str(e)
+            "message": "Invalid JSON payload"
+        }, status=400)
+
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "message": "Failed to parse request",
+            "detail": str(e)
         }, status=400)
 
     # ================= VALIDATION =================
     if not prompt:
         return JsonResponse({
             "status": "error",
-            "message": "Prompt cannot be empty. Please describe the changes you want."
+            "message": "Prompt cannot be empty"
         }, status=400)
 
     if len(prompt) > 5000:
         return JsonResponse({
             "status": "error",
-            "message": f"Prompt too long ({len(prompt)} chars). Maximum 5000 characters allowed."
+            "message": "Prompt too long (max 5000 chars)"
         }, status=400)
 
-    # ================= LOAD FILE & CONTEXT =================
+    # ================= LOAD FILE =================
     try:
         file = get_object_or_404(File, id=file_id, project_id=project_id)
         file_ext = file.extension()
-        
-        # Map extensions to language names for better AI context
-        LANGUAGE_MAP = {
-            '.html': 'HTML',
-            '.css': 'CSS',
-            '.scss': 'SCSS',
-            '.sass': 'Sass',
-            '.less': 'Less',
-            '.js': 'JavaScript',
-            '.jsx': 'React JSX',
-            '.ts': 'TypeScript',
-            '.tsx': 'React TSX',
-            '.vue': 'Vue.js',
-            '.py': 'Python',
-            '.java': 'Java',
-            '.c': 'C',
-            '.cpp': 'C++',
-            '.cs': 'C#',
-            '.php': 'PHP',
-            '.rb': 'Ruby',
-            '.go': 'Go',
-            '.rs': 'Rust',
-            '.swift': 'Swift',
-            '.kt': 'Kotlin',
-            '.json': 'JSON',
-            '.xml': 'XML',
-            '.yaml': 'YAML',
-            '.yml': 'YAML',
-            '.toml': 'TOML',
-            '.ini': 'INI',
-            '.md': 'Markdown',
-            '.txt': 'Plain Text',
-            '.sql': 'SQL',
-            '.sh': 'Shell Script',
-            '.bash': 'Bash',
-            '.env': 'Environment Config',
-            '.gitignore': 'Git Ignore',
-            '.dockerfile': 'Dockerfile',
-        }
-        
-        language = LANGUAGE_MAP.get(file_ext.lower(), file_ext.upper().replace('.', '') + ' file')
-        
-        print(f"📄 File: {file.name} ({language})")
-        print(f"📏 Current size: {len(file.content)} characters")
-        
-    except Exception as e:
+
+    except Exception:
         return JsonResponse({
             "status": "error",
-            "message": f"Failed to load file: {str(e)}"
+            "message": "File not found"
         }, status=404)
 
-    # ================= BUILD AI PROMPTS =================
+    LANGUAGE_MAP = {
+        '.html': 'HTML',
+        '.css': 'CSS',
+        '.js': 'JavaScript',
+        '.py': 'Python',
+        '.json': 'JSON',
+        '.md': 'Markdown',
+        '.txt': 'Text',
+    }
+
+    language = LANGUAGE_MAP.get(
+        file_ext.lower(),
+        file_ext.upper().replace('.', '') + " file"
+    )
+
+    # ================= BUILD PROMPTS =================
     if apply_changes:
-        # APPLY MODE: Request full file modification
-        system_prompt = f"""You are an expert code editor AI assistant specializing in {language}.
+        system_prompt = f"""
+You are an expert {language} code editor.
 
-**Your Task:**
-Edit the file `{file.name}` according to the user's request while maintaining code quality and consistency.
+RULES:
+- Return ONLY the complete updated file content
+- NO markdown
+- NO explanations
+- NO code fences
+- Output MUST start with code
+"""
 
-**Critical Requirements:**
-1. Return ONLY the complete, updated file content
-2. Do NOT include explanations, comments about changes, or markdown
-3. Do NOT wrap output in code fences (no ```{file_ext})
-4. Start your response immediately with the actual code
-5. Preserve the file's existing style, indentation, and formatting conventions
-6. Only modify what is explicitly requested
-7. Ensure the output is syntactically valid {language} code
+        user_prompt = f"""
+CURRENT FILE:
+{file.content or f"// Empty {language} file"}
 
-**Code Quality Standards:**
-- Maintain consistent indentation and spacing
-- Follow {language} best practices and conventions
-- Preserve existing code structure unless changes are requested
-- Keep variable/function naming consistent with existing code
-- Ensure all syntax is valid and error-free
-
-**Output Format:**
-Return the complete file content as plain text, ready to be saved directly.
-No markdown, no explanations, just the code."""
-
-        user_prompt = f"""**Current File:** `{file.name}` ({language})
-
-**Current Content:**
-```{file_ext.lstrip('.')}
-{file.content if file.content.strip() else f"// Empty {language} file"}
-```
-
-**User's Request:**
+USER REQUEST:
 {prompt}
-
----
-
-**Instructions:**
-1. Analyze the current code carefully
-2. Apply the requested changes precisely
-3. Return the complete, updated file content
-4. Ensure all {language} syntax is correct
-
-Remember: Output ONLY the raw code content. No markdown formatting, no explanations."""
+"""
 
     else:
-        # ASK MODE: Explain proposed changes without modifying
-        system_prompt = f"""You are an expert code analysis AI assistant specializing in {language}.
+        system_prompt = f"""
+You are an expert {language} code reviewer.
 
-**Your Task:**
-Analyze the file `{file.name}` and explain what changes would be made to fulfill the user's request.
+Explain what would change.
+Do NOT return code.
+"""
 
-**Requirements:**
-1. Do NOT provide code or modify the file
-2. Do NOT return the modified file content
-3. ONLY provide a clear explanation of what would change
-4. Be specific about which lines/sections would be affected
-5. Explain the reasoning behind the changes
-6. Highlight any potential issues or considerations
+        user_prompt = f"""
+FILE:
+{file.content or f"// Empty {language} file"}
 
-**Response Format:**
-- Start with a brief summary of the proposed changes
-- List specific modifications that would be made
-- Explain why these changes address the user's request
-- Mention any side effects or considerations
-- Keep explanations concise but thorough"""
-
-        user_prompt = f"""**File:** `{file.name}` ({language})
-
-**Current Content:**
-```{file_ext.lstrip('.')}
-{file.content if file.content.strip() else f"// Empty {language} file"}
-```
-
-**User's Request:**
+REQUEST:
 {prompt}
+"""
 
----
-
-**Instructions:**
-Explain what changes would be made to this file to fulfill the request.
-Be specific, clear, and concise. Do not provide the actual code."""
-
-    # ================= CALL AI API =================
+    # ================= OPENAI CALL =================
     try:
-        print(f"🔄 Calling OpenAI API ({language} editing)...")
-        
         response = client.chat.completions.create(
             model="gpt-4-turbo-preview",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            temperature=0.2 if apply_changes else 0.3,  # More deterministic for code, slightly creative for explanations
+            temperature=0.2,
             max_tokens=4000,
         )
 
         ai_output = response.choices[0].message.content.strip()
-        
+
         if not ai_output:
-            raise ValueError("AI returned empty response")
-            
-        print(f"✅ AI Response: {len(ai_output)} characters")
-        
+            raise ValueError("Empty AI response")
+
     except Exception as e:
-        print(f"❌ OpenAI API Error: {str(e)}")
         return JsonResponse({
             "status": "error",
-            "message": "AI service error. Please try again.",
-            "error_detail": str(e)
+            "message": "AI service failed",
+            "detail": str(e)
         }, status=500)
 
-    # ================= APPLY MODE → SAVE FILE =================
+    # ================= APPLY MODE =================
     if apply_changes:
-        print(f"🔵 APPLY MODE: Processing changes for {file.name}")
-        
-        # Clean any markdown artifacts that might have slipped through
-        cleaned_code = ai_output
-        
-        # Remove markdown code fences if present
-        if cleaned_code.startswith("```"):
-            print("⚠️ Removing markdown code fences from response")
-            lines = cleaned_code.split("\n")
-            
-            # Remove opening fence
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            
-            # Remove closing fence
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            
-            cleaned_code = "\n".join(lines)
-        
-        # Additional cleanup: remove any leading/trailing explanations
-        # (Sometimes AI adds a brief note before/after code despite instructions)
-        cleaned_code = cleaned_code.strip()
-        
-        # Validate that we have content
-        if not cleaned_code:
-            return JsonResponse({
-                "status": "error",
-                "message": "AI returned empty code. Please try rephrasing your request."
-            }, status=500)
-        
-        # Log the change
-        print(f"📝 Changes to apply:")
-        print(f"   Old size: {len(file.content)} chars")
-        print(f"   New size: {len(cleaned_code)} chars")
-        print(f"   Preview: {cleaned_code[:150]}{'...' if len(cleaned_code) > 150 else ''}")
-        
         try:
-            # Save to database
-            file.content = cleaned_code
+            cleaned = ai_output.strip()
+
+            # Strip accidental markdown
+            if cleaned.startswith("```"):
+                cleaned = "\n".join(
+                    line for line in cleaned.splitlines()
+                    if not line.strip().startswith("```")
+                ).strip()
+
+            if not cleaned:
+                return JsonResponse({
+                    "status": "error",
+                    "message": "AI returned empty code"
+                }, status=500)
+
+            file.content = cleaned
             file.save(update_fields=["content"])
-            
-            # Verify save
-            file.refresh_from_db()
-            
-            print(f"✅ File saved successfully: {file.name} (ID: {file.id})")
-            
+
             return JsonResponse({
                 "status": "success",
-                "message": f"✨ Successfully updated {file.name}",
-                "code": cleaned_code,
                 "saved": True,
+                "code": cleaned,
                 "file_id": file.id,
                 "file_name": file.name,
-                "language": language,
-                "changes": {
-                    "old_size": len(file.content),
-                    "new_size": len(cleaned_code),
-                    "diff": len(cleaned_code) - len(file.content)
-                }
+                "language": language
             })
-            
+
         except Exception as e:
-            print(f"❌ Database save error: {str(e)}")
             return JsonResponse({
                 "status": "error",
-                "message": f"Failed to save file: {str(e)}"
+                "message": "Failed to save file",
+                "detail": str(e)
             }, status=500)
 
-    # ================= ASK MODE → EXPLANATION ONLY =================
-    print(f"🟢 ASK MODE: Returning explanation for {file.name}")
-    
+    # ================= ASK MODE =================
     return JsonResponse({
         "status": "success",
-        "explanation": ai_output,
         "saved": False,
+        "explanation": ai_output,
         "file_name": file.name,
-        "language": language,
-        "mode": "explanation"
+        "language": language
     })
-
 
 #worked
 # @csrf_protect
