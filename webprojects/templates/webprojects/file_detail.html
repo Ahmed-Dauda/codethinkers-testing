@@ -642,7 +642,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
-// --- Tab Switching Logic ---
+// ================= TAB SWITCHING =================
 const appBuilderTab = document.getElementById('appBuilderTab');
 const fileEditorTab = document.getElementById('fileEditorTab');
 const appBuilderPanel = document.getElementById('appBuilderPanel');
@@ -651,11 +651,11 @@ const fileEditorPanel = document.getElementById('fileEditorPanel');
 function switchToAppBuilder() {
   appBuilderPanel.style.display = 'flex';
   fileEditorPanel.style.display = 'none';
-  
+
   appBuilderTab.style.borderBottom = '3px solid #007bff';
   appBuilderTab.style.fontWeight = 'bold';
   appBuilderTab.style.color = '#007bff';
-  
+
   fileEditorTab.style.borderBottom = '3px solid transparent';
   fileEditorTab.style.fontWeight = 'normal';
   fileEditorTab.style.color = '#666';
@@ -664,11 +664,11 @@ function switchToAppBuilder() {
 function switchToFileEditor() {
   appBuilderPanel.style.display = 'none';
   fileEditorPanel.style.display = 'flex';
-  
+
   fileEditorTab.style.borderBottom = '3px solid #28a745';
   fileEditorTab.style.fontWeight = 'bold';
   fileEditorTab.style.color = '#28a745';
-  
+
   appBuilderTab.style.borderBottom = '3px solid transparent';
   appBuilderTab.style.fontWeight = 'normal';
   appBuilderTab.style.color = '#666';
@@ -677,9 +677,10 @@ function switchToFileEditor() {
 appBuilderTab.onclick = switchToAppBuilder;
 fileEditorTab.onclick = switchToFileEditor;
 
-// --- Floating drag ---
+// ================= FLOATING PANEL DRAG =================
 const panel = document.getElementById('floatingAI');
 const dragHandle = document.getElementById('dragHandle');
+
 let isDraggingPanel = false;
 let dragOffsetY = 0;
 
@@ -690,7 +691,7 @@ dragHandle.addEventListener('mousedown', e => {
 });
 
 document.addEventListener('mousemove', e => {
-  if(!isDraggingPanel) return;
+  if (!isDraggingPanel) return;
   panel.style.top = (e.clientY - dragOffsetY) + 'px';
 });
 
@@ -699,7 +700,7 @@ document.addEventListener('mouseup', () => {
   dragHandle.style.cursor = 'grab';
 });
 
-// --- Resize vertically ---
+// ================= RESIZE =================
 const resizeHandleAI = document.getElementById('resizeHandleAI');
 let isResizing = false;
 
@@ -709,90 +710,107 @@ resizeHandleAI.addEventListener('mousedown', e => {
 });
 
 document.addEventListener('mousemove', e => {
-  if(!isResizing) return;
+  if (!isResizing) return;
   let newHeight = e.clientY - panel.offsetTop;
-  if(newHeight < 150) newHeight = 150; // minimum height
+  if (newHeight < 150) newHeight = 150;
   panel.style.height = newHeight + 'px';
 });
 
-document.addEventListener('mouseup', () => { isResizing = false; });
+document.addEventListener('mouseup', () => {
+  isResizing = false;
+});
 
-// --- Apply Changes ---
+// ================= APPLY CHANGES =================
 const PROJECT_ID = {{ project.id }};
 const FILE_ID = {{ file.id }};
 
 function getCsrfToken() {
-    return document.querySelector('[name=csrfmiddlewaretoken]')?.value 
-        || document.querySelector('meta[name="csrf-token"]')?.content
-        || '';
+  return (
+    document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+    document.querySelector('meta[name="csrf-token"]')?.content ||
+    ''
+  );
 }
 
 async function applyChanges() {
-    const prompt = document.getElementById('fileChatPrompt').value.trim();
-    
-    if (!prompt) {
-        alert('Please describe the changes you want to make');
-        return;
+  const promptEl = document.getElementById('fileChatPrompt');
+  const outputEl = document.getElementById('fileChatOutput');
+  const applyBtn = document.getElementById('applyBtn');
+
+  const prompt = promptEl.value.trim();
+  if (!prompt) {
+    alert('Please describe the changes you want to make');
+    return;
+  }
+
+  applyBtn.disabled = true;
+  applyBtn.textContent = 'Applying...';
+
+  outputEl.style.display = 'block';
+  outputEl.textContent += `\n⏳ Applying: "${prompt}"\n`;
+
+  try {
+    const res = await fetch(
+      `/webprojects/project/${PROJECT_ID}/file/${FILE_ID}/chat/`,
+      {
+        method: "POST",
+        credentials: "include", // ✅ CRITICAL FIX
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          apply: true
+        })
+      }
+    );
+
+    const contentType = res.headers.get("content-type") || "";
+
+    if (!contentType.includes("application/json")) {
+      const text = await res.text();
+      console.error("Non-JSON response:", text);
+      throw new Error("Server returned HTML instead of JSON");
     }
 
-    const outputEl = document.getElementById('fileChatOutput');
-    const applyBtn = document.getElementById('applyBtn');
-    const inputField = document.getElementById('fileChatPrompt');
-    
-    applyBtn.disabled = true;
-    applyBtn.textContent = 'Applying...';
-    outputEl.textContent += `\n⏳ Applying: "${prompt}"\n`;
-    outputEl.style.display = 'block';
+    const data = await res.json();
 
-    try {
-        const res = await fetch(`/webprojects/project/${PROJECT_ID}/file/${FILE_ID}/chat/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCsrfToken()
-            },
-            body: JSON.stringify({ 
-                prompt: prompt, 
-                apply: true
-            })
-        });
-
-        const data = await res.json();
-
-        if (data.status === "success" && data.code) {
-            if (typeof editor !== 'undefined') {
-                if (editor.setValue) {
-                    editor.setValue(data.code);
-                } else if (editor.getModel) {
-                    editor.getModel().setValue(data.code);
-                }
-            }
-            
-            outputEl.textContent += `✅ Changes applied and saved!\n`;
-            outputEl.textContent += `   Prompt: "${prompt}"\n`;
-            outputEl.textContent += `   File ID: ${data.file_id}\n\n`;
-            
-            inputField.value = "";
-        } else {
-            outputEl.textContent += `❌ Error: ${data.message || 'Failed to apply changes'}\n\n`;
+    if (data.status === "success" && data.code) {
+      if (typeof editor !== "undefined") {
+        if (editor.setValue) {
+          editor.setValue(data.code);
+        } else if (editor.getModel) {
+          editor.getModel().setValue(data.code);
         }
-    } catch (error) {
-        console.error('Error:', error);
-        outputEl.textContent += `❌ Request failed: ${error.message}\n\n`;
-    } finally {
-        applyBtn.disabled = false;
-        applyBtn.textContent = 'Apply Changes';
+      }
+
+      outputEl.textContent += `✅ Changes applied and saved\n`;
+      outputEl.textContent += `   File: ${data.file_name}\n\n`;
+
+      promptEl.value = "";
+    } else {
+      outputEl.textContent += `❌ Error: ${data.message || "Unknown error"}\n\n`;
     }
+
+  } catch (err) {
+    console.error(err);
+    outputEl.textContent += `❌ Request failed: ${err.message}\n\n`;
+  } finally {
+    applyBtn.disabled = false;
+    applyBtn.textContent = 'Apply Changes';
+  }
 }
 
 document.getElementById('applyBtn').onclick = applyChanges;
 
-document.getElementById('fileChatPrompt').onkeypress = function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        applyChanges();
-    }
-};
+document.getElementById('fileChatPrompt').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    applyChanges();
+  }
+});
 </script>
 
   <!-- <div class="ai-prompt-container" style="display: flex; gap: 10px; padding: 10px; border-top: 1px solid #ccc; background: #f9f9f9;">

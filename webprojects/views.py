@@ -368,6 +368,7 @@ import re
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
+
 @csrf_protect
 @require_http_methods(["POST"])
 def file_chat(request, project_id, file_id):
@@ -668,7 +669,7 @@ Be specific, clear, and concise. Do not provide the actual code."""
         "mode": "explanation"
     })
 
-    
+
 #worked
 # @csrf_protect
 # @require_http_methods(["POST"])

@@ -403,25 +403,25 @@ BADGE_FONT = {
 # ADDITIONAL SITEs SECURITY
 # HTTPS and secure headers
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SECURE_SSL_REDIRECT = True
+# SECURE_BROWSER_XSS_FILTER = True
+# SECURE_CONTENT_TYPE_NOSNIFF = True
+# X_FRAME_OPTIONS = 'DENY'
 
-# HSTS (HTTP Strict Transport Security)
-SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+# # HSTS (HTTP Strict Transport Security)
+# SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
 
-# Cookies and sessions
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# # Cookies and sessions
+# CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
+# SESSION_COOKIE_HTTPONLY = True
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# Optional - block embedding your site in iframes entirely
-SECURE_FRAME_DENY = True  # Already handled by X_FRAME_OPTIONS = 'DENY'
+# # Optional - block embedding your site in iframes entirely
+# SECURE_FRAME_DENY = True  # Already handled by X_FRAME_OPTIONS = 'DENY'
 
 # end of new security
 
@@ -461,7 +461,6 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 #production settings for heroku
 
 import dj_database_url
-
 DATABASES = {
     'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
@@ -470,6 +469,8 @@ DATABASES = {
     )
 }
 
+
+#local development settings
 # import dj_database_url
 # db_from_env = dj_database_url.config(conn_max_age=0)
 # DATABASES['default'].update(db_from_env)
@@ -480,8 +481,6 @@ DATABASES = {
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-
-
 
 # DATABASES = {
 #     'default': {
