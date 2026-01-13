@@ -27,6 +27,7 @@ class Folder(models.Model):
         parent_name = f" > {self.parent.name}" if self.parent else ""
         return f"{self.name}{parent_name} (Folder ID: {self.id})"
 
+
 class File(models.Model):
     project = models.ForeignKey(Project, related_name="files", on_delete=models.CASCADE)
     folder = models.ForeignKey(Folder, null=True, blank=True, related_name="files", on_delete=models.CASCADE)
@@ -43,9 +44,19 @@ class File(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    def is_frontend(self):
+        return self.folder and self.folder.name == "frontend"
+
+    def is_backend(self):
+        return self.folder and self.folder.name == "backend"
+
     # --- Helpers ---
     def extension(self):
         return self.name.split('.')[-1].lower()
+    
+   
+    def is_python(self):
+        return self.name.lower().endswith(".py")
 
     def is_css(self):
         return self.extension() == "css"

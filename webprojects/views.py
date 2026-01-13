@@ -119,8 +119,8 @@ def create_project(request):
                 ext = ".js"
                 default_content = "// JavaScript starts here"
             else:
-                ext = ".txt"
-                default_content = "// General notes"
+                ext = ".py"
+                default_content = "#General notes"
 
             project = Project.objects.create(user=request.user, name=name)
 
@@ -357,216 +357,1221 @@ import matplotlib.pyplot as plt
 from .models import Project, File, Folder
 from django.conf import settings
 
-@login_required
-def file_detail(request, project_id, file_id):
-    # Ensure the project belongs to the logged-in user
-    project = get_object_or_404(Project, id=project_id, user=request.user)
-    file = get_object_or_404(File, id=file_id, project=project)
+
+
+from django.db import transaction
+from django.views.decorators.http import require_http_methods
+
+
+import re
+
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_http_methods
+
+@csrf_protect
+@require_http_methods(["POST"])
+def file_chat(request, project_id, file_id):
+    """
+    VS Code-style AI file editor with two modes:
     
+    ASK MODE: Provides explanation of proposed changes without modifying the file
+    APPLY MODE: Applies changes and saves the file to the database
+    
+    This endpoint supports intelligent editing of any text-based file type
+    with context-aware AI assistance.
+    """
+    
+    # ================= REQUEST PARSING =================
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        prompt = data.get("prompt", "").strip()
+        apply_changes = bool(data.get("apply", False))
+        
+        print("=" * 80)
+        print(f"🤖 AI File Chat Request")
+        print(f"   Project ID: {project_id}")
+        print(f"   File ID: {file_id}")
+        print(f"   Mode: {'APPLY' if apply_changes else 'ASK'}")
+        print(f"   Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
+        print("=" * 80)
+        
+    except json.JSONDecodeError as e:
+        return JsonResponse({
+            "status": "error",
+            "message": "Invalid JSON in request body",
+            "error_detail": str(e)
+        }, status=400)
+
+    # ================= VALIDATION =================
+    if not prompt:
+        return JsonResponse({
+            "status": "error",
+            "message": "Prompt cannot be empty. Please describe the changes you want."
+        }, status=400)
+
+    if len(prompt) > 5000:
+        return JsonResponse({
+            "status": "error",
+            "message": f"Prompt too long ({len(prompt)} chars). Maximum 5000 characters allowed."
+        }, status=400)
+
+    # ================= LOAD FILE & CONTEXT =================
+    try:
+        file = get_object_or_404(File, id=file_id, project_id=project_id)
+        file_ext = file.extension()
+        
+        # Map extensions to language names for better AI context
+        LANGUAGE_MAP = {
+            '.html': 'HTML',
+            '.css': 'CSS',
+            '.scss': 'SCSS',
+            '.sass': 'Sass',
+            '.less': 'Less',
+            '.js': 'JavaScript',
+            '.jsx': 'React JSX',
+            '.ts': 'TypeScript',
+            '.tsx': 'React TSX',
+            '.vue': 'Vue.js',
+            '.py': 'Python',
+            '.java': 'Java',
+            '.c': 'C',
+            '.cpp': 'C++',
+            '.cs': 'C#',
+            '.php': 'PHP',
+            '.rb': 'Ruby',
+            '.go': 'Go',
+            '.rs': 'Rust',
+            '.swift': 'Swift',
+            '.kt': 'Kotlin',
+            '.json': 'JSON',
+            '.xml': 'XML',
+            '.yaml': 'YAML',
+            '.yml': 'YAML',
+            '.toml': 'TOML',
+            '.ini': 'INI',
+            '.md': 'Markdown',
+            '.txt': 'Plain Text',
+            '.sql': 'SQL',
+            '.sh': 'Shell Script',
+            '.bash': 'Bash',
+            '.env': 'Environment Config',
+            '.gitignore': 'Git Ignore',
+            '.dockerfile': 'Dockerfile',
+        }
+        
+        language = LANGUAGE_MAP.get(file_ext.lower(), file_ext.upper().replace('.', '') + ' file')
+        
+        print(f"📄 File: {file.name} ({language})")
+        print(f"📏 Current size: {len(file.content)} characters")
+        
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "message": f"Failed to load file: {str(e)}"
+        }, status=404)
+
+    # ================= BUILD AI PROMPTS =================
+    if apply_changes:
+        # APPLY MODE: Request full file modification
+        system_prompt = f"""You are an expert code editor AI assistant specializing in {language}.
+
+**Your Task:**
+Edit the file `{file.name}` according to the user's request while maintaining code quality and consistency.
+
+**Critical Requirements:**
+1. Return ONLY the complete, updated file content
+2. Do NOT include explanations, comments about changes, or markdown
+3. Do NOT wrap output in code fences (no ```{file_ext})
+4. Start your response immediately with the actual code
+5. Preserve the file's existing style, indentation, and formatting conventions
+6. Only modify what is explicitly requested
+7. Ensure the output is syntactically valid {language} code
+
+**Code Quality Standards:**
+- Maintain consistent indentation and spacing
+- Follow {language} best practices and conventions
+- Preserve existing code structure unless changes are requested
+- Keep variable/function naming consistent with existing code
+- Ensure all syntax is valid and error-free
+
+**Output Format:**
+Return the complete file content as plain text, ready to be saved directly.
+No markdown, no explanations, just the code."""
+
+        user_prompt = f"""**Current File:** `{file.name}` ({language})
+
+**Current Content:**
+```{file_ext.lstrip('.')}
+{file.content if file.content.strip() else f"// Empty {language} file"}
+```
+
+**User's Request:**
+{prompt}
+
+---
+
+**Instructions:**
+1. Analyze the current code carefully
+2. Apply the requested changes precisely
+3. Return the complete, updated file content
+4. Ensure all {language} syntax is correct
+
+Remember: Output ONLY the raw code content. No markdown formatting, no explanations."""
+
+    else:
+        # ASK MODE: Explain proposed changes without modifying
+        system_prompt = f"""You are an expert code analysis AI assistant specializing in {language}.
+
+**Your Task:**
+Analyze the file `{file.name}` and explain what changes would be made to fulfill the user's request.
+
+**Requirements:**
+1. Do NOT provide code or modify the file
+2. Do NOT return the modified file content
+3. ONLY provide a clear explanation of what would change
+4. Be specific about which lines/sections would be affected
+5. Explain the reasoning behind the changes
+6. Highlight any potential issues or considerations
+
+**Response Format:**
+- Start with a brief summary of the proposed changes
+- List specific modifications that would be made
+- Explain why these changes address the user's request
+- Mention any side effects or considerations
+- Keep explanations concise but thorough"""
+
+        user_prompt = f"""**File:** `{file.name}` ({language})
+
+**Current Content:**
+```{file_ext.lstrip('.')}
+{file.content if file.content.strip() else f"// Empty {language} file"}
+```
+
+**User's Request:**
+{prompt}
+
+---
+
+**Instructions:**
+Explain what changes would be made to this file to fulfill the request.
+Be specific, clear, and concise. Do not provide the actual code."""
+
+    # ================= CALL AI API =================
+    try:
+        print(f"🔄 Calling OpenAI API ({language} editing)...")
+        
+        response = client.chat.completions.create(
+            model="gpt-4-turbo-preview",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.2 if apply_changes else 0.3,  # More deterministic for code, slightly creative for explanations
+            max_tokens=4000,
+        )
+
+        ai_output = response.choices[0].message.content.strip()
+        
+        if not ai_output:
+            raise ValueError("AI returned empty response")
+            
+        print(f"✅ AI Response: {len(ai_output)} characters")
+        
+    except Exception as e:
+        print(f"❌ OpenAI API Error: {str(e)}")
+        return JsonResponse({
+            "status": "error",
+            "message": "AI service error. Please try again.",
+            "error_detail": str(e)
+        }, status=500)
+
+    # ================= APPLY MODE → SAVE FILE =================
+    if apply_changes:
+        print(f"🔵 APPLY MODE: Processing changes for {file.name}")
+        
+        # Clean any markdown artifacts that might have slipped through
+        cleaned_code = ai_output
+        
+        # Remove markdown code fences if present
+        if cleaned_code.startswith("```"):
+            print("⚠️ Removing markdown code fences from response")
+            lines = cleaned_code.split("\n")
+            
+            # Remove opening fence
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            
+            # Remove closing fence
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            
+            cleaned_code = "\n".join(lines)
+        
+        # Additional cleanup: remove any leading/trailing explanations
+        # (Sometimes AI adds a brief note before/after code despite instructions)
+        cleaned_code = cleaned_code.strip()
+        
+        # Validate that we have content
+        if not cleaned_code:
+            return JsonResponse({
+                "status": "error",
+                "message": "AI returned empty code. Please try rephrasing your request."
+            }, status=500)
+        
+        # Log the change
+        print(f"📝 Changes to apply:")
+        print(f"   Old size: {len(file.content)} chars")
+        print(f"   New size: {len(cleaned_code)} chars")
+        print(f"   Preview: {cleaned_code[:150]}{'...' if len(cleaned_code) > 150 else ''}")
+        
+        try:
+            # Save to database
+            file.content = cleaned_code
+            file.save(update_fields=["content"])
+            
+            # Verify save
+            file.refresh_from_db()
+            
+            print(f"✅ File saved successfully: {file.name} (ID: {file.id})")
+            
+            return JsonResponse({
+                "status": "success",
+                "message": f"✨ Successfully updated {file.name}",
+                "code": cleaned_code,
+                "saved": True,
+                "file_id": file.id,
+                "file_name": file.name,
+                "language": language,
+                "changes": {
+                    "old_size": len(file.content),
+                    "new_size": len(cleaned_code),
+                    "diff": len(cleaned_code) - len(file.content)
+                }
+            })
+            
+        except Exception as e:
+            print(f"❌ Database save error: {str(e)}")
+            return JsonResponse({
+                "status": "error",
+                "message": f"Failed to save file: {str(e)}"
+            }, status=500)
+
+    # ================= ASK MODE → EXPLANATION ONLY =================
+    print(f"🟢 ASK MODE: Returning explanation for {file.name}")
+    
+    return JsonResponse({
+        "status": "success",
+        "explanation": ai_output,
+        "saved": False,
+        "file_name": file.name,
+        "language": language,
+        "mode": "explanation"
+    })
+
+    
+#worked
+# @csrf_protect
+# @require_http_methods(["POST"])
+# def file_chat(request, project_id, file_id):
+#     """
+#     VS Code–style AI file chat
+#     - Ask: explanation only (no save)
+#     - Apply: updates ONLY the current file and saves to DB
+#     """
+    
+#     # -----------------------------
+#     # Parse request body
+#     # -----------------------------
+#     try:
+#         data = json.loads(request.body.decode("utf-8"))
+#         prompt = data.get("prompt", "").strip()
+#         apply_changes = bool(data.get("apply", False))
+#     except json.JSONDecodeError as e:
+#         return JsonResponse({"status": "error", "message": f"Invalid JSON: {e}"}, status=400)
+
+#     if not prompt:
+#         return JsonResponse({"status": "error", "message": "Prompt is required"}, status=400)
+
+#     # Limit prompt length to prevent abuse
+#     if len(prompt) > 5000:
+#         return JsonResponse({"status": "error", "message": "Prompt too long (max 5000 chars)"}, status=400)
+
+#     # -----------------------------
+#     # Load file (scoped to project)
+#     # -----------------------------
+#     file = get_object_or_404(File, id=file_id, project_id=project_id)
+#     file_ext = file.extension()
+
+#     # -----------------------------
+#     # SYSTEM PROMPT
+#     # -----------------------------
+#     if apply_changes:
+#         system_prompt = f"""You are an AI code editor like VS Code.
+
+# RULES:
+# - Edit ONLY this file: {file.name}
+# - Return the FULL updated file content
+# - Do NOT add explanations or comments about what you changed
+# - Do NOT wrap in markdown code fences (no ```{file_ext})
+# - Output MUST be valid {file_ext} code that can be directly saved
+# - Start your response with the actual code immediately
+# """
+#     else:
+#         system_prompt = """You are an AI assistant helping explain code changes.
+
+# RULES:
+# - DO NOT modify the file
+# - DO NOT return code
+# - ONLY explain what changes would be made and why
+# - Be concise and specific
+# """
+
+#     user_prompt = f"""CURRENT FILE CONTENT:
+# ```{file_ext}
+# {file.content}
+# ```
+
+# USER REQUEST:
+# {prompt}
+# """
+
+#     # -----------------------------
+#     # Call OpenAI
+#     # -----------------------------
+#     try:
+#         response = client.chat.completions.create(
+#             model="gpt-4-turbo-preview",  # Use correct model name
+#             messages=[
+#                 {"role": "system", "content": system_prompt},
+#                 {"role": "user", "content": user_prompt},
+#             ],
+#             temperature=0,
+#             max_tokens=4000,
+#         )
+
+#         ai_output = response.choices[0].message.content.strip()
+#     except Exception as e:
+#         return JsonResponse({"status": "error", "message": f"AI error: {str(e)}"}, status=500)
+
+#     if not ai_output:
+#         return JsonResponse({"status": "error", "message": "AI returned empty response"}, status=500)
+
+#     # -----------------------------
+#     # APPLY MODE → SAVE FILE
+#     # -----------------------------
+#     if apply_changes:
+#         # Clean up any markdown code fences that might have slipped through
+#         cleaned_code = ai_output
+#         if cleaned_code.startswith("```"):
+#             lines = cleaned_code.split("\n")
+#             # Remove first line if it's a code fence
+#             if lines[0].startswith("```"):
+#                 lines = lines[1:]
+#             # Remove last line if it's a closing fence
+#             if lines and lines[-1].strip() == "```":
+#                 lines = lines[:-1]
+#             cleaned_code = "\n".join(lines)
+        
+#         print(f"[APPLY] Updating {file.name} (ID: {file.id})")
+#         print(f"[APPLY] Preview: {cleaned_code[:200]}...")
+        
+#         file.content = cleaned_code
+#         file.save(update_fields=["content"])
+        
+#         return JsonResponse({
+#             "status": "success",
+#             "message": "File updated successfully",
+#             "code": cleaned_code
+#         })
+
+#     # -----------------------------
+#     # ASK MODE → EXPLANATION ONLY
+#     # -----------------------------
+#     return JsonResponse({
+#         "status": "success",
+#         "explanation": ai_output
+#     })
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def file_detail(request, project_id, file_id):
+    # ================= PROJECT & FILE =================
+    project = get_object_or_404(
+        Project.objects.prefetch_related("files"),
+        id=project_id,
+        user=request.user
+    )
+    file = get_object_or_404(File, id=file_id, project=project)
+
     files = project.files.all()
     folders = Folder.objects.filter(project=project)
 
-    # Sidebar file extensions
-    exts = sorted({os.path.splitext(f.name)[1].lstrip('.').lower() for f in files if '.' in f.name})
+    # ================= SIDEBAR EXTENSIONS =================
+    exts = sorted({
+        os.path.splitext(f.name)[1].lstrip(".").lower()
+        for f in files if "." in f.name
+    })
 
-    # Detect if file is an image
-    is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+    IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif")
+    is_image = file.name.lower().endswith(IMAGE_EXTS)
 
-    # Full path to the file
-    file_path = os.path.join(settings.MEDIA_ROOT, str(file.file))
+    # ================= FILE TYPE =================
+    ext = file.name.rsplit(".", 1)[-1].lower()
+    is_python = ext == "py"
 
-    if request.method == 'POST':
+    # ================= POST =================
+    if request.method == "POST":
+
+        # ---------- Safe JSON parsing ----------
         try:
-            data = json.loads(request.body or "{}")
-            new_content = data.get("content", "")
-            run_plot = data.get("run_plot", False)
-            run_table = data.get("run_table", False)
-            prompt = data.get("prompt", "")
+            data = json.loads(request.body.decode()) if request.body else {}
+        except json.JSONDecodeError:
+            data = {}
 
-            # ===== AI Prompt Handling =====
-            # ===== AI Prompt Handling =====
-            if prompt:
-                try:
-                    # Only fetch or create files for this verified project
-                    html_file, _ = File.objects.get_or_create(project=project, name="index.html")
-                    css_file, _ = File.objects.get_or_create(project=project, name="style.css")
-                    js_file, _ = File.objects.get_or_create(project=project, name="script.js")
+        new_content = data.get("content", "")
+        run_plot = data.get("run_plot", False)
+        run_table = data.get("run_table", False)
+        prompt = data.get("prompt", "")
 
-                    system_message = (
-                        "You are an expert web developer. Update the given HTML, CSS, and JS project "
-                        "based on the user's request. Only modify what is necessary. "
-                        "Always return a VALID JSON object with keys: html, css, js. "
-                        "Do NOT include explanations, markdown, or extra text."
+        # ================= AI PROMPT =================
+        if prompt:
+            try:
+                with transaction.atomic():
+                    # Get or create the three core files
+                    html_file, html_created = File.objects.get_or_create(
+                        project=project, 
+                        name="index.html",
+                        defaults={"content": "<!DOCTYPE html>\n<html>\n<head>\n    <title>Project</title>\n    <link rel='stylesheet' href='style.css'>\n</head>\n<body>\n    <script src='script.js'></script>\n</body>\n</html>"}
+                    )
+                    css_file, css_created = File.objects.get_or_create(
+                        project=project, 
+                        name="style.css",
+                        defaults={"content": "/* Your styles here */\n"}
+                    )
+                    js_file, js_created = File.objects.get_or_create(
+                        project=project, 
+                        name="script.js",
+                        defaults={"content": "// Your JavaScript here\n"}
                     )
 
-                    user_message = f"""
-                    Current project:
-                    HTML:
-                    {html_file.content}
+                    # ================= ENHANCED AI SYSTEM PROMPT =================
+                    system_message = """You are a senior full-stack web developer with expertise in modern web technologies.
 
-                    CSS:
-                    {css_file.content}
+**Your Role:**
+- Generate clean, production-ready HTML, CSS, and JavaScript
+- Follow modern best practices and web standards
+- Create responsive, accessible, and performant code
+- Write semantic HTML with proper structure
+- Use modern CSS (Flexbox, Grid, custom properties)
+- Write vanilla JavaScript with ES6+ features
 
-                    JS:
-                    {js_file.content}
+**Code Quality Standards:**
+- Use meaningful class names and IDs
+- Include helpful comments for complex logic
+- Ensure cross-browser compatibility
+- Follow consistent indentation (2 spaces)
+- Write DRY (Don't Repeat Yourself) code
 
-                    User request:
-                    {prompt}
-                    """
+**Response Format:**
+Return ONLY valid JSON with these exact keys: "html", "css", "js"
+Each value should be the complete file content as a string.
+Do NOT include any markdown code fences, explanations, or extra text.
 
+**Example Response Structure:**
+{
+  "html": "<!DOCTYPE html>...",
+  "css": "body { ... }",
+  "js": "document.addEventListener..."
+}
+
+**Important Rules:**
+1. Preserve existing functionality unless explicitly asked to change it
+2. Only modify what the user requests
+3. Keep the code clean and maintainable
+4. Ensure all three files work together cohesively
+5. Always include proper DOCTYPE and meta tags in HTML
+6. Link CSS and JS files correctly in HTML"""
+
+                    # ================= ENHANCED USER PROMPT =================
+                    user_message = f"""**Current Project State:**
+
+**HTML File (index.html):**
+```html
+{html_file.content if html_file.content.strip() else "<!-- Empty file -->"}
+```
+
+**CSS File (style.css):**
+```css
+{css_file.content if css_file.content.strip() else "/* Empty file */"}
+```
+
+**JavaScript File (script.js):**
+```javascript
+{js_file.content if js_file.content.strip() else "// Empty file"}
+```
+
+---
+
+**User Request:**
+{prompt}
+
+---
+
+**Instructions:**
+1. Analyze the current code state
+2. Implement the requested changes
+3. Ensure all files work together
+4. Maintain consistency with existing code style
+5. Return complete, updated files in JSON format
+
+Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra text or markdown."""
+
+                    # ================= API CALL =================
+                    print(f"🤖 AI Request: {prompt[:100]}...")
+                    
                     response = client.chat.completions.create(
-                        model="gpt-4.1",
+                        model="gpt-4-turbo-preview",  # Use latest model
                         messages=[
                             {"role": "system", "content": system_message},
-                            {"role": "user", "content": user_message}
+                            {"role": "user", "content": user_message},
                         ],
-                        max_completion_tokens=4000,
-                        temperature=0
+                        max_tokens=4000,
+                        temperature=0.3,  # Slightly creative but consistent
+                        response_format={"type": "json_object"}  # Force JSON response
                     )
 
                     ai_text = response.choices[0].message.content.strip()
+                    print(f"✅ AI Response received: {len(ai_text)} chars")
 
-                    # Extract only JSON portion
-                    start = ai_text.find("{")
-                    end = ai_text.rfind("}")
-                    if start != -1 and end != -1:
-                        ai_text = ai_text[start:end+1]
-
+                    # ================= PARSE AI RESPONSE =================
+                    # Try to parse JSON, with fallback for malformed responses
                     try:
                         ai_generated = json.loads(ai_text)
                     except json.JSONDecodeError:
-                        cleaned = ai_text.replace("\n", " ").replace("\r", " ").strip()
-                        try:
-                            ai_generated = json.loads(cleaned)
-                        except Exception:
-                            ai_generated = {"html": ai_text, "css": "", "js": ""}
+                        # Fallback: extract JSON from markdown code blocks
+                        print("⚠️ Attempting to extract JSON from malformed response")
+                        start = ai_text.find("{")
+                        end = ai_text.rfind("}") + 1
+                        if start != -1 and end > start:
+                            ai_text = ai_text[start:end]
+                            ai_generated = json.loads(ai_text)
+                        else:
+                            raise ValueError("Could not parse AI response as JSON")
 
-                    # ✅ Save AI updates only for files belonging to this project
-                    if ai_generated.get("html"):
-                        html_file.content = ai_generated["html"]
-                        html_file.save()
-                    if ai_generated.get("css"):
-                        css_file.content = ai_generated["css"]
-                        css_file.save()
-                    if ai_generated.get("js"):
-                        js_file.content = ai_generated["js"]
-                        js_file.save()
+                    # ================= VALIDATE RESPONSE =================
+                    if not isinstance(ai_generated, dict):
+                        raise ValueError("AI response must be a JSON object")
+                    
+                    # Count what was updated
+                    updates_made = []
 
+                    # ================= UPDATE FILES =================
+                    if "html" in ai_generated and ai_generated["html"].strip():
+                        html_content = ai_generated["html"].strip()
+                        # Ensure proper HTML structure
+                        if not html_content.startswith("<!DOCTYPE"):
+                            html_content = f"<!DOCTYPE html>\n{html_content}"
+                        html_file.content = html_content
+                        html_file.save(update_fields=["content"])
+                        updates_made.append("HTML")
+                        print(f"✅ Updated index.html ({len(html_content)} chars)")
+
+                    if "css" in ai_generated and ai_generated["css"].strip():
+                        css_file.content = ai_generated["css"].strip()
+                        css_file.save(update_fields=["content"])
+                        updates_made.append("CSS")
+                        print(f"✅ Updated style.css ({len(css_file.content)} chars)")
+
+                    if "js" in ai_generated and ai_generated["js"].strip():
+                        js_file.content = ai_generated["js"].strip()
+                        js_file.save(update_fields=["content"])
+                        updates_made.append("JavaScript")
+                        print(f"✅ Updated script.js ({len(js_file.content)} chars)")
+
+                    if not updates_made:
+                        return JsonResponse({
+                            "status": "warning",
+                            "message": "No files were updated. AI may not have understood the request."
+                        }, status=200)
+
+                    # ================= SUCCESS RESPONSE =================
                     return JsonResponse({
                         "status": "success",
                         "ai_content": ai_generated,
-                        "message": "AI project updated and saved into index.html, style.css, script.js"
+                        "message": f"✨ Successfully updated: {', '.join(updates_made)}",
+                        "files_updated": updates_made,
+                        "prompt": prompt[:100] + "..." if len(prompt) > 100 else prompt
                     })
 
-                except Exception as e:
+            except json.JSONDecodeError as e:
+                print(f"❌ JSON Parse Error: {e}")
+                return JsonResponse({
+                    "status": "error",
+                    "message": f"Failed to parse AI response as JSON. Please try again.",
+                    "error_detail": str(e)
+                }, status=500)
+                
+            except Exception as e:
+                print(f"❌ AI Error: {traceback.format_exc()}")
+                return JsonResponse({
+                    "status": "error",
+                    "message": f"AI generation failed: {str(e)}",
+                    "error_detail": traceback.format_exc()
+                }, status=500)
+
+        # ================= FILE SAVE =================
+        if new_content and new_content != file.content:
+            file.content = new_content
+            file.save(update_fields=["content"])
+            print(f"💾 Saved {file.name} ({len(new_content)} chars)")
+
+        response_table = ""
+        images = []
+
+        # ================= CSV / EXCEL PREVIEW =================
+        if ext in {"csv", "xls", "xlsx"} and file.file:
+            try:
+                if ext == "csv":
+                    df = pd.read_csv(file.file.path)
+                else:
+                    df = pd.read_excel(file.file.path)
+
+                if run_table:
+                    response_table = df.head(20).to_html(
+                        classes="table table-bordered table-sm",
+                        index=False
+                    )
+            except Exception as e:
+                return JsonResponse({
+                    "status": "error",
+                    "message": f"Failed to read file: {str(e)}"
+                }, status=400)
+
+        # ================= SAFE PYTHON RUNNER =================
+        if is_python and (run_plot or new_content.strip()):
+            buffer_out = io.StringIO()
+            buffer_err = io.StringIO()
+
+            plt.clf()
+            plt.close("all")
+
+            SAFE_BUILTINS = {
+                "print": print,
+                "len": len,
+                "range": range,
+                "min": min,
+                "max": max,
+                "sum": sum,
+                "abs": abs,
+                "sorted": sorted,
+                "enumerate": enumerate,
+                "zip": zip,
+                "map": map,
+                "filter": filter,
+                "list": list,
+                "dict": dict,
+                "set": set,
+                "tuple": tuple,
+                "str": str,
+                "int": int,
+                "float": float,
+                "bool": bool,
+            }
+
+            safe_globals = {
+                "__builtins__": SAFE_BUILTINS,
+                "pd": pd,
+                "plt": plt,
+                "np": np if 'np' in dir() else None,  # Add numpy if available
+            }
+
+            def fake_show(*args, **kwargs):
+                buf = io.BytesIO()
+                plt.savefig(buf, format="png", bbox_inches="tight", dpi=150)
+                buf.seek(0)
+                images.append(
+                    f"data:image/png;base64,{base64.b64encode(buf.read()).decode()}"
+                )
+                plt.close()
+
+            plt.show = fake_show
+
+            try:
+                with contextlib.redirect_stdout(buffer_out), \
+                     contextlib.redirect_stderr(buffer_err):
+                    exec(new_content, safe_globals, {})
+
+                stderr_output = buffer_err.getvalue()
+                if stderr_output:
                     return JsonResponse({
                         "status": "error",
-                        "message": str(e),
-                        "trace": traceback.format_exc()
+                        "message": stderr_output
                     }, status=500)
-            # ===== End AI Prompt =====
 
+                return JsonResponse({
+                    "status": "success",
+                    "output": buffer_out.getvalue() or "[No output]",
+                    "table": response_table,
+                    "images": images,
+                })
 
-            # Prevent mismatched file updates
-            if data.get("file_id") and data.get("file_id") != file.id:
-                return JsonResponse({"error": "Mismatched file ID"}, status=400)
+            except Exception as e:
+                print(f"❌ Python Execution Error: {traceback.format_exc()}")
+                return JsonResponse({
+                    "status": "error",
+                    "message": f"Execution failed:\n{traceback.format_exc()}"
+                }, status=500)
 
-            # Save new content
-            if new_content:
-                file.content = new_content
-                file.save()
+        return JsonResponse({
+            "status": "saved",
+            "message": "✓ File saved successfully"
+        })
 
-            ext = file.name.lower().split(".")[-1]
-            response_table = ""
-            images = []
-
-            # CSV/Excel handling
-            df = None
-            if ext in ["csv", "xls", "xlsx"]:
-                try:
-                    df = pd.read_csv(file_path) if ext == "csv" else pd.read_excel(file_path)
-                    if run_table:
-                        response_table = df.head(20).to_html(classes="table table-bordered table-sm", index=False)
-                except Exception as e:
-                    return JsonResponse({"status": "error", "message": str(e)}, status=500)
-
-            # Python execution (mini Jupyter)
-            if run_plot or new_content.strip():
-                buffer_out = io.StringIO()
-                buffer_err = io.StringIO()
-                plt.clf()
-                plt.close('all')
-
-                # Patch pandas read methods to use MEDIA_ROOT/uploads
-                if not hasattr(pd, "_original_read_csv"):
-                    pd._original_read_csv = pd.read_csv
-                if not hasattr(pd, "_original_read_excel"):
-                    pd._original_read_excel = pd.read_excel
-
-                def patched_read_csv(name, *args, **kwargs):
-                    path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
-                    return pd._original_read_csv(path, *args, **kwargs)
-
-                def patched_read_excel(name, *args, **kwargs):
-                    path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
-                    return pd._original_read_excel(path, *args, **kwargs)
-
-                pd.read_csv = patched_read_csv
-                pd.read_excel = patched_read_excel
-
-                # Capture plots as base64
-                def fake_show(*args, **kwargs):
-                    buf = io.BytesIO()
-                    plt.savefig(buf, format="png", bbox_inches="tight")
-                    buf.seek(0)
-                    img_base64 = base64.b64encode(buf.read()).decode("utf-8")
-                    images.append(f"data:image/png;base64,{img_base64}")
-                    plt.close()
-
-                plt.show = fake_show
-
-                try:
-                    with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
-                        exec(new_content, {"pd": pd})
-
-                    printed_output = buffer_out.getvalue()
-                    error_output = buffer_err.getvalue()
-                    if error_output:
-                        return JsonResponse({"status": "error", "message": error_output}, status=500)
-
-                    for i in plt.get_fignums():
-                        fig = plt.figure(i)
-                        buf = io.BytesIO()
-                        fig.savefig(buf, format="png", bbox_inches="tight")
-                        buf.seek(0)
-                        img_base64 = base64.b64encode(buf.read()).decode("utf-8")
-                        images.append(f"data:image/png;base64,{img_base64}")
-                        plt.close(fig)
-
-                    return JsonResponse({
-                        "status": "success",
-                        "output": printed_output or "[No output]",
-                        "table": response_table,
-                        "images": images
-                    })
-                except Exception:
-                    return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
-
-            # Default save response
-            return JsonResponse({"status": "saved", "message": "File saved successfully."})
-
-        except Exception:
-            return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
-
-    # GET request
-    return render(request, 'webprojects/file_detail.html', {
-        'file': file,
-        'files': files,
-        'folders': folders,
-        'exts': exts,
-        'project': project,
-        'is_image': is_image,
+    # ================= GET =================
+    return render(request, "webprojects/file_detail.html", {
+        "file": file,
+        "files": files,
+        "folders": folders,
+        "exts": exts,
+        "project": project,
+        "is_image": is_image,
     })
+
+
+#worked
+# @login_required
+# @require_http_methods(["GET", "POST"])
+# def file_detail(request, project_id, file_id):
+#     # ================= PROJECT & FILE =================
+#     project = get_object_or_404(
+#         Project.objects.prefetch_related("files"),
+#         id=project_id,
+#         user=request.user
+#     )
+#     file = get_object_or_404(File, id=file_id, project=project)
+
+#     files = project.files.all()
+#     folders = Folder.objects.filter(project=project)
+
+#     # ================= SIDEBAR EXTENSIONS =================
+#     exts = sorted({
+#         os.path.splitext(f.name)[1].lstrip(".").lower()
+#         for f in files if "." in f.name
+#     })
+
+#     IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif")
+#     is_image = file.name.lower().endswith(IMAGE_EXTS)
+
+#     # ================= FILE TYPE =================
+#     ext = file.name.rsplit(".", 1)[-1].lower()
+#     is_python = ext == "py"
+
+#     # ================= POST =================
+#     if request.method == "POST":
+
+#         # ---------- Safe JSON parsing ----------
+#         try:
+#             data = json.loads(request.body.decode()) if request.body else {}
+#         except json.JSONDecodeError:
+#             data = {}
+
+#         new_content = data.get("content", "")
+#         run_plot = data.get("run_plot", False)
+#         run_table = data.get("run_table", False)
+#         prompt = data.get("prompt", "")
+
+#         # ================= AI PROMPT =================
+#         if prompt:
+#             try:
+#                 with transaction.atomic():
+#                     html_file, _ = File.objects.get_or_create(
+#                         project=project, name="index.html",
+#                         defaults={"content": ""}
+#                     )
+#                     css_file, _ = File.objects.get_or_create(
+#                         project=project, name="style.css",
+#                         defaults={"content": ""}
+#                     )
+#                     js_file, _ = File.objects.get_or_create(
+#                         project=project, name="script.js",
+#                         defaults={"content": ""}
+#                     )
+
+#                     system_message = (
+#                         "You are an expert web developer. "
+#                         "Update the HTML, CSS, and JS based on the user's request. "
+#                         "Only modify what is necessary. "
+#                         "Return VALID JSON with keys: html, css, js."
+#                     )
+
+#                     user_message = f"""
+# HTML:
+# {html_file.content}
+
+# CSS:
+# {css_file.content}
+
+# JS:
+# {js_file.content}
+
+# User request:
+# {prompt}
+# """
+
+#                     response = client.chat.completions.create(
+#                         model="gpt-4.1",
+#                         messages=[
+#                             {"role": "system", "content": system_message},
+#                             {"role": "user", "content": user_message},
+#                         ],
+#                         max_completion_tokens=4000,
+#                         temperature=0,
+#                     )
+
+#                     ai_text = response.choices[0].message.content.strip()
+#                     start, end = ai_text.find("{"), ai_text.rfind("}")
+#                     if start != -1 and end != -1:
+#                         ai_text = ai_text[start:end + 1]
+
+#                     ai_generated = json.loads(ai_text)
+
+#                     if ai_generated.get("html"):
+#                         html_file.content = ai_generated["html"]
+#                         html_file.save(update_fields=["content"])
+
+#                     if ai_generated.get("css"):
+#                         css_file.content = ai_generated["css"]
+#                         css_file.save(update_fields=["content"])
+
+#                     if ai_generated.get("js"):
+#                         js_file.content = ai_generated["js"]
+#                         js_file.save(update_fields=["content"])
+
+#                 return JsonResponse({
+#                     "status": "success",
+#                     "ai_content": ai_generated,
+#                     "message": "AI project updated successfully"
+#                 })
+
+#             except Exception:
+#                 return JsonResponse({
+#                     "status": "error",
+#                     "message": traceback.format_exc()
+#                 }, status=500)
+
+#         # ================= FILE SAVE =================
+#         if new_content and new_content != file.content:
+#             file.content = new_content
+#             file.save(update_fields=["content"])
+
+#         response_table = ""
+#         images = []
+
+#         # ================= CSV / EXCEL PREVIEW =================
+#         if ext in {"csv", "xls", "xlsx"} and file.file:
+#             try:
+#                 if ext == "csv":
+#                     df = pd.read_csv(file.file.path)
+#                 else:
+#                     df = pd.read_excel(file.file.path)
+
+#                 if run_table:
+#                     response_table = df.head(20).to_html(
+#                         classes="table table-bordered table-sm",
+#                         index=False
+#                     )
+#             except Exception as e:
+#                 return JsonResponse({
+#                     "status": "error",
+#                     "message": str(e)
+#                 }, status=400)
+
+#         # ================= SAFE PYTHON RUNNER =================
+#         if is_python and (run_plot or new_content.strip()):
+#             buffer_out = io.StringIO()
+#             buffer_err = io.StringIO()
+
+#             plt.clf()
+#             plt.close("all")
+
+#             SAFE_BUILTINS = {
+#                 "print": print,
+#                 "len": len,
+#                 "range": range,
+#                 "min": min,
+#                 "max": max,
+#                 "sum": sum,
+#                 "abs": abs,
+#             }
+
+#             safe_globals = {
+#                 "__builtins__": SAFE_BUILTINS,
+#                 "pd": pd,
+#                 "plt": plt,
+#             }
+
+#             def fake_show(*args, **kwargs):
+#                 buf = io.BytesIO()
+#                 plt.savefig(buf, format="png", bbox_inches="tight")
+#                 buf.seek(0)
+#                 images.append(
+#                     f"data:image/png;base64,{base64.b64encode(buf.read()).decode()}"
+#                 )
+#                 plt.close()
+
+#             plt.show = fake_show
+
+#             try:
+#                 with contextlib.redirect_stdout(buffer_out), \
+#                      contextlib.redirect_stderr(buffer_err):
+#                     exec(new_content, safe_globals, {})
+
+#                 if buffer_err.getvalue():
+#                     return JsonResponse({
+#                         "status": "error",
+#                         "message": buffer_err.getvalue()
+#                     }, status=500)
+
+#                 return JsonResponse({
+#                     "status": "success",
+#                     "output": buffer_out.getvalue() or "[No output]",
+#                     "table": response_table,
+#                     "images": images,
+#                 })
+
+#             except Exception:
+#                 return JsonResponse({
+#                     "status": "error",
+#                     "message": traceback.format_exc()
+#                 }, status=500)
+
+#         return JsonResponse({
+#             "status": "saved",
+#             "message": "File saved successfully"
+#         })
+
+#     # ================= GET =================
+#     return render(request, "webprojects/file_detail.html", {
+#         "file": file,
+#         "files": files,
+#         "folders": folders,
+#         "exts": exts,
+#         "project": project,
+#         "is_image": is_image,
+#     })
+
+#real view 2
+# @login_required
+# def file_detail(request, project_id, file_id):
+#     # Ensure the project belongs to the logged-in user
+#     project = get_object_or_404(Project, id=project_id, user=request.user)
+#     file = get_object_or_404(File, id=file_id, project=project)
+    
+#     files = project.files.all()
+#     folders = Folder.objects.filter(project=project)
+
+#     # Sidebar file extensions
+#     exts = sorted({os.path.splitext(f.name)[1].lstrip('.').lower() for f in files if '.' in f.name})
+
+#     # Detect if file is an image
+#     is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+
+#     # Full path to the file
+#     file_path = os.path.join(settings.MEDIA_ROOT, str(file.file))
+
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body or "{}")
+#             new_content = data.get("content", "")
+#             run_plot = data.get("run_plot", False)
+#             run_table = data.get("run_table", False)
+#             prompt = data.get("prompt", "")
+
+#             # ===== AI Prompt Handling =====
+#             # ===== AI Prompt Handling =====
+#             if prompt:
+#                 try:
+#                     # Only fetch or create files for this verified project
+#                     html_file, _ = File.objects.get_or_create(project=project, name="index.html")
+#                     css_file, _ = File.objects.get_or_create(project=project, name="style.css")
+#                     js_file, _ = File.objects.get_or_create(project=project, name="script.js")
+
+#                     system_message = (
+#                         "You are an expert web developer. Update the given HTML, CSS, and JS project "
+#                         "based on the user's request. Only modify what is necessary. "
+#                         "Always return a VALID JSON object with keys: html, css, js. "
+#                         "Do NOT include explanations, markdown, or extra text."
+#                     )
+
+#                     user_message = f"""
+#                     Current project:
+#                     HTML:
+#                     {html_file.content}
+
+#                     CSS:
+#                     {css_file.content}
+
+#                     JS:
+#                     {js_file.content}
+
+#                     User request:
+#                     {prompt}
+#                     """
+
+#                     response = client.chat.completions.create(
+#                         model="gpt-4.1",
+#                         messages=[
+#                             {"role": "system", "content": system_message},
+#                             {"role": "user", "content": user_message}
+#                         ],
+#                         max_completion_tokens=4000,
+#                         temperature=0
+#                     )
+
+#                     ai_text = response.choices[0].message.content.strip()
+
+#                     # Extract only JSON portion
+#                     start = ai_text.find("{")
+#                     end = ai_text.rfind("}")
+#                     if start != -1 and end != -1:
+#                         ai_text = ai_text[start:end+1]
+
+#                     try:
+#                         ai_generated = json.loads(ai_text)
+#                     except json.JSONDecodeError:
+#                         cleaned = ai_text.replace("\n", " ").replace("\r", " ").strip()
+#                         try:
+#                             ai_generated = json.loads(cleaned)
+#                         except Exception:
+#                             ai_generated = {"html": ai_text, "css": "", "js": ""}
+
+#                     # ✅ Save AI updates only for files belonging to this project
+#                     if ai_generated.get("html"):
+#                         html_file.content = ai_generated["html"]
+#                         html_file.save()
+#                     if ai_generated.get("css"):
+#                         css_file.content = ai_generated["css"]
+#                         css_file.save()
+#                     if ai_generated.get("js"):
+#                         js_file.content = ai_generated["js"]
+#                         js_file.save()
+
+#                     return JsonResponse({
+#                         "status": "success",
+#                         "ai_content": ai_generated,
+#                         "message": "AI project updated and saved into index.html, style.css, script.js"
+#                     })
+
+#                 except Exception as e:
+#                     return JsonResponse({
+#                         "status": "error",
+#                         "message": str(e),
+#                         "trace": traceback.format_exc()
+#                     }, status=500)
+#             # ===== End AI Prompt =====
+
+
+#             # Prevent mismatched file updates
+#             if data.get("file_id") and data.get("file_id") != file.id:
+#                 return JsonResponse({"error": "Mismatched file ID"}, status=400)
+
+#             # Save new content
+#             if new_content:
+#                 file.content = new_content
+#                 file.save()
+
+#             ext = file.name.lower().split(".")[-1]
+#             response_table = ""
+#             images = []
+
+#             # CSV/Excel handling
+#             df = None
+#             if ext in ["csv", "xls", "xlsx"]:
+#                 try:
+#                     df = pd.read_csv(file_path) if ext == "csv" else pd.read_excel(file_path)
+#                     if run_table:
+#                         response_table = df.head(20).to_html(classes="table table-bordered table-sm", index=False)
+#                 except Exception as e:
+#                     return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+#             # Python execution (mini Jupyter)
+#             if run_plot or new_content.strip():
+#                 buffer_out = io.StringIO()
+#                 buffer_err = io.StringIO()
+#                 plt.clf()
+#                 plt.close('all')
+
+#                 # Patch pandas read methods to use MEDIA_ROOT/uploads
+#                 if not hasattr(pd, "_original_read_csv"):
+#                     pd._original_read_csv = pd.read_csv
+#                 if not hasattr(pd, "_original_read_excel"):
+#                     pd._original_read_excel = pd.read_excel
+
+#                 def patched_read_csv(name, *args, **kwargs):
+#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
+#                     return pd._original_read_csv(path, *args, **kwargs)
+
+#                 def patched_read_excel(name, *args, **kwargs):
+#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
+#                     return pd._original_read_excel(path, *args, **kwargs)
+
+#                 pd.read_csv = patched_read_csv
+#                 pd.read_excel = patched_read_excel
+
+#                 # Capture plots as base64
+#                 def fake_show(*args, **kwargs):
+#                     buf = io.BytesIO()
+#                     plt.savefig(buf, format="png", bbox_inches="tight")
+#                     buf.seek(0)
+#                     img_base64 = base64.b64encode(buf.read()).decode("utf-8")
+#                     images.append(f"data:image/png;base64,{img_base64}")
+#                     plt.close()
+
+#                 plt.show = fake_show
+
+#                 try:
+#                     with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
+#                         exec(new_content, {"pd": pd})
+
+#                     printed_output = buffer_out.getvalue()
+#                     error_output = buffer_err.getvalue()
+#                     if error_output:
+#                         return JsonResponse({"status": "error", "message": error_output}, status=500)
+
+#                     for i in plt.get_fignums():
+#                         fig = plt.figure(i)
+#                         buf = io.BytesIO()
+#                         fig.savefig(buf, format="png", bbox_inches="tight")
+#                         buf.seek(0)
+#                         img_base64 = base64.b64encode(buf.read()).decode("utf-8")
+#                         images.append(f"data:image/png;base64,{img_base64}")
+#                         plt.close(fig)
+
+#                     return JsonResponse({
+#                         "status": "success",
+#                         "output": printed_output or "[No output]",
+#                         "table": response_table,
+#                         "images": images
+#                     })
+#                 except Exception:
+#                     return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
+
+#             # Default save response
+#             return JsonResponse({"status": "saved", "message": "File saved successfully."})
+
+#         except Exception:
+#             return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
+
+#     # GET request
+#     return render(request, 'webprojects/file_detail.html', {
+#         'file': file,
+#         'files': files,
+#         'folders': folders,
+#         'exts': exts,
+#         'project': project,
+#         'is_image': is_image,
+#     })
 
 
 #real

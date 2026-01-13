@@ -5,21 +5,25 @@
   <meta charset="UTF-8" />
   <title>{{ file.name }} – Live Preview</title>
 
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
     :root {
-      --bg: #f5f7fa;
+      --toolbar-height-desktop: 56px;
+      --toolbar-height-mobile: 44px;
+      --bg: #f6f7fb;
       --panel: #ffffff;
       --border: #e5e7eb;
       --text: #111827;
       --muted: #6b7280;
-      --toolbar-height: 56px;
     }
 
     * {
       box-sizing: border-box;
     }
 
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
       width: 100%;
@@ -33,65 +37,70 @@
     body {
       display: flex;
       flex-direction: column;
-      min-height: 100dvh; /* modern full height for mobile */
+      min-height: 100dvh;
     }
 
     /* ───────── Toolbar ───────── */
     .toolbar {
-      height: var(--toolbar-height);
-      flex-shrink: 0;
+      height: var(--toolbar-height-desktop);
       display: flex;
       align-items: center;
+      gap: 16px;
       padding: 0 20px;
       background: var(--panel);
       border-bottom: 1px solid var(--border);
-      z-index: 10;
+      flex-shrink: 0;
     }
 
-    .toolbar h2 {
-      font-size: 14px;
-      font-weight: 600;
-      margin: 0;
-    }
-
-    .back-link {
-      text-decoration: none;
+    .toolbar a {
       font-size: 13px;
+      text-decoration: none;
       color: var(--muted);
+      white-space: nowrap;
     }
 
-    .back-link:hover {
+    .toolbar a:hover {
       color: var(--text);
     }
 
-    /* ───────── Preview Area ───────── */
-    .preview-area {
-      flex: 1;
-      width: 100%;
-      height: calc(100dvh - var(--toolbar-height));
-      background: #fff;
+    .toolbar h1 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    iframe.preview {
+    /* ───────── Preview ───────── */
+    .preview-wrapper {
+      flex: 1;
+      width: 100%;
+      height: calc(100dvh - var(--toolbar-height-desktop));
+      background: #ffffff;
+    }
+
+    iframe {
       width: 100%;
       height: 100%;
       border: none;
-      background: #fff;
+      display: block;
+      background: #ffffff;
     }
 
-    /* ───────── Responsive / Mobile Friendly ───────── */
+    /* ───────── Mobile Optimization ───────── */
     @media (max-width: 768px) {
       .toolbar {
-        height: 44px;
+        height: var(--toolbar-height-mobile);
         padding: 0 12px;
       }
 
-      .toolbar h2 {
+      .toolbar h1 {
         font-size: 13px;
       }
 
-      .preview-area {
-        height: calc(100dvh - 44px);
+      .preview-wrapper {
+        height: calc(100dvh - var(--toolbar-height-mobile));
       }
     }
   </style>
@@ -100,20 +109,20 @@
 <body>
 
   <!-- Toolbar -->
-  <div class="toolbar">
-    <a class="back-link" href="{% url 'file_detail' project.id file.id %}">
+  <header class="toolbar">
+    <a href="{% url 'webprojects:file_detail' project.id file.id %}">
       ← Back to Editor
     </a>
-    <!-- <h2>{{ file.name }}</h2> -->
-  </div>
 
-  <!-- Preview -->
-  <div class="preview-area">
+  </header>
+
+  <!-- Live Preview -->
+  <main class="preview-wrapper">
     <iframe
-      class="preview"
-      src="data:text/html;charset=utf-8,{{ rendered_html|urlencode }}">
-    </iframe>
-  </div>
+      src="data:text/html;charset=utf-8,{{ rendered_html|urlencode }}"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-modals"
+    ></iframe>
+  </main>
 
 </body>
 </html>

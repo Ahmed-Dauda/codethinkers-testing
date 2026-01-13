@@ -345,7 +345,7 @@
 {% endblock %}
 
 {% block header %}
-<a style="color: white;" href="{% url 'webprojects:create_project' %}">
+<a style="color: white;" href="{% url 'create_project' %}">
   📁 {{ file.project.name }} — 📝 {{ file.name }}
 </a>  
 
@@ -409,21 +409,21 @@
 
               {% else %}
                 <!-- 👇 Normal File: Go to Editor -->
-                <a href="{% url 'webprojects:file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
+                <a href="{% url 'file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
 
                 {% if ".html" in f.name|lower %}
-                  <a href="{% url 'webprojects:share_preview' f.project.id f.id %}" target="_blank" style="color: green;">publish</a>
+                  <a href="{% url 'share_preview' f.project.id f.id %}" target="_blank" style="color: green;">publish</a>
                 {% endif %}
 
                 {% if f.is_excel %}
                   <!-- 👇 Excel/CSV Preview Button -->
-                  <a href="{% url 'webprojects:file_preview' f.project.id f.id %}" class="btn btn-sm ">View</a>
+                  <a href="{% url 'file_preview' f.project.id f.id %}" class="btn btn-sm ">View</a>
                 {% endif %}
 
               {% endif %}
 
               <!-- 👇 Delete Button for all files -->
-              <form method="POST" action="{% url 'webprojects:file_delete' f.project.id f.id %}" class="delete-file-form d-inline">
+              <form method="POST" action="{% url 'file_delete' f.project.id f.id %}" class="delete-file-form d-inline">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
               </form>
@@ -1111,7 +1111,7 @@ require(['vs/editor/editor.main'], function () {
   // Auto-save every 3s
 
 let autoSaveInterval = setInterval(() => {
-  fetch("{% url 'webprojects:file_autosave' %}", {
+  fetch("{% url 'file_autosave' %}", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -1793,7 +1793,7 @@ function runCode() {
     tablePreview.innerHTML = "";
     plotPreview.innerHTML = "";
 
-    fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", {
+    fetch("{% url 'file_detail' file.project.id file.id %}", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -1910,7 +1910,7 @@ function getAISuggestion() {
   btn.disabled = true;
   loader.style.display = "inline";
 
-  fetch("{% url 'webprojects:ai_suggest_code' %}", {
+  fetch("{% url 'ai_suggest_code' %}", {
     method: "POST",
     headers: {
       'Content-Type': 'application/json',
@@ -1966,7 +1966,7 @@ function explainCode() {
   btn.disabled = true;
   btn.textContent = "💬 Explaining...";
 
-  fetch("{% url 'webprojects:explain_code' %}", {
+  fetch("{% url 'explain_code' %}", {
     method: "POST",
     headers: {
       'Content-Type': 'application/json',
@@ -2013,7 +2013,7 @@ function runAIAction() {
   runBtn.disabled = true;
   runBtn.textContent = "⏳ Running...";
 
-  fetch("{% url 'webprojects:ai_suggest_code' %}", {
+  fetch("{% url 'ai_suggest_code' %}", {
     method: "POST",
     headers: {
       'Content-Type': 'application/json',
@@ -2127,7 +2127,7 @@ function uploadFile(file) {
   const loader = document.getElementById("upload-loader");
   loader.style.display = "flex"; // show loader
 
-  fetch("{% url 'webprojects:upload_file_ajax' project.id %}", {
+  fetch("{% url 'upload_file_ajax' project.id %}", {
     method: 'POST',
     headers: { 'X-CSRFToken': '{{ csrf_token }}' },
     body: formData

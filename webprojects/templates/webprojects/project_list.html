@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Projects</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+        h1 { margin-bottom: 20px; }
+        ul { list-style: none; padding: 0; }
+        li { margin-bottom: 10px; }
+        a, button { 
+            text-decoration: none; 
+            padding: 8px 12px; 
+            background: #fff; 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+            display: inline-block; 
+            cursor: pointer;
+        }
+        a:hover, button:hover { background: #e0e0e0; }
+        #createButton { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>My Projects</h1>
+
+    <button id="createButton" onclick="openCreate()">+ Create Project</button>
+
+    <ul id="projectList">
+        {% for project in projects %}
+        <li>
+            {% if project.files.first %}
+            <a href="/webprojects/file/{{ project.files.first.id }}/">
+                {{ project.name }} ({{ project.files.count }} files)
+            </a>
+            {% else %}
+            {{ project.name }} (No files)
+            {% endif %}
+        </li>
+        {% empty %}
+        <li>No projects yet.</li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        function openCreate() {
+            window.location.href = "{% url 'webprojects:create_project' %}";
+        }
+    </script>
+</body>
+</html>
