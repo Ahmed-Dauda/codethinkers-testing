@@ -681,7 +681,7 @@ table-layout: fixed; // ***********add this
 
 <script>
 function createEditorProject(courseId, courseTitle) {
-    fetch("{% url 'create_project' %}", {
+    fetch("{% url 'webprojects:create_project' %}", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
