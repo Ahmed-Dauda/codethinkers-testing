@@ -1,12 +1,44 @@
-
 {% block content %}
 
 <div style="max-width: 700px; margin: auto; padding: 20px; background: #f5f5f5;">
     <h1 style="font-size: 24px; margin-bottom: 20px;">Add New Course</h1>
+    <a href="{% url 'instructor:dashboard' %}">Back to Dashboard</a>
+
+    <!-- Display success or error messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="flash-message" style="padding: 10px 15px; margin-bottom: 15px; border-radius: 5px;
+                        background: {% if message.tags == 'success' %}#d4edda{% elif message.tags == 'error' %}#f8d7da{% else %}#cce5ff{% endif %};
+                        color: {% if message.tags == 'success' %}#155724{% elif message.tags == 'error' %}#721c24{% else %}#004085{% endif %};
+                        border: 1px solid {% if message.tags == 'success' %}#c3e6cb{% elif message.tags == 'error' %}#f5c6cb{% else %}#b8daff{% endif %};">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <form method="post" enctype="multipart/form-data" style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit" style="padding: 10px 20px; background: #007bff; color: #fff; border: none; border-radius: 4px;">Add Course</button>
     </form>
+    
 </div>
+
+<!-- JavaScript to fade out messages -->
+<script>
+    // Wait for the page to load
+    document.addEventListener("DOMContentLoaded", function() {
+        const messages = document.querySelectorAll('.flash-message');
+        messages.forEach(function(msg) {
+            // Wait 3 seconds, then fade out
+            setTimeout(function() {
+                msg.style.transition = "opacity 0.5s ease";
+                msg.style.opacity = 0;
+                // Remove element after fade
+                setTimeout(function() { msg.remove(); }, 500);
+            }, 3000); // 3000ms = 3 seconds
+        });
+    });
+</script>
+
 {% endblock %}

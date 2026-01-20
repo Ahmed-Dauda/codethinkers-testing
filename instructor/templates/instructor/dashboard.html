@@ -129,7 +129,8 @@
                         <th class="text-success">Instructor Earned</th>
                         <th class="text-danger">Platform Cut</th>
                         <th>Enrollments</th>
-                        <th>Actions</th>
+                        <th>Final Exams</th>
+                        <th>Course</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -149,6 +150,16 @@
                             </a>
                             <a href="{% url 'instructor:add_exam' course.id %}" class="btn btn-sm btn-success">
                                 + Add Final Exam
+                            </a>
+                    
+                        </td>
+                        <td>
+                            <a href="{% url 'instructor:delete_course' course.id %}" class="btn btn-sm btn-danger">
+                                Delete
+                            </a>
+
+                            <a href="{% url 'instructor:edit_course' course.id %}" class="btn btn-sm btn-warning">
+                                Edit
                             </a>
                         </td>
                     </tr>

@@ -214,6 +214,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from .forms import CourseForm
 
+
 @login_required
 def add_course(request):
     if request.method == 'POST':
@@ -226,7 +227,7 @@ def add_course(request):
 
             course.save()
             form.save_m2m()  # important for ManyToMany fields
-
+            
             messages.success(request, 'Course created successfully')
             return redirect('instructor:add_course')
     else:
@@ -239,19 +240,23 @@ def add_course(request):
 
 @login_required
 def edit_course(request, course_id):
+    # ✅ Get the course and ensure the logged-in user owns it
     course = get_object_or_404(
         Courses,
         id=course_id,
-        course_owner=request.user.email  # 🔒 ownership check
+        course_owner=request.user  # use User object, not email
     )
 
     if request.method == "POST":
-        form = InstructorCourseForm(request.POST, request.FILES, instance=course)
+        form = CourseForm(request.POST, request.FILES, instance=course)
         if form.is_valid():
             form.save()
+            # ✅ Optional: add a success message
+            from django.contrib import messages
+            messages.success(request, "✅ Course updated successfully!")
             return redirect('instructor:dashboard')
     else:
-        form = InstructorCourseForm(instance=course)
+        form = CourseForm(instance=course)
 
     return render(request, 'instructor/add_course.html', {
         'form': form,

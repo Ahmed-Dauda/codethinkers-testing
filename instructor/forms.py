@@ -102,6 +102,7 @@ class CourseForm(forms.ModelForm):
             'img_course',
             'course_logo',
             'title',
+            # 'course_owner',
             'course_type',
             'status_type',
             'price',
