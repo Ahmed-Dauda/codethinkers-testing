@@ -34,8 +34,8 @@
                         <td style="border:1px solid #ddd; padding:8px; text-align:center;">{{ exam.duration_minutes }} mins</td>
                         <td style="border:1px solid #ddd; padding:8px; text-align:center;">{{ exam.pass_mark }}</td>
                         <td style="border:1px solid #ddd; padding:8px; text-align:center;">
-                            <a href="{% url 'instructor:edit_exam' exam.id %}" style="color:#007bff; margin-right:5px;">Edit</a>
-                            <a href="{% url 'instructor:delete_exam' exam.id %}" style="color:#dc3545;">Delete</a>
+                            <a href="{% url 'instructor:edit_course' exam.id %}" style="color:#007bff; margin-right:5px;">Edit</a>
+                            <a href="{% url 'instructor:delete_course' exam.id %}" style="color:#dc3545;">Delete</a>
                         </td>
                     </tr>
                     {% endfor %}
