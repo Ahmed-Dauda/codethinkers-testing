@@ -549,12 +549,14 @@ def ai_summative_assessment(request):
 
         try:
             course_obj = Courses.objects.get(id=course_id)
+            
         except Courses.DoesNotExist:
             messages.error(request, "Invalid course selected.")
             return redirect('quiz:ai_summative_assessment')
 
         # Find a related CourseDetail (Course) instance to assign to Question
         course_detail = Course.objects.filter(course_name=course_obj).first()
+        
         if not course_detail:
             messages.error(request, "No course details found for the selected course.")
             return redirect('quiz:ai_summative_assessment')
@@ -719,6 +721,7 @@ def ai_summative_assessment(request):
                 'preview_questions': preview_questions,
                 'course_id': course_id,
                 'marks': marks,
+                'course_detail': course_detail,
             })
 
         except Exception as e:

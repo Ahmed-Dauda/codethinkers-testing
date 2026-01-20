@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Instructor Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+</head>
+<body class="bg-light">
+
+<div class="container my-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Instructor Dashboard</h2>
+        <a href="{% url 'instructor:add_course' %}" class="btn btn-success">
+            + Add New Course
+        </a>
+
+         <a href="{% url 'quiz:ai_topics_generator' %}"
+                   class="btn btn-outline-secondary">
+                    📚 Generate course content with AI
+                </a>
+    </div>
+
+    <!-- AI Assessment Tools -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3">AI Assessment Tools</h5>
+
+            <div class="d-flex flex-wrap gap-2">
+              
+                <!-- <a href="{% url 'quiz:ai_topics_generator' %}"
+                   class="btn btn-outline-secondary">
+                    📚 Generate course content with AI
+                </a> -->
+
+                <!-- <a href="{% url 'quiz:ai_summative_assessment' %}"
+                   class="btn btn-outline-success">
+                    📊 Generate Final Exam with AI
+                </a> -->
+
+                <!-- <a href="{% url 'quiz:generate_ai_questions' %}"
+                   class="btn btn-outline-dark">
+                    ✨ AI formative Assessment
+                </a> -->
+
+                <!-- New Topics Assessment Button -->
+                <a href="{% url 'instructor:add_topics_assessment' %}"
+                   class="btn btn-outline-primary">
+                    📝 Add Topics Assessment
+                </a>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Instructor</h6>
+                    <h5 class="fw-bold">
+                        {{ instructor.first_name|default:instructor.email }}
+                    </h5>
+                    <small class="text-muted">
+                        Last Activity: {{ last_activity }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Courses</h6>
+                    <h2 class="text-primary fw-bold">
+                        {{ total_courses }}
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Earnings</h6>
+                    <p class="mb-1">
+                        Total Sales:
+                        <strong>{{ totals.total_sales }}</strong>
+                    </p>
+                    <p class="mb-1 text-success">
+                        Instructor Earned:
+                        <strong>{{ totals.instructor_earned }}</strong>
+                    </p>
+                    <p class="mb-0 text-danger">
+                        Platform Cut:
+                        <strong>{{ totals.platform_cut }}</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Courses Table -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header fw-bold">
+            Your Courses
+        </div>
+        <div class="card-body table-responsive">
+
+            {% if courses %}
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Price</th>
+                        <th>Total Sales</th>
+                        <th class="text-success">Instructor Earned</th>
+                        <th class="text-danger">Platform Cut</th>
+                        <th>Enrollments</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in courses %}
+                    <tr>
+                        <td>{{ course.title }}</td>
+                        <td>{{ course.course_type }}</td>
+                        <td>{{ course.status_type }}</td>
+                        <td>{{ course.price }}</td>
+                        <td>{{ course.total_sales }}</td>
+                        <td class="text-success">{{ course.instructor_earned }}</td>
+                        <td class="text-danger">{{ course.platform_cut }}</td>
+                        <td>{{ course.enrollments }}</td>
+                        <td>
+                            <a href="{% url 'instructor:course_exams' course.id %}" class="btn btn-sm btn-primary mb-1">
+                                Manage Exams
+                            </a>
+                            <a href="{% url 'instructor:add_exam' course.id %}" class="btn btn-sm btn-success">
+                                + Add Final Exam
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p class="text-muted mb-0">No courses found.</p>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- Earnings Table -->
+    <div class="card shadow-sm">
+        <div class="card-header fw-bold">
+            Earnings History
+        </div>
+        <div class="card-body table-responsive">
+
+            {% if earnings_list %}
+            <table class="table table-striped table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Course</th>
+                        <th>Amount Paid</th>
+                        <th class="text-success">Instructor Amount</th>
+                        <th class="text-danger">Platform Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for earning in earnings_list %}
+                    <tr>
+                        <td>{{ earning.course.title }}</td>
+                        <td>{{ earning.amount_paid }}</td>
+                        <td class="text-success">{{ earning.instructor_amount }}</td>
+                        <td class="text-danger">{{ earning.platform_amount }}</td>
+                        <td>
+                            {% if earning.is_paid_out %}
+                                <span class="badge bg-success">Paid</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ earning.created }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p class="text-muted mb-0">No earnings yet.</p>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+<!-- Bootstrap 5 JS -->
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
+</script>
+
+</body>
+</html>

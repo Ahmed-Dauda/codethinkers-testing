@@ -71,7 +71,7 @@
 </style>
 
 <div class="form-section">
-  <h2>🤖 AI Summative Assessment</h2>
+  <h2>🤖 Generate Final Exam with AI</h2>
 
   <form method="POST">
     {% csrf_token %}
@@ -88,12 +88,12 @@
 
     <div class="form-group">
       <label for="num_questions">Number of Questions:</label>
-      <input type="number" name="num_questions" id="num_questions" value="{{ request.POST.num_questions|default:5 }}" min="1" required>
+      <input type="number" name="num_questions" id="num_questions" value="{{ request.POST.num_questions|default:10 }}" min="1" max="20" required>
     </div>
 
     <div class="form-group">
       <label for="marks">Marks per Question:</label>
-      <input type="number" name="marks" id="marks" value="{{ request.POST.marks|default:1 }}" min="1" required>
+      <input type="number" name="marks" id="marks" value="{{ request.POST.marks|default:1 }}" min="1" max="1" required>
     </div>
 
     <!-- Difficulty Level Dropdown -->

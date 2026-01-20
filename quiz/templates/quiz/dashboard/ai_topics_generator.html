@@ -42,7 +42,7 @@
 </style>
 
 <div class="container mt-4">
-  <h2>🤖 AI Topics Generator</h2>
+  <h2>🤖 AI Course Contents Generator</h2>
 
   {% if messages %}
     {% for message in messages %}
@@ -74,7 +74,7 @@
 
     <div class="mb-3">
       <label>Number of Topics</label>
-      <input type="number" name="num_topics" class="form-control" value="5" min="1" required>
+      <input type="number" name="num_topics" class="form-control" value="5" min="1" max="5" required>
     </div>
 
     <div class="mb-3">

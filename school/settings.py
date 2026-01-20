@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     'webprojects',
     'certificate_stats',
      "django_fastapi",
+     'instructor',
     
     
     
@@ -460,38 +461,39 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 #production settings for heroku
 
-import dj_database_url
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=0,
-        ssl_require=False
-    )
-}
+# import dj_database_url
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+#         conn_max_age=0,
+#         ssl_require=False
+#     )
+# }
 
 
 #local development settings
-# import dj_database_url
-# db_from_env = dj_database_url.config(conn_max_age=0)
-# DATABASES['default'].update(db_from_env)
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+import dj_database_url
+db_from_env = dj_database_url.config(conn_max_age=0)
+DATABASES['default'].update(db_from_env)
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'fastapidb',
-#         'USER': 'fastapiuser',
-#         'PASSWORD': 'fastapi37811',  
-#         'HOST': 'localhost',   # or your DB server host
-#         'PORT': '5432',        # default postgres port
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'fastapidb',
+        'USER': 'fastapiuser',
+        'PASSWORD': 'fastapi37811',  
+        'HOST': 'localhost',   # or your DB server host
+        'PORT': '5432',        # default postgres port
+    }
+}
 
 
 # CREATE DATABASE fastapidb;

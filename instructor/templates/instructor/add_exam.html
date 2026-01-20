@@ -1,0 +1,53 @@
+{% block content %}
+<div style="padding: 20px; font-family: Arial, sans-serif; background: #f5f5f5; min-height: 100vh;">
+    <div style="max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+
+        <h1 style="font-size: 24px; margin-bottom: 15px; color: #333;">Create Exam for {{ course.title }}</h1>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div style="margin-bottom: 12px;">
+                <label>Total Marks</label><br>
+                <input type="number" name="total_marks" value="10" required
+                       style="width: 100%; padding: 8px; border-radius:4px; border:1px solid #ccc;">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label>Number of Questions</label><br>
+                <input type="number" name="show_questions" value="10" required
+                       style="width: 100%; padding: 8px; border-radius:4px; border:1px solid #ccc;">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label>Duration (minutes)</label><br>
+                <input type="number" name="duration" value="10" required
+                       style="width: 100%; padding: 8px; border-radius:4px; border:1px solid #ccc;">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label>Pass Mark</label><br>
+                <input type="number" name="pass_mark" value="5" required
+                       style="width: 100%; padding: 8px; border-radius:4px; border:1px solid #ccc;">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label>
+                    <input type="checkbox" name="full_screen" value="1">
+                    Fullscreen Exam
+                </label>
+            </div>
+
+            <button type="submit"
+                    style="padding: 10px 15px; background: #28a745; color:#fff; border:none; border-radius:5px;">
+                Create Exam
+            </button>
+
+        </form>
+
+        <div style="margin-top: 20px;">
+            <a href="{% url 'instructor:course_exams' course.id %}" style="color:#007bff;">← Back to Exams</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

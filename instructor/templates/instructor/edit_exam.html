@@ -1,0 +1,35 @@
+{% block content %}
+<div style="padding: 20px; font-family: Arial, sans-serif; background: #f5f5f5; min-height: 100vh;">
+    <div style="max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <h1 style="font-size: 24px; margin-bottom: 15px; color: #333;">Edit Exam: {{ exam.course_name.title }}</h1>
+
+        <form method="POST">
+            {% csrf_token %}
+            <label>Total Marks</label><br>
+            <input type="number" name="total_marks" value="{{ exam.total_marks }}" required><br><br>
+
+            <label>Number of Questions</label><br>
+            <input type="number" name="show_questions" value="{{ exam.show_questions }}" required><br><br>
+
+            <label>Duration (minutes)</label><br>
+            <input type="number" name="duration" value="{{ exam.duration_minutes }}" required><br><br>
+
+            <label>Pass Mark</label><br>
+            <input type="number" name="pass_mark" value="{{ exam.pass_mark }}" required><br><br>
+
+            <label>
+                <input type="checkbox" name="full_screen" value="1" {% if exam.full_screen %}checked{% endif %}>
+                Fullscreen Exam
+            </label><br><br>
+
+            <button type="submit" style="padding:10px 15px; background:#28a745; color:#fff; border:none; border-radius:5px;">
+                Save Changes
+            </button>
+        </form>
+
+        <div style="margin-top: 20px;">
+            <a href="{% url 'instructor:course_exams' exam.course_name.id %}" style="color:#007bff;">← Back to Exams</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+<div style="padding: 20px; font-family: Arial, sans-serif; background: #f5f5f5; min-height: 100vh;">
+    <div style="max-width: 1200px; margin: auto;">
+        <h2 style="font-size: 24px; margin-bottom: 15px; color: #333;">Exams for {{ course.title }}</h2>
+
+        <!-- Create Exam Button -->
+        <a href="{% url 'instructor:add_exam' course.id %}"
+           style="display:inline-block; margin-bottom:15px;
+                  background:#28a745; color:#fff; padding:8px 12px; border-radius:5px;">
+           + Create Exam
+        </a>
+
+         <a href="{% url 'quiz:ai_summative_assessment' %}"
+                   class="btn btn-outline-success">
+                    📊 Generate Final Exam with AI
+         </a>
+
+        {% if exams %}
+        <div style="background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#eee;">
+                        <th style="border:1px solid #ddd; padding:8px;">Name</th>
+                        <th style="border:1px solid #ddd; padding:8px;">Questions</th>
+                        <th style="border:1px solid #ddd; padding:8px;">Duration</th>
+                        <th style="border:1px solid #ddd; padding:8px;">Pass Mark</th>
+                        <th style="border:1px solid #ddd; padding:8px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exam in exams %}
+                    <tr>
+                        <td style="border:1px solid #ddd; padding:8px;">{{ exam.course_name.title }}</td>
+                        <td style="border:1px solid #ddd; padding:8px; text-align:center;">{{ exam.show_questions }}</td>
+                        <td style="border:1px solid #ddd; padding:8px; text-align:center;">{{ exam.duration_minutes }} mins</td>
+                        <td style="border:1px solid #ddd; padding:8px; text-align:center;">{{ exam.pass_mark }}</td>
+                        <td style="border:1px solid #ddd; padding:8px; text-align:center;">
+                            <a href="{% url 'instructor:edit_exam' exam.id %}" style="color:#007bff; margin-right:5px;">Edit</a>
+                            <a href="{% url 'instructor:delete_exam' exam.id %}" style="color:#dc3545;">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color:#666;">No exams yet.</p>
+        {% endif %}
+    </div>
+</div>

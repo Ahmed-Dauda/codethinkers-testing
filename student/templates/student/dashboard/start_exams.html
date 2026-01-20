@@ -227,65 +227,42 @@ div.quiz p {
 
               
   
-              {% if q.option1 %}
-                <div class="quiz">
-                    <div class="radio-container">
-                        <input class="radio-button" 
-                            type="radio" 
-                            name="{{ q.id }}" 
-                            id="option1-{{ q.id }}" 
-                            value="Option1" required>
-                        <label for="option1-{{ q.id }}">
-                            {{ q.option1|safe }}
-                        </label>
-                    </div>
-                </div>
-                {% endif %}
+<!-- OPTIONS (ESCAPED) -->
+{% if q.option1 %}
+<div class="quiz">
+  <input type="radio" name="{{ q.id }}" id="opt1_{{ q.id }}" value="Option1">
+  <label for="opt1_{{ q.id }}">
+    <code>{{ q.option1|escape }}</code>
+  </label>
+</div>
+{% endif %}
 
-                {% if q.option2 %}
-                <div class="quiz">
-                    <div class="radio-container">
-                        <input class="radio-button" 
-                            type="radio" 
-                            name="{{ q.id }}" 
-                            id="option2-{{ q.id }}" 
-                            value="Option2" required>
-                        <label for="option2-{{ q.id }}">
-                            {{ q.option2|safe }}
-                        </label>
-                    </div>
-                </div>
-                {% endif %}
+{% if q.option2 %}
+<div class="quiz">
+  <input type="radio" name="{{ q.id }}" id="opt2_{{ q.id }}" value="Option2">
+  <label for="opt2_{{ q.id }}">
+    <code>{{ q.option2|escape }}</code>
+  </label>
+</div>
+{% endif %}
 
-                {% if q.option3 %}
-                <div class="quiz">
-                    <div class="radio-container">
-                        <input class="radio-button" 
-                            type="radio" 
-                            name="{{ q.id }}" 
-                            id="option3-{{ q.id }}" 
-                            value="Option3" required>
-                        <label for="option3-{{ q.id }}">
-                            {{ q.option3|safe }}
-                        </label>
-                    </div>
-                </div>
-                {% endif %}
+{% if q.option3 %}
+<div class="quiz">
+  <input type="radio" name="{{ q.id }}" id="opt3_{{ q.id }}" value="Option3">
+  <label for="opt3_{{ q.id }}">
+    <code>{{ q.option3|escape }}</code>
+  </label>
+</div>
+{% endif %}
 
-                {% if q.option4 %}
-                <div class="quiz">
-                    <div class="radio-container">
-                        <input class="radio-button" 
-                            type="radio" 
-                            name="{{ q.id }}" 
-                            id="option4-{{ q.id }}" 
-                            value="Option4" required>
-                        <label for="option4-{{ q.id }}">
-                            {{ q.option4|safe }}
-                        </label>
-                    </div>
-               </div>
-                {% endif %}
+{% if q.option4 %}
+<div class="quiz">
+  <input type="radio" name="{{ q.id }}" id="opt4_{{ q.id }}" value="Option4">
+  <label for="opt4_{{ q.id }}">
+    <code>{{ q.option4|escape }}</code>
+  </label>
+</div>
+{% endif %}
 
             </td>
 

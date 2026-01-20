@@ -32,6 +32,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path("webprojects/", include("webprojects.urls")),
     path("api/v1/", include("django_fastapi.urls")),
+    path('instructor/', include('instructor.urls', namespace='instructor')),
 
     path('tinymce/', include('tinymce.urls')),
     path('certificate-stats/', include('certificate_stats.urls')),

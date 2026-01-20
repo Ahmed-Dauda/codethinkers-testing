@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Delete Course</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        h1 { font-size: 24px; color: #333; margin-bottom: 20px; }
+        p { font-size: 16px; margin-bottom: 20px; }
+        button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .btn-delete { background: #dc3545; color: #fff; margin-right: 10px; }
+        .btn-cancel { background: #6c757d; color: #fff; }
+        a { text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>Confirm Delete</h1>
+        <p>Are you sure you want to delete the course: <strong>{{ course.title }}</strong>?</p>
+        
+        <form method="post" style="display: inline-block;">
+            {% csrf_token %}
+            <button type="submit" class="btn-delete">Yes, Delete</button>
+        </form>
+        
+        <a href="{% url 'instructor:dashboard' %}">
+            <button class="btn-cancel">Cancel</button>
+        </a>
+    </div>
+</div>
+</body>
+</html>

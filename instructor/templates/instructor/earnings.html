@@ -1,0 +1,24 @@
+<h2>My Earnings</h2>
+
+<p>Total Sales: {{ totals.total_sales|default:0 }}</p>
+<p style="color:green;">My Earnings: {{ totals.total_earned|default:0 }}</p>
+
+<table>
+<tr>
+    <th>Course</th>
+    <th>Paid</th>
+    <th>My Share</th>
+    <th>Source</th>
+</tr>
+
+{% for e in earnings %}
+<tr>
+    <td>{{ e.course.title }}</td>
+    <td>{{ e.amount_paid }}</td>
+    <td style="color:green;">{{ e.instructor_amount }}</td>
+    <td>
+        {% if e.payment %}Course{% else %}Certificate{% endif %}
+    </td>
+</tr>
+{% endfor %}
+</table>
