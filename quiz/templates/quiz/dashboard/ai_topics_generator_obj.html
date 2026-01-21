@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Course Contents Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+
+  <!-- Select2 CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+    rel="stylesheet"
+  >
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+
+    .form-card {
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.08);
+    }
+
+    textarea,
+    table input[type="text"] {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    textarea {
+      min-height: 220px;
+      resize: vertical;
+    }
+
+    table {
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    #progress-wrapper {
+      display: none;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container my-5">
+
+  <!-- Header -->
+  <div class="mb-4">
+    <h2 class="fw-bold">🤖 AI Course Contents Generator</h2>
+    <p class="text-muted">
+      Generate structured course topics using learning objectives.
+    </p>
+  </div>
+
+  <!-- Django Messages -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- GENERATION FORM -->
+  {% if not preview_topics %}
+  <div class="card form-card p-4">
+    <form id="generate-form" method="post" action="{% url 'quiz:ai_topics_generator_obj' %}">
+      {% csrf_token %}
+
+      <!-- Category -->
+      <div class="mb-3">
+        <label class="fw-semibold mb-1">Category</label>
+        <select name="category" class="form-select" required>
+          {% for category in categories %}
+            <option value="{{ category.id }}">{{ category }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Course -->
+      <div class="mb-3">
+        <label class="fw-semibold mb-1">Course</label>
+        <select name="course" id="course" class="form-select select2" required>
+          <option value="">Search and select course…</option>
+          {% for course in courses %}
+            <option value="{{ course.id }}">{{ course.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Difficulty -->
+      <div class="mb-3">
+        <label class="fw-semibold mb-1">Difficulty</label>
+        <select name="difficulty" class="form-select">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+
+      <!-- Learning Objectives -->
+      <div class="mb-4">
+        <label class="fw-semibold mb-1">Learning Objectives</label>
+        <textarea
+          name="num_objectives"
+          rows="10"
+          placeholder="Enter one learning objective per line"
+          class="form-control"></textarea>
+
+        <small class="text-muted d-block mt-2">
+          One objective per line. Include Introduction, Summary, and Conclusion.
+        </small>
+
+        <div class="mt-3 p-3 bg-light border rounded">
+          <strong>Sample:</strong>
+          <ul class="mt-2 mb-0">
+            <li>Introduction</li>
+            <li>Understand Python syntax</li>
+            <li>Identify basic data types</li>
+            <li>Write simple Python programs</li>
+            <li>Use variables and operators</li>
+            <li>Apply conditional statements</li>
+            <li>Use loops (for and while)</li>
+            <li>Work with lists and dictionaries</li>
+            <li>Define and use functions</li>
+            <li>Summary</li>
+            <li>Conclusion</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div id="progress-wrapper">
+        <small class="text-muted">Generating content with AI…</small>
+        <div class="progress mt-2" style="height:22px;">
+          <div
+            id="progress-bar"
+            class="progress-bar progress-bar-striped progress-bar-animated"
+            style="width:0%">
+            0%
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="text-end mt-4">
+        <button type="submit" class="btn btn-primary px-4">
+          Generate Topics
+        </button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- PREVIEW & SAVE -->
+  {% if preview_topics %}
+  <div class="card form-card p-4 mt-4">
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="confirm_save" value="1">
+      <input type="hidden" name="category_id" value="{{ category_id }}">
+      <input type="hidden" name="course_id" value="{{ course_id }}">
+      <input type="hidden" name="total_topics" value="{{ preview_topics|length }}">
+
+      <h4 class="fw-bold mb-3">Preview Generated Topics</h4>
+
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th width="25%">Title</th>
+              <th width="75%">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for topic in preview_topics %}
+            <tr>
+              <td>
+                <input
+                  type="text"
+                  name="title_{{ forloop.counter }}"
+                  value="{{ topic.title }}">
+              </td>
+              <td>
+                <textarea
+                  name="desc_{{ forloop.counter }}"
+                  rows="8">{{ topic.desc }}</textarea>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="text-end mt-4">
+        <button type="submit" class="btn btn-success px-4">
+          Save Topics
+        </button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(function () {
+  $('#course').select2({
+    placeholder: "Search and select course…",
+    width: '100%'
+  });
+
+  const progressWrapper = $('#progress-wrapper');
+  const progressBar = $('#progress-bar');
+  let progress = 0;
+
+  $('#generate-form').on('submit', function () {
+    const btn = $(this).find('button[type="submit"]');
+    btn.prop('disabled', true).text('Generating...');
+
+    progressWrapper.show();
+    progress = 0;
+
+    setInterval(() => {
+      if (progress < 90) {
+        progress += Math.random() * 6;
+        progress = Math.min(progress, 90);
+        progressBar
+          .css('width', progress + '%')
+          .text(Math.floor(progress) + '%');
+      }
+    }, 400);
+  });
+});
+</script>
+
+</body>
+</html>

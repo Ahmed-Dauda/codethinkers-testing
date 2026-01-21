@@ -2,7 +2,7 @@
 <style>
   table input[type="text"] {
     width: 100%;
-    padding: 6px 8px;
+    padding: 8px 10px;
     font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -10,9 +10,9 @@
 
   table textarea {
     width: 100%;
-    min-height: 200px;
+    min-height: 220px;
     font-size: 16px;
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
     resize: vertical;
@@ -33,13 +33,18 @@
   }
 
   .btn {
-    min-width: 150px;
+    min-width: 160px;
   }
 
-  .alert {
-    margin-top: 1rem;
+  /* Progress bar */
+  #progress-wrapper {
+    display: none;
+    margin-top: 15px;
   }
 </style>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
 <div class="container mt-4">
   <h2>🤖 AI Course Contents Generator</h2>
@@ -51,11 +56,11 @@
   {% endif %}
 
   {% if not preview_topics %}
-  <!-- Generate Topics Form -->
-  <form method="post" class="mb-4">
+  <form id="generate-form" method="post" action="{% url 'quiz:ai_topics_generator' %}">
     {% csrf_token %}
+
     <div class="mb-3">
-      <label>Category</label>
+      <label class="fw-bold">Category</label>
       <select name="category" class="form-select" required>
         {% for category in categories %}
           <option value="{{ category.id }}">{{ category }}</option>
@@ -64,8 +69,9 @@
     </div>
 
     <div class="mb-3">
-      <label>Course</label>
-      <select name="course" class="form-select" required>
+      <label class="fw-bold">Course</label>
+      <select name="course" id="course" class="form-select select2" required>
+        <option value="">Search and select course…</option>
         {% for course in courses %}
           <option value="{{ course.id }}">{{ course.title }}</option>
         {% endfor %}
@@ -73,12 +79,12 @@
     </div>
 
     <div class="mb-3">
-      <label>Number of Topics</label>
-      <input type="number" name="num_topics" class="form-control" value="5" min="1" max="5" required>
+      <label class="fw-bold">Number of Topics</label>
+      <input type="number" name="num_topics" class="form-control" value="5" min="1" max="20" required>
     </div>
 
     <div class="mb-3">
-      <label>Difficulty</label>
+      <label class="fw-bold">Difficulty</label>
       <select name="difficulty" class="form-select">
         <option value="easy">Easy</option>
         <option value="medium" selected>Medium</option>
@@ -87,27 +93,39 @@
     </div>
 
     <div class="mb-3">
-      <label for="num_objectives">Learning Objectives</label>
-      <textarea 
-        name="num_objectives" 
-        id="num_objectives" 
-        class="form-control tinymce" 
-        placeholder="Enter learning objectives, one per line"
-        style="height: 150px;"
-      ></textarea>
+      <label class="fw-bold">Learning Objectives</label>
+      <textarea
+        name="num_objectives"
+        class="form-control tinymce"
+        placeholder="Enter learning objectives, one per line" required>
+      </textarea>
     </div>
 
     <div class="mb-3">
-      <label>Number of Objectives</label>
-      <input type="number" name="real_learning_obj" class="form-control" value="10" min="1" required>
+      <label class="fw-bold">Number of Objectives</label>
+      <input type="number" name="real_learning_obj" class="form-control" value="5" min="1" max="5" required>
     </div>
 
-    <button type="submit" class="btn btn-primary">Generate Topics</button>
+    <!-- Progress Bar -->
+    <div id="progress-wrapper">
+      <small class="text-muted">Generating content with AI… please wait</small>
+      <div class="progress mt-2" style="height:22px;">
+        <div
+          id="progress-bar"
+          class="progress-bar progress-bar-striped progress-bar-animated"
+          style="width:0%;">
+          0%
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">
+      Generate Topics
+    </button>
   </form>
   {% endif %}
 
   {% if preview_topics %}
-  <!-- Preview & Save Topics Form -->
   <form method="post">
     {% csrf_token %}
     <input type="hidden" name="confirm_save" value="1">
@@ -115,13 +133,13 @@
     <input type="hidden" name="course_id" value="{{ course_id }}">
     <input type="hidden" name="total_topics" value="{{ preview_topics|length }}">
 
-    <h4>Preview Topics</h4>
+    <h4 class="mt-4">Preview Topics</h4>
     <div class="table-responsive">
-      <table class="table table-bordered mt-3 align-middle">
+      <table class="table table-bordered mt-3">
         <thead>
           <tr>
-            <th style="width: 25%;">Title</th>
-            <th style="width: 75%;">Description (Editable)</th>
+            <th width="25%">Title</th>
+            <th width="75%">Description</th>
           </tr>
         </thead>
         <tbody>
@@ -139,30 +157,59 @@
       </table>
     </div>
 
-    <button type="submit" class="btn btn-success mt-3">Save Topics</button>
+    <button type="submit" class="btn btn-success mt-3">
+      Save Topics
+    </button>
   </form>
   {% endif %}
 </div>
 
-<!-- TinyMCE Init -->
- 
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<!-- TinyMCE -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js"></script>
 <script>
-  tinymce.init({
-    selector: 'textarea.tinymce',
-    height: 400,
-    menubar: false,
-    plugins: 'link image preview codesample contextmenu table code mathjax lists',
-    toolbar: 'undo redo | styleselect | bold italic | link image | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | codesample | mathjax',
-    entity_encoding: 'raw',
-    forced_root_block: false, // do not wrap in <p>
-    content_style: "body { font-family:Arial,sans-serif; font-size:14px }",
-    valid_elements: '*[*]',   // allow all tags and attributes
-    extended_valid_elements: 'math[*],mrow[*],mfrac[*],mi[*],mn[*],mo[*]',
-    mathjax: {
-        lib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML',
-        symbols: { mathml: true }
-    }
+tinymce.init({
+  selector: 'textarea.tinymce',
+  height: 400,
+  menubar: false,
+  plugins: 'lists link table code mathjax',
+  toolbar: 'undo redo | bold italic | bullist numlist | table | mathjax'
+});
+</script>
+
+<!-- jQuery + Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(function () {
+  $('#course').select2({
+    placeholder: "Search and select course…",
+    width: '100%'
   });
+
+  const progressWrapper = $('#progress-wrapper');
+  const progressBar = $('#progress-bar');
+  let progress = 0;
+  let interval = null;
+
+  $('#generate-form').on('submit', function () {
+    const btn = $(this).find('button[type="submit"]');
+    btn.prop('disabled', true).text('Generating...');
+
+    progressWrapper.show();
+    progress = 0;
+    progressBar.css('width', '0%').text('0%');
+
+    interval = setInterval(() => {
+      if (progress < 90) {
+        progress += Math.random() * 6;
+        progress = Math.min(progress, 90);
+        progressBar
+          .css('width', progress + '%')
+          .text(Math.floor(progress) + '%');
+      }
+    }, 400);
+  });
+});
 </script>
 {% endblock %}

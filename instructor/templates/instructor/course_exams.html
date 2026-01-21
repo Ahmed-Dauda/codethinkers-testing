@@ -9,17 +9,30 @@
            + Create Exam
         </a>
 
-         <a href="{% url 'quiz:ai_summative_assessment' %}"
-                   class="btn btn-outline-success">
-                    📊 Generate Final Exam with AI
-         </a>
+        <!-- AI Generated Final Exam -->
+        <a href="{% url 'quiz:ai_summative_assessment' %}"
+           class="btn btn-outline-success mb-3">
+            📊 Generate Final Exam with AI
+        </a>
+
+        <!-- Success/Error Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash-message" style="padding: 10px 15px; margin-bottom: 15px; border-radius: 5px;
+                            background: {% if message.tags == 'success' %}#d4edda{% elif message.tags == 'error' %}#f8d7da{% else %}#cce5ff{% endif %};
+                            color: {% if message.tags == 'success' %}#155724{% elif message.tags == 'error' %}#721c24{% else %}#004085{% endif %};
+                            border: 1px solid {% if message.tags == 'success' %}#c3e6cb{% elif message.tags == 'error' %}#f5c6cb{% else %}#b8daff{% endif %};">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
 
         {% if exams %}
         <div style="background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow-x:auto;">
             <table style="width:100%; border-collapse:collapse;">
                 <thead>
                     <tr style="background:#eee;">
-                        <th style="border:1px solid #ddd; padding:8px;">Name</th>
+                        <th style="border:1px solid #ddd; padding:8px;">Exam Name</th>
                         <th style="border:1px solid #ddd; padding:8px;">Questions</th>
                         <th style="border:1px solid #ddd; padding:8px;">Duration</th>
                         <th style="border:1px solid #ddd; padding:8px;">Pass Mark</th>
@@ -29,13 +42,18 @@
                 <tbody>
                     {% for exam in exams %}
                     <tr>
-                        <td style="border:1px solid #ddd; padding:8px;">{{ exam.course_name.title }}</td>
+                        <td style="border:1px solid #ddd; padding:8px;">{{ exam.title }}</td>
                         <td style="border:1px solid #ddd; padding:8px; text-align:center;">{{ exam.show_questions }}</td>
                         <td style="border:1px solid #ddd; padding:8px; text-align:center;">{{ exam.duration_minutes }} mins</td>
                         <td style="border:1px solid #ddd; padding:8px; text-align:center;">{{ exam.pass_mark }}</td>
                         <td style="border:1px solid #ddd; padding:8px; text-align:center;">
-                            <a href="{% url 'instructor:edit_course' exam.id %}" style="color:#007bff; margin-right:5px;">Edit</a>
-                            <a href="{% url 'instructor:delete_course' exam.id %}" style="color:#dc3545;">Delete</a>
+                            <!-- Edit Exam -->
+                            <a href="{% url 'instructor:edit_exam' exam.id %}" style="color:#007bff; margin-right:5px;">Edit</a>
+                            <!-- Delete Exam -->
+                            <a href="{% url 'instructor:delete_exam' exam.id %}" style="color:#dc3545;"
+                               onclick="return confirm('Are you sure you want to delete this exam?');">
+                               Delete
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -47,3 +65,17 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Optional JS for auto-fading messages -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const messages = document.querySelectorAll('.flash-message');
+        messages.forEach(function(msg) {
+            setTimeout(function() {
+                msg.style.transition = "opacity 0.5s ease";
+                msg.style.opacity = 0;
+                setTimeout(function() { msg.remove(); }, 500);
+            }, 3000); // 3 seconds
+        });
+    });
+</script>

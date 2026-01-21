@@ -6,6 +6,8 @@ from . import views
 app_name = 'quiz'
 
 urlpatterns = [
+    path('ai-topics-generator-obj/', views.ai_topics_generator_obj, name='ai_topics_generator_obj'),
+
     path('ai-topics-generator/', views.ai_topics_generator, name='ai_topics_generator'),
 
     path('ai-assessment-selector/', views.ai_assessment_selector, name='ai_assessment_selector'),

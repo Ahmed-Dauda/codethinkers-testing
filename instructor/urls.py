@@ -13,9 +13,9 @@ urlpatterns = [
         add_question_assessment,
         name='add_question_assessment'
     ),
-path('course/<int:course_id>/edit/', edit_course, name='edit_course'),
-    # urls.py
-path('course/<int:course_id>/delete/', delete_course, name='delete_course'),
+# urls.py
+path('exam/<int:exam_id>/edit/', edit_exam, name='edit_exam'),
+path('exam/<int:exam_id>/delete/', delete_exam, name='delete_exam'),
 
     path('course/<int:course_id>/exams/add/', add_exam, name='add_exam'),
     path('course/<int:course_id>/exams/', course_exams, name='course_exams'),

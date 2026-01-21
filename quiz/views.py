@@ -128,6 +128,304 @@ import os
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
+
+@login_required
+def ai_topics_generator_obj(request):
+    if not request.user.is_superuser:
+        messages.error(request, "Only superadmins can add topics.")
+        return redirect('dashboard')
+
+    categories = Categories.objects.all()
+    courses = Courses.objects.all()
+
+    # Save confirmed topics
+    if request.method == 'POST' and request.POST.get("confirm_save") == "1":
+        total_topics = int(request.POST.get("total_topics", 0))
+        category_id = request.POST.get("category_id")
+        course_id = request.POST.get("course_id")
+
+        try:
+            category_obj = Categories.objects.get(id=category_id)
+            course_obj = Courses.objects.get(id=course_id)
+        except (Categories.DoesNotExist, Courses.DoesNotExist):
+            messages.error(request, "Invalid category or course selected.")
+            return redirect('quiz:ai_topics_generator_obj')
+
+        saved = 0
+        for i in range(1, total_topics + 1):
+            title = request.POST.get(f"title_{i}", "").strip()
+            desc = request.POST.get(f"desc_{i}", "").strip()
+            transcript = request.POST.get(f"transcript_{i}", "").strip()
+
+            if title and (desc or transcript):
+                # Generate slug (same logic your model uses)
+                slug = slugify(title)
+
+                topic_obj, created = Topics.objects.update_or_create(
+                    slug=slug,
+                    courses=course_obj,  # ensures uniqueness per course
+                    defaults={
+                        'categories': category_obj,
+                        'title': title,
+                        'desc': desc,
+                        'transcript': transcript
+                    }
+                )
+                saved += 1
+
+        messages.success(request, f"{saved} topics saved successfully.")
+        return redirect('quiz:ai_topics_generator_obj')
+
+    # Generate topics
+    elif request.method == 'POST':
+        category_id = request.POST.get('category')
+        course_id = request.POST.get('course')
+        # num_topics = int(request.POST.get('num_topics', 5))
+        custom_objectives = request.POST.get('num_objectives', '').strip()  # textarea content
+        difficulty = request.POST.get('difficulty', 'medium').lower()
+        # real_learning_obj = int(request.POST.get('real_learning_obj', 5))
+
+        try:
+            category_obj = Categories.objects.get(id=category_id)
+            course_obj = Courses.objects.get(id=course_id)
+        except (Categories.DoesNotExist, Courses.DoesNotExist):
+            messages.error(request, "Invalid category or course selected.")
+            return redirect('quiz:ai_topics_generator_obj')
+
+        course_title = course_obj.title or ""
+        category_title = (category_obj.name or "").lower().strip()
+
+        # Category-level learning objectives (beginner, intermediate, advanced)
+    
+        category_rules = {
+            "beginner": """
+            Focus on foundational knowledge and understanding.
+            Use Bloom’s verbs like: define, describe, identify, recognize, explain, understand, list, recall.
+            Objectives should be simple, clear, and practical.
+            """,
+            "intermediate": """
+            Focus on applying, analyzing, and comparing.
+            Use Bloom’s verbs like: apply, demonstrate, analyze, differentiate, evaluate, design, implement.
+            Objectives should link concepts to real-world applications.
+            """,
+            "advanced": """
+            Focus on creating, evaluating, innovating, and leading.
+            Use Bloom’s verbs like: evaluate, formulate, create, develop, propose, integrate, critique, synthesize.
+            Objectives should include advanced problem-solving, case studies, and professional practice.
+            """
+        }
+
+
+        category_instruction = category_rules.get(category_title, category_rules["intermediate"])
+
+        # --- Determine if programming ---
+        programming_keywords = [
+            "python", "javascript", "java", "c++", "c#", "php", "ruby", "html", "css", "sql",
+            "programming", "coding", "development", "data science", "machine learning",
+            "artificial intelligence", "ai", "devops", "blockchain", "software engineering"
+        ]
+        is_programming = any(kw in course_title.lower() for kw in programming_keywords)
+
+        # Base prompt
+        prompt = f"""
+        You are a JSON-only generator.
+        Generate exactly course topics for a "{course_title}" course under the "{category_title}" category.
+        Apply this difficulty setting: {difficulty}.
+        {category_instruction}
+        """
+
+        # If user provided custom objectives
+        if custom_objectives:
+            objectives_list = [obj.strip() for obj in custom_objectives.split("\n") if obj.strip()]
+            prompt += "\nUse the following learning objectives exactly in this order:\n"
+            for i, obj in enumerate(objectives_list, start=1):
+                prompt += f"{i}. {obj}\n"
+
+
+        if is_programming:
+            prompt += f"""
+          RULES (STRICT JSON-SAFE):
+
+            
+            3. For each topic:
+           - The "description" must **strictly and completely match every word, phrase, and item in the learning objective title**. It must fully expand each part with clear definitions, detailed explanations, multiple examples, practical applications, and, where relevant, comparisons. No element from the title may be skipped or only partially covered.
+                (Example: If the title is "Explain and apply data types, variables, and operators in Python," the description must include and explain all three parts: data types, variables, and operators, not just one or two of them.)  
+            - Write "description" as **lesson-style text** with definition, explanations, examples, and applications.  
+            - Always use **double backslashes for newlines** (`\\n`).  
+            - Escape all double quotes inside strings as `\"`.  
+            - Include **at least 5 runnable code examples** (if relevant), formatted properly, each with **line-by-line comments**.  
+            - Provide **solutions** for exercises or challenges.  
+            - Include **real-world examples** where this concept applies.  
+            - End each topic with a **mini-project or small assignment**, explained step by step.
+
+            4. Python lessons:
+            - Always format code exactly as:
+                ```python
+                def sample_function():
+                    return "Example"  # This function returns the string "Example"
+
+                print(sample_function())  # This line prints the result of the function
+                ```
+            - Every line of code must have a **comment below it**, explaining what it does.
+
+            5. HTML or web-related lessons:
+            - The "description" field must **never contain raw HTML tags**.  
+            - Detect and **escape all HTML tags** (`<div>` → `&lt;div&gt;`).  
+            - Only include the **full HTML structure** (`&lt;!DOCTYPE html&gt; ... &lt;/html&gt;`) if the lesson requires a complete page.  
+            - Otherwise, show just the snippet wrapped inside:
+                <pre><code class="language-html"> ... </code></pre>
+
+            6. Output format:
+            - A single valid **JSON array** of objects.  
+            - Each object must have exactly 2 keys:  
+                - "title"  
+                - "description"  
+            - Do not include any extra text outside the JSON.  
+            - Always escape special characters:  
+                - Newlines → `\\n`  
+                - Double quotes → `\"`  
+                - Tabs → `\\t`
+
+        """
+        else:
+            prompt += f"""
+        RULES:
+        2. Generate topics with exactly 5 paragraphs per description:
+        - Paragraphs must be substantial, coherent, and instructor-ready.
+        - The first paragraph must open with a learner-centered hook.
+        - One paragraph must contain a numbered bullet-point list with at least 4 items.
+        - Include at least one real-life teaching story using Setup, Challenge, Action, Outcome, Lesson learned.
+        3. Output: single valid JSON array of objects with keys "title" and "description" only, separated by \\n.
+        """
+
+        def clean_response(text):
+            if text.startswith("```"):
+                text = text.strip("`")
+                text = text.lstrip("json").strip()
+            import re
+            match = re.search(r"(\[.*\])", text, re.DOTALL)
+            if match:
+                return match.group(1).strip()
+            return text.strip()
+
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant that outputs only valid JSON."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    max_tokens=4000,
+                    temperature=0
+                )
+               
+
+                if not response.choices:
+                    messages.error(request, "OpenAI returned no content.")
+                    return redirect('quiz:ai_topics_generator_obj')
+
+                topics_text = response.choices[0].message.content.strip()
+                topics_text = clean_response(topics_text)
+
+                topics_json = json.loads(topics_text)
+                break  # Success
+
+            except json.JSONDecodeError as e:
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+                    continue
+                else:
+                    messages.error(request, f"Failed to parse AI JSON output after {max_retries} attempts. Error: {e}")
+                    return redirect('quiz:ai_topics_generator_obj')
+            except Exception as e:
+                messages.error(request, f"OpenAI error: {str(e)}")
+                return redirect('quiz:ai_topics_generator_obj')
+
+        preview_topics = []
+        heading_keywords = ["include:", "are:", "must:", "consist of:", "types of", "principles of"]
+
+        import html 
+
+        for topic in topics_json:
+            description = topic.get("description", "")
+            lines = description.split("\n")
+
+            formatted_lines = []
+            in_code_block = False
+            current_lang = ""
+
+            for line in lines:
+                stripped = line.strip()
+
+                # Fenced code block start
+                if stripped.startswith("```") and not in_code_block:
+                    in_code_block = True
+                    current_lang = stripped.replace("```", "").strip().lower()
+                    lang_class = f' class="language-{current_lang}"' if current_lang else ""
+                    formatted_lines.append(f"<pre><code{lang_class}>")
+                    continue
+
+                # Fenced code block end
+                elif stripped.startswith("```") and in_code_block:
+                    in_code_block = False
+                    current_lang = ""
+                    formatted_lines.append("</code></pre>")
+                    continue
+
+                # Already wrapped <pre><code> from AI output
+                elif stripped.startswith("<pre><code"):
+                    in_code_block = True
+                    formatted_lines.append(stripped)
+                    continue
+
+                elif stripped.startswith("</code></pre>"):
+                    in_code_block = False
+                    formatted_lines.append(stripped)
+                    continue
+
+                # Inside *any* code block → escape HTML
+                if in_code_block:
+                    formatted_lines.append(html.escape(line))
+
+                else:
+                    # Outside code blocks → escape ALL tags first
+                    safe_line = html.escape(stripped)
+
+                    # Then apply formatting rules
+                    if any(keyword.lower() in stripped.lower() for keyword in heading_keywords):
+                        formatted_lines.append(f"<h3>{safe_line}</h3>")
+                    elif stripped:
+                        formatted_lines.append(f"<p>{safe_line}</p>")
+
+            formatted_desc = "\n".join(formatted_lines)
+
+            preview_topics.append({
+                    "title": topic.get("title", ""),
+                    "desc": formatted_desc,
+                    "transcript": ""
+                })
+
+
+        return render(request, 'quiz/dashboard/ai_topics_generator_obj.html', {
+            'categories': categories,
+            'courses': courses,
+            'preview_topics': preview_topics,
+            'category_id': category_id,
+            'course_id': course_id,
+            # 'num_objectives': len(objectives_list) if custom_objectives else 5,  # default
+        })
+
+    # GET request
+    return render(request, 'quiz/dashboard/ai_topics_generator_obj.html', {
+        'categories': categories,
+        'courses': courses,
+        # 'num_objectives': 5,  # default for GET
+    })
+
+
+
 @login_required
 def ai_topics_generator(request):
     if not request.user.is_superuser:
@@ -239,58 +537,6 @@ def ai_topics_generator(request):
             prompt += "\nUse the following learning objectives exactly in this order:\n"
             for i, obj in enumerate(objectives_list, start=1):
                 prompt += f"{i}. {obj}\n"
-
-        # Add rules based on course type
-    
-        # if is_programming:
-        #     prompt += f"""
-        #     RULES:
-        #     1. Always start with these topics in order:
-        #     1. "Introduction to {course_title}"
-        #     2. "Overview – {course_title}" – short, clear summary without examples or code.
-        #     3. "Learning Objectives – {course_title}" – numbered list of at least {real_learning_obj} objectives. Objective 5 must combine Objectives 1-4 into one integrative objective. Conclude with a summary paragraph.
-        #     4. Immediately after "Learning Objectives – {course_title}", the first topic title must match Learning Objective #1, with description expanding on it. Continue sequentially for all objectives.
-
-        #     2. For each topic (lesson):
-        #     - Provide a **detailed explanation** of the concept.
-        #     - Include **at least 5 complete runnable code examples**, each inside triple backticks:
-
-        #         ```python
-        #         def explain_python():
-        #             return 'Python is widely used in AI due to its simplicity.'
-        #         print(explain_python())
-        #         ```
-
-        #     - ⚡ If the course is HTML or web-related:
-        #         * The "description" field must **never contain raw HTML tags**. 
-        #         * Detect **any HTML tag** (headings, links, lists, divs, spans, images, etc.) and always escape them as `&lt;` and `&gt;`.
-        #         * This applies everywhere: in normal text, explanations, examples, inline mentions, and pitfalls.
-
-        #         * Only include the **full HTML structure** (`&lt;!DOCTYPE html&gt; ... &lt;/html&gt;`) if the lesson specifically requires a complete page.
-        #         * Otherwise, show just the snippet in `<pre><code class="language-html">...</code></pre>`.
-
-        #     - Provide **solutions** for any exercises or challenges mentioned, also wrapped in triple backticks.
-        #     - Give **real-world examples** showing where this concept is applied.
-        #     - Explain common mistakes or pitfalls learners should avoid.
-           
-
-        #     3. Output must be a **single valid JSON array** of {num_topics} objects with keys `"title"` and `"description"` only.
-        #     - The `"description"` must:
-        #         * Escape all double quotes `"` as `\\"`
-        #         * Escape backslashes `\` as `\\\\`
-        #         * Escape newlines as `\\n`
-        #         * Escape all HTML tags as `&lt;` and `&gt;`
-        #     - No trailing commas.
-        #     - No commentary or explanation outside the JSON.
-        #     - No raw `<h1>`, `<p>`, `<div>`, `<a>`, `<img>`, `<h3>`, etc.
-        #     - Use **triple backticks for programming code** and `<pre><code class="language-html"> ... </code></pre>` for HTML examples.
-
-        #     4 At the **end of every lesson**, include a **Mini Project** section:
-        #     * Clearly describe the project goal.
-        #     * Break it into simple steps for the learner.
-        #     * Provide starter/scaffolding code in a code block (if helpful).
-        #     * Show the **final full solution** in a code block.
-        #     """
 
 
         if is_programming:
@@ -410,6 +656,7 @@ def ai_topics_generator(request):
                     max_tokens=4000,
                     temperature=0
                 )
+               
 
                 if not response.choices:
                     messages.error(request, "OpenAI returned no content.")

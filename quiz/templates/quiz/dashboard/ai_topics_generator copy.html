@@ -1,49 +1,15 @@
 {% block content %}
 <style>
-  table input[type="text"] {
-    width: 100%;
-    padding: 6px 8px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-
-  table textarea {
-    width: 100%;      /* changed here */
-    min-height: 200px;
-    font-size: 16px;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    resize: vertical;
-  }
-
-  .table-responsive {
-    overflow-x: auto;
-    max-width: 100%;
-  }
-
-  table {
-    width: 100%;
-    table-layout: fixed;
-  }
-
-  .container h2 {
-    margin-bottom: 1.5rem;
-  }
-
-  .btn {
-    min-width: 150px;
-  }
-
-  .alert {
-    margin-top: 1rem;
-  }
+  .table-responsive { overflow-x: auto; max-width: 100%; }
+  table { width: 100%; table-layout: fixed; }
+  table input, table textarea { width: 100%; padding: 6px; font-size: 16px; border:1px solid #ccc; border-radius:4px; }
+  .progress { height: 20px; margin-bottom: 15px; }
 </style>
 
-<div class="container mt-4">
-  <h2>🤖 AI Topics Generator</h2>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
+<div class="container mt-4">
+  <h2>🤖 AI Course Contents Generator</h2>
 
   {% if messages %}
     {% for message in messages %}
@@ -51,8 +17,9 @@
     {% endfor %}
   {% endif %}
 
+  <!-- Generate Topics Form -->
   {% if not preview_topics %}
-  <form method="post" class="mb-4">
+  <form id="generate-form" method="post" class="mb-4">
     {% csrf_token %}
     <div class="mb-3">
       <label>Category</label>
@@ -65,7 +32,8 @@
 
     <div class="mb-3">
       <label>Course</label>
-      <select name="course" class="form-select" required>
+      <select name="course" id="course" class="form-select select2" required>
+        <option value="">Search and select course...</option>
         {% for course in courses %}
           <option value="{{ course.id }}">{{ course.title }}</option>
         {% endfor %}
@@ -74,7 +42,7 @@
 
     <div class="mb-3">
       <label>Number of Topics</label>
-      <input type="number" name="num_topics" class="form-control" value="3" min="1" required>
+      <input type="number" name="num_topics" class="form-control" value="5" min="1" max="20" required>
     </div>
 
     <div class="mb-3">
@@ -88,44 +56,118 @@
 
     <button type="submit" class="btn btn-primary">Generate Topics</button>
   </form>
-  {% endif %}
 
-  {% if preview_topics %}
-  <form method="post">
-    {% csrf_token %}
-    <input type="hidden" name="confirm_save" value="1">
-    <input type="hidden" name="category_id" value="{{ category_id }}">
-    <input type="hidden" name="course_id" value="{{ course_id }}">
-    <input type="hidden" name="total_topics" value="{{ preview_topics|length }}">
-
-    <h4>Preview Topics</h4>
-    <div class="table-responsive">
-      <table class="table table-bordered mt-3 align-middle">
-        <thead>
-          <tr>
-            <th style="width: 25%;">Title</th>
-            <th style="width: 75%;">Description (Editable)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for topic in preview_topics %}
-          <tr>
-            <td>
-              <input type="text" name="title_{{ forloop.counter }}" value="{{ topic.title }}">
-            </td>
-            <td>
-              <textarea name="desc_{{ forloop.counter }}">{{ topic.desc }}</textarea>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <!-- Progress Bar -->
+  <div id="progress-container" style="display:none;">
+    <label>Generating Topics... Please wait</label>
+    <div class="progress">
+      <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+           role="progressbar" style="width: 0%"></div>
     </div>
-
-    <button type="submit" class="btn btn-success mt-3">Save Topics</button>
-  </form>
+  </div>
   {% endif %}
+
+  <!-- Preview & Save Topics Form -->
+  <div id="preview-topics-container" style="display: {% if preview_topics %}block{% else %}none{% endif %};">
+    {% if preview_topics %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="confirm_save" value="1">
+        <input type="hidden" name="category_id" value="{{ category_id }}">
+        <input type="hidden" name="course_id" value="{{ course_id }}">
+        <input type="hidden" name="total_topics" value="{{ preview_topics|length }}">
+
+        <h4>Preview Topics</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered mt-3 align-middle">
+            <thead>
+              <tr>
+                <th style="width: 25%;">Title</th>
+                <th style="width: 75%;">Description (Editable)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for topic in preview_topics %}
+              <tr>
+                <td><input type="text" name="title_{{ forloop.counter }}" value="{{ topic.title }}"></td>
+                <td><textarea class="tinymce" name="desc_{{ forloop.counter }}">{{ topic.desc|safe }}</textarea></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <button type="submit" class="btn btn-success mt-3">Save Topics</button>
+      </form>
+    {% endif %}
+  </div>
+
 </div>
 
+<!-- TinyMCE -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  tinymce.init({
+    selector: 'textarea.tinymce',
+    height: 400,
+    menubar: false,
+    plugins: 'link image preview codesample contextmenu table code mathjax lists',
+    toolbar: 'undo redo | styleselect | bold italic | link image | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | codesample | mathjax',
+    entity_encoding: 'raw',
+    forced_root_block: false,
+    content_style: "body { font-family:Arial,sans-serif; font-size:14px }",
+    valid_elements: '*[*]',
+    extended_valid_elements: 'math[*],mrow[*],mfrac[*],mi[*],mn[*],mo[*]',
+    mathjax: {
+        lib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML',
+        symbols: { mathml: true }
+    }
+  });
+</script>
 
+<!-- jQuery + Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('#course').select2({
+      placeholder: "Search and select course...",
+      allowClear: true,
+      width: '100%'
+    });
+
+    // AJAX form submission
+    $('#generate-form').on('submit', function(e) {
+      e.preventDefault();
+
+      $('#progress-container').show();
+      $('#progress-bar').css('width', '0%');
+
+      $.ajax({
+        url: "{% url 'quiz:ai_topics_generator' %}", // change to your backend URL
+        method: "POST",
+        data: $(this).serialize(),
+        xhr: function() {
+          var xhr = new window.XMLHttpRequest();
+          xhr.upload.addEventListener("progress", function(evt) {
+            if (evt.lengthComputable) {
+              var percentComplete = (evt.loaded / evt.total) * 100;
+              $('#progress-bar').css('width', percentComplete + '%');
+            }
+          }, false);
+          return xhr;
+        },
+        success: function(response) {
+          // Replace form with preview
+          $('#generate-form').hide();
+          $('#progress-container').hide();
+          $('#preview-topics-container').html(response).show();
+        },
+        error: function() {
+          alert('An error occurred while generating topics.');
+          $('#progress-container').hide();
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}

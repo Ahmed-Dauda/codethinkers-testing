@@ -22,10 +22,10 @@
             + Add New Course
         </a>
 
-         <a href="{% url 'quiz:ai_topics_generator' %}"
+         <a href="{% url 'quiz:ai_topics_generator_obj' %}"
                    class="btn btn-outline-secondary">
                     📚 Generate course content with AI
-                </a>
+        </a>
     </div>
 
     <!-- AI Assessment Tools -->
@@ -35,21 +35,6 @@
 
             <div class="d-flex flex-wrap gap-2">
               
-                <!-- <a href="{% url 'quiz:ai_topics_generator' %}"
-                   class="btn btn-outline-secondary">
-                    📚 Generate course content with AI
-                </a> -->
-
-                <!-- <a href="{% url 'quiz:ai_summative_assessment' %}"
-                   class="btn btn-outline-success">
-                    📊 Generate Final Exam with AI
-                </a> -->
-
-                <!-- <a href="{% url 'quiz:generate_ai_questions' %}"
-                   class="btn btn-outline-dark">
-                    ✨ AI formative Assessment
-                </a> -->
-
                 <!-- New Topics Assessment Button -->
                 <a href="{% url 'instructor:add_topics_assessment' %}"
                    class="btn btn-outline-primary">
