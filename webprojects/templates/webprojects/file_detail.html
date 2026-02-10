@@ -1,7 +1,7 @@
 {% extends "webprojects/base_editor.html" %}
 {% load file_filters %}
 
-{% block title %}{{ file.name }} | {{ file.project.name }} 777 {% endblock %}
+{% block title %}{{ file.name }} | {{ file.project.name }}  {% endblock %}
 
 {% block extra_head %}
 <meta name="csrf-token" content="{{ csrf_token }}">
@@ -53,7 +53,7 @@
   }
 
   .sidebar {
-    width: 250px;
+    width: 450px;
     background-color: #252526;
     padding: 10px;
     border-right: 1px solid #444;
@@ -147,13 +147,13 @@
       flex-direction: column;
     }
 
-    .sidebar {
+    /* .sidebar {
       width: 100%;
       border-right: none;
       border-bottom: 1px solid #444;
       max-height: 200px;
       overflow-y: auto;
-    }
+    } */
 
     .toolbar {
       flex-direction: column;
@@ -328,6 +328,70 @@
     color: #4fa;
     font-weight: bold;
 }
+
+/* side contents */
+.topic-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background-color: #fafafa;
+    transition: background-color 0.2s ease;
+    font-size: 0.95rem;
+  }
+
+  .topic-item:hover {
+    background-color: #f0f8ff;
+  }
+
+  .topic-toggle {
+    font-weight: 600;
+    color: #333;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .toggle-icon {
+    transition: transform 0.3s ease;
+    font-weight: bold;
+  }
+
+  .topic-desc {
+    overflow: auto;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    margin-top: 6px;
+    padding: 8px;
+    border-radius: 6px;
+    max-height: 300px;
+    font-size: 0.9rem;
+  }
+  .resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 10;
+  transition: background 0.2s;
+}
+
+.resize-handle:hover {
+  background: #4fa !important;
+}
+
+.resize-handle::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 40px;
+  background: rgba(255,255,255,0.1);
+}
 </style>
 
 <!-- roller -->
@@ -345,9 +409,17 @@
 {% endblock %}
 
 {% block header %}
-<a style="color: white;" href="{% url 'webprojects:create_project' %}">
-  📁 {{ file.project.name }} — 📝 {{ file.name }}
-</a>  
+<div style="display: flex; gap: 16px;">
+    <a style="color: white;" href="{% url 'webprojects:create_project' %}">
+        📁 {{ file.project.name }} — 📝 {{ file.name }}
+    </a>
+
+    <a style="color: white;" href="{% url 'quiz:take-exam' %}">
+        take exam
+    </a>
+</div>
+
+
 
 {% endblock %}
 
@@ -392,6 +464,40 @@
 
 <hr>
 
+<h2 class="mb-3">Topics for {{ course.title }}</h2>
+
+<div class="topics-container">
+  {% for topic in topics %}
+    <div class="topic-item">
+      <!-- Topic title with toggle icon -->
+      <a href="javascript:void(0);" class="topic-toggle d-flex justify-content-between align-items-center"
+         onclick="toggleDesc('topic-{{ topic.id }}', this, '{{ topic.language|default:"python" }}')">
+        <span>{{ topic.title }}</span>
+        <span class="toggle-icon">➕</span>
+      </a>
+
+      <!-- Topic description hidden by default -->
+      <pre id="topic-{{ topic.id }}" class="topic-desc language-{{ topic.language|default:'python' }}" 
+           style="display:none;">
+<code class="language-{{ topic.language|default:'python' }}">{{ topic.desc|safe|escape }}</code>
+      </pre>
+    </div>
+  {% empty %}
+    <p class="text-muted">No content found for this course.</p>
+  {% endfor %}
+</div>
+
+<!-- ===== Style ===== -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" rel="stylesheet"/>
+
+<!-- ===== Script ===== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-html.min.js"></script>
+
+
 {% for ext in exts %}
   {% with files|dictsort:"name" as sorted_files %}
     <div class="folder-toggle" data-ext="{{ ext }}">
@@ -409,7 +515,7 @@
 
               {% else %}
                 <!-- 👇 Normal File: Go to Editor -->
-                <a href="{% url 'webprojects:file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
+                <a class="ajax-link" href="{% url 'webprojects:file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
 
                 {% if ".html" in f.name|lower %}
                   <a href="{% url 'webprojects:share_preview' f.project.id f.id %}" target="_blank" style="color: green;">publish</a>
@@ -435,6 +541,7 @@
     </div>
   {% endwith %}
 {% endfor %}
+
 
 
 <!-- 🖼️ Image Popup Modal -->
@@ -805,118 +912,6 @@ document.getElementById('fileChatPrompt').addEventListener('keydown', e => {
 </script>
 
 
-  <!-- <div class="ai-prompt-container" style="display: flex; gap: 10px; padding: 10px; border-top: 1px solid #ccc; background: #f9f9f9;">
-    <input
-      type="text"
-      id="aiPrompt"
-      placeholder="Ask AI to generate a project (e.g., 'Create a bouncing ball game')"
-      style="flex: 1; padding: 10px 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 2px;"
-    />
-    
-    <button
-      id="runAIPrompt"
-      style="padding: 10px 18px; background: #007bff; color: #fff; font-size: 15px; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s, transform 0.1s;"
-      onmouseover="this.style.background='#0056b3'"
-      onmouseout="this.style.background='#007bff'"
-      onmousedown="this.style.transform='scale(0.96)'"
-      onmouseup="this.style.transform='scale(1)'"
-    >
-      Run AI
-    </button>
-  </div>
-</div>
-
-<div style="display:flex; gap:8px; margin-top:10px;">
-  <input id="fileChatPrompt" placeholder="Describe changes to apply..." style="flex:1;padding:8px;">
-  <button id="applyBtn" style="background:#28a745;color:white;padding:8px 20px;border:none;border-radius:4px;cursor:pointer;">Apply Changes</button>
-</div>
-
-<pre id="fileChatOutput" style="background:#f5f5f5;padding:10px;border-radius:4px;max-height:300px;overflow-y:auto;white-space:pre-wrap;"></pre>
-
-<script>
-const PROJECT_ID = {{ project.id }};
-const FILE_ID = {{ file.id }};
-
-function getCsrfToken() {
-    return document.querySelector('[name=csrfmiddlewaretoken]')?.value 
-        || document.querySelector('meta[name="csrf-token"]')?.content
-        || '';
-}
-
-async function applyChanges() {
-    const prompt = document.getElementById('fileChatPrompt').value.trim();
-    
-    if (!prompt) {
-        alert('Please describe the changes you want to make');
-        return;
-    }
-
-    const outputEl = document.getElementById('fileChatOutput');
-    const applyBtn = document.getElementById('applyBtn');
-    const inputField = document.getElementById('fileChatPrompt');
-    
-    // Disable button and show loading
-    applyBtn.disabled = true;
-    applyBtn.textContent = 'Applying...';
-    outputEl.textContent += `\n⏳ Applying: "${prompt}"\n`;
-
-    try {
-        const res = await fetch(`/webprojects/project/${PROJECT_ID}/file/${FILE_ID}/chat/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCsrfToken()
-            },
-            body: JSON.stringify({ 
-                prompt: prompt, 
-                apply: true  // Always apply changes
-            })
-        });
-
-        const data = await res.json();
-
-        if (data.status === "success" && data.code) {
-            // Update editor if it exists
-            if (typeof editor !== 'undefined') {
-                if (editor.setValue) {
-                    editor.setValue(data.code);
-                } else if (editor.getModel) {
-                    editor.getModel().setValue(data.code);
-                }
-            }
-            
-            // Show success message
-            outputEl.textContent += `✅ Changes applied and saved!\n`;
-            outputEl.textContent += `   Prompt: "${prompt}"\n`;
-            outputEl.textContent += `   File ID: ${data.file_id}\n\n`;
-            
-            // Clear input
-            inputField.value = "";
-        } else {
-            outputEl.textContent += `❌ Error: ${data.message || 'Failed to apply changes'}\n\n`;
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        outputEl.textContent += `❌ Request failed: ${error.message}\n\n`;
-    } finally {
-        // Re-enable button
-        applyBtn.disabled = false;
-        applyBtn.textContent = 'Apply Changes';
-    }
-}
-
-// Attach click handler
-document.getElementById('applyBtn').onclick = applyChanges;
-
-// Allow Enter key to apply changes
-document.getElementById('fileChatPrompt').onkeypress = function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        applyChanges();
-    }
-};
-</script> -->
-
 
   <!-- Output panel -->
   <div id="outputPanel" style="height: 100px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
@@ -1050,14 +1045,105 @@ document.getElementById('fileChatPrompt').onkeypress = function(e) {
   });
 </script>
 
+<!-- side content js -->
 
+<script>
+  function toggleDesc(id, el, lang) {
+    const desc = document.getElementById(id);
+    if(desc.style.display === "none") {
+      desc.style.display = "block";
+      el.querySelector(".toggle-icon").textContent = "➖";
+
+      // Apply Prism highlighting
+      const codeEl = desc.querySelector('code');
+      codeEl.className = 'language-' + lang;
+      Prism.highlightElement(codeEl);
+    } else {
+      desc.style.display = "none";
+      el.querySelector(".toggle-icon").textContent = "➕";
+    }
+  }
+</script>
 
 <!-- your sidebar content below... -->
  <script>
   document.addEventListener('DOMContentLoaded', () => {
     const editorLayout = document.getElementById('editorLayout');
     const toggleBtn = document.getElementById('toggleSidebarBtn');
+    const sidebar = document.querySelector('.sidebar'); // Add your sidebar selector
+    const resizeHandle = document.createElement('div');
+    
+    // Create resize handle
+    resizeHandle.className = 'resize-handle';
+    resizeHandle.style.cssText = `
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 5px;
+      cursor: col-resize;
+      background: transparent;
+      z-index: 10;
+    `;
+    resizeHandle.onmouseenter = () => resizeHandle.style.background = '#4fa';
+    resizeHandle.onmouseleave = () => resizeHandle.style.background = 'transparent';
+    
+    sidebar.style.position = 'relative';
+    sidebar.appendChild(resizeHandle);
 
+    // Resize functionality
+    let isResizing = false;
+    let startX = 0;
+    let startWidth = 0;
+
+    resizeHandle.addEventListener('mousedown', (e) => {
+      isResizing = true;
+      startX = e.clientX;
+      startWidth = sidebar.offsetWidth;
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      
+      const width = startWidth + (e.clientX - startX);
+      const minWidth = 200; // Minimum sidebar width
+      const maxWidth = 950; // Maximum sidebar width
+      
+      if (width >= minWidth && width <= maxWidth) {
+        sidebar.style.width = width + 'px';
+        sidebar.style.flexBasis = width + 'px';
+        sidebar.style.minWidth = width + 'px';
+        
+        // Relayout Monaco Editor during resize
+        if (window.editor?.layout) {
+          window.editor.layout();
+        }
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        
+        // Save width to localStorage
+        localStorage.setItem('sidebarWidth', sidebar.offsetWidth);
+      }
+    });
+
+    // Restore saved width
+    const savedWidth = localStorage.getItem('sidebarWidth');
+    if (savedWidth) {
+      sidebar.style.width = savedWidth + 'px';
+      sidebar.style.flexBasis = savedWidth + 'px';
+      sidebar.style.minWidth = savedWidth + 'px';
+    }
+
+    // Toggle sidebar
     const updateToggleIcon = (isCollapsed) => {
       toggleBtn.innerHTML = isCollapsed 
         ? '<span title="Open Sidebar">☰</span>' 
@@ -2073,6 +2159,7 @@ function createNewFolder() {
   })
   .catch(err => alert("❌ Request failed: " + err));
 }
+
 
 function createNewFile() {
   const name = document.getElementById("newFileName").value.trim();

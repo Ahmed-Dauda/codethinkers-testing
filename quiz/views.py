@@ -317,7 +317,7 @@ def ai_topics_generator_obj(request):
                         {"role": "system", "content": "You are a helpful assistant that outputs only valid JSON."},
                         {"role": "user", "content": prompt},
                     ],
-                    max_tokens=4000,
+                    max_tokens=22000,
                     temperature=0
                 )
                

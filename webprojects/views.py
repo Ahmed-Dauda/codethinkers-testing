@@ -52,7 +52,7 @@ from django.contrib.auth.decorators import login_required
 # views.py
 from django.http import JsonResponse
 from collections import defaultdict
-from sms.models import Topics
+from sms.models import Courses, Topics
 
 
 import pandas as pd
@@ -84,18 +84,118 @@ import os
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 
+# @login_required
+# def create_project(request):
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             name = data.get('name', '').strip()
+#             if not name:
+#                 return JsonResponse({'status': 'error', 'message': 'Project name is required'})
+
+#             # Get or create default topic
+#             default_topic, _ = Topics.objects.get_or_create(title="General")
+
+#             # Check if project already exists for this user
+#             existing_project = Project.objects.filter(user=request.user, name=name).first()
+#             if existing_project:
+#                 first_file = existing_project.files.first()
+#                 return JsonResponse({
+#                     'status': 'success',
+#                     'project_id': existing_project.id,
+#                     'file_id': first_file.id if first_file else None
+#                 })
+
+#             # Auto-detect file extension
+#             lower_name = name.lower()
+#             if "python" in lower_name:
+#                 ext = ".py"
+#                 default_content = "# Start your Python code here"
+#             elif "html" in lower_name:
+#                 ext = ".html"
+#                 default_content = "<!-- Start writing HTML here -->"
+#             elif "css" in lower_name:
+#                 ext = ".css"
+#                 default_content = "/* Write your CSS here */"
+#             elif "js" in lower_name or "javascript" in lower_name:
+#                 ext = ".js"
+#                 default_content = "// JavaScript starts here"
+#             else:
+#                 ext = ".py"
+#                 default_content = "# General notes"
+
+#             # Create project with default topic
+#             project = Project.objects.create(
+#                 user=request.user,
+#                 name=name,
+#                 topic=default_topic  # ✅ assign topic here
+#             )
+
+#             # Optionally, create a default folder with topic
+#             folder = Folder.objects.create(
+#                 project=project,
+#                 name="Main",
+#                 topic=default_topic  # ✅ assign topic here
+#             )
+
+#             # Create the first file inside that folder with topic
+#             file = File.objects.create(
+#                 name='main' + ext,
+#                 project=project,
+#                 folder=folder,
+#                 content=default_content,
+#                 topic=default_topic  # ✅ assign topic here
+#             )
+
+#             return JsonResponse({
+#                 'status': 'success',
+#                 'project_id': project.id,
+#                 'file_id': file.id
+#             })
+
+#         except Exception as e:
+#             return JsonResponse({'status': 'error', 'message': str(e)})
+
+#     else:
+#         user_projects = Project.objects.filter(user=request.user).order_by('-created')
+#         return render(request, 'webprojects/create_project.html', {
+#             'projects': user_projects
+#         })
+
 @login_required
 def create_project(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             name = data.get('name', '').strip()
+            course_id = data.get('course_id')  # 👈 IMPORTANT
 
             if not name:
-                return JsonResponse({'status': 'error', 'message': 'Project name is required'})
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Project name is required'
+                })
 
-            # Check for existing project by name (per user)
-            existing_project = Project.objects.filter(user=request.user, name=name).first()
+            # ---------------- COURSE RESOLUTION ----------------
+            course = None
+            if course_id:
+                course = Courses.objects.filter(id=course_id).first()
+
+            print("CREATE PROJECT COURSE:", course)
+            # ---------------------------------------------------
+
+            # Get or create DEFAULT topic FOR THIS COURSE
+            default_topic, _ = Topics.objects.get_or_create(
+                title="General",
+                courses=course
+            )
+
+            # Prevent duplicate projects per user
+            existing_project = Project.objects.filter(
+                user=request.user,
+                name=name
+            ).first()
+
             if existing_project:
                 first_file = existing_project.files.first()
                 return JsonResponse({
@@ -104,7 +204,7 @@ def create_project(request):
                     'file_id': first_file.id if first_file else None
                 })
 
-            # Auto-detect file extension
+            # ---------------- FILE TYPE AUTO-DETECT ----------------
             lower_name = name.lower()
             if "python" in lower_name:
                 ext = ".py"
@@ -120,15 +220,31 @@ def create_project(request):
                 default_content = "// JavaScript starts here"
             else:
                 ext = ".py"
-                default_content = "#General notes"
+                default_content = "# General notes"
+            # ------------------------------------------------------
 
-            project = Project.objects.create(user=request.user, name=name)
+            # ---------------- CREATE PROJECT ----------------
+            project = Project.objects.create(
+                user=request.user,
+                name=name,
+                course=course,          # ✅ FIXED
+                topic=default_topic     # ✅ course-aware topic
+            )
+
+            folder = Folder.objects.create(
+                project=project,
+                name="Main",
+                topic=default_topic
+            )
 
             file = File.objects.create(
                 name='main' + ext,
                 project=project,
-                content=default_content
+                folder=folder,
+                content=default_content,
+                topic=default_topic
             )
+            # ------------------------------------------------
 
             return JsonResponse({
                 'status': 'success',
@@ -137,14 +253,20 @@ def create_project(request):
             })
 
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)})
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            })
 
-    else:
-        user_projects = Project.objects.filter(user=request.user).order_by('-created')
-        return render(request, 'webprojects/create_project.html', {
-            'projects': user_projects
-        })
+    # ---------------- GET REQUEST ----------------
+    user_projects = Project.objects.filter(
+        user=request.user
+    ).select_related('course', 'topic').order_by('-created')
 
+    return render(request, 'webprojects/create_project.html', {
+        'projects': user_projects
+    })
+    
 
 # editor/views.py
 # views.py
@@ -675,15 +797,33 @@ REQUEST:
 @require_http_methods(["GET", "POST"])
 def file_detail(request, project_id, file_id):
     # ================= PROJECT & FILE =================
+    
+
     project = get_object_or_404(
-        Project.objects.prefetch_related("files"),
-        id=project_id,
-        user=request.user
+    Project.objects.prefetch_related("files"),
+    id=project_id,
+    user=request.user
     )
     file = get_object_or_404(File, id=file_id, project=project)
 
+
     files = project.files.all()
     folders = Folder.objects.filter(project=project)
+
+    # Fetch the course object by project name
+    try:
+        course = Courses.objects.get(title=file.project.name)
+    except Courses.DoesNotExist:
+        course = None
+
+    # Fetch topics using the course object
+    topics = Topics.objects.filter(courses=course).select_related("courses", "categories") if course else Topics.objects.none()
+
+    print("PROJECT COURSE:", file.project.name)
+    print("COURSE:", course)
+    print("TOPICS COUNT:", topics.count())
+    print("TOPICS RAW:", list(topics.values("id", "title", "courses_id")))
+
 
     # ================= SIDEBAR EXTENSIONS =================
     exts = sorted({
@@ -1014,6 +1154,7 @@ Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra te
         "exts": exts,
         "project": project,
         "is_image": is_image,
+         "topics": topics,
     })
 
 
@@ -2055,7 +2196,7 @@ def ai_suggest_code(request):
                         "content": f"Complete this code:\n{prompt}"
                     }
                 ],
-                max_tokens=150,
+                max_tokens=2000,
                 temperature=0.3
             )
 
@@ -2080,8 +2221,8 @@ def explain_code_view(request):
                     {"role": "system", "content": "You are an expert coding teacher. Explain code clearly."},
                     {"role": "user", "content": f"Explain this code:\n{code}"}
                 ],
-                max_tokens=250,
-                temperature=0.4
+                max_tokens=2000,
+                temperature=0
             )
             explanation = response.choices[0].message.content.strip()
             return JsonResponse({"explanation": explanation})
@@ -2113,7 +2254,7 @@ def ai_python_completion(request):
             messages=[
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=256,
+            max_tokens=2000,
             temperature=0.3
         )
 
