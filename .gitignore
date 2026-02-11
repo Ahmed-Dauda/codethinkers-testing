@@ -1,8 +1,9 @@
-<<<<<<< HEAD
 
 # Environment variables
 .env
 .env.*
+__pycache__/
+*.pyc
 
 __pycache__/
 *.pyc
@@ -16,14 +17,6 @@ __pycache__/
 *.pyo
 *.pyd
 
-=======
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
->>>>>>> heroku/main
 # Virtual environments
 env/
 venv/
