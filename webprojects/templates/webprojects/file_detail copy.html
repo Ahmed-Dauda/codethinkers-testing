@@ -1,12 +1,18 @@
 {% extends "webprojects/base_editor.html" %}
 {% load file_filters %}
 
+<<<<<<< HEAD
 {% block title %}{{ file.name }} | {{ file.project.name }} 777 {% endblock %}
 
 {% block extra_head %}
 <meta name="csrf-token" content="{{ csrf_token }}">
 
 
+=======
+{% block title %}{{ file.name }} | {{ file.project.name }}{% endblock %}
+
+{% block extra_head %}
+>>>>>>> heroku/main
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
 <style>
   html, body {
@@ -231,6 +237,7 @@
 }
 
 </style>
+<<<<<<< HEAD
 <style>
 /* Folder toggle header */
 .folder-toggle {
@@ -341,6 +348,8 @@
 
 
 </style>
+=======
+>>>>>>> heroku/main
 
 {% endblock %}
 
@@ -354,6 +363,7 @@
 
 {% block sidebar %}
 
+<<<<<<< HEAD
 <div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
   Drop File Here or 
   <label for="fileInput" style="color: #4fa; cursor:pointer;">Browse</label>
@@ -387,6 +397,18 @@
 
 <div style="margin-bottom: 20px;">
   <input type="text" id="newFileName" placeholder="📝 New file name (e.g., index.ht4ml)" style="width: 100%; padding: 5px; margin-bottom: 5px; font-size: 0.9em;">
+=======
+
+<!-- <h4 style="color: #ccc;">📤 Upload Image</h4> -->
+<div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
+  Drop Image Here or <label for="imageInput" style="color: #4fa;">Browse</label>
+  <input type="file" id="imageInput" accept="image/*" style="display:none;">
+</div>
+<small style="color: #888;">Image will be added to your files</small>
+
+<div style="margin-bottom: 20px;">
+  <input type="text" id="newFileName" placeholder="📝 New file name (e.g., index.html)" style="width: 100%; padding: 5px; margin-bottom: 5px; font-size: 0.9em;">
+>>>>>>> heroku/main
   <button onclick="createNewFile()" style="width: 100%; background: #3498db; color: white; padding: 6px 10px; border: none; border-radius: 4px;">➕ Create File</button>
 </div>
 
@@ -395,13 +417,18 @@
 {% for ext in exts %}
   {% with files|dictsort:"name" as sorted_files %}
     <div class="folder-toggle" data-ext="{{ ext }}">
+<<<<<<< HEAD
       📁 {{ ext|upper }} Files <span>⮟</span>
+=======
+   📁 {{ ext|upper }} Files <span>⮟</span>
+>>>>>>> heroku/main
     </div>
     <div class="file-group">
       {% for f in sorted_files %}
         {% if f.name|has_ext:ext %}
           {% with f.name|lower as fname %}
             <div class="file-item">
+<<<<<<< HEAD
 
               {% if fname|slice:"-4:" == ".png" or fname|slice:"-4:" == ".jpg" or fname|slice:"-5:" == ".jpeg" or fname|slice:"-4:" == ".gif" %}
                 <!-- 👇 Image File: Open Modal -->
@@ -428,6 +455,18 @@
                   <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
               </form>
 
+=======
+              {% if fname|slice:"-4:" == ".png" or fname|slice:"-4:" == ".jpg" or fname|slice:"-5:" == ".jpeg" or fname|slice:"-4:" == ".gif" %}
+                <!-- 👇 Image File: Open Modal -->
+                <a href="javascript:void(0);" onclick="showImageModal('{{ f.image.url }}')" style="color:#4fa;">🖼️ {{ f.name }}</a>
+              {% else %}
+                <!-- 👇 Normal File: Go to Editor -->
+                <a href="{% url 'file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
+                {% if ".html" in f.name|lower %}
+                  <a href="{% url 'share_preview' f.project.id f.id %}" target="_blank">🔗Share Preview</a>
+                {% endif %}
+              {% endif %}
+>>>>>>> heroku/main
             </div>
           {% endwith %}
         {% endif %}
@@ -445,10 +484,16 @@
   </div>
 </div>
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> heroku/main
 {% endblock %}
 
 
 {% block content %}
+<<<<<<< HEAD
 
 <div style="display: none;" class="preview-section"> 
   <h4>Preview</h4>
@@ -457,6 +502,8 @@
 
 <!-- end -->
 
+=======
+>>>>>>> heroku/main
 <div style="padding: 8px 12px; background: #222; border-bottom: 1px solid #444; text-align: right;">
  <button id="runBtnCode" onclick="runCode()" style="background:#2ecc71; color:white;">▶ Run Code</button> 
   <button id="toggleAI" onclick="toggleAITools()" style="background: #444; color: #fff; padding: 6px 12px; border: none; border-radius: 4px;">
@@ -479,6 +526,7 @@
   <button id="runBtn" onclick="runAIAction()">🚀 Run AI Action</button>
 </div>
 
+<<<<<<< HEAD
 <!-- delete js  -->
 
 <script>
@@ -522,6 +570,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+=======
+>>>>>>> heroku/main
 <script>
   function toggleAITools() {
     const aiToolbar = document.getElementById("aiToolbar");
@@ -544,6 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 </script>
 
+<<<<<<< HEAD
 <div class="editor-panel" style="display: flex; flex-direction: column; height: 10%;">
   <!-- Code Editor -->
   <div id="container" style="flex-grow: 1; min-height: 10px;"></div>
@@ -911,14 +962,28 @@ document.getElementById('fileChatPrompt').onkeypress = function(e) {
   <!-- Output panel -->
   <div id="outputPanel" style="height: 100px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
     <strong>🔽 Output:2</strong>
+=======
+<div class="editor-panel" style="display: flex; flex-direction: column; height: 100%;">
+  <div id="container" style="flex-grow: 1; min-height: 10px;"></div>
+
+  <!-- Resize handle -->
+  <div id="resizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
+
+  <!-- Output panel -->
+  <div id="outputPanel" style="height: 160px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
+    <strong>🔽 Output:</strong>
+>>>>>>> heroku/main
     <pre id="outputText" style="white-space: pre-wrap;"></pre>
     <div id="tablePreview" style="margin-top: 15px;display: none;"></div>
     <div id="plotPreview" style="display: none;"></div>
   </div>
 </div>
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> heroku/main
     <!-- AI Suggestion Preview Modal -->
 <div id="aiModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%);
   background:#2d2d2d; color:#fff; padding:20px; border-radius:8px; z-index:1000; max-width:80%; box-shadow:0 0 10px #000;">
@@ -952,6 +1017,7 @@ document.getElementById('fileChatPrompt').onkeypress = function(e) {
 
 
 <!-- js section -->
+<<<<<<< HEAD
 
 <!-- prompts js -->
 
@@ -1042,6 +1108,8 @@ document.getElementById('fileChatPrompt').onkeypress = function(e) {
 
 
 
+=======
+>>>>>>> heroku/main
 <!-- your sidebar content below... -->
  <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -1783,6 +1851,7 @@ function getLanguage(fileName) {
 }
 
 function runCode() {
+<<<<<<< HEAD
     const code = editor.getValue();
     const output = document.getElementById("outputText");
     const tablePreview = document.getElementById("tablePreview");
@@ -1840,6 +1909,93 @@ function runCode() {
     .catch(err => {
         output.innerHTML = `<span style="color:red;">❌ Request Failed: ${escapeHTML(err.message)}</span>`;
     });
+=======
+  const code = editor.getValue();
+  const output = document.getElementById("outputText");
+  const tablePreview = document.getElementById("tablePreview");
+  const plotPreview = document.getElementById("plotPreview");
+  const ext = "{{ file.name|lower }}".split('.').pop();
+
+  output.innerHTML = `⏳ Running... <span class="spinner"></span>`;
+  tablePreview.innerHTML = "";
+  plotPreview.innerHTML = "";
+
+  if (ext === "js") {
+    try {
+      const logs = [];
+      const originalLog = console.log;
+      console.log = function (...args) {
+        logs.push(args.join(" "));
+      };
+
+      const result = eval(code);
+      console.log = originalLog;
+
+      let outputText = logs.join("\n");
+      if (result !== undefined) {
+        outputText += "\n➡️ Result: " + result;
+      }
+
+      // output.textContent = outputText || "[No output]";
+      output.textContent = outputText;
+    } catch (err) {
+      output.innerHTML = `<span style="color:red;">❌ JavaScript Error: ${escapeHTML(err.message)}</span>`;
+    }
+  }
+
+  else if (ext === "py") {
+    fetch("{% url 'file_detail' file.project.id file.id %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({
+        content: code,
+        run_plot: true
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "error") {
+        output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`;
+      } else {
+        const textOut = data.output || data.error || "[No output]";
+        output.textContent = textOut;
+      }
+
+      // Table
+      if (data.table) {
+        tablePreview.innerHTML = data.table;
+        tablePreview.style.display = "block";
+      } else {
+        tablePreview.style.display = "none";
+      }
+
+      // Plot
+      plotPreview.innerHTML = "";
+      if (Array.isArray(data.images) && data.images.length > 0) {
+        data.images.forEach(src => {
+          const img = document.createElement("img");
+          img.src = src;
+          img.style.maxWidth = "100%";
+          img.style.marginBottom = "10px";
+          plotPreview.appendChild(img);
+        });
+        plotPreview.style.display = "block";
+      } else {
+        plotPreview.style.display = "none";
+      }
+    })
+    .catch(err => {
+      output.innerHTML = `<span style="color:red;">❌ Request Failed: ${escapeHTML(err.message)}</span>`;
+    });
+  }
+
+  else {
+    output.innerHTML = `<span style="color:orange;">⚠️ Unsupported file type: ${escapeHTML(ext)}</span>`;
+  }
+>>>>>>> heroku/main
 }
 
 function escapeHTML(str) {
@@ -1852,6 +2008,10 @@ function escapeHTML(str) {
   }[tag]));
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> heroku/main
 </script>
 
 
@@ -2090,12 +2250,21 @@ function createNewFile() {
   .catch(err => alert("❌ Request failed: " + err));
 }
 
+<<<<<<< HEAD
 </script>
 
 <!-- uppload file js  -->
 <script>
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
+=======
+
+</script>
+
+<script>
+const dropZone = document.getElementById('dropZone');
+const imageInput = document.getElementById('imageInput');
+>>>>>>> heroku/main
 
 dropZone.addEventListener('dragover', e => {
   e.preventDefault();
@@ -2111,6 +2280,7 @@ dropZone.addEventListener('drop', e => {
   e.preventDefault();
   dropZone.style.backgroundColor = '';
   const file = e.dataTransfer.files[0];
+<<<<<<< HEAD
   if (file) uploadFile(file);
 });
 
@@ -2130,11 +2300,36 @@ function uploadFile(file) {
   fetch("{% url 'upload_file_ajax' project.id %}", {
     method: 'POST',
     headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+=======
+  if (file && file.type.startsWith('image/')) {
+    uploadImage(file);
+  }
+});
+
+imageInput.addEventListener('change', () => {
+  const file = imageInput.files[0];
+  if (file && file.type.startsWith('image/')) {
+    uploadImage(file);
+  }
+});
+
+function uploadImage(file) {
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('name', file.name);
+
+  fetch("{% url 'upload_image_ajax' project.id %}", {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+>>>>>>> heroku/main
     body: formData
   })
   .then(res => res.json())
   .then(data => {
     if (data.success) {
+<<<<<<< HEAD
       showToast(`✅ Uploaded: ${file.name}`);
       addFileToList(data.file_id, file.name, data.file_url || "");
 
@@ -2191,6 +2386,15 @@ function showToast(message) {
   toast.textContent = message;
   toast.style.display = "block";
   setTimeout(() => { toast.style.display = "none"; }, 2500);
+=======
+      alert("✅ Image uploaded!");
+      location.reload();  // or dynamically add the file to the sidebar
+    } else {
+      alert("❌ Upload failed.");
+    }
+  })
+  .catch(() => alert("❌ Upload error"));
+>>>>>>> heroku/main
 }
 </script>
 
@@ -2244,4 +2448,8 @@ function showToast(message) {
 </script>
 
 
+<<<<<<< HEAD
 {% endblock %}
+=======
+{% endblock %}
+>>>>>>> heroku/main

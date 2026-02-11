@@ -13,8 +13,11 @@ from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponseRedirect
 import json
+<<<<<<< HEAD
 from instructor.models import InstructorEarning
 from instructor.utils import process_certificate_payment_earnings, process_course_payment_earnings
+=======
+>>>>>>> heroku/main
 from student.models import Signature
 from datetime import datetime
 from django.http import JsonResponse, HttpResponseForbidden
@@ -60,16 +63,24 @@ from .models import Course, Profile, Logo, Signature, Designcert, Certificate, N
 import uuid
 from datetime import datetime
 from django.urls import reverse
+<<<<<<< HEAD
 import logging
 
 # from pypaystack import Transaction, Customer, Plan
 from instructor.utils import process_course_payment_earnings, process_certificate_payment_earnings
 
 logger = logging.getLogger(__name__)
+=======
+
+
+# from pypaystack import Transaction, Customer, Plan
+
+>>>>>>> heroku/main
 
 
 @csrf_exempt
 @require_POST
+<<<<<<< HEAD
 @transaction.non_atomic_requests(using='db_name')  # replace with your DB alias
 def paystack_webhook(request):
     import json
@@ -353,6 +364,155 @@ def paystack_webhook(request):
 #         return JsonResponse({'status': 'success'})
 #     else:
 #         return JsonResponse({'status': 'error', 'message': 'Unsupported event type'}, status=400)
+=======
+@transaction.non_atomic_requests(using='db_name')
+def paystack_webhook(request):
+    # Ensure this is a POST request
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed'}, status=400)
+
+    # Parse the JSON payload from the request
+    try:
+        payload = json.loads(request.body)
+        print("payloadttt:", payload)
+    except json.JSONDecodeError as e:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON payload'}, status=400)
+
+    # Extract relevant information from the payload
+    event = payload.get('event')
+    data = payload.get('data')
+
+    # Check the event type
+    if event == 'charge.success':
+        # Extract information from the data
+        verified = True
+        reference = data.get('reference')
+        paid_amount = data.get('amount') / 100
+        first_name = data['customer'].get('first_name')
+        last_name = data['customer'].get('last_name')
+        email = data['customer'].get('email')
+
+        referrer = payload['data']['metadata']['referrer'].strip()
+        # print("Referrer URL:", referrer)
+        # print("amount:", paid_amount)
+
+        # Split the referrer URL by '/'
+        url_parts = referrer.split('/')
+        content_type = url_parts[-3]
+        # print("content_type", content_type)
+        # print('url:', url_parts[-3])
+        # retrieving referral codes
+        recode = get_object_or_404(NewUser, email = email)
+        recode = recode.phone_number
+    
+        # Check if the last part of the URL is a numeric "id"
+        if url_parts[-2].isdigit():
+            id_value = url_parts[-2]
+            # print("Extracted ID:", id_value)
+        else:
+            id_value = None
+        # print("course printed:", course)
+        # course_amount = course.price
+        if content_type == 'course':
+            # Assuming id_value is the primary key of the Courses model
+            course = get_object_or_404(Courses, pk=id_value)
+            # Check if a Payment with the same reference already exists
+            # user_newuser = get_object_or_404(NewUser, email=request.user)
+            # print("user_newuser", user_newuser)
+            # user = Profile.objects.get(id=course.id)
+
+            # profile = get_object_or_404(Profile, id=user_id)
+     
+            existing_payment = Payment.objects.filter(ref=reference, email=email,amount=paid_amount,content_type=course).first()
+
+            if not existing_payment:
+                # Create a new Payment only if no existing payment is found
+                payment = Payment.objects.create(
+                    ref=reference,
+                    amount=paid_amount,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    verified=verified,
+                    content_type=course,
+                    f_code=recode,
+                    # payment_user=user,   
+                )
+
+                # Set courses for the Payment instance
+                # course = get_object_or_404(Courses, pk=id_value)
+                if course:
+                    payment.courses.set([course])
+             
+            else:
+                # Handle the case where a Payment with the same reference already exists
+                # You may want to log, display an error message, or take other actions
+                print(f"Payment with reference {reference} already exists.")
+                            
+            
+        # course = get_object_or_404(Courses, pk=id_value)
+        elif content_type == 'certificates':
+            # Assuming id_value is the primary key of the Course model
+            course = get_object_or_404(Course, pk=id_value)
+
+            # Check if a CertificatePayment with the same reference already exists
+            existing_cert_payment = CertificatePayment.objects.filter(ref=reference).first()
+
+            if not existing_cert_payment:
+                # Create a new CertificatePayment only if no existing payment is found
+                cert_payment = CertificatePayment.objects.create(
+                    ref=reference,
+                    amount=paid_amount,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    verified=verified,
+                    content_type=course,
+                    f_code=recode,
+                )
+
+                # Set courses for the CertificatePayment instance
+                # course = get_object_or_404(Course, pk=id_value)
+                if course:
+                    cert_payment.courses.set([course])
+            else:
+                # Handle the case where a CertificatePayment with the same reference already exists
+                # You may want to log, display an error message, or take other actions
+                print(f"CertificatePayment with reference {reference} already exists.")
+
+        else:
+
+            if content_type == 'ebooks':
+                course = get_object_or_404(PDFDocument, pk=id_value)
+
+                # Check if a payment with the same reference already exists
+                existing_payment = EbooksPayment.objects.filter(ref=reference).first()
+
+                if not existing_payment:
+                    # Create a new payment only if no existing payment is found
+                    epayment = EbooksPayment.objects.create(
+                        ref=reference,
+                        amount=paid_amount,
+                        first_name=first_name,
+                        last_name=last_name,
+                        email=email,
+                        verified=verified,
+                        content_type=course,
+                        
+                    )
+
+                    if course:
+                        epayment.courses.set([course])
+                else:
+                    # Handle the case where a payment with the same reference already exists
+                    # You may want to log, display an error message, or take other actions
+                    print(f"Payment with reference {reference} already exists.")
+
+
+        return JsonResponse({'status': 'success'})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Unsupported event type'}, status=400)
+>>>>>>> heroku/main
 
 
 # end 
@@ -733,6 +893,7 @@ def calculate_marks_view(request):
     if not request.user.is_authenticated:
         return redirect('account_login')   # Redirect to login if not authenticated
     return async_to_sync(_calculate_marks_async)(request)
+<<<<<<< HEAD
 
 
 async def _calculate_marks_async(request):
@@ -899,6 +1060,154 @@ def save_result(course, student, total_marks):
 
 #     questions = list(QMODEL.Question.objects.filter(course=course).order_by('id'))
 
+=======
+
+
+async def _calculate_marks_async(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+    course_id = request.COOKIES.get('course_id')
+    if not course_id:
+        return JsonResponse({'success': False, 'error': 'Course ID not found in cookies.'})
+
+    try:
+        answers_dict = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON format.'})
+
+    try:
+        course, student, result_exists, questions = await get_course_and_student_and_questions(course_id, request.user.id)
+    except QMODEL.Course.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Course not found.'})
+    except Profile.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Student profile not found.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Unexpected error: {str(e)}'})
+
+    # If result already exists, redirect immediately
+    if result_exists:
+        return redirect('sms:certificates', pk=course.id)
+
+    # Calculate marks
+    total_marks = 0
+    for question in questions:
+        qid = str(question.id)
+        selected = answers_dict.get(qid)
+        if selected and selected == question.answer:
+            total_marks += question.marks or 0
+
+    try:
+        await save_result(course, student, total_marks)
+        # ✅ Redirect to certificate detail after saving result
+        return redirect('certificates', pk=course.id)
+    except IntegrityError:
+        return redirect('certificates', pk=course.id)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Unexpected error: {str(e)}'})
+
+
+@sync_to_async
+def get_course_and_student_and_questions(course_id, user_id):
+    course = QMODEL.Course.objects.select_related(
+        'schools', 'session', 'term', 'exam_type'
+    ).get(id=course_id)
+    student = Profile.objects.select_related('user').get(user_id=user_id)
+
+    result_exists = QMODEL.Result.objects.filter(
+        student=student,
+        exam=course,
+        session=course.session,
+        term=course.term,
+        exam_type=course.exam_type,
+    ).exists()
+
+    questions = list(QMODEL.Question.objects.filter(course=course).order_by('id'))
+
+    return course, student, result_exists, questions
+
+
+@sync_to_async
+def save_result(course, student, total_marks):
+    with transaction.atomic():
+        QMODEL.Result.objects.create(
+            schools=course.schools,
+            marks=total_marks,
+            exam=course,
+            session=course.session,
+            term=course.term,
+            exam_type=course.exam_type,
+            student=student,
+        )
+
+#working with async views
+# @csrf_exempt
+# def calculate_marks_view(request):
+#     if not request.user.is_authenticated:
+#         return JsonResponse({'success': False, 'error': 'Authentication required.'}, status=401)
+#     return async_to_sync(_calculate_marks_async)(request)
+
+
+# async def _calculate_marks_async(request):
+#     if request.method != 'POST':
+#         return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+#     course_id = request.COOKIES.get('course_id')
+#     if not course_id:
+#         return JsonResponse({'success': False, 'error': 'Course ID not found in cookies.'})
+
+#     try:
+#         answers_dict = json.loads(request.body)
+#     except json.JSONDecodeError:
+#         return JsonResponse({'success': False, 'error': 'Invalid JSON format.'})
+
+#     try:
+#         course, student, result_exists, questions = await get_course_and_student_and_questions(course_id, request.user.id)
+#     except QMODEL.Course.DoesNotExist:
+#         return JsonResponse({'success': False, 'error': 'Course not found.'})
+#     except Profile.DoesNotExist:
+#         return JsonResponse({'success': False, 'error': 'Student profile not found.'})
+#     except Exception as e:
+#         return JsonResponse({'success': False, 'error': f'Unexpected error: {str(e)}'})
+
+#     if result_exists:
+#         return JsonResponse({'success': False, 'error': 'Result already exists.'})
+
+#     total_marks = 0
+
+#     for question in questions:
+#         qid = str(question.id)
+#         selected = answers_dict.get(qid)
+
+#         if selected and selected == question.answer:
+#             total_marks += question.marks or 0
+
+#     try:
+#         await save_result(course, student, total_marks)
+#         return JsonResponse({'success': True, 'message': 'Quiz graded and saved ✅'})
+#     except IntegrityError:
+#         return JsonResponse({'success': False, 'error': 'Result already exists.'})
+#     except Exception as e:
+#         return JsonResponse({'success': False, 'error': f'Unexpected error: {str(e)}'})
+
+
+# @sync_to_async
+# def get_course_and_student_and_questions(course_id, user_id):
+#     course = QMODEL.Course.objects.select_related('schools', 'session', 'term', 'exam_type').get(id=course_id)
+#     student = Profile.objects.select_related('user').get(user_id=user_id)
+
+#     result_exists = QMODEL.Result.objects.filter(
+#         student=student,
+#         exam=course,
+#         session=course.session,
+#         term=course.term,
+#         exam_type=course.exam_type,
+        
+#     ).exists()
+
+#     questions = list(QMODEL.Question.objects.filter(course=course).order_by('id'))
+
+>>>>>>> heroku/main
 #     return course, student, result_exists, questions
 
 

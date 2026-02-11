@@ -1,7 +1,11 @@
 {% extends "webprojects/base_editor.html" %}
 {% load file_filters %}
 
+<<<<<<< HEAD
 {% block title %}{{ file.name }} | {{ file.project.name }}  {% endblock %}
+=======
+{% block title %}{{ file.name }} | {{ file.project.name }}{% endblock %}
+>>>>>>> heroku/main
 
 {% block extra_head %}
 <meta name="csrf-token" content="{{ csrf_token }}">
@@ -53,7 +57,11 @@
   }
 
   .sidebar {
+<<<<<<< HEAD
     width: 450px;
+=======
+    width: 250px;
+>>>>>>> heroku/main
     background-color: #252526;
     padding: 10px;
     border-right: 1px solid #444;
@@ -147,13 +155,21 @@
       flex-direction: column;
     }
 
+<<<<<<< HEAD
     /* .sidebar {
+=======
+    .sidebar {
+>>>>>>> heroku/main
       width: 100%;
       border-right: none;
       border-bottom: 1px solid #444;
       max-height: 200px;
       overflow-y: auto;
+<<<<<<< HEAD
     } */
+=======
+    }
+>>>>>>> heroku/main
 
     .toolbar {
       flex-direction: column;
@@ -328,6 +344,7 @@
     color: #4fa;
     font-weight: bold;
 }
+<<<<<<< HEAD
 
 /* side contents */
 .topic-item {
@@ -392,6 +409,8 @@
   height: 40px;
   background: rgba(255,255,255,0.1);
 }
+=======
+>>>>>>> heroku/main
 </style>
 
 <!-- roller -->
@@ -409,6 +428,7 @@
 {% endblock %}
 
 {% block header %}
+<<<<<<< HEAD
 <div style="display: flex; gap: 16px;">
     <a style="color: white;" href="{% url 'webprojects:create_project' %}">
         📁 {{ file.project.name }} — 📝 {{ file.name }}
@@ -420,6 +440,11 @@
 </div>
 
 
+=======
+<a style="color: white;" href="{% url 'create_project' %}">
+  📁 {{ file.project.name }} — 📝 {{ file.name }}
+</a>  
+>>>>>>> heroku/main
 
 {% endblock %}
 
@@ -458,12 +483,17 @@
 
 
 <div style="margin-bottom: 20px;">
+<<<<<<< HEAD
   <input type="text" id="newFileName" placeholder="📝 New file name (e.g., index.ht4ml)" style="width: 100%; padding: 5px; margin-bottom: 5px; font-size: 0.9em;">
+=======
+  <input type="text" id="newFileName" placeholder="📝 New file name (e.g., index.html)" style="width: 100%; padding: 5px; margin-bottom: 5px; font-size: 0.9em;">
+>>>>>>> heroku/main
   <button onclick="createNewFile()" style="width: 100%; background: #3498db; color: white; padding: 6px 10px; border: none; border-radius: 4px;">➕ Create File</button>
 </div>
 
 <hr>
 
+<<<<<<< HEAD
 <h2 class="mb-3">Topics for {{ course.title }}</h2>
 
 <div class="topics-container">
@@ -498,6 +528,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-html.min.js"></script>
 
 
+=======
+>>>>>>> heroku/main
 {% for ext in exts %}
   {% with files|dictsort:"name" as sorted_files %}
     <div class="folder-toggle" data-ext="{{ ext }}">
@@ -515,21 +547,36 @@
 
               {% else %}
                 <!-- 👇 Normal File: Go to Editor -->
+<<<<<<< HEAD
                 <a class="ajax-link" href="{% url 'webprojects:file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
 
                 {% if ".html" in f.name|lower %}
                   <a href="{% url 'webprojects:share_preview' f.project.id f.id %}" target="_blank" style="color: green;">publish</a>
+=======
+                <a href="{% url 'file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
+
+                {% if ".html" in f.name|lower %}
+                  <a href="{% url 'share_preview' f.project.id f.id %}" target="_blank">🔗Share</a>
+>>>>>>> heroku/main
                 {% endif %}
 
                 {% if f.is_excel %}
                   <!-- 👇 Excel/CSV Preview Button -->
+<<<<<<< HEAD
                   <a href="{% url 'webprojects:file_preview' f.project.id f.id %}" class="btn btn-sm ">View</a>
+=======
+                  <a href="{% url 'file_preview' f.project.id f.id %}" class="btn btn-sm ">View</a>
+>>>>>>> heroku/main
                 {% endif %}
 
               {% endif %}
 
               <!-- 👇 Delete Button for all files -->
+<<<<<<< HEAD
               <form method="POST" action="{% url 'webprojects:file_delete' f.project.id f.id %}" class="delete-file-form d-inline">
+=======
+              <form method="POST" action="{% url 'file_delete' f.project.id f.id %}" class="delete-file-form d-inline">
+>>>>>>> heroku/main
                   {% csrf_token %}
                   <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
               </form>
@@ -543,7 +590,10 @@
 {% endfor %}
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> heroku/main
 <!-- 🖼️ Image Popup Modal -->
 <div id="imagePopupModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000;">
   <span onclick="closeImageModal()" style="position:absolute; top:20px; right:30px; font-size:32px; color:white; cursor:pointer;">&times;</span>
@@ -651,6 +701,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 </script>
 
+<<<<<<< HEAD
 <div class="editor-panel" style="display: flex; flex-direction: column; height: 10%;">
   <!-- Code Editor -->
   <div id="container" style="flex-grow: 1; min-height: 10px;"></div>
@@ -915,6 +966,37 @@ document.getElementById('fileChatPrompt').addEventListener('keydown', e => {
 
   <!-- Output panel -->
   <div id="outputPanel" style="height: 100px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
+=======
+<div class="editor-panel" style="display: flex; flex-direction: column; height: 100%;">
+  <div id="container" style="flex-grow: 1; min-height: 10px;"></div>
+
+  <!-- Resize handle -->
+  <div id="resizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
+
+  <div class="ai-prompt-container" style="display: flex; gap: 10px; padding: 10px; border-top: 1px solid #ccc; background: #f9f9f9;">
+    <input
+      type="text"
+      id="aiPrompt"
+      placeholder="Ask AI to generate a project (e.g., 'Create a bouncing ball game')"
+      style="flex: 1; padding: 10px 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 2px;"
+    />
+    
+    <button
+      id="runAIPrompt"
+      style="padding: 10px 18px; background: #007bff; color: #fff; font-size: 15px; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s, transform 0.1s;"
+      onmouseover="this.style.background='#0056b3'"
+      onmouseout="this.style.background='#007bff'"
+      onmousedown="this.style.transform='scale(0.96)'"
+      onmouseup="this.style.transform='scale(1)'"
+    >
+      Run AI
+    </button>
+  </div>
+</div>
+
+  <!-- Output panel -->
+  <div id="outputPanel" style="height: 160px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
+>>>>>>> heroku/main
     <strong>🔽 Output:2</strong>
     <pre id="outputText" style="white-space: pre-wrap;"></pre>
     <div id="tablePreview" style="margin-top: 15px;display: none;"></div>
@@ -1045,6 +1127,7 @@ document.getElementById('fileChatPrompt').addEventListener('keydown', e => {
   });
 </script>
 
+<<<<<<< HEAD
 <!-- side content js -->
 
 <script>
@@ -1064,12 +1147,16 @@ document.getElementById('fileChatPrompt').addEventListener('keydown', e => {
     }
   }
 </script>
+=======
+
+>>>>>>> heroku/main
 
 <!-- your sidebar content below... -->
  <script>
   document.addEventListener('DOMContentLoaded', () => {
     const editorLayout = document.getElementById('editorLayout');
     const toggleBtn = document.getElementById('toggleSidebarBtn');
+<<<<<<< HEAD
     const sidebar = document.querySelector('.sidebar'); // Add your sidebar selector
     const resizeHandle = document.createElement('div');
     
@@ -1144,6 +1231,9 @@ document.getElementById('fileChatPrompt').addEventListener('keydown', e => {
     }
 
     // Toggle sidebar
+=======
+
+>>>>>>> heroku/main
     const updateToggleIcon = (isCollapsed) => {
       toggleBtn.innerHTML = isCollapsed 
         ? '<span title="Open Sidebar">☰</span>' 
@@ -1207,7 +1297,11 @@ require(['vs/editor/editor.main'], function () {
   // Auto-save every 3s
 
 let autoSaveInterval = setInterval(() => {
+<<<<<<< HEAD
   fetch("{% url 'webprojects:file_autosave' %}", {
+=======
+  fetch("{% url 'file_autosave' %}", {
+>>>>>>> heroku/main
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -1889,7 +1983,11 @@ function runCode() {
     tablePreview.innerHTML = "";
     plotPreview.innerHTML = "";
 
+<<<<<<< HEAD
     fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", {
+=======
+    fetch("{% url 'file_detail' file.project.id file.id %}", {
+>>>>>>> heroku/main
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -2006,7 +2104,11 @@ function getAISuggestion() {
   btn.disabled = true;
   loader.style.display = "inline";
 
+<<<<<<< HEAD
   fetch("{% url 'webprojects:ai_suggest_code' %}", {
+=======
+  fetch("{% url 'ai_suggest_code' %}", {
+>>>>>>> heroku/main
     method: "POST",
     headers: {
       'Content-Type': 'application/json',
@@ -2062,7 +2164,11 @@ function explainCode() {
   btn.disabled = true;
   btn.textContent = "💬 Explaining...";
 
+<<<<<<< HEAD
   fetch("{% url 'webprojects:explain_code' %}", {
+=======
+  fetch("{% url 'explain_code' %}", {
+>>>>>>> heroku/main
     method: "POST",
     headers: {
       'Content-Type': 'application/json',
@@ -2109,7 +2215,11 @@ function runAIAction() {
   runBtn.disabled = true;
   runBtn.textContent = "⏳ Running...";
 
+<<<<<<< HEAD
   fetch("{% url 'webprojects:ai_suggest_code' %}", {
+=======
+  fetch("{% url 'ai_suggest_code' %}", {
+>>>>>>> heroku/main
     method: "POST",
     headers: {
       'Content-Type': 'application/json',
@@ -2160,7 +2270,10 @@ function createNewFolder() {
   .catch(err => alert("❌ Request failed: " + err));
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> heroku/main
 function createNewFile() {
   const name = document.getElementById("newFileName").value.trim();
   const projectId = {{ file.project.id }};
@@ -2224,7 +2337,11 @@ function uploadFile(file) {
   const loader = document.getElementById("upload-loader");
   loader.style.display = "flex"; // show loader
 
+<<<<<<< HEAD
   fetch("{% url 'webprojects:upload_file_ajax' project.id %}", {
+=======
+  fetch("{% url 'upload_file_ajax' project.id %}", {
+>>>>>>> heroku/main
     method: 'POST',
     headers: { 'X-CSRFToken': '{{ csrf_token }}' },
     body: formData
@@ -2249,6 +2366,60 @@ function uploadFile(file) {
   });
 }
 
+<<<<<<< HEAD
+=======
+// working
+// function uploadFile(file) {
+//   const formData = new FormData();
+//   formData.append('file', file);
+//   formData.append('name', file.name);
+
+//   const loader = document.getElementById("upload-loader");
+//   loader.style.display = "flex"; // show loader
+
+//   fetch("{% url 'upload_file_ajax' project.id %}", {
+//     method: 'POST',
+//     headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+//     body: formData
+//   })
+//   .then(res => res.json())
+//   .then(data => {
+//     if (data.success) {
+//       showToast(`✅ Uploaded: ${file.name}`);
+//       addFileToList(data.file_id, file.name, data.file_url || "");
+      
+//     } else {
+//       showToast(`❌ Upload failed: ${data.error || ''}`);
+//     }
+//   })
+//   .catch(() => showToast("⚠️ Upload error"))
+//   .finally(() => {
+//     loader.style.display = "none"; // hide loader
+//   });
+// }
+
+// function uploadFile(file) {
+//   const formData = new FormData();
+//   formData.append('file', file);  // ✅ universal field
+//   formData.append('name', file.name);
+
+//   fetch("{% url 'upload_file_ajax' project.id %}", {
+//     method: 'POST',
+//     headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+//     body: formData
+//   })
+//   .then(res => res.json())
+//   .then(data => {
+//     if (data.success) {
+//       showToast(`✅ Uploaded: ${file.name}`);
+//       addFileToList(data.file_id, file.name, data.file_url || "");
+//     } else {
+//       showToast(`❌ Upload failed: ${data.error || ''}`);
+//     }
+//   })
+//   .catch(() => showToast("⚠️ Upload error"));
+// }
+>>>>>>> heroku/main
 
 function addFileToList(fileId, fileName, fileUrl) {
   const ext = fileName.split('.').pop().toLowerCase();
