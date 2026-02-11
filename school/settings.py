@@ -103,7 +103,10 @@ INSTALLED_APPS = [
     'webprojects',
     'certificate_stats',
      "django_fastapi",
+<<<<<<< HEAD
      'instructor',
+=======
+>>>>>>> heroku/main
     
     
     
@@ -375,8 +378,16 @@ USE_L10N = True
 
 USE_TZ = True
 
+<<<<<<< HEAD
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+=======
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
+# Now you can use:
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+>>>>>>> heroku/main
 
 
 # Font configuration for badge generator
@@ -404,6 +415,34 @@ BADGE_FONT = {
 # ADDITIONAL SITEs SECURITY
 # HTTPS and secure headers
 
+<<<<<<< HEAD
+# Font configuration for badge generator
+BADGE_FONT = {
+    "family": "Poppins",   # Google Font name
+    "weights": {
+        "title": "Bold",
+        "subtitle": "Regular",
+        "name": "Bold",
+        "course": "SemiBold",
+        "score": "Medium",
+        "footer": "Italic",
+    },
+    "sizes": {
+        "title": 50,
+        "subtitle": 35,
+        "name": 50,
+        "course": 35,
+        "score": 40,
+        "footer": 30,
+    }
+}
+
+
+# ADDITIONAL SITEs SECURITY
+# HTTPS and secure headers
+
+=======
+>>>>>>> heroku/main
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # SECURE_SSL_REDIRECT = True
 # SECURE_BROWSER_XSS_FILTER = True
@@ -456,6 +495,7 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 # DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+<<<<<<< HEAD
 
 # # Update database configuration from $DATABASE_URL
 
@@ -472,11 +512,26 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 
 #local development settings
+=======
+# import dj_database_url
+# # Update database configuration from $DATABASE_URL.
+
+# db_from_env = dj_database_url.config(conn_max_age=0)
+# DATABASES['default'].update(db_from_env)
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+>>>>>>> heroku/main
 
 import dj_database_url
 db_from_env = dj_database_url.config(conn_max_age=0)
 DATABASES['default'].update(db_from_env)
 
+<<<<<<< HEAD
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -495,6 +550,19 @@ DATABASES = {
     }
 }
 
+=======
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'fastapidb',
+#         'USER': 'fastapiuser',
+#         'PASSWORD': 'fastapi37811',  
+#         'HOST': 'localhost',   # or your DB server host
+#         'PORT': '5432',        # default postgres port
+#     }
+# }
+
+>>>>>>> heroku/main
 
 # CREATE DATABASE fastapidb;
 # psql -U postgres -d your_db_name

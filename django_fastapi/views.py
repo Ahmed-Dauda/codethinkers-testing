@@ -46,8 +46,13 @@ async def async_program_pages_list_view(request):
     pages = []
     try:
         async with httpx.AsyncClient(timeout=5) as client:
+<<<<<<< HEAD
             response = await client.get("http://127.0.0.1:8011/api/program-pages")
             # response = await client.get("https://fastapi-service-tk85.onrender.com/api/program-pages")
+=======
+            # response = await client.get("http://127.0.0.1:8010/api/program-pages")
+            response = await client.get("https://fastapi-service-tk85.onrender.com/api/program-pages")
+>>>>>>> heroku/main
             if response.status_code == 200:
                 pages = response.json()
             else:
