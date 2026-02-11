@@ -375,16 +375,12 @@ USE_L10N = True
 
 USE_TZ = True
 
-<<<<<<< HEAD
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-=======
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
 # Now you can use:
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
->>>>>>> heroku/main
 
 
 # Font configuration for badge generator
