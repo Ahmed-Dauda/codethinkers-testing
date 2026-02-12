@@ -1,15 +1,43 @@
-# editor/models.py
 from django.db import models
+from sms.models import Courses, Topics, Categories
 from users.models import NewUser as User
-from cloudinary.models import CloudinaryField  # Make sure this is installed and configured
+from cloudinary.models import CloudinaryField
 import os
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
 
+# ---------------- Helper ----------------
+def get_general_topic(course):
+    if not course:
+        return None
 
+    general_topic, _ = Topics.objects.get_or_create(
+        title="General",
+        courses=course,
+        defaults={
+            "categories": course.categories if course.categories else None
+        }
+    )
+    return general_topic
+
+
+
+# ---------------- Project ----------------
 class Project(models.Model):
     name = models.CharField(max_length=100)
+    course = models.ForeignKey(
+        Courses,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="projects"
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    topic = models.ForeignKey(
+        Topics,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
     created = models.DateTimeField(auto_now_add=True)
 
     def get_absolute_url(self):
@@ -18,21 +46,50 @@ class Project(models.Model):
     def __str__(self):
         return f"{self.name} (ID: {self.id})"
 
+
+# ---------------- Folder ----------------
 class Folder(models.Model):
     project = models.ForeignKey(Project, related_name="folders", on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE)
+    topic = models.ForeignKey(
+        Topics,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
 
     def __str__(self):
         parent_name = f" > {self.parent.name}" if self.parent else ""
         return f"{self.name}{parent_name} (Folder ID: {self.id})"
 
 
+# ---------------- File ----------------
 class File(models.Model):
-    project = models.ForeignKey(Project, related_name="files", on_delete=models.CASCADE)
-    folder = models.ForeignKey(Folder, null=True, blank=True, related_name="files", on_delete=models.CASCADE)
+    project = models.ForeignKey(
+        Project,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="files",
+        on_delete=models.CASCADE
+    )
+    folder = models.ForeignKey(
+        Folder,
+        null=True,
+        blank=True,
+        related_name="files",
+        on_delete=models.CASCADE
+    )
+    topic = models.ForeignKey(
+        Topics,
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.SET_NULL
+    )
 
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=300)
     content = models.TextField(blank=True)
 
     # Support images via Cloudinary
@@ -44,17 +101,16 @@ class File(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
-    def is_frontend(self):
-        return self.folder and self.folder.name == "frontend"
+    class Meta:
+        ordering = ['name']
 
-    def is_backend(self):
-        return self.folder and self.folder.name == "backend"
+    def __str__(self):
+        return f"{self.name} (File ID: {self.id}) — Project: {self.project.name}"
 
-    # --- Helpers ---
+    # ---------------- Helpers ----------------
     def extension(self):
         return self.name.split('.')[-1].lower()
-    
-   
+
     def is_python(self):
         return self.name.lower().endswith(".py")
 
@@ -81,40 +137,31 @@ class File(models.Model):
             return self.file.url
         return ""
 
-    def __str__(self):
-        return f"{self.name} (File ID: {self.id}) — Project: {self.project.name}"
 
-
+# ---------------- Delete uploaded file when model deleted ----------------
 @receiver(post_delete, sender=File)
 def delete_file_on_model_delete(sender, instance, **kwargs):
     if instance.file and os.path.isfile(instance.file.path):
         os.remove(instance.file.path)
 
 
-# class File(models.Model):
-#     project = models.ForeignKey(Project, related_name="files", on_delete=models.CASCADE)
-#     folder = models.ForeignKey(Folder, null=True, blank=True, related_name="files", on_delete=models.CASCADE)
-#     name = models.CharField(max_length=100)
-#     content = models.TextField(blank=True)
-#     image = CloudinaryField('image', blank=True, null=True)  # for uploaded images
-#     created = models.DateTimeField(auto_now_add=True)
-#     updated = models.DateTimeField(auto_now=True)
+# ---------------- Automatically assign General topic if missing ----------------
+@receiver(pre_save, sender=Project)
+def set_project_topic(sender, instance, **kwargs):
+    if not instance.topic and instance.course:
+        instance.topic = get_general_topic(instance.course)
 
-#     def extension(self):
-#         return self.name.split('.')[-1].lower()
 
-#     def is_css(self):
-#         return self.extension() == "css"
 
-#     def is_js(self):
-#         return self.extension() == "js"
+@receiver(pre_save, sender=Folder)
+def set_folder_topic(sender, instance, **kwargs):
+    if not instance.topic and instance.project:
+        instance.topic = get_general_topic(instance.project.course)
 
-#     def is_image(self):
-#         return self.extension() in ["jpg", "jpeg", "png", "gif", "svg", "webp"]
 
-#     def is_html(self):
-#         return self.extension() in ["html", "htm"]
 
-#     def __str__(self):
-#         return f"{self.name} (File ID: {self.id}) — Project: {self.project.name}"
-    
+@receiver(pre_save, sender=File)
+def set_file_topic(sender, instance, **kwargs):
+    if not instance.topic and instance.project and instance.project.course:
+        instance.topic = get_general_topic(instance.project.course)
+

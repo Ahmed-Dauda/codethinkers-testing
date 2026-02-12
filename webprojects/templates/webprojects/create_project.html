@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html>
 <head>
@@ -90,3 +91,224 @@
     </script>
 </body>
 </html>
+=======
+{% extends "webprojects/dashboard.html" %}
+{% load static %}
+
+
+{% block content %}
+<style>
+  .project-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    padding: 30px;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .project-container h2 {
+    font-size: 24px;
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+
+  .project-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem 0;
+  }
+
+  .project-list li {
+    background: #f9f9f9;
+    padding: 12px 18px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+  }
+
+  .project-list li:hover {
+    background: #f1f1f1;
+  }
+
+  .project-list a {
+    text-decoration: none;
+    color: #1a73e8;
+    font-weight: 500;
+  }
+
+  .project-list span {
+    font-size: 13px;
+    color: #777;
+    display: block;
+    margin-top: 4px;
+  }
+
+  form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #333;
+  }
+
+  form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    margin-bottom: 1rem;
+  }
+
+  form button {
+    background-color: #1a73e8;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+
+  form button:hover {
+    background-color: #0c59c7;
+  }
+
+  #status-message {
+    margin-top: 10px;
+    font-size: 14px;
+  }
+</style>
+
+<div class="project-container">
+  <h2>Your Projects</h2>
+
+  <div class="project-list">
+    {% if projects %}
+      <ul>
+        {% for p in projects %}
+          <li>
+            {% with first_file=p.files.first %}
+              {% if first_file %}
+                <a href="{% url 'file_detail' p.id first_file.id %}">📁 {{ p.name }}</a>
+                <span>Created on {{ p.created|date:"M d, Y H:i" }}</span>
+              {% else %}
+                📁 {{ p.name }} <span>No files yet</span>
+              {% endif %}
+            {% endwith %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>You have not created any projects yet.</p>
+    {% endif %}
+  </div>
+
+  <h2>Create a New Project</h2>
+
+  <form id="create-project-form">
+    {% csrf_token %}
+    <label for="project-name">Project Name:</label>
+    <input type="text" id="project-name" name="name" placeholder="e.g., Portfolio Site" required>
+    <button type="submit">➕ Create Project</button>
+  </form>
+
+  <div id="status-message"></div>
+</div>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+document.getElementById('create-project-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const name = document.getElementById('project-name').value;
+  const messageBox = document.getElementById('status-message');  // ✅ Move this up here
+
+  messageBox.innerHTML = "<span style='color: #555;'>⏳ Creating project...</span>";
+
+  fetch("{% url 'create_project' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrftoken
+    },
+    body: JSON.stringify({ name: name })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === "success") {
+      messageBox.innerHTML = "<span style='color: green;'>✅ Project created successfully. Redirecting...</span>";
+      setTimeout(() => {
+        window.location.href = `/webprojects/${data.project_id}/file/${data.file_id}/`;
+      }, 1000);
+    } else {
+      messageBox.innerHTML = `<span style='color: red;'>❌ ${data.message}</span>`;
+    }
+  });
+});
+</script>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+function createEditorProject(topicId) {
+    fetch("{% url 'create_project' %}", {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({
+            name: "Lesson Project",
+            topic_id: topicId
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const url = `{% url 'file_detail' 0 0 %}`
+                .replace('0', data.project_id)
+                .replace('0', data.file_id);
+            window.location.href = url;
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(err => alert("Project creation failed: " + err));
+}
+</script>
+
+{% endblock %}
+>>>>>>> heroku/main

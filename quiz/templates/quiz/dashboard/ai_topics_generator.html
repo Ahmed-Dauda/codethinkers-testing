@@ -2,7 +2,11 @@
 <style>
   table input[type="text"] {
     width: 100%;
+<<<<<<< HEAD
     padding: 8px 10px;
+=======
+    padding: 6px 8px;
+>>>>>>> heroku/main
     font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -10,9 +14,15 @@
 
   table textarea {
     width: 100%;
+<<<<<<< HEAD
     min-height: 220px;
     font-size: 16px;
     padding: 10px;
+=======
+    min-height: 200px;
+    font-size: 16px;
+    padding: 8px;
+>>>>>>> heroku/main
     border: 1px solid #ccc;
     border-radius: 4px;
     resize: vertical;
@@ -33,6 +43,7 @@
   }
 
   .btn {
+<<<<<<< HEAD
     min-width: 160px;
   }
 
@@ -48,6 +59,18 @@
 
 <div class="container mt-4">
   <h2>🤖 AI Course Contents Generator</h2>
+=======
+    min-width: 150px;
+  }
+
+  .alert {
+    margin-top: 1rem;
+  }
+</style>
+
+<div class="container mt-4">
+  <h2>🤖 AI Topics Generator</h2>
+>>>>>>> heroku/main
 
   {% if messages %}
     {% for message in messages %}
@@ -56,11 +79,19 @@
   {% endif %}
 
   {% if not preview_topics %}
+<<<<<<< HEAD
   <form id="generate-form" method="post" action="{% url 'quiz:ai_topics_generator' %}">
     {% csrf_token %}
 
     <div class="mb-3">
       <label class="fw-bold">Category</label>
+=======
+  <!-- Generate Topics Form -->
+  <form method="post" class="mb-4">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label>Category</label>
+>>>>>>> heroku/main
       <select name="category" class="form-select" required>
         {% for category in categories %}
           <option value="{{ category.id }}">{{ category }}</option>
@@ -69,9 +100,14 @@
     </div>
 
     <div class="mb-3">
+<<<<<<< HEAD
       <label class="fw-bold">Course</label>
       <select name="course" id="course" class="form-select select2" required>
         <option value="">Search and select course…</option>
+=======
+      <label>Course</label>
+      <select name="course" class="form-select" required>
+>>>>>>> heroku/main
         {% for course in courses %}
           <option value="{{ course.id }}">{{ course.title }}</option>
         {% endfor %}
@@ -79,12 +115,21 @@
     </div>
 
     <div class="mb-3">
+<<<<<<< HEAD
       <label class="fw-bold">Number of Topics</label>
       <input type="number" name="num_topics" class="form-control" value="5" min="1" max="20" required>
     </div>
 
     <div class="mb-3">
       <label class="fw-bold">Difficulty</label>
+=======
+      <label>Number of Topics</label>
+      <input type="number" name="num_topics" class="form-control" value="5" min="1" required>
+    </div>
+
+    <div class="mb-3">
+      <label>Difficulty</label>
+>>>>>>> heroku/main
       <select name="difficulty" class="form-select">
         <option value="easy">Easy</option>
         <option value="medium" selected>Medium</option>
@@ -93,6 +138,7 @@
     </div>
 
     <div class="mb-3">
+<<<<<<< HEAD
       <label class="fw-bold">Learning Objectives</label>
       <textarea
         name="num_objectives"
@@ -122,10 +168,32 @@
     <button type="submit" class="btn btn-primary mt-3">
       Generate Topics
     </button>
+=======
+      <label for="num_objectives">Learning Objectives</label>
+      <textarea 
+        name="num_objectives" 
+        id="num_objectives" 
+        class="form-control tinymce" 
+        placeholder="Enter learning objectives, one per line"
+        style="height: 150px;"
+      ></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label>Number of Objectives</label>
+      <input type="number" name="real_learning_obj" class="form-control" value="10" min="1" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Generate Topics</button>
+>>>>>>> heroku/main
   </form>
   {% endif %}
 
   {% if preview_topics %}
+<<<<<<< HEAD
+=======
+  <!-- Preview & Save Topics Form -->
+>>>>>>> heroku/main
   <form method="post">
     {% csrf_token %}
     <input type="hidden" name="confirm_save" value="1">
@@ -133,6 +201,7 @@
     <input type="hidden" name="course_id" value="{{ course_id }}">
     <input type="hidden" name="total_topics" value="{{ preview_topics|length }}">
 
+<<<<<<< HEAD
     <h4 class="mt-4">Preview Topics</h4>
     <div class="table-responsive">
       <table class="table table-bordered mt-3">
@@ -140,6 +209,15 @@
           <tr>
             <th width="25%">Title</th>
             <th width="75%">Description</th>
+=======
+    <h4>Preview Topics</h4>
+    <div class="table-responsive">
+      <table class="table table-bordered mt-3 align-middle">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Title</th>
+            <th style="width: 75%;">Description (Editable)</th>
+>>>>>>> heroku/main
           </tr>
         </thead>
         <tbody>
@@ -157,13 +235,18 @@
       </table>
     </div>
 
+<<<<<<< HEAD
     <button type="submit" class="btn btn-success mt-3">
       Save Topics
     </button>
+=======
+    <button type="submit" class="btn btn-success mt-3">Save Topics</button>
+>>>>>>> heroku/main
   </form>
   {% endif %}
 </div>
 
+<<<<<<< HEAD
 <!-- TinyMCE -->
 <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js"></script>
 <script>
@@ -211,5 +294,27 @@ $(function () {
     }, 400);
   });
 });
+=======
+<!-- TinyMCE Init -->
+ 
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  tinymce.init({
+    selector: 'textarea.tinymce',
+    height: 400,
+    menubar: false,
+    plugins: 'link image preview codesample contextmenu table code mathjax lists',
+    toolbar: 'undo redo | styleselect | bold italic | link image | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | codesample | mathjax',
+    entity_encoding: 'raw',
+    forced_root_block: false, // do not wrap in <p>
+    content_style: "body { font-family:Arial,sans-serif; font-size:14px }",
+    valid_elements: '*[*]',   // allow all tags and attributes
+    extended_valid_elements: 'math[*],mrow[*],mfrac[*],mi[*],mn[*],mo[*]',
+    mathjax: {
+        lib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML',
+        symbols: { mathml: true }
+    }
+  });
+>>>>>>> heroku/main
 </script>
 {% endblock %}

@@ -191,8 +191,8 @@ class CustomTinyMCEWidget(TinyMCE):
 
 
 class Topics(models.Model):
-    categories = models.ForeignKey(Categories, on_delete=models.CASCADE)
-    courses = models.ForeignKey(Courses, on_delete=models.CASCADE) 
+    categories = models.ForeignKey(Categories, on_delete=models.CASCADE,blank=True, null=True)
+    courses = models.ForeignKey(Courses, on_delete=models.CASCADE,blank=True, null=True) 
     title = models.CharField(max_length=500, blank=True, null=True)
     slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)  # Increased max_length
     is_completed = models.BooleanField(default=False)
