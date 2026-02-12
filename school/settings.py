@@ -460,12 +460,13 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 #production settings for heroku
 
 import dj_database_url
+import os
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=None,  # Don't fallback to SQLite
-        conn_max_age=60,  # Keep connections alive for efficiency
-        ssl_require=True   # Heroku Postgres usually requires SSL
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=os.environ.get('DATABASE_URL') is not None  # only require SSL if on Heroku
     )
 }
 
