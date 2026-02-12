@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:static/admin/js/vendor/jquery/LICENSE.de877aa6d744.txt
 Copyright OpenJS Foundation and other contributors, https://openjsf.org/
+========
+Copyright (c) 2006-2013 James Graham and other contributors
+>>>>>>>> heroku/main:env/Lib/site-packages/html5lib-1.1.dist-info/LICENSE
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
