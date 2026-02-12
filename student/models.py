@@ -325,8 +325,4 @@ class AdvertisementImage(models.Model):
     link = models.URLField(blank=True, null=True)
 
     def __str__(self):
-<<<<<<< HEAD
         return f"Image {self.id}"
-=======
-        return f"Image {self.id}"
->>>>>>> heroku/main
