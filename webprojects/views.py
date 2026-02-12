@@ -11,24 +11,12 @@ from .models import File, Project
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 
-<<<<<<< HEAD
-=======
-import openai
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-import json
->>>>>>> heroku/main
 
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.conf import settings
 import json
-<<<<<<< HEAD
 
-=======
-from openai import OpenAI
-import io
->>>>>>> heroku/main
 import contextlib
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseBadRequest
@@ -64,15 +52,9 @@ from django.contrib.auth.decorators import login_required
 # views.py
 from django.http import JsonResponse
 from collections import defaultdict
-<<<<<<< HEAD
 from sms.models import Courses, Topics
 
 
-=======
-from sms.models import Topics
-
-import os
->>>>>>> heroku/main
 import pandas as pd
 from django.conf import settings
 
@@ -90,7 +72,6 @@ from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
 from django.conf import settings
 from .models import File, Project, Folder
-<<<<<<< HEAD
 
 
 import os
@@ -180,9 +161,6 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 #         return render(request, 'webprojects/create_project.html', {
 #             'projects': user_projects
 #         })
-=======
-client = OpenAI(api_key=settings.OPENAI_API_KEY) 
->>>>>>> heroku/main
 
 @login_required
 def create_project(request):
@@ -190,7 +168,6 @@ def create_project(request):
         try:
             data = json.loads(request.body)
             name = data.get('name', '').strip()
-<<<<<<< HEAD
             course_id = data.get('course_id')  # 👈 IMPORTANT
 
             if not name:
@@ -219,14 +196,6 @@ def create_project(request):
                 name=name
             ).first()
 
-=======
-
-            if not name:
-                return JsonResponse({'status': 'error', 'message': 'Project name is required'})
-
-            # Check for existing project by name (per user)
-            existing_project = Project.objects.filter(user=request.user, name=name).first()
->>>>>>> heroku/main
             if existing_project:
                 first_file = existing_project.files.first()
                 return JsonResponse({
@@ -235,11 +204,7 @@ def create_project(request):
                     'file_id': first_file.id if first_file else None
                 })
 
-<<<<<<< HEAD
             # ---------------- FILE TYPE AUTO-DETECT ----------------
-=======
-            # Auto-detect file extension
->>>>>>> heroku/main
             lower_name = name.lower()
             if "python" in lower_name:
                 ext = ".py"
@@ -254,7 +219,6 @@ def create_project(request):
                 ext = ".js"
                 default_content = "// JavaScript starts here"
             else:
-<<<<<<< HEAD
                 ext = ".py"
                 default_content = "# General notes"
             # ------------------------------------------------------
@@ -272,26 +236,15 @@ def create_project(request):
                 name="Main",
                 topic=default_topic
             )
-=======
-                ext = ".txt"
-                default_content = "// General notes"
-
-            project = Project.objects.create(user=request.user, name=name)
->>>>>>> heroku/main
 
             file = File.objects.create(
                 name='main' + ext,
                 project=project,
-<<<<<<< HEAD
                 folder=folder,
                 content=default_content,
                 topic=default_topic
             )
             # ------------------------------------------------
-=======
-                content=default_content
-            )
->>>>>>> heroku/main
 
             return JsonResponse({
                 'status': 'success',
@@ -300,7 +253,6 @@ def create_project(request):
             })
 
         except Exception as e:
-<<<<<<< HEAD
             return JsonResponse({
                 'status': 'error',
                 'message': str(e)
@@ -315,16 +267,6 @@ def create_project(request):
         'projects': user_projects
     })
     
-=======
-            return JsonResponse({'status': 'error', 'message': str(e)})
-
-    else:
-        user_projects = Project.objects.filter(user=request.user).order_by('-created')
-        return render(request, 'webprojects/create_project.html', {
-            'projects': user_projects
-        })
-
->>>>>>> heroku/main
 
 # editor/views.py
 # views.py
@@ -528,7 +470,6 @@ def project_files_json(request, project_id):
    
 
 
-<<<<<<< HEAD
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
@@ -1653,238 +1594,6 @@ Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra te
 
 
 #real
-=======
-def file_detail(request, project_id, file_id):
-    file = get_object_or_404(File, id=file_id, project_id=project_id)
-    files = file.project.files.all()
-    project = get_object_or_404(Project, id=project_id)
-    folders = Folder.objects.filter(project=file.project)
-
-    # Sidebar file extensions
-    exts = sorted({os.path.splitext(f.name)[1].lstrip('.').lower() for f in files if '.' in f.name})
-
-    # Detect if file is an image
-    is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
-
-    # Full path to the file
-    file_path = os.path.join(settings.MEDIA_ROOT, str(file.file))
-
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body or "{}")
-            new_content = data.get("content", "")
-            run_plot = data.get("run_plot", False)
-            run_table = data.get("run_table", False)
-            prompt = data.get("prompt", "")  # Safe access
-            # ===== AI Prompt Handling =====
-            if prompt:
-                try:
-                    # ✅ Fetch existing files (create empty ones if missing)
-                    html_file, _ = File.objects.get_or_create(project=project, name="index.html")
-                    css_file, _ = File.objects.get_or_create(project=project, name="style.css")
-                    js_file, _ = File.objects.get_or_create(project=project, name="script.js")
-
-                    # ✅ System instruction (force JSON output only)
-                    system_message = (
-                        "You are an expert web developer. Update the given HTML, CSS, and JS project "
-                        "based on the user's request. Only modify what is necessary. "
-                        "Always return a VALID JSON object with keys: html, css, js. "
-                        "Do NOT include explanations, markdown, or extra text. "
-                        "Example: {\"html\": \"<h1>Hello</h1>\", \"css\": \"body {color:red;}\", \"js\": \"console.log('hi');\"}"
-                    )
-
-                    # ✅ Include current project state
-                    user_message = f"""
-                    Current project:
-                    HTML:
-                    {html_file.content}
-
-                    CSS:
-                    {css_file.content}
-
-                    JS:
-                    {js_file.content}
-
-                    User request:
-                    {prompt}
-                    """
-
-                    response = client.chat.completions.create(
-                        model="gpt-4.1",
-                        
-                        messages=[
-                            {"role": "system", "content": system_message},
-                            {"role": "user", "content": user_message}
-                        ],
-                        max_completion_tokens=4000,
-                        temperature=0
-                    )
-                #     response = client.chat.completions.create(
-                #     model="gpt-5-chat-latest",
-                #     messages=[
-                #         {"role": "system", "content": system_message},
-                #         {"role": "user", "content": user_message}
-                #     ],
-                #     max_completion_tokens=4000,
-                #     temperature=0
-                # )
-
-
-                    ai_text = response.choices[0].message.content.strip()
-
-                    # 🛡️ Extract only JSON portion
-                    start = ai_text.find("{")
-                    end = ai_text.rfind("}")
-                    if start != -1 and end != -1:
-                        ai_text = ai_text[start:end+1]
-
-                    # 🛡️ Try parsing JSON safely
-                    try:
-                        ai_generated = json.loads(ai_text)
-                    except json.JSONDecodeError:
-                        cleaned = ai_text.replace("\n", " ").replace("\r", " ").strip()
-                        try:
-                            ai_generated = json.loads(cleaned)
-                        except Exception:
-                            ai_generated = {"html": ai_text, "css": "", "js": ""}
-
-                    # ✅ Update only if AI returned something new
-                    if ai_generated.get("html"):
-                        html_file.content = ai_generated["html"]
-                        html_file.save()
-
-                    if ai_generated.get("css"):
-                        css_file.content = ai_generated["css"]
-                        css_file.save()
-
-                    if ai_generated.get("js"):
-                        js_file.content = ai_generated["js"]
-                        js_file.save()
-
-                    return JsonResponse({
-                        "status": "success",
-                        "ai_content": ai_generated,
-                        "message": "AI project updated and saved into index.html, style.css, script.js"
-                    })
-
-                except Exception as e:
-                    return JsonResponse({
-                        "status": "error",
-                        "message": str(e),
-                        "trace": traceback.format_exc()
-                    }, status=500)
-            # ===== End AI Prompt =====
-
-            # Prevent mismatched file updates
-            if data.get("file_id") and data.get("file_id") != file.id:
-                return JsonResponse({"error": "Mismatched file ID"}, status=400)
-
-            # Save new content
-            if new_content:
-                file.content = new_content
-                file.save()
-
-            ext = file.name.lower().split(".")[-1]
-            response_table = ""
-            images = []
-
-            # CSV/Excel handling
-            df = None
-            if ext in ["csv", "xls", "xlsx"]:
-                try:
-                    if ext == "csv":
-                        df = pd.read_csv(file_path)
-                    else:
-                        df = pd.read_excel(file_path)
-                    if run_table:
-                        response_table = df.head(20).to_html(
-                            classes="table table-bordered table-sm",
-                            index=False
-                        )
-                except Exception as e:
-                    return JsonResponse({"status": "error", "message": str(e)}, status=500)
-
-            # Python execution (mini Jupyter)
-            if run_plot or new_content.strip():
-                buffer_out = io.StringIO()
-                buffer_err = io.StringIO()
-                plt.clf()
-                plt.close('all')
-
-                if not hasattr(pd, "_original_read_csv"):
-                    pd._original_read_csv = pd.read_csv
-                if not hasattr(pd, "_original_read_excel"):
-                    pd._original_read_excel = pd.read_excel
-
-                def patched_read_csv(name, *args, **kwargs):
-                    path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
-                    return pd._original_read_csv(path, *args, **kwargs)
-
-                def patched_read_excel(name, *args, **kwargs):
-                    path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
-                    return pd._original_read_excel(path, *args, **kwargs)
-
-                pd.read_csv = patched_read_csv
-                pd.read_excel = patched_read_excel
-
-                def fake_show(*args, **kwargs):
-                    buf = io.BytesIO()
-                    plt.savefig(buf, format="png", bbox_inches="tight")
-                    buf.seek(0)
-                    img_base64 = base64.b64encode(buf.read()).decode("utf-8")
-                    images.append(f"data:image/png;base64,{img_base64}")
-                    plt.close()
-
-                plt.show = fake_show
-
-                try:
-                    with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
-                        exec(new_content, {"pd": pd})
-
-                    printed_output = buffer_out.getvalue()
-                    error_output = buffer_err.getvalue()
-                    if error_output:
-                        return JsonResponse({"status": "error", "message": error_output}, status=500)
-
-                    for i in plt.get_fignums():
-                        fig = plt.figure(i)
-                        buf = io.BytesIO()
-                        fig.savefig(buf, format="png", bbox_inches="tight")
-                        buf.seek(0)
-                        img_base64 = base64.b64encode(buf.read()).decode("utf-8")
-                        images.append(f"data:image/png;base64,{img_base64}")
-                        plt.close(fig)
-
-                    return JsonResponse({
-                        "status": "success",
-                        "output": printed_output or "[No output]",
-                        "table": response_table,
-                        "images": images
-                    })
-                except Exception:
-                    return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
-
-            # Default save response
-            return JsonResponse({"status": "saved", "message": "File saved successfully."})
-
-        except Exception:
-            return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
-
-    # GET request
-    return render(request, 'webprojects/file_detail.html', {
-        'file': file,
-        'files': files,
-        'folders': folders,
-        'exts': exts,
-        'project': project,
-        'is_image': is_image,
-    })
-
-
-
-#working code
-
->>>>>>> heroku/main
 # def file_detail(request, project_id, file_id):
 #     file = get_object_or_404(File, id=file_id, project_id=project_id)
 #     files = file.project.files.all()
@@ -1942,24 +1651,15 @@ def file_detail(request, project_id, file_id):
 
 #                     response = client.chat.completions.create(
 #                         model="gpt-4.1",
-<<<<<<< HEAD
                         
-=======
->>>>>>> heroku/main
 #                         messages=[
 #                             {"role": "system", "content": system_message},
 #                             {"role": "user", "content": user_message}
 #                         ],
-<<<<<<< HEAD
 #                         max_completion_tokens=4000,
 #                         temperature=0
 #                     )
                 
-=======
-#                         max_tokens=4000,
-#                         temperature=0
-#                     )
->>>>>>> heroku/main
 
 #                     ai_text = response.choices[0].message.content.strip()
 
@@ -2112,11 +1812,8 @@ def file_detail(request, project_id, file_id):
 #     })
 
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> heroku/main
 # views.py
 def load_project_files(request, project_id):
     try:
@@ -2476,14 +2173,6 @@ def create_folder(request, project_id):
 
 
 # Use your actual OpenAI API key here
-<<<<<<< HEAD
-=======
-# openai.api_key = "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"
-
-# client = OpenAI(api_key="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")
- # Use your settings variable
-#client = OpenAI(api_key=settings.OPENAI_API_KEY) 
->>>>>>> heroku/main
 
 @csrf_exempt
 def ai_suggest_code(request):
@@ -2507,11 +2196,7 @@ def ai_suggest_code(request):
                         "content": f"Complete this code:\n{prompt}"
                     }
                 ],
-<<<<<<< HEAD
                 max_tokens=2000,
-=======
-                max_tokens=150,
->>>>>>> heroku/main
                 temperature=0.3
             )
 
@@ -2536,13 +2221,8 @@ def explain_code_view(request):
                     {"role": "system", "content": "You are an expert coding teacher. Explain code clearly."},
                     {"role": "user", "content": f"Explain this code:\n{code}"}
                 ],
-<<<<<<< HEAD
                 max_tokens=2000,
                 temperature=0
-=======
-                max_tokens=250,
-                temperature=0.4
->>>>>>> heroku/main
             )
             explanation = response.choices[0].message.content.strip()
             return JsonResponse({"explanation": explanation})
@@ -2574,11 +2254,7 @@ def ai_python_completion(request):
             messages=[
                 {"role": "user", "content": prompt}
             ],
-<<<<<<< HEAD
             max_tokens=2000,
-=======
-            max_tokens=256,
->>>>>>> heroku/main
             temperature=0.3
         )
 
