@@ -1,7 +1,15 @@
 
+media/
+__pycache__/
+*.pyc
+staticfiles/
+node_modules/
+
 # Environment variables
-.env
-.env.*
+env/
+venv/
+.venv/
+
 __pycache__/
 *.pyc
 
