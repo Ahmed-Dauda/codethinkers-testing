@@ -465,7 +465,7 @@ import os
 DATABASES = {
     'default': dj_database_url.config(
         conn_max_age=0,
-        ssl_require=False,
+        ssl_require=True,
     )
 }
 
