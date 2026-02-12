@@ -56,9 +56,6 @@ DEBUG = env("DEBUG")
 SECRET_KEY = env("SECRET_KEY")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
-# DATABASES = {
-#     'default': env.db()
-# }
 
 # PAYSTACK MODE: 'test' or 'live'
 PAYSTACK_MODE = env('PAYSTACK_MODE', default='test')
@@ -463,11 +460,12 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 #production settings for heroku
 
 import dj_database_url
+
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=0,
-        ssl_require=False
+        default=None,  # Don't fallback to SQLite
+        conn_max_age=60,  # Keep connections alive for efficiency
+        ssl_require=True   # Heroku Postgres usually requires SSL
     )
 }
 
