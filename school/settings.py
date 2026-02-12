@@ -55,9 +55,10 @@ DEBUG = env("DEBUG")
 
 SECRET_KEY = env("SECRET_KEY")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
-DATABASES = {
-    'default': env.db()
-}
+
+# DATABASES = {
+#     'default': env.db()
+# }
 
 # PAYSTACK MODE: 'test' or 'live'
 PAYSTACK_MODE = env('PAYSTACK_MODE', default='test')
