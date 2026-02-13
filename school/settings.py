@@ -79,7 +79,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites', # make sure sites is included
+    'django.contrib.sites', # make sure sites is include
     'users',
     'sms',
     'student',
