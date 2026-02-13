@@ -55,7 +55,9 @@ DEBUG = env("DEBUG")
 
 SECRET_KEY = env("SECRET_KEY")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
-
+DATABASES = {
+    'default': env.db()
+}
 
 # PAYSTACK MODE: 'test' or 'live'
 PAYSTACK_MODE = env('PAYSTACK_MODE', default='test')
@@ -101,7 +103,6 @@ INSTALLED_APPS = [
     'webprojects',
     'certificate_stats',
      "django_fastapi",
-     'instructor',
     
     
     
@@ -459,34 +460,20 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 #production settings for heroku
 
-import os
 import dj_database_url
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-SECRET_KEY = os.environ.get("SECRET_KEY")
-DEBUG = os.environ.get("DEBUG", "") == "True"
-ALLOWED_HOSTS = ["*"]
-
-DATABASE_URL = os.environ.get("DATABASE_URL")
-if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)
-    }
-else:
-    # fallback for local testing
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+DATABASES = {
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=0,
+        ssl_require=False
+    )
+}
 
 
 #local development settings
-
 # import dj_database_url
+# db_from_env = dj_database_url.config(conn_max_age=0)
+# DATABASES['default'].update(db_from_env)
 
 # DATABASES = {
 #     'default': {
