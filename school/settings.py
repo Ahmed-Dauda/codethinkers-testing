@@ -459,15 +459,27 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 #production settings for heroku
 
-import dj_database_url
 import os
+import dj_database_url
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+DEBUG = os.environ.get("DEBUG", "True") == "True"
+
+ALLOWED_HOSTS = ["*"]
+
+# Default: SQLite for local testing
 DATABASES = {
-    'default': dj_database_url.config(
-        conn_max_age=0,
-        ssl_require=False,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
+
+# Override with Heroku DATABASE_URL if it exists
+if os.environ.get("DATABASE_URL"):
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 
 #local development settings
