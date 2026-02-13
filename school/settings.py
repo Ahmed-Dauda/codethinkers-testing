@@ -103,6 +103,8 @@ INSTALLED_APPS = [
     'webprojects',
     'certificate_stats',
      "django_fastapi",
+     'instructor',
+
     
     
     
