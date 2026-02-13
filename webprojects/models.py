@@ -85,7 +85,6 @@ class File(models.Model):
         Topics,
         null=True,
         blank=True,
-        default=None,
         on_delete=models.SET_NULL
     )
 
@@ -151,14 +150,10 @@ def set_project_topic(sender, instance, **kwargs):
     if not instance.topic and instance.course:
         instance.topic = get_general_topic(instance.course)
 
-
-
 @receiver(pre_save, sender=Folder)
 def set_folder_topic(sender, instance, **kwargs):
     if not instance.topic and instance.project:
         instance.topic = get_general_topic(instance.project.course)
-
-
 
 @receiver(pre_save, sender=File)
 def set_file_topic(sender, instance, **kwargs):
