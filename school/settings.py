@@ -456,7 +456,11 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Use cached database sessions instead
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
+# Or use cache-only sessions (loses sessions on restart)
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
 # # Update database configuration from $DATABASE_URL
 
