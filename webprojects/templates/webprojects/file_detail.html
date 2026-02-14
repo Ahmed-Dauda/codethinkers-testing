@@ -417,6 +417,7 @@
     <a style="color: white;" href="{% url 'quiz:take-exam' %}">
         take exam
     </a>
+    <button id="toggleAIBtn">🤖 AI</button>
 </div>
 
 
@@ -464,7 +465,7 @@
 
 <hr>
 
-<h2 class="mb-3">Topics for {{ course.title }}</h2>
+<h2 class="mb-3">Contents</h2>
 
 <div class="topics-container">
   {% for topic in topics %}
@@ -649,7 +650,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 </script>
-
+ 
 <div class="editor-panel" style="display: flex; flex-direction: column; height: 10%;">
   <!-- Code Editor -->
   <div id="container" style="flex-grow: 1; min-height: 10px;"></div>
@@ -658,6 +659,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div id="resizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
 </div>
 
+ <div id="aiopenclose" style="display:none;">
 <!-- Floating AI Panel -->
 <div id="floatingAI" style="
   position: fixed;
@@ -675,6 +677,7 @@ document.addEventListener('DOMContentLoaded', function() {
 ">
 
   <!-- Drag handle -->
+
   <div id="dragHandle" style="cursor: grab; padding: 8px; background: #f1f1f1; border-bottom: 1px solid #ccc;">🖐️ Drag Me</div>
 
   <!-- Tab Headers -->
@@ -746,8 +749,27 @@ document.addEventListener('DOMContentLoaded', function() {
   <!-- Resize handle for floating AI panel -->
   <div id="resizeHandleAI" style="height:6px; cursor: row-resize; background:#ccc;"></div>
 </div>
+</div>
+
 
 <script>
+
+// ai open and close tab js  
+const toggleBtn = document.getElementById("toggleAIBtn");
+const aiPanel = document.getElementById("aiopenclose");
+
+toggleBtn.addEventListener("click", function() {
+    if (aiPanel.style.display === "none") {
+        aiPanel.style.display = "block";
+    } else {
+        aiPanel.style.display = "none";
+    }
+});
+</script>
+
+
+<script>
+  
 /* ================= TAB SWITCHING ================= */
 const appBuilderTab = document.getElementById('appBuilderTab');
 const fileEditorTab = document.getElementById('fileEditorTab');
@@ -783,27 +805,80 @@ function switchToFileEditor() {
 appBuilderTab.onclick = switchToAppBuilder;
 fileEditorTab.onclick = switchToFileEditor;
 
-/* ================= FLOATING PANEL DRAG ================= */
+/* ================= FLOATING PANEL DRAG (Desktop + Mobile) ================= */
 const panel = document.getElementById('floatingAI');
 const dragHandle = document.getElementById('dragHandle');
 
 let isDraggingPanel = false;
+let dragOffsetX = 0;
 let dragOffsetY = 0;
 
+// Desktop: Mouse events
 dragHandle.addEventListener('mousedown', e => {
+  // Don't drag if clicking buttons
+  if (e.target.id === 'collapseBtn' || e.target.id === 'closeBtn') return;
+  
   isDraggingPanel = true;
+  dragOffsetX = e.clientX - panel.offsetLeft;
   dragOffsetY = e.clientY - panel.offsetTop;
   dragHandle.style.cursor = 'grabbing';
+  e.preventDefault();
 });
 
 document.addEventListener('mousemove', e => {
   if (!isDraggingPanel) return;
-  panel.style.top = (e.clientY - dragOffsetY) + 'px';
+  
+  let newLeft = e.clientX - dragOffsetX;
+  let newTop = e.clientY - dragOffsetY;
+  
+  const maxLeft = window.innerWidth - panel.offsetWidth;
+  const maxTop = window.innerHeight - panel.offsetHeight;
+  
+  newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+  newTop = Math.max(0, Math.min(newTop, maxTop));
+  
+  panel.style.left = newLeft + 'px';
+  panel.style.top = newTop + 'px';
 });
 
 document.addEventListener('mouseup', () => {
   isDraggingPanel = false;
   dragHandle.style.cursor = 'grab';
+});
+
+// Mobile: Touch events
+dragHandle.addEventListener('touchstart', e => {
+  // Don't drag if touching buttons
+  if (e.target.id === 'collapseBtn' || e.target.id === 'closeBtn') return;
+  
+  isDraggingPanel = true;
+  const touch = e.touches[0];
+  dragOffsetX = touch.clientX - panel.offsetLeft;
+  dragOffsetY = touch.clientY - panel.offsetTop;
+  e.preventDefault();
+});
+
+document.addEventListener('touchmove', e => {
+  if (!isDraggingPanel) return;
+  
+  const touch = e.touches[0];
+  let newLeft = touch.clientX - dragOffsetX;
+  let newTop = touch.clientY - dragOffsetY;
+  
+  const maxLeft = window.innerWidth - panel.offsetWidth;
+  const maxTop = window.innerHeight - panel.offsetHeight;
+  
+  newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+  newTop = Math.max(0, Math.min(newTop, maxTop));
+  
+  panel.style.left = newLeft + 'px';
+  panel.style.top = newTop + 'px';
+  
+  e.preventDefault();
+});
+
+document.addEventListener('touchend', () => {
+  isDraggingPanel = false;
 });
 
 /* ================= RESIZE ================= */

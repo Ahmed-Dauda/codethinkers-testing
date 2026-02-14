@@ -792,20 +792,25 @@ REQUEST:
 #         "explanation": ai_output
 #     })
 
+# At the very top of views.py, after all imports
+from django.conf import settings
+from openai import OpenAI
+from .sandbox_runner import run_code
+
+# ================= OPENAI CLIENT INITIALIZATION =================
+# Initialize once when the module loads, not on every request
+
 
 @login_required
 @require_http_methods(["GET", "POST"])
 def file_detail(request, project_id, file_id):
     # ================= PROJECT & FILE =================
-    
-
     project = get_object_or_404(
-    Project.objects.prefetch_related("files"),
-    id=project_id,
-    user=request.user
+        Project.objects.prefetch_related("files"),
+        id=project_id,
+        user=request.user
     )
     file = get_object_or_404(File, id=file_id, project=project)
-
 
     files = project.files.all()
     folders = Folder.objects.filter(project=project)
@@ -824,7 +829,6 @@ def file_detail(request, project_id, file_id):
     print("TOPICS COUNT:", topics.count())
     print("TOPICS RAW:", list(topics.values("id", "title", "courses_id")))
 
-
     # ================= SIDEBAR EXTENSIONS =================
     exts = sorted({
         os.path.splitext(f.name)[1].lstrip(".").lower()
@@ -840,7 +844,6 @@ def file_detail(request, project_id, file_id):
 
     # ================= POST =================
     if request.method == "POST":
-
         # ---------- Safe JSON parsing ----------
         try:
             data = json.loads(request.body.decode()) if request.body else {}
@@ -854,6 +857,14 @@ def file_detail(request, project_id, file_id):
 
         # ================= AI PROMPT =================
         if prompt:
+            # Check if OpenAI client is available
+            if client is None:
+                return JsonResponse({
+                    "status": "error",
+                    "message": "🔑 OpenAI API is not configured. Please set your API key.",
+                    "error_detail": "OPENAI_API_KEY is missing or invalid."
+                }, status=500)
+
             try:
                 with transaction.atomic():
                     # Get or create the three core files
@@ -945,49 +956,112 @@ Do NOT include any markdown code fences, explanations, or extra text.
 
 Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra text or markdown."""
 
-                    # ================= API CALL =================
+                    # ================= API CALL WITH BETTER ERROR HANDLING =================
                     print(f"🤖 AI Request: {prompt[:100]}...")
+                    print(f"📊 Request size: System={len(system_message)} chars, User={len(user_message)} chars")
                     
-                    response = client.chat.completions.create(
-                        model="gpt-4-turbo-preview",  # Use latest model
-                        messages=[
-                            {"role": "system", "content": system_message},
-                            {"role": "user", "content": user_message},
-                        ],
-                        max_tokens=4000,
-                        temperature=0.3,  # Slightly creative but consistent
-                        response_format={"type": "json_object"}  # Force JSON response
-                    )
-
-                    ai_text = response.choices[0].message.content.strip()
-                    print(f"✅ AI Response received: {len(ai_text)} chars")
+                    try:
+                        response = client.chat.completions.create(
+                            model="gpt-4-turbo-preview",
+                            messages=[
+                                {"role": "system", "content": system_message},
+                                {"role": "user", "content": user_message},
+                            ],
+                            max_tokens=4000,
+                            temperature=0.3,
+                            response_format={"type": "json_object"}
+                        )
+                        
+                        ai_text = response.choices[0].message.content.strip()
+                        print(f"✅ AI Response received: {len(ai_text)} chars")
+                        
+                    except Exception as api_error:
+                        error_msg = str(api_error)
+                        print(f"❌ OpenAI API Error: {error_msg}")
+                        print(f"❌ Full traceback: {traceback.format_exc()}")
+                        
+                        # Check for common API errors
+                        if "rate_limit" in error_msg.lower():
+                            return JsonResponse({
+                                "status": "error",
+                                "message": "⏳ Rate limit reached. Please wait a moment and try again.",
+                                "error_detail": error_msg
+                            }, status=429)
+                        elif "api_key" in error_msg.lower() or "authentication" in error_msg.lower():
+                            return JsonResponse({
+                                "status": "error",
+                                "message": "🔑 API authentication failed. Please check your API key configuration.",
+                                "error_detail": error_msg
+                            }, status=500)
+                        elif "timeout" in error_msg.lower():
+                            return JsonResponse({
+                                "status": "error",
+                                "message": "⏱️ Request timed out. Please try again.",
+                                "error_detail": error_msg
+                            }, status=504)
+                        elif "quota" in error_msg.lower() or "insufficient" in error_msg.lower():
+                            return JsonResponse({
+                                "status": "error",
+                                "message": "💳 API quota exceeded. Please check your OpenAI account.",
+                                "error_detail": error_msg
+                            }, status=402)
+                        else:
+                            return JsonResponse({
+                                "status": "error",
+                                "message": f"🚫 AI service failed: {error_msg}",
+                                "error_detail": error_msg
+                            }, status=500)
 
                     # ================= PARSE AI RESPONSE =================
-                    # Try to parse JSON, with fallback for malformed responses
                     try:
                         ai_generated = json.loads(ai_text)
-                    except json.JSONDecodeError:
-                        # Fallback: extract JSON from markdown code blocks
+                    except json.JSONDecodeError as json_error:
+                        print(f"⚠️ JSON Parse Error: {json_error}")
+                        print(f"⚠️ Raw AI response: {ai_text[:500]}...")
+                        
+                        # Try to extract JSON from markdown code blocks
                         print("⚠️ Attempting to extract JSON from malformed response")
                         start = ai_text.find("{")
                         end = ai_text.rfind("}") + 1
                         if start != -1 and end > start:
-                            ai_text = ai_text[start:end]
-                            ai_generated = json.loads(ai_text)
+                            ai_text_cleaned = ai_text[start:end]
+                            try:
+                                ai_generated = json.loads(ai_text_cleaned)
+                                print("✅ Successfully extracted JSON from response")
+                            except json.JSONDecodeError:
+                                return JsonResponse({
+                                    "status": "error",
+                                    "message": "Failed to parse AI response as JSON. The AI may have returned an invalid format.",
+                                    "error_detail": f"Could not parse: {ai_text[:200]}..."
+                                }, status=500)
                         else:
-                            raise ValueError("Could not parse AI response as JSON")
+                            return JsonResponse({
+                                "status": "error",
+                                "message": "AI response does not contain valid JSON.",
+                                "error_detail": f"Response preview: {ai_text[:200]}..."
+                            }, status=500)
 
                     # ================= VALIDATE RESPONSE =================
                     if not isinstance(ai_generated, dict):
-                        raise ValueError("AI response must be a JSON object")
+                        return JsonResponse({
+                            "status": "error",
+                            "message": "AI response is not a valid JSON object.",
+                            "error_detail": f"Type: {type(ai_generated)}"
+                        }, status=500)
                     
-                    # Count what was updated
+                    # Check if at least one file key exists
+                    if not any(key in ai_generated for key in ["html", "css", "js"]):
+                        return JsonResponse({
+                            "status": "error",
+                            "message": "AI response missing required keys (html, css, or js).",
+                            "error_detail": f"Keys found: {list(ai_generated.keys())}"
+                        }, status=500)
+                    
                     updates_made = []
 
                     # ================= UPDATE FILES =================
                     if "html" in ai_generated and ai_generated["html"].strip():
                         html_content = ai_generated["html"].strip()
-                        # Ensure proper HTML structure
                         if not html_content.startswith("<!DOCTYPE"):
                             html_content = f"<!DOCTYPE html>\n{html_content}"
                         html_file.content = html_content
@@ -1010,7 +1084,8 @@ Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra te
                     if not updates_made:
                         return JsonResponse({
                             "status": "warning",
-                            "message": "No files were updated. AI may not have understood the request."
+                            "message": "No files were updated. AI may not have understood the request.",
+                            "ai_response": ai_generated
                         }, status=200)
 
                     # ================= SUCCESS RESPONSE =================
@@ -1022,19 +1097,11 @@ Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra te
                         "prompt": prompt[:100] + "..." if len(prompt) > 100 else prompt
                     })
 
-            except json.JSONDecodeError as e:
-                print(f"❌ JSON Parse Error: {e}")
-                return JsonResponse({
-                    "status": "error",
-                    "message": f"Failed to parse AI response as JSON. Please try again.",
-                    "error_detail": str(e)
-                }, status=500)
-                
             except Exception as e:
-                print(f"❌ AI Error: {traceback.format_exc()}")
+                print(f"❌ Unexpected Error in AI Processing: {traceback.format_exc()}")
                 return JsonResponse({
                     "status": "error",
-                    "message": f"AI generation failed: {str(e)}",
+                    "message": f"An unexpected error occurred: {str(e)}",
                     "error_detail": traceback.format_exc()
                 }, status=500)
 
@@ -1045,7 +1112,6 @@ Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra te
             print(f"💾 Saved {file.name} ({len(new_content)} chars)")
 
         response_table = ""
-        images = []
 
         # ================= CSV / EXCEL PREVIEW =================
         if ext in {"csv", "xls", "xlsx"} and file.file:
@@ -1068,78 +1134,16 @@ Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra te
 
         # ================= SAFE PYTHON RUNNER =================
         if is_python and (run_plot or new_content.strip()):
-            buffer_out = io.StringIO()
-            buffer_err = io.StringIO()
-
-            plt.clf()
-            plt.close("all")
-
-            SAFE_BUILTINS = {
-                "print": print,
-                "len": len,
-                "range": range,
-                "min": min,
-                "max": max,
-                "sum": sum,
-                "abs": abs,
-                "sorted": sorted,
-                "enumerate": enumerate,
-                "zip": zip,
-                "map": map,
-                "filter": filter,
-                "list": list,
-                "dict": dict,
-                "set": set,
-                "tuple": tuple,
-                "str": str,
-                "int": int,
-                "float": float,
-                "bool": bool,
-            }
-
-            safe_globals = {
-                "__builtins__": SAFE_BUILTINS,
-                "pd": pd,
-                "plt": plt,
-                "np": np if 'np' in dir() else None,  # Add numpy if available
-            }
-
-            def fake_show(*args, **kwargs):
-                buf = io.BytesIO()
-                plt.savefig(buf, format="png", bbox_inches="tight", dpi=150)
-                buf.seek(0)
-                images.append(
-                    f"data:image/png;base64,{base64.b64encode(buf.read()).decode()}"
-                )
-                plt.close()
-
-            plt.show = fake_show
-
-            try:
-                with contextlib.redirect_stdout(buffer_out), \
-                     contextlib.redirect_stderr(buffer_err):
-                    exec(new_content, safe_globals, {})
-
-                stderr_output = buffer_err.getvalue()
-                if stderr_output:
-                    return JsonResponse({
-                        "status": "error",
-                        "message": stderr_output
-                    }, status=500)
-
-                return JsonResponse({
-                    "status": "success",
-                    "output": buffer_out.getvalue() or "[No output]",
-                    "table": response_table,
-                    "images": images,
-                })
-
-            except Exception as e:
-                print(f"❌ Python Execution Error: {traceback.format_exc()}")
-                return JsonResponse({
-                    "status": "error",
-                    "message": f"Execution failed:\n{traceback.format_exc()}"
-                }, status=500)
+            result = run_code(new_content)
+            
+            # Add table data if available
+            result["table"] = response_table
+            
+            # Return error response if execution failed
+            if result["status"] == "error":
+                return JsonResponse(result, status=500)
+            
+            return JsonResponse(result)
 
         return JsonResponse({
             "status": "saved",
@@ -1154,9 +1158,8 @@ Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra te
         "exts": exts,
         "project": project,
         "is_image": is_image,
-         "topics": topics,
+        "topics": topics,
     })
-
 
 #worked
 # @login_required

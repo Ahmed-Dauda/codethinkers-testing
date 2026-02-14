@@ -6,6 +6,7 @@ file_detail, project_files_json, public_folder_view,
 run_python_code, share_preview_view, file_chat,
 upload_file_ajax, view_rendered_file)
 
+
 app_name = 'webprojects'
 
 urlpatterns = [
