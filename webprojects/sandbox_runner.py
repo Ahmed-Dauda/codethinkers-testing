@@ -42,6 +42,8 @@ ALLOWED_MODULES = {
     "string",
     # Decimal Precision
     "decimal",
+    # Table Formatting
+    "tabulate",
 }
 
 BASE_ALLOWED = {m.split('.')[0] for m in ALLOWED_MODULES}
@@ -100,6 +102,7 @@ class SandboxRunner:
     - Matplotlib plot capture as base64 images
     - stdout/stderr capture
     - Safe builtins environment
+    - Pretty table printing for DataFrames
     """
     
     def __init__(self):
@@ -118,6 +121,14 @@ class SandboxRunner:
             plt.close()
         return fake_show
     
+    def _setup_pandas_display(self):
+        """Configure pandas to display nice tables."""
+        # Set pandas display options for better table formatting
+        pd.set_option('display.max_rows', 100)
+        pd.set_option('display.max_columns', 20)
+        pd.set_option('display.width', 1000)
+        pd.set_option('display.max_colwidth', 50)
+        
     def execute(self, code: str) -> dict:
         """
         Execute Python code in a sandboxed environment.
@@ -141,6 +152,9 @@ class SandboxRunner:
         # Clear any existing matplotlib figures
         plt.clf()
         plt.close("all")
+        
+        # Setup pandas display options
+        self._setup_pandas_display()
         
         # Create safe execution environment
         safe_globals = {
