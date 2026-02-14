@@ -1,57 +1,49 @@
+# Environment variables - NEVER COMMIT THESE
+.env
+.env.*
+!.env.example
+*.env
+.envrc
 
-media/
-__pycache__/
-*.pyc
-staticfiles/
-node_modules/
-
-# Environment variables
-env/
-venv/
-.venv/
-
-
-__pycache__/
-*.pyc
-venv/
-env/
-
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Virtual environments
-env/
-venv/
-ENV/
-.venv/
-
-# Django stuff
+# Django
 *.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media/
 staticfiles/
 
+# Python
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
 # IDEs
 .vscode/
 .idea/
 *.swp
+*.swo
+*~
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
-# Environments
-.env
-*.bak
+# Secrets and credentials
+secrets.json
+credentials.json
+*.pem
+*.key
+*.cert
 
-# Coverage / testing
-.coverage
-htmlcov/
-.tox/
-.nox/
-pytest_cache/
+# Backup files
+*.bak
+*.backup
