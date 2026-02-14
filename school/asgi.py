@@ -4,7 +4,7 @@ from django.core.asgi import get_asgi_application
 # Only load .env in development, not on Heroku
 if not os.environ.get('HEROKU'):
     from dotenv import load_dotenv
-    load_dotenv(dotenv_path=".env", override=True)
+    load_dotenv(dotenv_path=".env", override=False)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'school.settings')
 
