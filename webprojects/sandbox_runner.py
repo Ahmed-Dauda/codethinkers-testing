@@ -15,33 +15,46 @@ ALLOWED_MODULES = {
     # Data Science Core
     "pandas",
     "numpy",
+
     # Visualization
     "matplotlib",
     "matplotlib.pyplot",
     "seaborn",
+
     # Math & Statistics
     "math",
     "statistics",
     "random",
+
+    # Functional helpers
+    "operator",
+
     # Dates & Time
     "datetime",
     "time",
     "calendar",
+
     # Data Formats
     "json",
     "csv",
+
     # Functional / Itertools
     "itertools",
     "collections",
+
     # Scientific Computing
     "scipy",
+
     # Machine Learning (Intro Level)
     "sklearn",
+
     # Regex & Text
     "re",
     "string",
+
     # Decimal Precision
     "decimal",
+
     # Table Formatting
     "tabulate",
 }

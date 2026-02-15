@@ -1,6 +1,6 @@
 from django.urls import path
 from webprojects.views import (ai_python_completion,ai_suggest_code, auto_save_view, create_file, create_folder, 
-create_project, explain_code_view, 
+create_project, 
 file_delete, file_preview, project_detail,
 file_detail, project_files_json, public_folder_view, 
 run_python_code, share_preview_view, file_chat,
@@ -32,7 +32,7 @@ urlpatterns = [
 
     path("ai-python-completion/", ai_python_completion, name="ai_python_completion"),
     path("run-python/", run_python_code, name="run_python_code"),
-    path('explain-code/', explain_code_view, name='explain_code'),
+    # path('explain-code/', explain_code_view, name='explain_code'),
     path('ai-suggest/', ai_suggest_code, name='ai_suggest_code'),
 ]
 

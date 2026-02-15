@@ -1,48 +1,286 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Create Project</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Projects</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
-        input, button { padding: 8px; margin: 5px 0; }
-        button { cursor: pointer; }
-        ul { list-style: none; padding: 0; }
-        li { margin-bottom: 10px; }
-        a { text-decoration: none; color: #333; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #3b3b3d 0%, #a39aab 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .create-form {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        #projectName {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        #projectName:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-create {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-create:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-create:active {
+            transform: translateY(0);
+        }
+
+        .projects-section {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            color: #1a202c;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f7fafc;
+        }
+
+        .project-list {
+            list-style: none;
+        }
+
+        .project-item {
+            padding: 16px;
+            margin-bottom: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+
+        .project-item:hover {
+            background: #edf2f7;
+            border-left-color: #667eea;
+            transform: translateX(4px);
+        }
+
+        .project-link {
+            text-decoration: none;
+            color: #2d3748;
+            font-size: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .project-icon {
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .project-info {
+            flex: 1;
+        }
+
+        .project-name {
+            color: #1a202c;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .project-meta {
+            color: #718096;
+            font-size: 13px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: #718096;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            font-size: 16px;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        @media (max-width: 640px) {
+            .create-form {
+                flex-direction: column;
+            }
+
+            #projectName {
+                width: 100%;
+            }
+
+            .btn-create {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .header, .projects-section {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+
+        /* Subtle animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .project-item {
+            animation: fadeIn 0.3s ease-out;
+        }
     </style>
 </head>
 <body>
-    <h1>My Projects</h1>
+    <div class="container">
+        <div class="header">
+            <h1>My Projects</h1>
+            <div class="create-form">
+                <input 
+                    type="text" 
+                    id="projectName" 
+                    placeholder="Enter project name..."
+                    onkeypress="if(event.key === 'Enter') createProject()"
+                />
+                <button class="btn-create" onclick="createProject()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Create Project
+                </button>
+            </div>
+        </div>
 
-    <input type="text" id="projectName" placeholder="Project name" />
-    <button onclick="createProject()">Create Project</button>
+        <div class="projects-section">
+            <h2 class="section-title">Recent Projects</h2>
+            <ul class="project-list" id="projectList">
+                {% for project in projects %}
+                <li class="project-item">
+                    {% with first_file=project.files.all|first %}
+                        {% if first_file %}
+                            <a href="{% url 'webprojects:file_detail' project.id first_file.id %}" class="project-link">
+                                <div class="project-icon">📁</div>
+                                <div class="project-info">
+                                    <div class="project-name">{{ project.name }}</div>
+                                    <div class="project-meta">{{ project.files.count }} file{{ project.files.count|pluralize }}</div>
+                                </div>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e0" stroke-width="2">
+                                    <path d="M9 18l6-6-6-6"/>
+                                </svg>
+                            </a>
+                        {% else %}
+                            <div class="project-link">
+                                <div class="project-icon">📁</div>
+                                <div class="project-info">
+                                    <div class="project-name">{{ project.name }}</div>
+                                    <div class="project-meta">No files</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </li>
+                {% empty %}
+                <li class="empty-state">
+                    <div class="empty-icon">📂</div>
+                    <div class="empty-text">No projects yet. Create your first project to get started!</div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 
-    <ul id="projectList">
-        {% for project in projects %}
-        <li>
-            {% with first_file=project.files.all|first %}
-                {% if first_file %}
-                    <a href="{% url 'webprojects:file_detail' project.id first_file.id %}">
-                        {{ project.name }} ({{ project.files.count }} files)
-                    </a>
-                {% else %}
-                    {{ project.name }} (No files)
-                {% endif %}
-            {% endwith %}
-        </li>
-        {% empty %}
-        <li>No projects yet.</li>
-        {% endfor %}
-    </ul>
-
-    <!-- ✅ Django-safe URL template -->
     <script>
         const FILE_DETAIL_URL_TEMPLATE = "{% url 'webprojects:file_detail' 0 0 %}";
     </script>
 
     <script>
-    // --- CSRF helper ---
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== "") {
@@ -59,10 +297,20 @@
     }
     const csrftoken = getCookie("csrftoken");
 
-    // --- Create Project AJAX ---
     function createProject() {
-        const name = document.getElementById("projectName").value.trim();
-        if (!name) return alert("Project name is required");
+        const input = document.getElementById("projectName");
+        const name = input.value.trim();
+        
+        if (!name) {
+            input.focus();
+            input.style.borderColor = "#fc8181";
+            setTimeout(() => input.style.borderColor = "#e2e8f0", 1000);
+            return;
+        }
+
+        const button = document.querySelector(".btn-create");
+        button.classList.add("loading");
+        button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" opacity="0.25"/><path d="M12 2a10 10 0 0110 10" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></path></svg> Creating...';
 
         fetch("{% url 'webprojects:create_project' %}", {
             method: "POST",
@@ -80,235 +328,21 @@
                         .replace("/0/file/0/", `/${data.project_id}/file/${data.file_id}/`);
                     window.location.href = url;
                 } else {
-                    alert("Project created, but no file created.");
+                    alert("Project created, but no file was generated.");
+                    location.reload();
                 }
             } else {
                 alert(data.message || "Error creating project");
+                button.classList.remove("loading");
+                button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Create Project';
             }
         })
-        .catch(err => alert("Error: " + err));
+        .catch(err => {
+            alert("Error: " + err);
+            button.classList.remove("loading");
+            button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Create Project';
+        });
     }
     </script>
 </body>
 </html>
-=======
-{% extends "webprojects/dashboard.html" %}
-{% load static %}
-
-
-{% block content %}
-<style>
-  .project-container {
-    max-width: 800px;
-    margin: 2rem auto;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-    padding: 30px;
-    font-family: 'Segoe UI', sans-serif;
-  }
-
-  .project-container h2 {
-    font-size: 24px;
-    margin-bottom: 1.5rem;
-    color: #333;
-  }
-
-  .project-list ul {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 2rem 0;
-  }
-
-  .project-list li {
-    background: #f9f9f9;
-    padding: 12px 18px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    transition: background 0.2s ease;
-  }
-
-  .project-list li:hover {
-    background: #f1f1f1;
-  }
-
-  .project-list a {
-    text-decoration: none;
-    color: #1a73e8;
-    font-weight: 500;
-  }
-
-  .project-list span {
-    font-size: 13px;
-    color: #777;
-    display: block;
-    margin-top: 4px;
-  }
-
-  form label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-    color: #333;
-  }
-
-  form input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 15px;
-    margin-bottom: 1rem;
-  }
-
-  form button {
-    background-color: #1a73e8;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    font-size: 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-
-  form button:hover {
-    background-color: #0c59c7;
-  }
-
-  #status-message {
-    margin-top: 10px;
-    font-size: 14px;
-  }
-</style>
-
-<div class="project-container">
-  <h2>Your Projects</h2>
-
-  <div class="project-list">
-    {% if projects %}
-      <ul>
-        {% for p in projects %}
-          <li>
-            {% with first_file=p.files.first %}
-              {% if first_file %}
-                <a href="{% url 'file_detail' p.id first_file.id %}">📁 {{ p.name }}</a>
-                <span>Created on {{ p.created|date:"M d, Y H:i" }}</span>
-              {% else %}
-                📁 {{ p.name }} <span>No files yet</span>
-              {% endif %}
-            {% endwith %}
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>You have not created any projects yet.</p>
-    {% endif %}
-  </div>
-
-  <h2>Create a New Project</h2>
-
-  <form id="create-project-form">
-    {% csrf_token %}
-    <label for="project-name">Project Name:</label>
-    <input type="text" id="project-name" name="name" placeholder="e.g., Portfolio Site" required>
-    <button type="submit">➕ Create Project</button>
-  </form>
-
-  <div id="status-message"></div>
-</div>
-
-<script>
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-const csrftoken = getCookie('csrftoken');
-
-document.getElementById('create-project-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const name = document.getElementById('project-name').value;
-  const messageBox = document.getElementById('status-message');  // ✅ Move this up here
-
-  messageBox.innerHTML = "<span style='color: #555;'>⏳ Creating project...</span>";
-
-  fetch("{% url 'create_project' %}", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": csrftoken
-    },
-    body: JSON.stringify({ name: name })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === "success") {
-      messageBox.innerHTML = "<span style='color: green;'>✅ Project created successfully. Redirecting...</span>";
-      setTimeout(() => {
-        window.location.href = `/webprojects/${data.project_id}/file/${data.file_id}/`;
-      }, 1000);
-    } else {
-      messageBox.innerHTML = `<span style='color: red;'>❌ ${data.message}</span>`;
-    }
-  });
-});
-</script>
-
-<script>
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-const csrftoken = getCookie('csrftoken');
-
-function createEditorProject(topicId) {
-    fetch("{% url 'create_project' %}", {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken
-        },
-        body: JSON.stringify({
-            name: "Lesson Project",
-            topic_id: topicId
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'success') {
-            const url = `{% url 'file_detail' 0 0 %}`
-                .replace('0', data.project_id)
-                .replace('0', data.file_id);
-            window.location.href = url;
-        } else {
-            alert("Error: " + data.message);
-        }
-    })
-    .catch(err => alert("Project creation failed: " + err));
-}
-</script>
-
-{% endblock %}
->>>>>>> heroku/main

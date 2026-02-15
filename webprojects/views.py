@@ -2209,30 +2209,31 @@ def ai_suggest_code(request):
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
-@csrf_exempt
-def explain_code_view(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            code = data.get("code", "").strip()
-            if not code:
-                return JsonResponse({"error": "Code is empty"}, status=400)
 
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are an expert coding teacher. Explain code clearly."},
-                    {"role": "user", "content": f"Explain this code:\n{code}"}
-                ],
-                max_tokens=2000,
-                temperature=0
-            )
-            explanation = response.choices[0].message.content.strip()
-            return JsonResponse({"explanation": explanation})
-        except Exception as e:
-            print("OpenAI error:", e)
-            return JsonResponse({"error": str(e)}, status=500)
-    return JsonResponse({"error": "Invalid method"}, status=405)
+# @csrf_exempt
+# def explain_code_view(request):
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             code = data.get("code", "").strip()
+#             if not code:
+#                 return JsonResponse({"error": "Code is empty"}, status=400)
+
+#             response = client.chat.completions.create(
+#                 model="gpt-3.5-turbo",
+#                 messages=[
+#                     {"role": "system", "content": "You are an expert coding teacher. Explain code clearly."},
+#                     {"role": "user", "content": f"Explain this code:\n{code}"}
+#                 ],
+#                 max_tokens=2000,
+#                 temperature=0
+#             )
+#             explanation = response.choices[0].message.content.strip()
+#             return JsonResponse({"explanation": explanation})
+#         except Exception as e:
+#             print("OpenAI error:", e)
+#             return JsonResponse({"error": str(e)}, status=500)
+#     return JsonResponse({"error": "Invalid method"}, status=405)
 
 
 @csrf_exempt
