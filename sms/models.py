@@ -1,4 +1,5 @@
 
+import re
 from typing import cast
 from django.contrib.contenttypes.fields import GenericRelation
 from django.forms import Widget
@@ -191,6 +192,8 @@ class CustomTinyMCEWidget(TinyMCE):
 
 
 from django.utils.text import slugify
+from urllib.parse import urlparse, parse_qs
+
 
 class Topics(models.Model):
     categories = models.ForeignKey(Categories, on_delete=models.CASCADE, blank=True, null=True)
@@ -227,6 +230,56 @@ class Topics(models.Model):
             self.slug = temp_slug
 
         super().save(*args, **kwargs)
+
+    def get_youtube_id(self):
+        """
+        Extracts the video ID from different YouTube URL formats.
+        Returns None if no valid ID is found.
+        """
+        if not self.video:
+            return None
+
+        url = self.video.strip()
+
+        # 1. youtu.be short links
+        match = re.search(r'youtu\.be/([^\?&/]+)', url)
+        if match:
+            return match.group(1)
+
+        # 2. embed links
+        match = re.search(r'/embed/([^\?&/]+)', url)
+        if match:
+            return match.group(1)
+
+        # 3. shorts links
+        match = re.search(r'/shorts/([^\?&/]+)', url)
+        if match:
+            return match.group(1)
+
+        # 4. standard watch?v= links
+        try:
+            parsed = urlparse(url)
+            q = parse_qs(parsed.query)
+            if 'v' in q:
+                return q['v'][0]
+        except Exception:
+            pass
+
+        return None
+
+    def get_youtube_short_url(self):
+        """
+        Returns a clean https://youtu.be/VIDEO_ID URL.
+        """
+        video_id = self.get_youtube_id()
+        if video_id:
+            return f"https://youtu.be/{video_id}"
+        return None
+    
+    def print_debug(self):
+        print("Original URL:", self.video)
+        print("Extracted ID:", self.get_youtube_id())
+        print("Short URL:", self.get_youtube_short_url())  
 
     def __str__(self):
         return f'{self.title} - {self.courses}'
