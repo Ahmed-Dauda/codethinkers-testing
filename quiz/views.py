@@ -160,17 +160,26 @@ def ai_topics_generator_obj(request):
             if title and (desc or transcript):
                 # Generate slug (same logic your model uses)
                 slug = slugify(title)
-
+                # Don't pre-compute the slug, let the model handle it
                 topic_obj, created = Topics.objects.update_or_create(
-                    slug=slug,
-                    courses=course_obj,  # ensures uniqueness per course
+                    courses=course_obj,
+                    title=title,  # Use title as the lookup instead
                     defaults={
                         'categories': category_obj,
-                        'title': title,
                         'desc': desc,
                         'transcript': transcript
                     }
                 )
+                # topic_obj, created = Topics.objects.update_or_create(
+                #     slug=slug,
+                #     courses=course_obj,  # ensures uniqueness per course
+                #     defaults={
+                #         'categories': category_obj,
+                #         'title': title,
+                #         'desc': desc,
+                #         'transcript': transcript
+                #     }
+                # )
                 saved += 1
 
         messages.success(request, f"{saved} topics saved successfully.")
@@ -317,7 +326,7 @@ def ai_topics_generator_obj(request):
                         {"role": "system", "content": "You are a helpful assistant that outputs only valid JSON."},
                         {"role": "user", "content": prompt},
                     ],
-                    max_tokens=22000,
+                    max_tokens=16000,
                     temperature=0
                 )
                

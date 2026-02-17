@@ -1,0 +1,192 @@
+<!-- instructor/topic_form.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ page_title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container my-4">
+    
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'instructor:dashboard' %}">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'instructor:course_topics' course_id=course.id %}">{{ course.title }}</a>
+            </li>
+            <li class="breadcrumb-item active">{{ page_title }}</li>
+        </ol>
+    </nav>
+    
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">{{ page_title }}</h2>
+    </div>
+    
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Form Card -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Topic Information</h5>
+        </div>
+        <div class="card-body">
+            
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row">
+                    
+                    <!-- Title -->
+                    <div class="col-md-8 mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">
+                            {{ form.title.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                        <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Category -->
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.categories.id_for_label }}" class="form-label">
+                            {{ form.categories.label }}
+                        </label>
+                        {{ form.categories }}
+                        {% if form.categories.errors %}
+                        <div class="text-danger small mt-1">{{ form.categories.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Optional</small>
+                    </div>
+                    
+                </div>
+                
+                <!-- Description -->
+                <div class="mb-3">
+                    <label for="{{ form.desc.id_for_label }}" class="form-label">
+                        {{ form.desc.label }}
+                    </label>
+                    {{ form.desc }}
+                    {% if form.desc.errors %}
+                    <div class="text-danger small mt-1">{{ form.desc.errors }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">HTML content is supported</small>
+                </div>
+                
+                <!-- Video URL -->
+                <div class="mb-3">
+                    <label for="{{ form.video.id_for_label }}" class="form-label">
+                        {{ form.video.label }}
+                    </label>
+                    {{ form.video }}
+                    {% if form.video.errors %}
+                    <div class="text-danger small mt-1">{{ form.video.errors }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">
+                        Supports YouTube, Vimeo, etc. Example: https://www.youtube.com/watch?v=VIDEO_ID
+                    </small>
+                </div>
+                
+                <!-- Transcript -->
+                <div class="mb-3">
+                    <label for="{{ form.transcript.id_for_label }}" class="form-label">
+                        {{ form.transcript.label }}
+                    </label>
+                    {{ form.transcript }}
+                    {% if form.transcript.errors %}
+                    <div class="text-danger small mt-1">{{ form.transcript.errors }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Optional: Add video transcript for accessibility</small>
+                </div>
+                
+                <div class="row">
+                    
+                    <!-- Topic Image -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.img_topic.id_for_label }}" class="form-label">
+                            {{ form.img_topic.label }}
+                        </label>
+                        {{ form.img_topic }}
+                        {% if form.img_topic.errors %}
+                        <div class="text-danger small mt-1">{{ form.img_topic.errors }}</div>
+                        {% endif %}
+                        
+                        {% if topic and topic.img_topic %}
+                        <div class="mt-2">
+                            <small class="text-muted">Current image:</small>
+                            <img src="{{ topic.img_topic.url }}" alt="Current" class="img-thumbnail mt-1" style="max-width: 200px;">
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- External Resource URL -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.topics_url.id_for_label }}" class="form-label">
+                            {{ form.topics_url.label }}
+                        </label>
+                        {{ form.topics_url }}
+                        {% if form.topics_url.errors %}
+                        <div class="text-danger small mt-1">{{ form.topics_url.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Optional: Link to external resources</small>
+                    </div>
+                    
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        {% if topic %}
+                            💾 Update Topic
+                        {% else %}
+                            ✅ Create Topic
+                        {% endif %}
+                    </button>
+                    <a href="{% url 'instructor:course_topics' course_id=course.id %}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                </div>
+                
+            </form>
+            
+        </div>
+    </div>
+    
+    <!-- Helper Info -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-body">
+            <h6 class="fw-bold mb-2">💡 Tips:</h6>
+            <ul class="mb-0 small">
+                <li>Create clear, descriptive topic titles that students can easily understand</li>
+                <li>Add a category to help organize topics within your course</li>
+                <li>Use the description field to provide context and learning objectives</li>
+                <li>Include video content from YouTube, Vimeo, or other platforms</li>
+                <li>Add transcripts to make your content more accessible</li>
+                <li>Upload an eye-catching image to represent your topic</li>
+            </ul>
+        </div>
+    </div>
+    
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

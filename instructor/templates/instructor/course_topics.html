@@ -1,0 +1,221 @@
+<!-- instructor/course_topics.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ course.title }} - Topics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container my-4">
+    
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'instructor:dashboard' %}">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{ course.title }}</li>
+        </ol>
+    </nav>
+    
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Course Header -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            {% if course.img_course %}
+            <div class="mb-3">
+                <img src="{{ course.img_course.url }}" alt="{{ course.title }}" 
+                     class="img-fluid rounded" style="max-height: 300px; width: 100%; object-fit: cover;">
+            </div>
+            {% endif %}
+            
+            <h1 class="mb-3">{{ course.title }}</h1>
+            
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <strong>Type:</strong> 
+                    <span class="badge bg-info text-dark">{{ course.course_type }}</span>
+                </div>
+                <div class="col-md-4">
+                    <strong>Status:</strong> 
+                    <span class="badge bg-success">{{ course.status_type }}</span>
+                </div>
+                <div class="col-md-4">
+                    <strong>Price:</strong> 
+                    <span class="fw-bold">${{ course.price }}</span>
+                </div>
+            </div>
+            
+            <!-- Course Stats -->
+            <div class="row text-center g-3">
+                <div class="col-6 col-md-3">
+                    <div class="border rounded p-3">
+                        <h3 class="text-primary mb-0">{{ total_topics }}</h3>
+                        <small class="text-muted">Topics</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="border rounded p-3">
+                        <h3 class="text-primary mb-0">{{ course_enrollments }}</h3>
+                        <small class="text-muted">Students</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="border rounded p-3">
+                        <h3 class="text-primary mb-0">{{ course_hit_count }}</h3>
+                        <small class="text-muted">Views</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="border rounded p-3">
+                        <h3 class="text-success mb-0">${{ earnings_summary.instructor_earned|floatformat:2 }}</h3>
+                        <small class="text-muted">Your Earnings</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Topics Section -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">Course Topics ({{ total_topics }})</h2>
+                <a href="{% url 'instructor:add_topic' course_id=course.id %}" class="btn btn-success">
+                    + Add New Topic
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            
+            {% if topics %}
+            <div class="list-group">
+                {% for topic in topics %}
+                <div class="list-group-item">
+                    <div class="row align-items-center g-3">
+                        
+                        <!-- Topic Number -->
+                        <div class="col-auto">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <strong>{{ forloop.counter }}</strong>
+                            </div>
+                        </div>
+                        
+                        <!-- Topic Thumbnail -->
+                        {% if topic.img_topic %}
+                        <div class="col-12 col-md-auto">
+                            <img src="{{ topic.img_topic.url }}" alt="{{ topic.title }}" 
+                                 class="rounded" style="width: 100%; max-width: 150px; height: 100px; object-fit: cover;">
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Topic Content -->
+                        <div class="col-12 col-md">
+                            <h5 class="mb-1">{{ topic.title }}</h5>
+                            
+                            {% if topic.categories %}
+                            <span class="badge bg-light text-dark border mb-2">
+                                {{ topic.categories.name }}
+                            </span>
+                            {% endif %}
+                            
+                            {% if topic.desc %}
+                            <p class="mb-2 text-muted small">
+                                {{ topic.desc|striptags|truncatewords:25 }}
+                            </p>
+                            {% endif %}
+                            
+                            <div class="d-flex flex-wrap gap-3 small text-muted mb-2">
+                                {% if topic.video %}
+                                    <span>📹 Video</span>
+                                {% endif %}
+                                {% if topic.transcript %}
+                                    <span>📝 Transcript</span>
+                                {% endif %}
+                                {% if topic.topics_url %}
+                                    <span>🔗 Resource</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex flex-wrap gap-2 small">
+                                <span class="badge bg-light text-dark">
+                                    👁 {{ topic.hit_count }} views
+                                </span>
+                                <span class="badge bg-light text-dark">
+                                    ✅ {{ topic.completed_count }} completed
+                                </span>
+                            </div>
+                            
+                            <small class="text-muted d-block mt-2">
+                                Created: {{ topic.created|date:"M d, Y" }}
+                            </small>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="col-12 col-md-auto">
+                            <div class="btn-group-vertical gap-1" role="group">
+                                <!-- View topic (uncomment when you have a public view) -->
+                                {% comment %}
+                                <a href="{% url 'topic_detail' slug=topic.slug %}" 
+                                   class="btn btn-sm btn-outline-primary" target="_blank">
+                                    👁 View
+                                </a>
+                                {% endcomment %}
+                                
+                                <!-- Edit Topic -->
+                                <a href="{% url 'instructor:edit_topic' topic_id=topic.id %}" 
+                                   class="btn btn-sm btn-warning">
+                                    ✏️ Edit
+                                </a>
+                                
+                                <!-- Delete Topic -->
+                                <a href="{% url 'instructor:delete_topic' topic_id=topic.id %}" 
+                                   class="btn btn-sm btn-danger">
+                                    🗑️ Delete
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted mb-3">No topics created yet for this course.</p>
+                <a href="{% url 'instructor:add_topic' course_id=course.id %}" class="btn btn-success">
+                    Create Your First Topic
+                </a>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+    
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a href="{% url 'instructor:dashboard' %}" class="btn btn-secondary">
+            ← Back to Dashboard
+        </a>
+    </div>
+    
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

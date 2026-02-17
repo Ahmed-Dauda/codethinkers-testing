@@ -10,22 +10,46 @@
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
         rel="stylesheet"
     >
+    
+    <style>
+        .course-title-link {
+            color: #0d6efd;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .course-title-link:hover {
+            color: #0a58ca;
+            text-decoration: underline;
+        }
+        
+        .stats-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+    </style>
 </head>
 <body class="bg-light">
 
 <div class="container my-4">
 
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">Instructor Dashboard</h2>
-        <a href="{% url 'instructor:add_course' %}" class="btn btn-success">
-            + Add New Course
-        </a>
-
-         <a href="{% url 'quiz:ai_topics_generator_obj' %}"
-                   class="btn btn-outline-secondary">
-                    📚 Generate course content with AI
-        </a>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h2 class="fw-bold mb-0">Instructor Dashboard</h2>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'instructor:add_course' %}" class="btn btn-success">
+                + Add New Course
+            </a>
+            <a href="{% url 'quiz:ai_topics_generator_obj' %}"
+               class="btn btn-outline-secondary">
+                📚 Generate course content with AI
+            </a>
+        </div>
     </div>
 
     <!-- AI Assessment Tools -->
@@ -34,13 +58,11 @@
             <h5 class="fw-bold mb-3">AI Assessment Tools</h5>
 
             <div class="d-flex flex-wrap gap-2">
-              
                 <!-- New Topics Assessment Button -->
                 <a href="{% url 'instructor:add_topics_assessment' %}"
                    class="btn btn-outline-primary">
                     📝 Add Topics Assessment
                 </a>
-
             </div>
         </div>
     </div>
@@ -49,24 +71,24 @@
     <div class="row mb-4">
 
         <div class="col-md-4 mb-3">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm stats-card h-100">
                 <div class="card-body">
-                    <h6 class="text-muted">Instructor</h6>
-                    <h5 class="fw-bold">
+                    <h6 class="text-muted mb-2">Instructor</h6>
+                    <h5 class="fw-bold mb-2">
                         {{ instructor.first_name|default:instructor.email }}
                     </h5>
                     <small class="text-muted">
-                        Last Activity: {{ last_activity }}
+                        Last Activity: {{ last_activity|date:"M d, Y - h:i A"|default:"N/A" }}
                     </small>
                 </div>
             </div>
         </div>
 
         <div class="col-md-4 mb-3">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6 class="text-muted">Total Courses</h6>
-                    <h2 class="text-primary fw-bold">
+            <div class="card shadow-sm text-center stats-card h-100">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <h6 class="text-muted mb-2">Total Courses</h6>
+                    <h2 class="text-primary fw-bold mb-0">
                         {{ total_courses }}
                     </h2>
                 </div>
@@ -74,20 +96,20 @@
         </div>
 
         <div class="col-md-4 mb-3">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm stats-card h-100">
                 <div class="card-body">
-                    <h6 class="text-muted">Total Earnings</h6>
-                    <p class="mb-1">
-                        Total Sales:
-                        <strong>{{ totals.total_sales }}</strong>
+                    <h6 class="text-muted mb-3">Total Earnings</h6>
+                    <p class="mb-2">
+                        <span class="text-muted">Total Sales:</span>
+                        <strong class="float-end">${{ totals.total_sales|floatformat:2 }}</strong>
                     </p>
-                    <p class="mb-1 text-success">
-                        Instructor Earned:
-                        <strong>{{ totals.instructor_earned }}</strong>
+                    <p class="mb-2">
+                        <span class="text-success">Instructor Earned:</span>
+                        <strong class="text-success float-end">${{ totals.instructor_earned|floatformat:2 }}</strong>
                     </p>
-                    <p class="mb-0 text-danger">
-                        Platform Cut:
-                        <strong>{{ totals.platform_cut }}</strong>
+                    <p class="mb-0">
+                        <span class="text-danger">Platform Cut:</span>
+                        <strong class="text-danger float-end">${{ totals.platform_cut|floatformat:2 }}</strong>
                     </p>
                 </div>
             </div>
@@ -97,62 +119,119 @@
 
     <!-- Courses Table -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header fw-bold">
-            Your Courses
+        <div class="card-header fw-bold bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Your Courses ({{ total_courses }})</span>
+                <span class="badge bg-primary">Active</span>
+            </div>
         </div>
         <div class="card-body table-responsive">
 
             {% if courses %}
-            <table class="table table-bordered table-hover align-middle">
+            <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
+                        <th>#</th>
                         <th>Title</th>
                         <th>Type</th>
                         <th>Status</th>
                         <th>Price</th>
-                        <th>Total Sales</th>
-                        <th class="text-success">Instructor Earned</th>
-                        <th class="text-danger">Platform Cut</th>
                         <th>Enrollments</th>
-                        <th>Final Exams</th>
-                        <th>Course</th>
+                        <th>Total Sales</th>
+                        <th class="text-success">Your Earnings</th>
+                        <th class="text-danger">Platform Cut</th>
+                        <th>Exams</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for course in courses %}
                     <tr>
-                        <td>{{ course.title }}</td>
-                        <td>{{ course.course_type }}</td>
-                        <td>{{ course.status_type }}</td>
-                        <td>{{ course.price }}</td>
-                        <td>{{ course.total_sales }}</td>
-                        <td class="text-success">{{ course.instructor_earned }}</td>
-                        <td class="text-danger">{{ course.platform_cut }}</td>
-                        <td>{{ course.enrollments }}</td>
+                        <td>{{ forloop.counter }}</td>
                         <td>
-                            <a href="{% url 'instructor:course_exams' course.id %}" class="btn btn-sm btn-primary mb-1">
-                                Manage Exams
+                            <!-- Clickable Course Title -->
+                            <a href="{% url 'instructor:course_topics' course_id=course.id %}" 
+                               class="course-title-link"
+                               title="View topics for {{ course.title }}">
+                                {{ course.title }}
                             </a>
-                            <a href="{% url 'instructor:add_exam' course.id %}" class="btn btn-sm btn-success">
-                                + Add Final Exam
-                            </a>
-                    
+                            <br>
+                            <small class="text-muted">
+                                Created: {{ course.created|date:"M d, Y" }}
+                            </small>
                         </td>
                         <td>
-                            <a href="{% url 'instructor:delete_course' course.id %}" class="btn btn-sm btn-danger">
-                                Delete
-                            </a>
-
-                            <a href="{% url 'instructor:edit_course' course.id %}" class="btn btn-sm btn-warning">
-                                Edit
-                            </a>
+                            <span class="badge bg-info text-dark">
+                                {{ course.course_type }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if course.status_type == 'Published' %}
+                                <span class="badge bg-success">{{ course.status_type }}</span>
+                            {% elif course.status_type == 'Draft' %}
+                                <span class="badge bg-warning text-dark">{{ course.status_type }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ course.status_type }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>${{ course.price|floatformat:2 }}</strong>
+                            {% if course.cert_price %}
+                                <br>
+                                <small class="text-muted">Cert: ${{ course.cert_price|floatformat:2 }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-primary rounded-pill">
+                                {{ course.enrollments }}
+                            </span>
+                            <br>
+                            <small class="text-muted">👁 {{ course.hit_count }} views</small>
+                        </td>
+                        <td><strong>${{ course.total_sales|floatformat:2 }}</strong></td>
+                        <td class="text-success fw-bold">${{ course.instructor_earned|floatformat:2 }}</td>
+                        <td class="text-danger fw-bold">${{ course.platform_cut|floatformat:2 }}</td>
+                        <td>
+                            <div class="d-flex flex-column gap-1">
+                                <a href="{% url 'instructor:course_exams' course.id %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    📋 Manage Exams
+                                </a>
+                                <a href="{% url 'instructor:add_exam' course.id %}" 
+                                   class="btn btn-sm btn-success">
+                                    + Add Exam
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="btn-group-vertical gap-1" role="group">
+                                <!-- <a href="{% url 'instructor:course_topics' course_id=course.id %}" 
+                                   class="btn btn-sm btn-primary"
+                                   title="View all topics">
+                                    📚 Topics
+                                </a> -->
+                                <a href="{% url 'instructor:edit_course' course.id %}" 
+                                   class="btn btn-sm btn-warning">
+                                    ✏️ Edit
+                                </a>
+                                <a href="{% url 'instructor:delete_course' course.id %}" 
+                                   class="btn btn-sm btn-danger"
+                                   onclick="return confirm('Are you sure you want to delete this course?')">
+                                    🗑️ Delete
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
             {% else %}
-                <p class="text-muted mb-0">No courses found.</p>
+                <div class="text-center py-5">
+                    <p class="text-muted mb-3">No courses found.</p>
+                    <a href="{% url 'instructor:add_course' %}" class="btn btn-success">
+                        + Create Your First Course
+                    </a>
+                </div>
             {% endif %}
 
         </div>
@@ -160,44 +239,75 @@
 
     <!-- Earnings Table -->
     <div class="card shadow-sm">
-        <div class="card-header fw-bold">
-            Earnings History
+        <div class="card-header fw-bold bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Earnings History</span>
+                <span class="badge bg-info text-dark">{{ earnings_list.count }} Transactions</span>
+            </div>
         </div>
         <div class="card-body table-responsive">
 
             {% if earnings_list %}
-            <table class="table table-striped table-bordered align-middle">
+            <table class="table table-striped table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
+                        <th>#</th>
                         <th>Course</th>
+                        <th>Type</th>
                         <th>Amount Paid</th>
-                        <th class="text-success">Instructor Amount</th>
+                        <th class="text-success">Your Amount</th>
                         <th class="text-danger">Platform Amount</th>
                         <th>Status</th>
                         <th>Date</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for earning in earnings_list %}
+                    {% for earning in earnings_list|slice:":20" %}
                     <tr>
-                        <td>{{ earning.course.title }}</td>
-                        <td>{{ earning.amount_paid }}</td>
-                        <td class="text-success">{{ earning.instructor_amount }}</td>
-                        <td class="text-danger">{{ earning.platform_amount }}</td>
+                        <td>{{ forloop.counter }}</td>
                         <td>
-                            {% if earning.is_paid_out %}
-                                <span class="badge bg-success">Paid</span>
+                            <a href="{% url 'instructor:course_topics' course_id=earning.course.id %}" 
+                               class="text-decoration-none">
+                                {{ earning.course.title }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if earning.certificate_payment %}
+                                <span class="badge bg-warning text-dark">Certificate</span>
                             {% else %}
-                                <span class="badge bg-warning text-dark">Pending</span>
+                                <span class="badge bg-info text-dark">Course</span>
                             {% endif %}
                         </td>
-                        <td>{{ earning.created }}</td>
+                        <td><strong>${{ earning.amount_paid|floatformat:2 }}</strong></td>
+                        <td class="text-success fw-bold">${{ earning.instructor_amount|floatformat:2 }}</td>
+                        <td class="text-danger fw-bold">${{ earning.platform_amount|floatformat:2 }}</td>
+                        <td>
+                            {% if earning.is_paid_out %}
+                                <span class="badge bg-success">✓ Paid</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">⏳ Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>{{ earning.created|date:"M d, Y" }}</small>
+                            <br>
+                            <small class="text-muted">{{ earning.created|time:"h:i A" }}</small>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            
+            {% if earnings_list.count > 20 %}
+            <div class="text-center mt-3">
+                <small class="text-muted">Showing 20 of {{ earnings_list.count }} transactions</small>
+            </div>
+            {% endif %}
+            
             {% else %}
-                <p class="text-muted mb-0">No earnings yet.</p>
+                <div class="text-center py-5">
+                    <p class="text-muted mb-0">No earnings yet.</p>
+                </div>
             {% endif %}
 
         </div>

@@ -276,21 +276,31 @@ table-layout: fixed; // ***********add this
                     <!-- Add the video player -->
                     
                     {% if topic.video %}
-                      
-                    <!-- <div class="video-container">
-                        <div id="myVideo" class="video-wrapper"  sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style=" background:#000000; bottom: 61px; position: relative;">
-                            {% video topic.video|safe class="ratio ratio-16x9" %}
-                        </div>
-                       
-                    </div> -->
-
 
 
                    <div class="video-container app-container">
                         <div  id="myVideo" class="video-wrapper app-container" sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style="background: #000000; bottom: 61px; position: relative;">
          
+    
+
                           <br> <br>
-                          <iframe
+                          <!-- <a href="{{ topic.video }}" target="_blank">
+    <img src="https://img.youtube.com/vi/u8ABLLK3-z0/maxresdefault.jpg" 
+         style="width:300px; border-radius:10px;">
+
+    </a> -->
+
+
+<iframe
+  src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0&controls=1"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowfullscreen
+  style="width:100%; height:500px;"
+></iframe>
+
+
+                          <!-- <iframe
                             src="{{ topic.video }}"
                             frameborder="0"
                             modestbranding="1"
@@ -299,7 +309,7 @@ table-layout: fixed; // ***********add this
                             controls="0"
                             disablekb="1"
                             >
-                          </iframe>
+                          </iframe>  -->
 
                           <div class="banner-overlay">
                         </div>
@@ -308,7 +318,7 @@ table-layout: fixed; // ***********add this
                         </div>
 
                         </div>
-                      </div>
+                    </div>
                     
   
                     <!-- List Menu -->
