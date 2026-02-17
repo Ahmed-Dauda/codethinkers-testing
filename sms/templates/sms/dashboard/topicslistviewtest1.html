@@ -292,19 +292,18 @@ table-layout: fixed; // ***********add this
 
 
 
-<div class="video-container app-container">
+<div class="video-container app-container"> 
   <div class="video-wrapper app-container" 
        style="background: #000000; position: relative;">
 
     <iframe
-        id="player-{{ topic.id }}"
+        id="player-test"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
         allowfullscreen
         referrerpolicy="strict-origin-when-cross-origin"
         sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock"
-        >
-    </iframe>
+    ></iframe>
 
     <div class="banner-overlay"></div>
     <div class="watch-overlay"></div>
@@ -313,35 +312,38 @@ table-layout: fixed; // ***********add this
 
 <script>
 (function() {
-  const videoUrl = "{{ topic.video|escapejs }}";
-  const iframeId = "player-{{ topic.id }}";
+  // Test URLs
+  const videoUrl = "https://www.youtube.com/embed/7vmh59ZyDho?theme=dark&autoplay=1&keyboard=1&autohide=2&cc_load_policy=1&modestbranding=1&fs=0&showinfo=0&rel=0&iv_load_policy=3&mute=0&loop=0?controls=0";
+  const iframeId = "player-test";
+
   let videoId = "Ha8wtmdhZvI"; // fallback
 
   if (videoUrl) {
     try {
       const url = new URL(videoUrl);
+      const path = url.pathname;
 
-      // Shorts
-      if (url.pathname.startsWith("/shorts/")) {
-        videoId = url.pathname.split("/")[2] || videoId;
-      }
-      // Short link youtu.be
-      else if (url.hostname.includes("youtu.be")) {
-        videoId = url.pathname.slice(1) || videoId;
-      }
-      // Standard watch?v=
-      else if (url.searchParams.get("v")) {
+      if (path.startsWith("/shorts/")) {
+        // Shorts URL
+        videoId = path.split("/")[2] || videoId;
+      } else if (path.startsWith("/embed/")) {
+        // Embed URL
+        videoId = path.split("/")[2] || videoId;
+      } else if (url.hostname.includes("youtu.be")) {
+        // Short link
+        videoId = path.slice(1) || videoId;
+      } else if (url.searchParams.get("v")) {
+        // Standard watch URL
         videoId = url.searchParams.get("v") || videoId;
       }
     } catch(e) {
-      console.error("Invalid video URL, using fallback", e);
+      console.error("Invalid URL, using fallback", e);
     }
   }
 
-  // Build the embed URL with restrictions
-  const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&rel=0&modestbranding=1&playsinline=1&autoplay=0&controls=0&loop=1&playlist=${videoId}&mute=0`;
+  // Build embed URL with restrictions
+  const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&rel=0&modestbranding=1&playsinline=1&autoplay=0&controls=0&loop=1&playlist=${videoId}`;
 
-  // Set the iframe src
   document.getElementById(iframeId).src = embedUrl;
 
   // Overlay to prevent YouTube click
