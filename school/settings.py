@@ -407,7 +407,7 @@ BADGE_FONT = {
 # SECURE_SSL_REDIRECT = True
 # SECURE_BROWSER_XSS_FILTER = True
 # SECURE_CONTENT_TYPE_NOSNIFF = True
-# X_FRAME_OPTIONS = 'DENY'
+
 
 # # HSTS (HTTP Strict Transport Security)
 # SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
@@ -433,12 +433,6 @@ BADGE_FONT = {
 
 
 # Allow YouTube iframes
-CSP_FRAME_SRC = (
-    "'self'",
-    "https://www.youtube.com",
-    "https://youtube-nocookie.com",
-    "https://www.youtube-nocookie.com",
-)
 
 
 HITCOUNT_HITS_PER_IP_LIMIT = 0
@@ -451,7 +445,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')    # ✅ For `collectstatic`
 
 # settings.py
 
-X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -468,37 +461,37 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 #production settings for heroku
 
-import dj_database_url
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=0,
-        ssl_require=False
-    )
-}
+# import dj_database_url
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+#         conn_max_age=0,
+#         ssl_require=False
+#     )
+# }
 
 
 #local development settings
 
-# import dj_database_url
+import dj_database_url
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'fastapidb',
-#         'USER': 'fastapiuser',
-#         'PASSWORD': 'fastapi37811',  
-#         'HOST': 'localhost',   # or your DB server host
-#         'PORT': '5432',        # default postgres port
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'fastapidb',
+        'USER': 'fastapiuser',
+        'PASSWORD': 'fastapi37811',  
+        'HOST': 'localhost',   # or your DB server host
+        'PORT': '5432',        # default postgres port
+    }
+}
 
 
 # CREATE DATABASE fastapidb;
@@ -532,7 +525,9 @@ TINYMCE_DEFAULT_CONFIG = {
     'theme': 'silver',
 
     # ✅ Allow pre/code fully
-    'extended_valid_elements': 'pre[class|style],code[class|style]',
+    'extended_valid_elements': 'pre[class|style],code[class|style],iframe[src|frameborder|style|scrolling|class|width|height|name|align|allow|allowfullscreen]',
+
+    # 'extended_valid_elements': 'pre[class|style],code[class|style]',
     'valid_elements': '*[*]',
 
     # ✅ Protect code blocks so TinyMCE does NOT "parse" inside them
@@ -562,96 +557,6 @@ TINYMCE_DEFAULT_CONFIG = {
     'forced_root_block': False,
     'br_in_pre': True,
 }
-
-# TINYMCE_DEFAULT_CONFIG = {
-#     'height': 360,
-#     'width': 700,
-#     'entity_encoding': "raw",            # Preserve <, >, & etc.
-#     'cleanup_on_startup': True,
-#     'custom_undo_redo_levels': 20,
-#     'selector': 'textarea',
-#     'plugins': 'link image preview codesample contextmenu table code mathjax',
-#     'toolbar': (
-#         'undo redo | styleselect | bold italic | link image | '
-#         'alignleft aligncenter alignright alignjustify | '
-#         'bullist numlist outdent indent | table | codesample | mathjax'
-#     ),
-#     'theme': 'silver',
-
-#     # MathML support
-#     'extended_valid_elements': 'math[*],mrow[*],mfrac[*],mi[*],mn[*],mo[*]',
-#     'custom_elements': 'math,mrow,mfrac,mi,mn,mo',
-#     'content_style': "math, mrow, mfrac, mi, mn, mo",
-#     'mathjax': {
-#         'lib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML',
-#         'symbols': {'mathml': True}
-#     },
-#     'init_instance_callback': '''
-#         function (editor) {
-#             console.log('Editor is initialized.');
-#             editor.on('click', function(e) {
-#                 if (e.target.nodeName === 'MATH' || e.target.closest('math')) {
-#                     editor.focus();
-#                 }
-#             });
-#         }
-#     ''',
-
-#     # Preserve AI-generated paragraphs and lists exactly
-#     'forced_root_block': False,          # Disable automatic <p> wrapping
-#     'forced_root_block_attrs': {},       
-#     'br_in_pre': True,                   # Preserve line breaks in <pre>
-
-#     # Allow all elements and attributes
-#     'valid_elements': '*[*]',
-#     'valid_children': (
-#         '+body[style|link|script|iframe|section],'
-#         '+section[div|p],'
-#         '+div[math|mrow|mfrac|mi|mn|mo]'
-#     ),
-# }
-
-# TINYMCE_DEFAULT_CONFIG = {
-#     'height': 360,
-#     'width': 700,
-#     'entity_encoding': "raw",
-#     'cleanup_on_startup': True,
-#     'custom_undo_redo_levels': 20,
-#     'selector': 'textarea',
-#     'plugins': 'link image preview codesample contextmenu table code mathjax',
-#     'toolbar': 'undo redo | styleselect | bold italic | link image | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | codesample | mathjax',
-#     'theme': 'silver',
-
-#     # Additional configuration for MathML
-#     'extended_valid_elements': 'math[*],mrow[*],mfrac[*],mi[*],mn[*],mo[*]',
-#     'custom_elements': 'math,mrow,mfrac,mi,mn,mo',
-#     'content_style': "math, mrow, mfrac, mi, mn, mo",
-#     'mathjax': {
-#         'lib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML',
-#         'symbols': {'mathml': True}
-#     },
-#     'init_instance_callback': '''
-#         function (editor) {
-#             console.log('Editor is initialized.');
-
-#             // Add event listener for MathML elements
-#             editor.on('click', function(e) {
-#                 if (e.target.nodeName === 'MATH' || e.target.closest('math')) {
-#                     editor.focus();
-#                 }
-#             });
-#         }
-#     ''',
-
-#     # Prevent wrapping text in <p> tags
-#     'forced_root_block': ' ',  # Use <div> instead of <p>
-#     'forced_root_block_attrs': {},  # Clears any forced attributes
-#     'br_in_pre': True,  # Insert <br> tags instead of wrapping in <p> tags
-
-#     # Allow all elements and attributes
-#     'valid_elements': '*[*]',  # Allow all elements
-#     'valid_children': '+body[style|link|script|iframe|section],+section[div|p],+div[math|mrow|mfrac|mi|mn|mo]',
-# }
 
 
 TINYMCE_JS_URL = 'https://cdn.tiny.cloud/1/r5ebxl5femg5gy8yvid6alg59ohekm45qlmxptc20qeu5jgw/tinymce/6/tinymce.min.js'

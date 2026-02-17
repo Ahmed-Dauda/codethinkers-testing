@@ -291,13 +291,71 @@ table-layout: fixed; // ***********add this
     </a> -->
 
 
-<iframe
-  src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0&controls=1"
-  frameborder="0"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-  allowfullscreen
-  style="width:100%; height:500px;"
-></iframe>
+
+<div class="video-container app-container">
+  <div class="video-wrapper app-container" 
+       style="background: #000000; position: relative;">
+
+    <iframe
+        id="player-{{ topic.id }}"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        allowfullscreen
+        referrerpolicy="strict-origin-when-cross-origin"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock"
+        >
+    </iframe>
+
+    <div class="banner-overlay"></div>
+    <div class="watch-overlay"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const videoUrl = "{{ topic.video|escapejs }}";
+  const iframeId = "player-{{ topic.id }}";
+  let videoId = "Ha8wtmdhZvI"; // fallback
+
+  if (videoUrl) {
+    try {
+      const url = new URL(videoUrl);
+
+      // Shorts
+      if (url.pathname.startsWith("/shorts/")) {
+        videoId = url.pathname.split("/")[2] || videoId;
+      }
+      // Short link youtu.be
+      else if (url.hostname.includes("youtu.be")) {
+        videoId = url.pathname.slice(1) || videoId;
+      }
+      // Standard watch?v=
+      else if (url.searchParams.get("v")) {
+        videoId = url.searchParams.get("v") || videoId;
+      }
+    } catch(e) {
+      console.error("Invalid video URL, using fallback", e);
+    }
+  }
+
+  // Build the embed URL with restrictions
+  const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&rel=0&modestbranding=1&playsinline=1&autoplay=0&controls=0&loop=1&playlist=${videoId}&mute=0`;
+
+  // Set the iframe src
+  document.getElementById(iframeId).src = embedUrl;
+
+  // Overlay to prevent YouTube click
+  const iframe = document.getElementById(iframeId);
+  const overlay = iframe.parentElement.querySelector(".watch-overlay");
+  overlay.style.position = "absolute";
+  overlay.style.top = 0;
+  overlay.style.left = 0;
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.cursor = "default";
+  overlay.style.zIndex = 10;
+})();
+</script>
 
 
                           <!-- <iframe
@@ -548,7 +606,7 @@ table-layout: fixed; // ***********add this
 
 
 <!-- iframe videos -->
-
+<!-- 
 <script>
     "use strict";
     if (document.readyState !== 'loading') init();
@@ -661,7 +719,7 @@ table-layout: fixed; // ***********add this
 
     // transcript viddo
 
-    </script>
+    </script> -->
     
 <!-- horizontal navbar under videos -->
 <script>
