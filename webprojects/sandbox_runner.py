@@ -1,6 +1,7 @@
 """
 Secure Python code execution sandbox with resource limits and output capture.
 """
+
 import sys
 import io
 import traceback
@@ -15,47 +16,34 @@ ALLOWED_MODULES = {
     # Data Science Core
     "pandas",
     "numpy",
-
     # Visualization
     "matplotlib",
     "matplotlib.pyplot",
     "seaborn",
-
     # Math & Statistics
     "math",
     "statistics",
     "random",
-
-    # Functional helpers
-    "operator",
-
     # Dates & Time
     "datetime",
     "time",
     "calendar",
-
     # Data Formats
     "json",
     "csv",
-
     # Functional / Itertools
     "itertools",
     "collections",
-
     # Scientific Computing
     "scipy",
-
     # Machine Learning (Intro Level)
     "sklearn",
-
     # Regex & Text
     "re",
     "string",
-
     # Decimal Precision
     "decimal",
-
-    # Table Formatting
+    # Table Formatting (for pandas)
     "tabulate",
 }
 
@@ -108,23 +96,39 @@ SAFE_BUILTINS = {
 
 class SandboxRunner:
     """
-    Secure Python code execution environment with output capture.
-    
-    Features:
-    - Restricted imports (only whitelisted modules)
-    - Matplotlib plot capture as base64 images
-    - stdout/stderr capture
-    - Safe builtins environment
-    - Pretty table printing for DataFrames
+    Secure Python code execution environment with:
+    - Dynamic input support (VSCode-style)
+    - Matplotlib plot capture
+    - Pandas table formatting
+    - Safe builtins
     """
-    
-    def __init__(self):
+
+    def __init__(self, user_inputs=None, timeout=5):
         self.images = []
         self.stdout_buffer = io.StringIO()
         self.stderr_buffer = io.StringIO()
-        
+        self.user_inputs = user_inputs or []
+        self.input_index = 0
+        self.timeout = timeout
+
+    # ----------------- Safe Input -----------------
+    def safe_input(self, prompt=""):
+        """
+        Custom input() that pulls from user_inputs array.
+        Prints prompt + simulated user typing to stdout.
+        """
+        print(prompt, end="")  # show prompt
+        if self.input_index < len(self.user_inputs):
+            value = self.user_inputs[self.input_index]
+            self.input_index += 1
+            print(value)  # simulate typed value
+            return value
+        # If no input left, raise error (forces frontend to provide it)
+        raise RuntimeError("Input requested but no more user_inputs available.")
+
+    # ----------------- Fake plt.show -----------------
     def _create_fake_show(self):
-        """Create a fake plt.show() that captures images instead of displaying them."""
+        """Capture matplotlib plots as base64 images instead of displaying."""
         def fake_show(*args, **kwargs):
             buf = io.BytesIO()
             plt.savefig(buf, format="png", bbox_inches="tight", dpi=150)
@@ -133,60 +137,35 @@ class SandboxRunner:
             self.images.append(f"data:image/png;base64,{img_b64}")
             plt.close()
         return fake_show
-    
-    def _setup_pandas_display(self):
-        """Configure pandas to display nice tables."""
-        # Set pandas display options for better table formatting
-        pd.set_option('display.max_rows', 100)
-        pd.set_option('display.max_columns', 20)
-        pd.set_option('display.width', 1000)
-        pd.set_option('display.max_colwidth', 50)
-        
+
+    # ----------------- Execute Code -----------------
     def execute(self, code: str) -> dict:
-        """
-        Execute Python code in a sandboxed environment.
-        
-        Args:
-            code: Python code string to execute
-            
-        Returns:
-            dict with keys:
-                - status: "success" or "error"
-                - output: stdout content
-                - error: stderr content (if any)
-                - images: list of base64-encoded PNG images
-                - message: human-readable message
-        """
-        # Reset buffers and images
+        # Reset buffers
         self.images = []
         self.stdout_buffer = io.StringIO()
         self.stderr_buffer = io.StringIO()
-        
-        # Clear any existing matplotlib figures
+
+        # Clear matplotlib figures
         plt.clf()
         plt.close("all")
-        
-        # Setup pandas display options
-        self._setup_pandas_display()
-        
-        # Create safe execution environment
+
+        # Setup safe globals
         safe_globals = {
             "__builtins__": SAFE_BUILTINS,
+            "input": self.safe_input,
             "pd": pd,
-            "plt": plt,
             "np": np,
+            "plt": plt,
         }
-        
+
         # Override plt.show to capture images
         original_show = plt.show
         plt.show = self._create_fake_show()
-        
+
         try:
-            with contextlib.redirect_stdout(self.stdout_buffer), \
-                 contextlib.redirect_stderr(self.stderr_buffer):
+            with contextlib.redirect_stdout(self.stdout_buffer), contextlib.redirect_stderr(self.stderr_buffer):
                 exec(code, safe_globals, {})
-            
-            # Check for errors in stderr
+
             stderr_output = self.stderr_buffer.getvalue()
             if stderr_output:
                 return {
@@ -196,7 +175,7 @@ class SandboxRunner:
                     "images": self.images,
                     "message": "Execution completed with warnings/errors"
                 }
-            
+
             return {
                 "status": "success",
                 "output": self.stdout_buffer.getvalue() or "[No output]",
@@ -204,48 +183,36 @@ class SandboxRunner:
                 "images": self.images,
                 "message": "Execution completed successfully"
             }
-            
+
         except Exception as e:
-            error_traceback = traceback.format_exc()
-            print(f"❌ Sandbox Execution Error: {error_traceback}")
-            
             return {
                 "status": "error",
                 "output": self.stdout_buffer.getvalue(),
-                "error": error_traceback,
+                "error": traceback.format_exc(),
                 "images": self.images,
                 "message": f"Execution failed: {str(e)}"
             }
-            
+
         finally:
-            # Restore original plt.show
             plt.show = original_show
 
 
-def run_code(code: str) -> dict:
-    """
-    Convenience function to execute code in sandbox.
-    
-    Args:
-        code: Python code string to execute
-        
-    Returns:
-        dict with execution results
-    """
-    runner = SandboxRunner()
+# ----------------- Convenience Function -----------------
+def run_code(code: str, inputs=None) -> dict:
+    runner = SandboxRunner(user_inputs=inputs)
     return runner.execute(code)
 
 
 # ================= CLI INTERFACE (for testing) =================
 def main():
-    """Run sandbox from command line (reads code from stdin)."""
+    """Run sandbox from CLI (reads code from stdin)."""
     import json
-    
+
     try:
         code = sys.stdin.read()
         result = run_code(code)
         print(json.dumps(result, indent=2))
-        
+
     except Exception as e:
         print(json.dumps({
             "status": "error",
@@ -258,3 +225,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+  

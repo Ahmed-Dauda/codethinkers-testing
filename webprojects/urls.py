@@ -1,7 +1,7 @@
 from django.urls import path
-from webprojects.views import (ai_python_completion,ai_suggest_code, auto_save_view, create_file, create_folder, 
+from webprojects.views import (ai_python_completion,ai_suggest_code, file_autosave, create_file, create_folder, 
 create_project, 
-file_delete, file_preview, project_detail,
+file_delete, file_preview, get_code_examples, project_detail,
 file_detail, project_files_json, public_folder_view, 
 run_python_code, share_preview_view, file_chat,
 upload_file_ajax, view_rendered_file)
@@ -10,7 +10,9 @@ upload_file_ajax, view_rendered_file)
 app_name = 'webprojects'
 
 urlpatterns = [
-    
+    path('get-code-examples/',get_code_examples, name='get_code_examples'),
+    path("run-python/", run_python_code, name="run_python_code"),
+
     path('project/<int:project_id>/file/<int:file_id>/chat/', file_chat, name='file_chat'),
     path('<int:project_id>/files-json/', project_files_json, name='project_files_json'),
 
@@ -23,7 +25,7 @@ urlpatterns = [
     path('projects/<int:project_id>/create-folder/', create_folder, name='create_folder'),
     path('projects/<int:project_id>/', project_detail, name='project_detail'),
 
-    path("autosave/", auto_save_view, name="file_autosave"),
+    path('file-autosave/', file_autosave, name='file_autosave'),
     path('preview/share/<int:project_id>/<int:file_id>/', share_preview_view, name='share_preview'),
     path('create-project/', create_project, name='create_project'),
 

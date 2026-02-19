@@ -214,7 +214,7 @@ class Topics(models.Model):
     hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
 
     class Meta:
-        ordering = ['title']
+        ordering = ['created']
 
     def save(self, *args, **kwargs):
         if not self.slug and self.title and self.courses:

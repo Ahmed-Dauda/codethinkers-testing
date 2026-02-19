@@ -1,3 +1,4 @@
+import datetime
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from .models import Project, File
@@ -400,22 +401,85 @@ def project_detail(request, project_id):
 
 
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.views.decorators.http import require_http_methods
+
+
 @csrf_exempt
-def auto_save_view(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            file_id = data.get("file_id")
-            content = data.get("content")
-            file = File.objects.get(id=file_id)
-            file.content = content
-            file.save()
-            return JsonResponse({"status": "success"})
-        except File.DoesNotExist:
-            return JsonResponse({"status": "error", "message": "File not found"}, status=404)
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)}, status=500)
-    return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
+@require_http_methods(["POST"])
+def file_autosave(request):
+    try:
+        print("=== AUTOSAVE BACKEND DEBUG ===")
+        print("Request method:", request.method)
+        print("Request body:", request.body[:200])  # First 200 chars
+        
+        data = json.loads(request.body)
+        file_id = data.get("file_id")
+        content = data.get("content", "")
+        
+        print(f"File ID: {file_id}")
+        print(f"Content length: {len(content)}")
+        
+        # Get the file
+        file_obj = File.objects.get(id=file_id)
+        print(f"Found file: {file_obj.name}")
+        
+        # Save the content
+        file_obj.content = content
+        file_obj.save()
+        
+        print("✅ File saved successfully")
+        
+        return JsonResponse({
+            "status": "success",
+            "message": "File saved successfully",
+            "file_id": file_id,
+            "content_length": len(content)
+        })
+        
+    except File.DoesNotExist:
+        print(f"❌ File not found: {file_id}")
+        return JsonResponse({
+            "status": "error",
+            "message": f"File with ID {file_id} not found"
+        }, status=404)
+        
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON decode error: {e}")
+        return JsonResponse({
+            "status": "error",
+            "message": "Invalid JSON data"
+        }, status=400)
+        
+    except Exception as e:
+        import traceback
+        print(f"❌ Error: {e}")
+        print(traceback.format_exc())
+        return JsonResponse({
+            "status": "error",
+            "message": str(e),
+            "traceback": traceback.format_exc()
+        }, status=500)
+        
+    
+# @csrf_exempt
+# def auto_save_view(request):
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             file_id = data.get("file_id")
+#             content = data.get("content")
+#             file = File.objects.get(id=file_id)
+#             file.content = content
+#             file.save()
+#             return JsonResponse({"status": "success"})
+#         except File.DoesNotExist:
+#             return JsonResponse({"status": "error", "message": "File not found"}, status=404)
+#         except Exception as e:
+#             return JsonResponse({"status": "error", "message": str(e)}, status=500)
+#     return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
 
 
 
@@ -668,6 +732,126 @@ REQUEST:
         "file_name": file.name,
         "language": language
     })
+
+
+@csrf_exempt
+def get_code_examples(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"})
+    
+    try:
+        data = json.loads(request.body)
+        code = data.get("code", "")
+        cursor_line = data.get("cursor_line", 1)
+        selected_text = data.get("selected_text", "")
+        
+        # Build prompt for examples
+        prompt = build_examples_prompt(code, cursor_line, selected_text)
+        
+        # ================= OPENAI CALL =================
+        response = client.chat.completions.create(
+            model="gpt-4-turbo-preview",
+            messages=[
+                {"role": "system", "content": "You are a Python coding tutor. Provide relevant, practical code examples. Always respond with valid JSON only."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.3,
+            max_tokens=2000,
+        )
+        
+        response_text = response.choices[0].message.content
+        
+        # Parse response
+        try:
+            if "```json" in response_text:
+                response_text = response_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in response_text:
+                response_text = response_text.split("```")[1].split("```")[0].strip()
+            
+            result = json.loads(response_text)
+            examples = result.get("examples", [])
+            
+            return JsonResponse({
+                "status": "success",
+                "examples": examples
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({
+                "status": "error",
+                "message": "Failed to parse examples"
+            })
+        
+    except Exception as e:
+        import traceback
+        return JsonResponse({
+            "status": "error",
+            "message": str(e),
+            "details": traceback.format_exc()
+        })
+
+
+def build_examples_prompt(code, cursor_line, selected_text):
+    """Build prompt for getting relevant code examples"""
+    
+    return f"""Analyze this Python code and provide 3-4 relevant, practical examples that would help the student learn related concepts.
+
+Student's current code:
+```python
+{code}
+```
+
+Based on what they're working on, provide examples that:
+1. Build on their current knowledge
+2. Show related concepts they should learn next
+3. Are simple and practical
+4. Include clear explanations
+
+Return ONLY valid JSON in this format:
+{{
+  "examples": [
+    {{
+      "category": "input|loops|conditionals|functions|lists|strings|math|files",
+      "title": "Short descriptive title",
+      "explanation": "1-2 sentences explaining what this example does and why it's useful",
+      "code": "Complete, runnable Python code example"
+    }}
+  ]
+}}
+
+IMPORTANT:
+- Provide 3-4 examples
+- Each example should be complete and runnable
+- Keep examples short (5-10 lines max)
+- Examples should be progressively more advanced
+- Use clear variable names and add comments
+- Make sure code is properly formatted with correct indentation
+
+Example response:
+{{
+  "examples": [
+    {{
+      "category": "input",
+      "title": "Getting Multiple Inputs",
+      "explanation": "Learn how to ask for multiple pieces of information and store them in variables.",
+      "code": "name = input(\\"Enter your name: \\")\\nage = input(\\"Enter your age: \\")\\ncity = input(\\"Enter your city: \\")\\nprint(f\\"{{name}} is {{age}} years old and lives in {{city}}\\")"
+    }},
+    {{
+      "category": "conditionals",
+      "title": "Age Checker",
+      "explanation": "Use if-else to make decisions based on user input.",
+      "code": "age = int(input(\\"Enter your age: \\"))\\nif age >= 18:\\n    print(\\"You're an adult!\\")\\nelse:\\n    print(\\"You're a minor!\\")"
+    }},
+    {{
+      "category": "loops",
+      "title": "Print Multiple Greetings",
+      "explanation": "Use a loop to repeat actions multiple times.",
+      "code": "name = input(\\"Enter your name: \\")\\nfor i in range(3):\\n    print(f\\"Hello {{name}}! ({{i+1}})\\")"
+    }}
+  ]
+}}
+"""
+
 
 #worked
 # @csrf_protect
@@ -2271,29 +2455,30 @@ def ai_python_completion(request):
         return JsonResponse({"error": str(e)}, status=500)
        
 
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+  # make sure this import is correct
+
+
 @csrf_exempt
 def run_python_code(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            code = data.get('code', '')
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=400)
 
-            # Set up in-memory output capture
-            stdout = io.StringIO()
-            stderr = io.StringIO()
+    try:
+        data = json.loads(request.body)
+        code = data.get("code", "")
+        inputs = data.get("inputs", [])  # 👈 IMPORTANT
 
-            with contextlib.redirect_stdout(stdout):
-                with contextlib.redirect_stderr(stderr):
-                    try:
-                        exec(code, {})
-                    except Exception:
-                        traceback.print_exc(file=stderr)
+        result = run_code(code, inputs)  # 👈 Pass inputs here
 
-            output = stdout.getvalue()
-            error = stderr.getvalue()
-
-            return JsonResponse({'output': output, 'error': error})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-
-    return JsonResponse({'error': 'Invalid request'}, status=400)    
+        return JsonResponse(result)
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "output": "",
+            "error": str(e),
+            "images": [],
+            "message": "Server error"
+        }, status=500)
