@@ -463,7 +463,43 @@ def file_autosave(request):
             "traceback": traceback.format_exc()
         }, status=500)
         
+
+@require_http_methods(["GET"])
+def get_file_content(request, project_id, file_id):
+    """Fetch file content without full page load"""
+    try:
+        file = File.objects.get(id=file_id, project_id=project_id)
+        
+        return JsonResponse({
+            "status": "success",
+            "file": {
+                "id": file.id,
+                "name": file.name,
+                "content": file.content,
+                "language": get_language_from_extension(file.name)
+            }
+        })
+    except File.DoesNotExist:
+        return JsonResponse({
+            "status": "error",
+            "message": "File not found"
+        }, status=404)
+
+def get_language_from_extension(filename):
+    """Helper to determine language"""
+    ext = filename.split('.')[-1].lower()
+    lang_map = {
+        'py': 'python',
+        'js': 'javascript',
+        'html': 'html',
+        'css': 'css',
+        'json': 'json',
+        'md': 'markdown',
+        'txt': 'plaintext'
+    }
+    return lang_map.get(ext, 'plaintext')
     
+     
 # @csrf_exempt
 # def auto_save_view(request):
 #     if request.method == "POST":

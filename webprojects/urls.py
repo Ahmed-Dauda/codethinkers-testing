@@ -1,7 +1,7 @@
 from django.urls import path
 from webprojects.views import (ai_python_completion,ai_suggest_code, file_autosave, create_file, create_folder, 
 create_project, 
-file_delete, file_preview, get_code_examples, project_detail,
+file_delete, file_preview, get_code_examples, get_file_content, project_detail,
 file_detail, project_files_json, public_folder_view, 
 run_python_code, share_preview_view, file_chat,
 upload_file_ajax, view_rendered_file)
@@ -10,6 +10,9 @@ upload_file_ajax, view_rendered_file)
 app_name = 'webprojects'
 
 urlpatterns = [
+    path('project/<int:project_id>/file/<int:file_id>/content/', 
+         get_file_content, 
+         name='get_file_content'),
     path('get-code-examples/',get_code_examples, name='get_code_examples'),
     path("run-python/", run_python_code, name="run_python_code"),
 

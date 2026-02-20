@@ -768,7 +768,15 @@
 
               {% else %}
                 <!-- 👇 Normal File: Go to Editor -->
-                <a class="ajax-link" href="{% url 'webprojects:file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
+                <!-- <a class="ajax-link" href="{% url 'webprojects:file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a> -->
+                 <!-- NEW WAY (AJAX - no reload): -->
+  <a href="javascript:void(0);" 
+     onclick="loadFile({{ f.project.id }}, {{ f.id }}, '{{ f.name|escapejs }}')"
+     class="file-link"
+     data-file-id="{{ f.id }}"
+     {% if f.id == file.id %}style="font-weight:bold;color:#3498db;"{% endif %}>
+    📝 {{ f.name }}
+  </a>
 
                 {% if ".html" in f.name|lower %}
                   <a href="{% url 'webprojects:share_preview' f.project.id f.id %}" target="_blank" style="color: green;">publish</a>
@@ -794,7 +802,29 @@
     </div>
   {% endwith %}
 {% endfor %}
+<style>
+.file-link {
+  transition: all 0.2s ease;
+  position: relative;
+}
 
+.file-link:hover {
+  color: #3498db !important;
+  padding-left: 5px;
+}
+
+.file-link.loading::after {
+  content: "⏳";
+  position: absolute;
+  right: 0px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
 
 <!-- 🖼️ Image Popup Modal -->
 <div id="imagePopupModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000;">
@@ -1601,6 +1631,128 @@ document.getElementById('fileChatPrompt').addEventListener('keydown', e => {
 <!-- js section -->
 
 <!-- prompts js -->
+<script>
+// ============= FILE SWITCHING WITHOUT RELOAD =============
+let currentFileId = {{ file.id }};
+let currentProjectId = {{ file.project.id }};
+
+async function loadFile(projectId, fileId, fileName) {
+  if (fileId === currentFileId) return;
+  
+  // Add loading indicator
+  const link = document.querySelector(`[data-file-id="${fileId}"]`);
+  if (link) link.classList.add('loading');
+  
+  showToast('⏳ Loading ' + fileName + '...');
+  
+  // Save current file before switching
+  if (editor && lastSavedContent !== editor.getValue()) {
+    await performAutoSave();
+  }
+  
+  try {
+    const response = await fetch(`/webprojects/project/${projectId}/file/${fileId}/content/`);
+    const data = await response.json();
+    
+    if (data.status === 'success') {
+      const fileData = data.file;
+      
+      if (editor) {
+        editor.setValue(fileData.content);
+        const model = editor.getModel();
+        monaco.editor.setModelLanguage(model, fileData.language);
+        lastSavedContent = fileData.content;
+      }
+      
+      currentFileId = fileData.id;
+      currentProjectId = projectId;
+      
+      updateActiveFileUI(fileId, fileName);
+      updateURL(projectId, fileId);
+      clearOutput();
+      
+      showToast('✅ Loaded ' + fileName);
+    } else {
+      showToast('❌ Failed to load file: ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error loading file:', error);
+    showToast('❌ Error loading file');
+  } finally {
+    // Remove loading indicator
+    if (link) link.classList.remove('loading');
+  }
+}
+
+function updateActiveFileUI(fileId, fileName) {
+  // Remove highlight from all files
+  document.querySelectorAll('.file-link').forEach(link => {
+    link.style.fontWeight = 'normal';
+    link.style.color = '';
+  });
+  
+  // Highlight active file
+  const activeLink = document.querySelector(`[data-file-id="${fileId}"]`);
+  if (activeLink) {
+    activeLink.style.fontWeight = 'bold';
+    activeLink.style.color = '#3498db';
+  }
+  
+  // Update page title
+  document.title = fileName + ' | Code Editor';
+  
+  // Update file name display in navbar
+  const fileNameDisplay = document.querySelector('.project-info span:last-child');
+  if (fileNameDisplay) {
+    fileNameDisplay.textContent = '📝 ' + fileName;
+  }
+}
+
+function updateURL(projectId, fileId) {
+  // Update browser URL without reload (allows bookmarking/back button)
+  const newUrl = `/webprojects/${projectId}/file/${fileId}/`;
+  window.history.pushState(
+    { projectId, fileId }, 
+    '', 
+    newUrl
+  );
+}
+
+function clearOutput() {
+  // Clear output panel when switching files
+  const outputText = document.getElementById('outputText');
+  const plotPreview = document.getElementById('plotPreview');
+  const tablePreview = document.getElementById('tablePreview');
+  
+  if (outputText) outputText.textContent = '';
+  if (plotPreview) plotPreview.innerHTML = '';
+  if (tablePreview) {
+    tablePreview.innerHTML = '';
+    tablePreview.style.display = 'none';
+  }
+}
+
+// Handle browser back/forward buttons
+window.addEventListener('popstate', function(event) {
+  if (event.state && event.state.fileId) {
+    // User clicked back/forward - load that file
+    const link = document.querySelector(`[data-file-id="${event.state.fileId}"]`);
+    if (link) {
+      const fileName = link.textContent.trim().replace('📝 ', '');
+      loadFile(event.state.projectId, event.state.fileId, fileName);
+    }
+  }
+});
+
+// Initialize history state
+window.history.replaceState(
+  { projectId: currentProjectId, fileId: currentFileId },
+  '',
+  window.location.pathname
+);
+
+console.log('✅ File switching initialized');
+</script>
 
 <script>
   document.addEventListener("DOMContentLoaded", async () => {
@@ -2303,6 +2455,7 @@ function showSaveStatus(message, isError = false) {
   }, 2000);
 }
 
+
 function performAutoSave() {
   if (!editor) {
     console.log("⏭️ Editor not ready yet");
@@ -2312,12 +2465,11 @@ function performAutoSave() {
   const currentContent = editor.getValue();
   
   console.log("=== AUTO-SAVE DEBUG ===");
-  console.log("File ID:", {{ file.id }});
+  console.log("File ID:", currentFileId);  // ← Use currentFileId instead of hardcoded
   console.log("Content length:", currentContent.length);
   console.log("Last saved length:", lastSavedContent.length);
   console.log("Content changed:", currentContent !== lastSavedContent);
   
-  // Only save if content has changed
   if (currentContent === lastSavedContent) {
     console.log("⏭️ Skipped - No changes");
     return;
@@ -2327,7 +2479,7 @@ function performAutoSave() {
   showSaveStatus('Saving...', false);
   
   const saveData = {
-    file_id: {{ file.id }},
+    file_id: currentFileId,  // ← Use currentFileId
     content: currentContent
   };
   
@@ -2361,7 +2513,6 @@ function performAutoSave() {
     showSaveStatus('✗ Error', true);
   });
 }
-
 // ============= MONACO EDITOR INITIALIZATION =============
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' } });
 
@@ -2912,6 +3063,7 @@ function addNewFileToSidebar(fileId, fileName, projectId) {
   fileItem.className = 'file-item';
   
   // Determine file type and create appropriate link
+  // UPDATE THIS PART - use AJAX click handler
   const isImage = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'].includes(ext);
   const isExcel = ['xls', 'xlsx', 'csv'].includes(ext);
   
@@ -2925,7 +3077,10 @@ function addNewFileToSidebar(fileId, fileName, projectId) {
     `;
   } else {
     fileItem.innerHTML = `
-      <a class="ajax-link" href="/webprojects/${projectId}/file/${fileId}/">📝 ${fileName}</a>
+      <a href="javascript:void(0);" 
+         onclick="loadFile(${projectId}, ${fileId}, '${fileName}')"
+         class="file-link"
+         data-file-id="${fileId}">📝 ${fileName}</a>
       ${ext === 'html' ? `<a href="/webprojects/${projectId}/file/${fileId}/preview/" target="_blank" style="color: green;">publish</a>` : ''}
       ${isExcel ? `<a href="/webprojects/${projectId}/file/${fileId}/preview/" class="btn btn-sm">View</a>` : ''}
       <form method="POST" action="/webprojects/${projectId}/file/${fileId}/delete/" class="delete-file-form d-inline">
@@ -2934,7 +3089,6 @@ function addNewFileToSidebar(fileId, fileName, projectId) {
       </form>
     `;
   }
-  
   // Add to group
   targetGroup.appendChild(fileItem);
   
@@ -2981,6 +3135,8 @@ function addNewFileToSidebar(fileId, fileName, projectId) {
     fileItem.style.background = '';
   }, 2000);
 }
+
+
 </script>
 
 <!-- uppload file js  -->
