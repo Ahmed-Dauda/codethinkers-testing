@@ -580,7 +580,7 @@
       Create Project
     </a>
     
-    <a href="{% url 'quiz:take-exam' %}">
+    <a href="{% url 'student:take-exam' %}">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M9 11l3 3L22 4"/>
         <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
@@ -2829,8 +2829,17 @@ function createNewFile() {
   .then(res => res.json())
   .then(data => {
     if (data.status === "success") {
-      alert("✅ File created!");
-      window.location.href = `/webprojects/${projectId}/file/${data.file_id}/`;
+      showToast(`✅ File "${name}" created successfully!`);
+      
+      // Clear input
+      document.getElementById("newFileName").value = "";
+      
+      // Add file to sidebar dynamically
+      addNewFileToSidebar(data.file_id, name, projectId);
+      
+      // ✅ REMOVED: No navigation, no reload
+      // User can click the new file in the sidebar when they want to open it
+      
     } else {
       alert("❌ " + data.message);
     }
@@ -2838,6 +2847,140 @@ function createNewFile() {
   .catch(err => alert("❌ Request failed: " + err));
 }
 
+function addNewFileToSidebar(fileId, fileName, projectId) {
+  // Get file extension
+  const ext = fileName.split('.').pop().toLowerCase();
+  
+  // Find the appropriate file group
+  const folderToggles = document.querySelectorAll('.folder-toggle');
+  let targetGroup = null;
+  
+  folderToggles.forEach(toggle => {
+    if (toggle.dataset.ext === ext) {
+      targetGroup = toggle.nextElementSibling;
+      // Make sure the folder is open
+      if (!toggle.classList.contains('open')) {
+        toggle.classList.add('open');
+        targetGroup.style.display = 'block';
+        localStorage.setItem('folder_' + ext, 'open');
+      }
+    }
+  });
+  
+  // If no group exists for this extension, create one
+  if (!targetGroup) {
+    const sidebar = document.querySelector('.sidebar');
+    const modulesContainer = document.querySelector('.topics-container');
+    
+    // Create new folder toggle
+    const newToggle = document.createElement('div');
+    newToggle.className = 'folder-toggle open';
+    newToggle.dataset.ext = ext;
+    newToggle.innerHTML = `📁 ${ext.toUpperCase()} Files <span>⮟</span>`;
+    
+    // Create new file group
+    const newGroup = document.createElement('div');
+    newGroup.className = 'file-group';
+    newGroup.style.display = 'block';
+    
+    // Insert before modules section
+    if (modulesContainer) {
+      const modulesParent = modulesContainer.parentElement;
+      const h2 = modulesParent.querySelector('h2');
+      if (h2) {
+        modulesParent.insertBefore(newToggle, h2);
+        modulesParent.insertBefore(newGroup, h2);
+      }
+    } else {
+      sidebar.appendChild(newToggle);
+      sidebar.appendChild(newGroup);
+    }
+    
+    // Add click handler for toggle
+    newToggle.addEventListener('click', () => {
+      const group = newToggle.nextElementSibling;
+      const isOpen = newToggle.classList.toggle('open');
+      group.style.display = isOpen ? 'block' : 'none';
+      localStorage.setItem('folder_' + ext, isOpen ? 'open' : 'closed');
+    });
+    
+    targetGroup = newGroup;
+  }
+  
+  // Create the file item
+  const fileItem = document.createElement('div');
+  fileItem.className = 'file-item';
+  
+  // Determine file type and create appropriate link
+  const isImage = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'].includes(ext);
+  const isExcel = ['xls', 'xlsx', 'csv'].includes(ext);
+  
+  if (isImage) {
+    fileItem.innerHTML = `
+      <a href="javascript:void(0);" style="color:#4fa;">🖼️ ${fileName}</a>
+      <form method="POST" action="/webprojects/${projectId}/file/${fileId}/delete/" class="delete-file-form d-inline">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
+      </form>
+    `;
+  } else {
+    fileItem.innerHTML = `
+      <a class="ajax-link" href="/webprojects/${projectId}/file/${fileId}/">📝 ${fileName}</a>
+      ${ext === 'html' ? `<a href="/webprojects/${projectId}/file/${fileId}/preview/" target="_blank" style="color: green;">publish</a>` : ''}
+      ${isExcel ? `<a href="/webprojects/${projectId}/file/${fileId}/preview/" class="btn btn-sm">View</a>` : ''}
+      <form method="POST" action="/webprojects/${projectId}/file/${fileId}/delete/" class="delete-file-form d-inline">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
+      </form>
+    `;
+  }
+  
+  // Add to group
+  targetGroup.appendChild(fileItem);
+  
+  // Attach delete handler
+  const deleteForm = fileItem.querySelector('.delete-file-form');
+  if (deleteForm) {
+    deleteForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      if (!confirm("Are you sure you want to delete this file?")) return;
+      
+      const url = deleteForm.getAttribute('action');
+      const csrfToken = deleteForm.querySelector('[name=csrfmiddlewaretoken]').value;
+      
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          fileItem.remove();
+          showToast('✅ File deleted');
+        } else {
+          alert(data.message || 'Failed to delete file.');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Error deleting file.');
+      });
+    });
+  }
+  
+  // Scroll to the new file
+  fileItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  
+  // Highlight the new file briefly
+  fileItem.style.background = 'rgba(52, 152, 219, 0.3)';
+  setTimeout(() => {
+    fileItem.style.background = '';
+  }, 2000);
+}
 </script>
 
 <!-- uppload file js  -->

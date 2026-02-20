@@ -793,31 +793,44 @@ def ai_assessment_selector(request):
 
     return render(request, 'quiz/dashboard/ai_assessment_selector.html', {'options': options})
 
-
 @login_required
 def ai_summative_assessment(request):
-    courses = Courses.objects.all()  # List all courses for selection
+    courses = Courses.objects.filter(course_owner=request.user)
 
+
+    # ================== SAVE QUESTIONS ==================
     if request.method == 'POST' and request.POST.get("confirm_save") == "1":
+
         total_questions = int(request.POST.get("total_questions", 0))
+        objectives = request.POST.get("objectives", "").strip()
         course_id = request.POST.get("course_id")
         marks = int(request.POST.get("marks", 1))
 
+        # Format objectives
+        if objectives:
+            objectives_list = [obj.strip() for obj in objectives.split("\n") if obj.strip()]
+            formatted_objectives = "\n".join([f"- {obj}" for obj in objectives_list])
+        else:
+            formatted_objectives = "- General understanding of the course topic"
+
+        # Get main course
         try:
-            course_obj = Courses.objects.get(id=course_id)
-            
+            course_product = Courses.objects.get(id=course_id)
         except Courses.DoesNotExist:
             messages.error(request, "Invalid course selected.")
             return redirect('quiz:ai_summative_assessment')
 
-        # Find a related CourseDetail (Course) instance to assign to Question
-        course_detail = Course.objects.filter(course_name=course_obj).first()
-        
-        if not course_detail:
-            messages.error(request, "No course details found for the selected course.")
+        # Get assessment instance (Course model)
+        course_exam = Course.objects.filter(course_name=course_product).first()
+        if not course_exam:
+            messages.error(
+                request,
+                "No assessment configuration found for this course. Please create one first."
+            )
             return redirect('quiz:ai_summative_assessment')
 
         saved = 0
+
         for i in range(1, total_questions + 1):
             question_text = request.POST.get(f"question_{i}", "").strip()
             option1 = request.POST.get(f"option1_{i}", "").strip()
@@ -826,9 +839,9 @@ def ai_summative_assessment(request):
             option4 = request.POST.get(f"option4_{i}", "").strip()
             answer = request.POST.get(f"answer_{i}", "Option1").strip()
 
-            if question_text and option1 and option2 and option3 and option4:
+            if all([question_text, option1, option2, option3, option4]):
                 Question.objects.create(
-                    course=course_detail,  # Assign CourseDetail instance
+                    course=course_exam,
                     marks=marks,
                     question=question_text,
                     option1=option1,
@@ -842,105 +855,97 @@ def ai_summative_assessment(request):
         messages.success(request, f"{saved} questions saved successfully.")
         return redirect('quiz:ai_summative_assessment')
 
+    # ================== GENERATE AI QUESTIONS ==================
     elif request.method == 'POST':
+
         course_id = request.POST.get('course')
+        objectives = request.POST.get("objectives", "").strip()
         num_questions = int(request.POST.get('num_questions', 5))
         marks = int(request.POST.get('marks', 1))
         difficulty = request.POST.get('difficulty', 'medium').lower()
 
+        # Format objectives
+        if objectives:
+            objectives_list = [obj.strip() for obj in objectives.split("\n") if obj.strip()]
+            formatted_objectives = "\n".join([f"- {obj}" for obj in objectives_list])
+        else:
+            formatted_objectives = "- General understanding of the course topic"
+
+        # Get main course
         try:
-            course_obj = Courses.objects.get(id=course_id)
+            course_product = Courses.objects.get(id=course_id)
         except Courses.DoesNotExist:
             messages.error(request, "Invalid course selected.")
             return redirect('quiz:ai_summative_assessment')
 
-        course_title = course_obj.title or ""
+        # Get assessment instance
+        course_exam, created = Course.objects.get_or_create(
+            course_name=course_product,
+            defaults={
+                "question_number": num_questions,
+                "duration_minutes": 10,
+                "pass_mark": 50,
+                "total_marks": num_questions * marks,
+            }
+        )
 
-        # Decide subject_tag for prompt if you want
-        subject_tag = course_title.split()[0].lower() if course_title else ""
+        if created:
+            messages.info(request, "Assessment configuration was automatically created.")
 
-        # Get related CourseDetail
-        course_detail = Course.objects.filter(course_name=course_obj).first()
-        if not course_detail:
-            messages.error(request, "No course details found for this course. assign it to a course.")
-            return redirect('quiz:ai_summative_assessment')
+        course_title = course_product.title or ""
 
-        if subject_tag in ['maths', 'mathematics', 'math', 'chemistry', 'chem', 'physics']:
-            prompt = f"""
+        # ================== BUILD AI PROMPT ==================
+        prompt = f"""
+You are an expert curriculum designer and assessment specialist.
 
-                You are an expert in learning assessment.
+Generate {num_questions} {difficulty}-level multiple-choice questions 
+for the course: "{course_title}"
 
-                Generate {num_questions} {difficulty}-level multiple-choice questions based strictly on the topic '{topic_title}'. 
-                Questions must follow Bloom's Taxonomy and include at least one question from each relevant category for the selected difficulty:
+LEARNING OBJECTIVES:
+{formatted_objectives}
 
-                - Easy: Remembering, Understanding
-                - Medium: Remembering, Understanding, Applying, Analyzing
-                - Hard: Remembering, Understanding, Applying, Analyzing, Evaluating, Creating
+STRICT INSTRUCTIONS:
 
-                Each question must directly test knowledge, comprehension, application, analysis, evaluation, or creation related to '{topic_title}' using accurate and realistic information.
+1. EVERY question MUST directly align with at least one learning objective.
+2. Do NOT generate questions outside the listed objectives.
+3. Questions must follow Bloom's Taxonomy according to difficulty:
 
-                Strictly follow this format (no explanations, no extra text, no numbering):
+- Easy → Remembering, Understanding
+- Medium → Remembering, Understanding, Applying, Analyzing
+- Hard → Remembering, Understanding, Applying, Analyzing, Evaluating, Creating
 
-                Question: <math xmlns='http://www.w3.org/1998/Math/MathML'><mfrac><msup><mn>3</mn><mn>4</mn></msup><msup><mn>3</mn><mn>2</mn></msup></mfrac></math>?
+4. Include a mix of Bloom's levels appropriate for the chosen difficulty.
+5. Keep wording clear and suitable for senior secondary students.
+6. Randomize the correct answer position.
+7. Avoid repeated questions or duplicate distractors.
 
-                A. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>9</mn></math>  
-                B. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>6</mn></math>  
-                C. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>3</mn></math>  
-                D. <math xmlns='http://www.w3.org/1998/Math/MathML'><mn>27</mn></math>  
-                Answer: A
+FORMAT STRICTLY AS:
 
-                Rules:
-                1. Randomize the correct answer position for each question.
-                2. Avoid repeating options, reusing the same distractors, or duplicating questions.
-                3. Keep wording clear, concise, and unambiguous.
-                4. Ensure at least one question per relevant Bloom's category for the chosen difficulty level.
-                5. Make questions challenging but fair, using context or examples related to '{course_title}'.
-                """
-        else:
-            prompt = f"""
+Question: <question text>
+A. <option>
+B. <option>
+C. <option>
+D. <option>
+Answer: <A/B/C/D>
 
-            You are an expert in learning assessment.
-
-            Generate {num_questions} {difficulty}-level multiple-choice questions based strictly on the topic '{course_title}'. 
-            Questions must follow Bloom's Taxonomy and include at least one question from each relevant category for the selected difficulty:
-
-            - Easy: Remembering, Understanding
-            - Medium: Remembering, Understanding, Applying, Analyzing
-            - Hard: Remembering, Understanding, Applying, Analyzing, Evaluating, Creating
-
-            Each question must directly test knowledge, comprehension, application, analysis, evaluation, or creation related to '{course_title}' using accurate and realistic information.
-
-            Strictly follow this format (no explanations, no extra text, no numbering):
-
-            Question: <question text>
-            A. <option>
-            B. <option>
-            C. <option>
-            D. <option>
-            Answer: <correct option letter>
-
-            Rules:
-            1. Randomize the correct answer position for each question.
-            2. Avoid repeating options, reusing the same distractors, or duplicating questions.
-            3. Keep wording clear, concise, and unambiguous.
-            4. Ensure at least one question per relevant Bloom's category for the chosen difficulty level.
-            5. Make questions challenging but fair, using context or examples related to '{course_title}'.
-            """
-            
+No numbering.
+No explanations.
+No extra commentary.
+"""
 
         try:
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant that generates professional learning quiz questions."},
+                    {"role": "system", "content": "You generate professional assessment questions."},
                     {"role": "user", "content": prompt},
                 ],
-                max_tokens=6000,
+                max_tokens=4000,
                 temperature=0,
             )
 
             if not response.choices:
-                messages.error(request, "OpenAI returned no content.")
+                messages.error(request, "AI returned no content.")
                 return redirect('quiz:ai_summative_assessment')
 
             questions_text = response.choices[0].message.content.strip()
@@ -948,15 +953,21 @@ def ai_summative_assessment(request):
 
             preview_questions = []
             skipped_blocks = 0
+
             for block in blocks:
-                lines = [line.strip() for line in block.strip().split("\n") if line.strip()]
+                lines = [line.strip() for line in block.split("\n") if line.strip()]
+
                 if len(lines) == 6:
                     question_text = lines[0].replace("Question:", "").strip()
                     options = [line.split('. ', 1)[1].strip() for line in lines[1:5]]
                     answer_letter = lines[5].split(':')[-1].strip().upper()
 
-                    answer_map = {'A': 'Option1', 'B': 'Option2', 'C': 'Option3', 'D': 'Option4'}
-                    answer = answer_map.get(answer_letter, 'Option1')
+                    answer_map = {
+                        'A': 'Option1',
+                        'B': 'Option2',
+                        'C': 'Option3',
+                        'D': 'Option4'
+                    }
 
                     preview_questions.append({
                         'question': question_text,
@@ -964,27 +975,30 @@ def ai_summative_assessment(request):
                         'option2': options[1],
                         'option3': options[2],
                         'option4': options[3],
-                        'answer': answer
+                        'answer': answer_map.get(answer_letter, 'Option1')
                     })
                 else:
                     skipped_blocks += 1
 
-            if skipped_blocks > 0:
-                messages.warning(request, f"Skipped {skipped_blocks} malformed question blocks from AI response.")
+            if skipped_blocks:
+                messages.warning(
+                    request,
+                    f"Skipped {skipped_blocks} malformed question blocks from AI response."
+                )
 
             return render(request, 'quiz/dashboard/ai_summative_assessment.html', {
                 'courses': courses,
                 'preview_questions': preview_questions,
                 'course_id': course_id,
                 'marks': marks,
-                'course_detail': course_detail,
+                'course_exam': course_exam,
             })
 
         except Exception as e:
-            messages.error(request, f"OpenAI error: {str(e)}")
+            messages.error(request, f"AI error: {str(e)}")
             return redirect('quiz:ai_summative_assessment')
 
-    # GET request
+    # ================== GET REQUEST ==================
     return render(request, 'quiz/dashboard/ai_summative_assessment.html', {
         'courses': courses
     })

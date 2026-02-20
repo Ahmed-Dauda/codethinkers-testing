@@ -227,7 +227,6 @@ div.quiz p {
 
               
   
-<<<<<<< HEAD
 <!-- OPTIONS (ESCAPED) -->
 {% if q.option1 %}
 <div class="quiz">
@@ -264,67 +263,6 @@ div.quiz p {
   </label>
 </div>
 {% endif %}
-=======
-              {% if q.option1 %}
-                <div class="quiz">
-                    <div class="radio-container">
-                        <input class="radio-button" 
-                            type="radio" 
-                            name="{{ q.id }}" 
-                            id="option1-{{ q.id }}" 
-                            value="Option1" required>
-                        <label for="option1-{{ q.id }}">
-                            {{ q.option1|safe }}
-                        </label>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if q.option2 %}
-                <div class="quiz">
-                    <div class="radio-container">
-                        <input class="radio-button" 
-                            type="radio" 
-                            name="{{ q.id }}" 
-                            id="option2-{{ q.id }}" 
-                            value="Option2" required>
-                        <label for="option2-{{ q.id }}">
-                            {{ q.option2|safe }}
-                        </label>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if q.option3 %}
-                <div class="quiz">
-                    <div class="radio-container">
-                        <input class="radio-button" 
-                            type="radio" 
-                            name="{{ q.id }}" 
-                            id="option3-{{ q.id }}" 
-                            value="Option3" required>
-                        <label for="option3-{{ q.id }}">
-                            {{ q.option3|safe }}
-                        </label>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if q.option4 %}
-                <div class="quiz">
-                    <div class="radio-container">
-                        <input class="radio-button" 
-                            type="radio" 
-                            name="{{ q.id }}" 
-                            id="option4-{{ q.id }}" 
-                            value="Option4" required>
-                        <label for="option4-{{ q.id }}">
-                            {{ q.option4|safe }}
-                        </label>
-                    </div>
-               </div>
-                {% endif %}
->>>>>>> heroku/main
 
             </td>
 

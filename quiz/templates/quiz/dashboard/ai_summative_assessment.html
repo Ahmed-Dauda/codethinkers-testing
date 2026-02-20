@@ -73,6 +73,7 @@
 <div class="form-section">
   <h2>🤖 Generate Final Exam with AI</h2>
 
+
   <form method="POST">
     {% csrf_token %}
     <div class="form-group">
@@ -87,6 +88,20 @@
     </div>
 
     <div class="form-group">
+      <div class="form-group">
+  <label for="objectives">Learning Objectives:</label>
+  <textarea 
+      name="objectives" 
+      id="objectives" 
+      rows="4" 
+      placeholder="Example:
+- Define variables
+- Perform basic arithmetic
+- Use print() function
+- Identify syntax errors"
+      required>{{ request.POST.objectives }}</textarea>
+</div>
+
       <label for="num_questions">Number of Questions:</label>
       <input type="number" name="num_questions" id="num_questions" value="{{ request.POST.num_questions|default:10 }}" min="1" max="20" required>
     </div>
@@ -112,6 +127,18 @@
       <button type="submit">⚙️ Generate AI Questions</button>
     </div>
   </form>
+</div>
+
+<!-- AI Loading Progress -->
+<div id="ai-loader" style="display:none; margin-bottom:20px;">
+  <div style="background:#eee; border-radius:20px; overflow:hidden; height:20px;">
+    <div id="ai-progress-bar" 
+         style="width:0%; height:100%; background:#007BFF; transition: width 0.3s;">
+    </div>
+  </div>
+  <p style="text-align:center; margin-top:8px; font-weight:bold;">
+    🤖 Generating AI Questions... Please wait.
+  </p>
 </div>
 
 {% if preview_questions %}
@@ -195,5 +222,25 @@
       placeholder: 'Select difficulty level...',
       width: '100%'
     });
+  });
+</script>
+<script>
+  const form = document.querySelector("form");
+  const loader = document.getElementById("ai-loader");
+  const progressBar = document.getElementById("ai-progress-bar");
+
+  form.addEventListener("submit", function () {
+
+    loader.style.display = "block";
+
+    let progress = 0;
+
+    const interval = setInterval(() => {
+      if (progress < 90) {
+        progress += Math.random() * 10;  // Smooth realistic movement
+        progressBar.style.width = progress + "%";
+      }
+    }, 400);
+
   });
 </script>
