@@ -146,6 +146,7 @@ from .models import BadgeDownload
 #     return render(request, "users/quick_dashboard.html", context)
 
 from django.db.models import Q, Count, Sum, Avg
+
 def dashboard_view(request):
     now = timezone.now()
     
