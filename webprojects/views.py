@@ -1,7 +1,7 @@
 import datetime
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
-from .models import Project, File
+from .models import Project, File, StudentProgress, StudentXP
 import json
 from django.shortcuts import get_object_or_404, render
 from .models import Folder, File
@@ -163,6 +163,7 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 #             'projects': user_projects
 #         })
 
+
 @login_required
 def create_project(request):
     if request.method == 'POST':
@@ -170,6 +171,7 @@ def create_project(request):
             data = json.loads(request.body)
             name = data.get('name', '').strip()
             course_id = data.get('course_id')  # 👈 IMPORTANT
+            
 
             if not name:
                 return JsonResponse({
@@ -178,9 +180,7 @@ def create_project(request):
                 })
 
             # ---------------- COURSE RESOLUTION ----------------
-            course = None
-            if course_id:
-                course = Courses.objects.filter(id=course_id).first()
+            course = Courses.objects.filter(title=name).first()
 
             print("CREATE PROJECT COURSE:", course)
             # ---------------------------------------------------
@@ -190,6 +190,7 @@ def create_project(request):
                 title="General",
                 courses=course
             )
+            print('topic',default_topic)
 
             # Prevent duplicate projects per user
             existing_project = Project.objects.filter(
@@ -237,14 +238,20 @@ def create_project(request):
                 name="Main",
                 topic=default_topic
             )
-
+            
             file = File.objects.create(
                 name='main' + ext,
                 project=project,
                 folder=folder,
+                created_by=request.user,
                 content=default_content,
                 topic=default_topic
             )
+
+            course_name = file.project.name
+            print("Created project:", course_name, "with file:", file.name, "and topic:", default_topic.title)
+
+           
             # ------------------------------------------------
 
             return JsonResponse({
@@ -498,8 +505,8 @@ def get_language_from_extension(filename):
         'txt': 'plaintext'
     }
     return lang_map.get(ext, 'plaintext')
-    
-     
+
+
 # @csrf_exempt
 # def auto_save_view(request):
 #     if request.method == "POST":
@@ -769,6 +776,804 @@ REQUEST:
         "language": language
     })
 
+# views.py
+
+import json
+import re
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+
+
+# ─────────────────────────────────────────────────────────────────
+# NEW: Progress API endpoint — called by the editor on load + after
+#      each topic completion to refresh the sidebar progress bar.
+# ─────────────────────────────────────────────────────────────────
+@login_required
+def get_student_progress(request):
+    try:
+        from sms.models import Topics
+
+        course_id = request.GET.get('course_id')
+
+        if course_id:
+            all_topics = list(Topics.objects.filter(courses_id=course_id).order_by('id'))
+        else:
+            all_topics = list(Topics.objects.all().order_by('id'))
+
+        # ✅ FIX: no course=None filter
+        progress = StudentProgress.objects.filter(
+            student=request.user
+        ).prefetch_related('completed_topics').order_by('-last_updated').first()
+
+        current_topic = progress.current_topic if progress else None
+        completed_ids = set(
+            progress.completed_topics.values_list('id', flat=True)
+        ) if progress else set()
+
+        sidebar_ids        = {t.id for t in all_topics}
+        relevant_completed = completed_ids & sidebar_ids
+
+        total = len(all_topics)
+        done  = len(relevant_completed)
+        pct   = round((done / total) * 100) if total else 0
+
+        topics_data = [
+            {
+                'id':         t.id,
+                'title':      t.title,
+                'completed':  t.id in completed_ids,
+                'is_current': bool(current_topic and t.id == current_topic.id),
+            }
+            for t in all_topics
+        ]
+
+        return JsonResponse({
+            'status':               'success',
+            'current_topic_id':     current_topic.id    if current_topic else None,
+            'current_topic_title':  current_topic.title if current_topic else 'None selected',
+            'completed_topic_ids':  list(completed_ids),
+            'completed_count':      done,
+            'total_count':          total,
+            'overall_pct':          pct,
+            'topics':               topics_data,
+        })
+
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        
+@login_required
+@require_http_methods(["POST"])
+def mark_topic_complete(request):
+    xp_data = award_xp(request.user, 100) if request.user.is_authenticated else {}
+    try:
+        data      = json.loads(request.body)
+        topic_id  = data.get('topic_id')
+        course_id = data.get('course_id')
+
+        from sms.models import Topics
+        topic = Topics.objects.get(id=topic_id)
+
+        # ✅ FIX: get existing record regardless of course
+        progress = StudentProgress.objects.filter(
+            student=request.user
+        ).order_by('-last_updated').first()
+
+        if not progress:
+            progress = StudentProgress.objects.create(
+                student=request.user,
+                current_topic=topic
+            )
+
+        # Mark complete
+        progress.completed_topics.add(topic)
+
+        # Advance to next topic within same course
+        course_topics = list(
+            Topics.objects.filter(courses_id=course_id).order_by('id')
+        ) if course_id else list(Topics.objects.all().order_by('id'))
+
+        next_topic = None
+        ids = [t.id for t in course_topics]
+        try:
+            pos = ids.index(topic.id)
+            if pos + 1 < len(course_topics):
+                next_topic = course_topics[pos + 1]
+                progress.current_topic = next_topic
+        except ValueError:
+            pass
+
+        progress.save()
+
+        # Return counts scoped to course
+        completed_ids      = set(progress.completed_topics.values_list('id', flat=True))
+        sidebar_ids        = set(ids)
+        relevant_completed = completed_ids & sidebar_ids
+        total              = len(course_topics)
+        done               = len(relevant_completed)
+        pct                = round((done / total) * 100) if total else 0
+
+        return JsonResponse({
+            'status':              'success',
+            'topic_title':         topic.title,
+            'next_topic_id':       next_topic.id    if next_topic else None,
+            'next_topic_title':    next_topic.title if next_topic else None,
+            'completed_topic_ids': list(completed_ids),
+            'completed_count':     done,
+            'total_count':         total,
+            'xp': xp_data,
+            'overall_pct':         pct,
+        })
+
+    except Topics.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Topic not found'}, status=404)
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        
+
+
+# views.py - Add this temporary debug view
+
+@csrf_exempt
+def debug_current_topic(request):
+    """Debug endpoint to check what topic is stored"""
+    from .models import StudentProgress
+    
+    if request.user.is_authenticated:
+        progress = StudentProgress.objects.filter(student=request.user).first()
+        
+        return JsonResponse({
+            "user": request.user.username,
+            "progress_exists": bool(progress),
+            "current_topic_id": progress.current_topic.id if progress and progress.current_topic else None,
+            "current_topic_title": progress.current_topic.title if progress and progress.current_topic else None,
+            "localStorage_should_have": "Check frontend console"
+        })
+    
+    return JsonResponse({"error": "Not authenticated"})
+
+
+
+@login_required
+def debug_progress(request):
+    from .models import StudentProgress
+    from sms.models import Topics
+    
+    all_progress = StudentProgress.objects.filter(student=request.user)
+    all_topics   = Topics.objects.all().order_by('id')
+    
+    data = []
+    for p in all_progress:
+        data.append({
+            'id':              p.id,
+            'course':          str(p.course),
+            'current_topic':   str(p.current_topic),
+            'completed_topics': list(p.completed_topics.values_list('id', 'title')),
+        })
+    
+    return JsonResponse({
+        'progress_records': data,
+        'total_topics':     all_topics.count(),
+        'topic_ids':        list(all_topics.values_list('id', 'title')),
+    }, json_dumps_params={'indent': 2})    
+
+# ─────────────────────────────────────────────────────────────────
+# HELPER: Extract ordered code examples from topic description
+# ─────────────────────────────────────────────────────────────────
+import re
+def extract_code_examples(topic_desc):
+    """Return list of code strings from fenced python blocks in topic.desc."""
+    if not topic_desc:
+        return []
+    matches = re.findall(r'```python\s*\n?(.*?)```', topic_desc, re.DOTALL)
+    examples = [m.strip() for m in matches if m.strip()]
+
+    # Fallback: plain indented / keyword lines if no fenced blocks
+    if not examples:
+        lines = []
+        for line in topic_desc.split('\n'):
+            s = line.strip()
+            if s and (line.startswith('    ') or line.startswith('\t') or
+                      re.match(r'^(print|input|def |class |if |for |while |import |\w+ ?=)', s)):
+                lines.append(s)
+        if lines:
+            examples = ['\n'.join(lines)]
+
+    return examples
+# ─────────────────────────────────────────────────────────────────
+# HELPER: Detect which example the student has completed
+# ─────────────────────────────────────────────────────────────────
+def detect_completed_example_index(student_code, examples):
+    if not examples or not student_code.strip():
+        return -1
+    student_lower = student_code.lower()
+    last_completed = -1
+    for i, ex in enumerate(examples):
+        if _example_present_in_code(ex, student_lower):
+            last_completed = i
+        else:
+            break
+    return last_completed
+
+def _example_present_in_code(example, student_lower):
+    tokens = re.findall(
+        r'[a-zA-Z_]\w*|[+\-*/=<>!]+|"[^"]*"|\'[^\']*\'|\d+',
+        example.lower()
+    )
+    meaningful = [t for t in tokens if len(t) > 1 and
+                  t not in ('in', 'is', 'or', 'and', 'not', 'the', 'to')]
+    return bool(meaningful) and all(t in student_lower for t in meaningful)
+
+# ─────────────────────────────────────────────────────────────────
+# HELPER: Keyword mastery fallback (when topic has no code blocks)
+# ─────────────────────────────────────────────────────────────────
+
+def detect_topic_mastery_keywords(code, topic):
+    if not code.strip() or len(code.strip().split('\n')) < 3:
+        return False
+
+    title_lower = topic.title.lower()
+    code_lower  = code.lower()
+
+    checks_map = {
+        ('variable', 'print', 'input', 'basic', 'introduction'):
+            [code_lower.count('=') >= 1, 'print(' in code_lower],
+        ('if', 'condition', 'else', 'elif', 'boolean'):
+            ['if ' in code_lower, any(k in code_lower for k in ['else', 'elif'])],
+        ('loop', 'for', 'while', 'iteration', 'repeat'):
+            [any(k in code_lower for k in ['for ', 'while ']),
+             any(k in code_lower for k in ['range(', 'in '])],
+        ('function', 'def', 'return', 'parameter'):
+            ['def ' in code_lower, 'return' in code_lower],
+        ('list', 'array', 'append', 'collection'):
+            ['[' in code and ']' in code,
+             any(k in code_lower for k in ['append(', 'len('])],
+        ('string', 'str', 'text', 'format'):
+            [('"' in code or "'" in code),
+             any(k in code_lower for k in ['.upper()', '.lower()', 'f"', "f'", '.format('])],
+        ('dict', 'dictionary', 'key', 'value'):
+            ['{' in code and '}' in code,
+             any(k in code_lower for k in ['.keys()', '.values()', '.get('])],
+        ('file', 'open', 'read', 'write'):
+            ['open(' in code_lower,
+             any(k in code_lower for k in ['.read()', '.write(', 'with open'])],
+        ('class', 'object', 'oop', '__init__'):
+            ['class ' in code_lower, '__init__' in code_lower],
+    }
+
+    for keywords, checks in checks_map.items():
+        if any(w in title_lower for w in keywords):
+            return all(checks)
+
+    return len(code.strip().split('\n')) >= 5
+
+
+# ─────────────────────────────────────────────────────────────────
+# HELPER: Extract key hints/tips from topic description (non-code)
+# ─────────────────────────────────────────────────────────────────
+def extract_topic_hints(topic_desc, max_hints=8):
+    """
+    Pull bullet points, numbered items, and key sentences from topic.desc.
+    These feed the AI as its ONLY permitted knowledge.
+    """
+    if not topic_desc:
+        return []
+
+    # Strip code blocks first
+    clean = re.sub(r'```.*?```', '', topic_desc, flags=re.DOTALL)
+
+    hints = []
+    bullets  = re.findall(r'(?:^|\n)\s*[-*•]\s+(.+)', clean)
+    numbered = re.findall(r'(?:^|\n)\s*\d+\.\s+(.+)', clean)
+    hints.extend([b.strip() for b in bullets  if len(b.strip()) > 10])
+    hints.extend([n.strip() for n in numbered if len(n.strip()) > 10])
+
+    for sentence in re.split(r'(?<=[.!?])\s+', clean):
+        s = sentence.strip()
+        if len(s) > 20 and any(w in s.lower() for w in [
+            'use', 'remember', 'note', 'important', 'means', 'allows',
+            'creates', 'defines', 'returns', 'stores', 'prints', 'variable',
+            'value', 'assign', 'syntax', 'keyword', 'statement', 'expression'
+        ]):
+            hints.append(s)
+
+    seen, unique = set(), []
+    for h in hints:
+        if h not in seen:
+            seen.add(h); unique.append(h)
+    return unique[:max_hints]
+
+
+# ─────────────────────────────────────────────────────────────────
+# HELPER: Prompts
+# ─────────────────────────────────────────────────────────────────
+
+def build_system_message(current_topic, next_topic, mode):
+    topic_name = current_topic.title if current_topic else 'Python basics'
+
+    if mode == 'complete':
+        next_line = f'Their next lesson is: "{next_topic.title}".' if next_topic else \
+                    'They have completed all lessons.'
+        return (
+            f'You are an encouraging Python tutor. '
+            f'The student just finished "{topic_name}". {next_line} '
+            f'Write 1–2 sentences congratulating them on {topic_name}. '
+            f'Do NOT explain the next topic.'
+        )
+
+    return (
+        f'You are a patient Python tutor. '
+        f'The student is ONLY studying: "{topic_name}". '
+        f'STRICT RULES: '
+        f'(1) Every hint MUST come directly from the lesson material provided. '
+        f'(2) Do NOT mention concepts outside {topic_name}. '
+        f'(3) Maximum 2 sentences. Be encouraging. Never give the full answer.'
+    )
+
+
+def build_step_prompt(code, current_example, example_index, total_examples,
+                      next_example, topic, topic_hints, error):
+    """
+    Prompt that forces the AI to use only the topic's own content
+    as the source of its hint.
+    """
+    parts = [f'📚 Lesson: {topic.title}\n']
+
+    # Inject the topic's own explanatory hints as source material
+    if topic_hints:
+        parts.append('LESSON KEY POINTS (use ONLY these to form your hint):')
+        for h in topic_hints:
+            parts.append(f'  • {h}')
+        parts.append('')
+
+    parts.append(f'Step {example_index + 1} of {total_examples}.')
+    parts.append(f'Target code for this step:\n```python\n{current_example}\n```\n')
+
+    if code.strip():
+        parts.append(f"Student's code:\n```python\n{code}\n```\n")
+    else:
+        parts.append("Student hasn't written anything yet.\n")
+
+    if error:
+        parts.append(
+            f'⚠️ Error: {error}\n'
+            f'Using only the lesson key points above, help fix this in 1 sentence.'
+        )
+    elif not code.strip():
+        parts.append(
+            f'Using only the lesson key points above, give a 1-sentence hint '
+            f'to start step {example_index + 1}: `{current_example}`.'
+        )
+    else:
+        parts.append(
+            f'Using only the lesson key points above, guide the student in 1 sentence '
+            f'to complete or correct step {example_index + 1}. Do not reveal the full answer.'
+        )
+
+    if next_example:
+        parts.append(f'\n(Next step after this: `{next_example}`. Do NOT mention it yet.)')
+
+    return '\n'.join(parts)
+
+
+def build_completion_prompt(code, current_topic, next_topic):
+    next_line = (f'Their next lesson: "{next_topic.title}".'
+                 if next_topic else 'They finished all lessons.')
+    return (
+        f'Student completed all exercises for "{current_topic.title}".\n'
+        f'Code:\n```python\n{code}\n```\n{next_line}\n'
+        f'Write 1–2 sentences of congratulations. Do NOT explain the next topic.'
+    )
+
+
+def build_free_hint_prompt(code, topic_context, topic_hints, cursor_line, error, topic):
+    parts = []
+    if topic_hints:
+        parts.append('LESSON KEY POINTS (use ONLY these):')
+        for h in topic_hints:
+            parts.append(f'  • {h}')
+        parts.append('')
+    elif topic_context:
+        parts.append(f'📚 LESSON:\n{topic_context}\n')
+
+    topic_name = topic.title if topic else 'this topic'
+    parts.append(f"Student's code (cursor line {cursor_line}):\n```python\n{code}\n```\n")
+
+    if error:
+        parts.append(f'⚠️ Error: {error}\nFix in 1 sentence using lesson points above.')
+    elif not code.strip():
+        parts.append(f'Give the first step for {topic_name} in 1 sentence.')
+    else:
+        parts.append(f'Suggest the next step based ONLY on lesson points above, 1 sentence.')
+    return '\n'.join(parts)
+
+def determine_hint_type(code, error):
+    if error:                         return 'error'
+    if not code.strip():              return 'start'
+    if len(code.split('\n')) < 10:    return 'next_step'
+    return 'improvement'
+
+# ─────────────────────────────────────────────────────────────────
+# MAIN VIEW
+# ─────────────────────────────────────────────────────────────────
+@csrf_exempt
+@require_http_methods(["POST"])
+def get_contextual_hint(request):
+    """
+    AI hints are 100% grounded in the selected topic's own text.
+
+    Pipeline:
+      1. Load topic from DB using current_topic_id
+      2. Extract examples + tips from topic.desc
+      3. Detect which example the student is on
+      4. Build a prompt that quotes the topic text verbatim as the
+         ONLY allowed knowledge source
+      5. System prompt explicitly forbids AI from going outside it
+    """
+    try:
+        print("=" * 60)
+        print("🔍 get_contextual_hint (strict topic mode)")
+
+        data             = json.loads(request.body)
+        code             = data.get('code', '')
+        file_id          = data.get('file_id')
+        cursor_line      = data.get('cursor_line', 1)
+        error            = data.get('error')
+        current_topic_id = data.get('current_topic_id')
+        course_id        = data.get('course_id')
+
+        # ── Guard: must have a selected topic ──────────────────────
+        if not current_topic_id:
+            return JsonResponse({
+                "status": "success",
+                "hint":  "Please select a topic from the sidebar before asking for hints.",
+                "type":  "start",
+                "topic": None
+            })
+
+        from .models import File
+        from sms.models import Topics
+
+        File.objects.get(id=file_id)   # validate file exists
+        current_topic = Topics.objects.get(id=current_topic_id)
+        print(f"✅ Topic: {current_topic.title}")
+
+        # ── Resolve next topic in course order ─────────────────────
+        next_topic = None
+        try:
+            if course_id:
+                all_topics = list(Topics.objects.filter(courses_id=course_id).order_by('id'))
+            else:
+                all_topics = list(Topics.objects.all().order_by('id'))
+
+            ids = [t.id for t in all_topics]
+            pos = ids.index(current_topic.id)
+            if pos + 1 < len(all_topics):
+                next_topic = all_topics[pos + 1]
+        except (ValueError, Exception):
+            pass
+
+        # ── Extract lesson material from DB ────────────────────────
+        topic_desc = current_topic.desc or ''
+        examples   = extract_code_examples(topic_desc)
+        tips       = extract_topic_hints(topic_desc)
+
+        print(f"  Examples: {len(examples)}  Tips: {len(tips)}")
+
+        # ── Detect which step the student is on ────────────────────
+        topic_mastered  = False
+        current_example = None
+        next_example    = None
+        example_index   = 0
+        total_examples  = len(examples)
+
+        if examples:
+            completed = detect_completed_example_index(code, examples)
+            if completed >= total_examples - 1 and code.strip():
+                topic_mastered = True
+            else:
+                example_index   = max(completed + 1, 0)
+                current_example = examples[example_index]
+                next_example    = (examples[example_index + 1]
+                                   if example_index + 1 < total_examples else None)
+
+        # ── Build AI system prompt ─────────────────────────────────
+        # The system prompt carries the FULL lesson text so the AI
+        # has zero excuse to go outside it.
+
+        system_prompt = f"""You are a Python tutor helping a student learn ONLY this lesson:
+
+════════════════════════════════════════
+LESSON: {current_topic.title}
+════════════════════════════════════════
+{topic_desc}
+════════════════════════════════════════
+
+ABSOLUTE RULES — violations are not allowed:
+1. You may ONLY use concepts, syntax, and examples that appear in the lesson text above.
+2. NEVER mention loops, functions, classes, lists, dictionaries, decorators, or ANY concept
+   that is NOT explicitly written in the lesson text above.
+3. NEVER invent new examples. If you show code, it MUST be copied verbatim from the
+   lesson examples above — do not change variable names, numbers, or structure.
+4. Keep your reply to 1–2 sentences maximum.
+5. Be encouraging but never give away the full answer.
+6. If the student's code uses a concept not in this lesson, gently redirect them
+   back to the lesson topic without explaining the outside concept.
+"""
+
+        # ── Build user prompt ──────────────────────────────────────
+        if topic_mastered:
+            next_line = (f'Their next lesson will be "{next_topic.title}".'
+                         if next_topic else 'They have completed all available lessons.')
+            user_prompt = (
+                f'The student has completed all exercises for "{current_topic.title}".\n'
+                f'Student code:\n```python\n{code}\n```\n'
+                f'{next_line}\n'
+                f'Write 1–2 encouraging sentences about what they achieved in '
+                f'"{current_topic.title}". Do NOT mention or explain the next topic.'
+            )
+            hint_type = 'topic_complete'
+
+        elif current_example:
+            # Guided step-by-step mode
+            parts = [
+                f'The student is on Step {example_index + 1} of {total_examples} '
+                f'for the lesson "{current_topic.title}".\n',
+                f'The target code for this step (from the lesson):\n'
+                f'```python\n{current_example}\n```\n',
+            ]
+
+            if tips:
+                parts.append('Key points from the lesson the student should know:')
+                for tip in tips:
+                    parts.append(f'  • {tip}')
+                parts.append('')
+
+            if code.strip():
+                parts.append(f"Student's current code:\n```python\n{code}\n```\n")
+            else:
+                parts.append("The student hasn't written anything yet.\n")
+
+            if error:
+                parts.append(
+                    f'There is an error: {error}\n'
+                    f'Using ONLY the lesson text above, explain the fix in 1 sentence.'
+                )
+            elif not code.strip():
+                parts.append(
+                    f'Give a 1-sentence hint to start Step {example_index + 1}. '
+                    f'Use ONLY the lesson text and examples above as your source.'
+                )
+            else:
+                parts.append(
+                    f'Guide the student to complete Step {example_index + 1} in 1 sentence. '
+                    f'Use ONLY the lesson text above. Do not reveal the full answer.'
+                )
+
+            if next_example:
+                parts.append(
+                    f'\n(After this step the next example is: `{next_example}`. '
+                    f'Do NOT mention it yet.)'
+                )
+
+            user_prompt = '\n'.join(parts)
+            hint_type   = determine_hint_type(code, error)
+
+        else:
+            # No examples in topic — free hint grounded in tips only
+            parts = []
+            if tips:
+                parts.append(f'Key points from the lesson "{current_topic.title}":')
+                for tip in tips:
+                    parts.append(f'  • {tip}')
+                parts.append('')
+            else:
+                parts.append(f'Lesson text:\n{topic_desc[:600]}\n')
+
+            parts.append(
+                f"Student's code (cursor line {cursor_line}):\n"
+                f"```python\n{code if code.strip() else '(empty)'}\n```\n"
+            )
+
+            if error:
+                parts.append(
+                    f'Error: {error}\n'
+                    f'Fix it in 1 sentence using ONLY the lesson key points above.'
+                )
+            elif not code.strip():
+                parts.append(
+                    f'Give the very first step for "{current_topic.title}" '
+                    f'in 1 sentence, using ONLY the lesson text above.'
+                )
+            else:
+                parts.append(
+                    f'Suggest the next step in 1 sentence, using ONLY the '
+                    f'lesson key points above. Do not go outside the lesson.'
+                )
+
+            user_prompt = '\n'.join(parts)
+            hint_type   = determine_hint_type(code, error)
+
+        # ── Call OpenAI ────────────────────────────────────────────
+        print("📡 Calling OpenAI (strict topic mode)…")
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user",   "content": user_prompt},
+            ],
+            temperature=0.2,   # low temperature = less hallucination
+            max_tokens=200,
+        )
+        hint = response.choices[0].message.content.strip()
+        print(f"✅ Hint: {hint}")
+
+        # ── Auto-save completion to DB ─────────────────────────────
+        if topic_mastered and request.user.is_authenticated:
+            try:
+                from .models import StudentProgress
+                progress, _ = StudentProgress.objects.get_or_create(
+                    student=request.user,
+                    defaults={'current_topic': current_topic}
+                )
+                progress.completed_topics.add(current_topic)
+                if next_topic:
+                    progress.current_topic = next_topic
+                progress.save()
+                print(f"✅ DB: {current_topic.title} marked complete")
+            except Exception as db_err:
+                print(f"⚠️  DB save failed: {db_err}")
+
+        return JsonResponse({
+            "status":          "success",
+            "hint":            hint,
+            "type":            hint_type,
+            "topic":           current_topic.title,
+            "next_topic":      next_topic.title if next_topic else None,
+            "next_topic_id":   next_topic.id    if next_topic else None,
+            "step_index":      example_index,
+            "total_steps":     total_examples,
+            "current_example": current_example,
+            "next_example":    next_example,
+            "completed_topic_id": current_topic.id    if topic_mastered and current_topic else None,  # ← KEY
+        })
+
+    except Topics.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Topic not found"}, status=404)
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+def build_database_bound_prompt(code, topic, code_analysis, error):
+    """
+    STRICT: AI must reuse only lesson examples
+    """
+
+    examples = extract_code_examples(topic.desc)
+
+    examples_text = "\n\n".join(examples) if examples else "No code examples found."
+
+    prompt = f"""
+YOU MUST FOLLOW THESE RULES STRICTLY:
+
+1. You are ONLY allowed to use the exact syntax patterns shown in the lesson examples.
+2. You are NOT allowed to change numbers, variable names, or structure.
+3. If suggesting improvement, reuse the exact pattern from examples.
+4. DO NOT invent new numbers.
+5. DO NOT create new examples.
+
+LESSON TITLE:
+{topic.title}
+
+AUTHORIZED CODE EXAMPLES (ONLY THESE ARE ALLOWED):
+{examples_text}
+
+STUDENT CODE:
+{code if code.strip() else "(empty)"}
+
+Progress Level: {code_analysis['progress_level']}
+"""
+
+    if error:
+        prompt += "\nFix the error using ONLY the authorized examples above."
+    else:
+        prompt += "\nGive the next step by reusing the exact example pattern above."
+
+    return prompt
+
+import re
+
+def get_primary_example(topic):
+    """
+    Extract first python code block from lesson.
+    This becomes the authoritative example.
+    """
+    pattern = r"```python(.*?)```"
+    matches = re.findall(pattern, topic.desc, re.DOTALL)
+
+    if matches:
+        return matches[0].strip()
+    
+    return None
+
+def compare_with_example(student_code, example_code):
+    student = student_code.strip()
+    example = example_code.strip()
+
+    if not student:
+        return "empty", "Start by typing the example shown in this lesson."
+
+    if student == example:
+        return "correct", "Excellent! 🎉 Your syntax is exactly correct. Keep learning!"
+
+    # Check if structure same but small numeric difference
+    student_structure = re.sub(r"\d+", "N", student)
+    example_structure = re.sub(r"\d+", "N", example)
+
+    if student_structure == example_structure:
+        return (
+            "minor_error",
+            f"Great structure! 👍 Check the numbers carefully.\n\nCorrect example:\n{example}"
+        )
+
+    return (
+        "incorrect",
+        f"Follow the exact syntax shown in this lesson:\n\n{example}"
+    )
+
+
+
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+@login_required
+def set_current_topic(request, project_id, topic_id):
+    """Set the current topic for a student in this project"""
+    try:
+        from .models import Project, StudentProgress
+        from sms.models import Topics
+        
+        project = Project.objects.get(id=project_id)
+        topic = Topics.objects.get(id=topic_id)
+        
+        # Get or create student progress for this project
+        # We'll store it per project, not per course
+        progress, created = StudentProgress.objects.get_or_create(
+            student=request.user,
+            # If your Project has a course field, use it
+            # Otherwise, we'll create a workaround
+            defaults={'current_topic': topic}
+        )
+        
+        if not created:
+            progress.current_topic = topic
+            progress.save()
+        
+        print(f"✅ Student {request.user.username} set topic to: {topic.title}")
+        
+        return JsonResponse({
+            "status": "success",
+            "message": f"Now studying: {topic.title}",
+            "topic_id": topic.id,
+            "topic_title": topic.title
+        })
+        
+    except Exception as e:
+        print(f"❌ Error setting topic: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        return JsonResponse({
+            "status": "error",
+            "message": str(e)
+        }, status=500)
+
+
 
 @csrf_exempt
 def get_code_examples(request):
@@ -889,133 +1694,46 @@ Example response:
 """
 
 
-#worked
-# @csrf_protect
-# @require_http_methods(["POST"])
-# def file_chat(request, project_id, file_id):
-#     """
-#     VS Code–style AI file chat
-#     - Ask: explanation only (no save)
-#     - Apply: updates ONLY the current file and saves to DB
-#     """
-    
-#     # -----------------------------
-#     # Parse request body
-#     # -----------------------------
-#     try:
-#         data = json.loads(request.body.decode("utf-8"))
-#         prompt = data.get("prompt", "").strip()
-#         apply_changes = bool(data.get("apply", False))
-#     except json.JSONDecodeError as e:
-#         return JsonResponse({"status": "error", "message": f"Invalid JSON: {e}"}, status=400)
 
-#     if not prompt:
-#         return JsonResponse({"status": "error", "message": "Prompt is required"}, status=400)
-
-#     # Limit prompt length to prevent abuse
-#     if len(prompt) > 5000:
-#         return JsonResponse({"status": "error", "message": "Prompt too long (max 5000 chars)"}, status=400)
-
-#     # -----------------------------
-#     # Load file (scoped to project)
-#     # -----------------------------
-#     file = get_object_or_404(File, id=file_id, project_id=project_id)
-#     file_ext = file.extension()
-
-#     # -----------------------------
-#     # SYSTEM PROMPT
-#     # -----------------------------
-#     if apply_changes:
-#         system_prompt = f"""You are an AI code editor like VS Code.
-
-# RULES:
-# - Edit ONLY this file: {file.name}
-# - Return the FULL updated file content
-# - Do NOT add explanations or comments about what you changed
-# - Do NOT wrap in markdown code fences (no ```{file_ext})
-# - Output MUST be valid {file_ext} code that can be directly saved
-# - Start your response with the actual code immediately
-# """
-#     else:
-#         system_prompt = """You are an AI assistant helping explain code changes.
-
-# RULES:
-# - DO NOT modify the file
-# - DO NOT return code
-# - ONLY explain what changes would be made and why
-# - Be concise and specific
-# """
-
-#     user_prompt = f"""CURRENT FILE CONTENT:
-# ```{file_ext}
-# {file.content}
-# ```
-
-# USER REQUEST:
-# {prompt}
-# """
-
-#     # -----------------------------
-#     # Call OpenAI
-#     # -----------------------------
-#     try:
-#         response = client.chat.completions.create(
-#             model="gpt-4-turbo-preview",  # Use correct model name
-#             messages=[
-#                 {"role": "system", "content": system_prompt},
-#                 {"role": "user", "content": user_prompt},
-#             ],
-#             temperature=0,
-#             max_tokens=4000,
-#         )
-
-#         ai_output = response.choices[0].message.content.strip()
-#     except Exception as e:
-#         return JsonResponse({"status": "error", "message": f"AI error: {str(e)}"}, status=500)
-
-#     if not ai_output:
-#         return JsonResponse({"status": "error", "message": "AI returned empty response"}, status=500)
-
-#     # -----------------------------
-#     # APPLY MODE → SAVE FILE
-#     # -----------------------------
-#     if apply_changes:
-#         # Clean up any markdown code fences that might have slipped through
-#         cleaned_code = ai_output
-#         if cleaned_code.startswith("```"):
-#             lines = cleaned_code.split("\n")
-#             # Remove first line if it's a code fence
-#             if lines[0].startswith("```"):
-#                 lines = lines[1:]
-#             # Remove last line if it's a closing fence
-#             if lines and lines[-1].strip() == "```":
-#                 lines = lines[:-1]
-#             cleaned_code = "\n".join(lines)
-        
-#         print(f"[APPLY] Updating {file.name} (ID: {file.id})")
-#         print(f"[APPLY] Preview: {cleaned_code[:200]}...")
-        
-#         file.content = cleaned_code
-#         file.save(update_fields=["content"])
-        
-#         return JsonResponse({
-#             "status": "success",
-#             "message": "File updated successfully",
-#             "code": cleaned_code
-#         })
-
-#     # -----------------------------
-#     # ASK MODE → EXPLANATION ONLY
-#     # -----------------------------
-#     return JsonResponse({
-#         "status": "success",
-#         "explanation": ai_output
-#     })
 
 # At the very top of views.py, after all imports
 from django.conf import settings
 from openai import OpenAI
 from .sandbox_runner import run_code
+
+
+# webprojects/views.py
+
+def award_xp(user, amount):
+    from datetime import date, timedelta
+    xp, _ = StudentXP.objects.get_or_create(student=user)
+    
+    # Update streak
+    today = date.today()
+    if xp.last_active == today - timedelta(days=1):
+        xp.streak_days += 1
+    elif xp.last_active != today:
+        xp.streak_days = 1
+    xp.last_active = today
+    
+    xp.total_xp += amount
+    xp.save()
+    
+    return {
+        'xp_gained':  amount,
+        'total_xp':   xp.total_xp,
+        'streak':     xp.streak_days,
+    }
+
+
+@login_required
+def get_xp_stats(request):
+    xp, _ = StudentXP.objects.get_or_create(student=request.user)
+    return JsonResponse({
+        'status':   'success',
+        'total_xp': xp.total_xp,
+        'streak':   xp.streak_days,
+    })
 
 # ================= OPENAI CLIENT INITIALIZATION =================
 # Initialize once when the module loads, not on every request
@@ -1043,11 +1761,27 @@ def file_detail(request, project_id, file_id):
 
     # Fetch topics using the course object
     topics = Topics.objects.filter(courses=course).select_related("courses", "categories") if course else Topics.objects.none()
+    # ADD THESE 3 LINES:
+    from .models import StudentProgress
+    # ✅ FIX: get progress without course=None filter
+    from .models import StudentProgress
+    progress = StudentProgress.objects.filter(
+        student=request.user
+    ).prefetch_related('completed_topics').order_by('-last_updated').first()
 
-    print("PROJECT COURSE:", file.project.name)
-    print("COURSE:", course)
-    print("TOPICS COUNT:", topics.count())
-    print("TOPICS RAW:", list(topics.values("id", "title", "courses_id")))
+    completed_topic_ids = list(
+        progress.completed_topics.values_list('id', flat=True)
+    ) if progress else []
+
+    current_topic_id = (
+        progress.current_topic.id
+        if progress and progress.current_topic
+        else None
+    )
+
+    print("CURRENT TOPIC ID:", current_topic_id)
+    print("COMPLETED TOPIC IDS:", completed_topic_ids)
+    print("PROGRESS OBJECT:", progress)
 
     # ================= SIDEBAR EXTENSIONS =================
     exts = sorted({
@@ -1371,6 +2105,7 @@ Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra te
         })
 
     # ================= GET =================
+    print('completed_topic_ids:', completed_topic_ids)
     return render(request, "webprojects/file_detail.html", {
         "file": file,
         "files": files,
@@ -1378,7 +2113,10 @@ Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra te
         "exts": exts,
         "project": project,
         "is_image": is_image,
+        'completed_topic_ids': completed_topic_ids,      # ← ADD
+        'current_topic_id': current_topic_id,            # ← ADD
         "topics": topics,
+        'course_id': course.id if course else None,  # ← ADD THIS ONE LINE
     })
 
 #worked
@@ -2353,7 +3091,8 @@ def create_file(request, project_id):
             new_file = File.objects.create(
                 name=name,
                 project=project,
-                folder=folder
+                folder=folder,
+                created_by=request.user
             )
 
             return JsonResponse({
@@ -2499,8 +3238,11 @@ from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
 def run_python_code(request):
+
+    xp_data = award_xp(request.user, 10) if request.user.is_authenticated else {}
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request"}, status=400)
+        
 
     try:
         data = json.loads(request.body)
@@ -2516,5 +3258,6 @@ def run_python_code(request):
             "output": "",
             "error": str(e),
             "images": [],
+            'xp': xp_data,
             "message": "Server error"
         }, status=500)

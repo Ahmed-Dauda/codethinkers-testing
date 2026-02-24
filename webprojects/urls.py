@@ -1,15 +1,24 @@
 from django.urls import path
-from webprojects.views import (ai_python_completion,ai_suggest_code, file_autosave, create_file, create_folder, 
+from webprojects.views import (ai_python_completion,ai_suggest_code, debug_current_topic, debug_progress, file_autosave, create_file, create_folder, 
 create_project, 
-file_delete, file_preview, get_code_examples, get_file_content, project_detail,
+file_delete, file_preview, get_code_examples, get_contextual_hint, get_file_content, get_student_progress, get_xp_stats, mark_topic_complete, project_detail,
 file_detail, project_files_json, public_folder_view, 
-run_python_code, share_preview_view, file_chat,
+run_python_code, set_current_topic, share_preview_view, file_chat,
 upload_file_ajax, view_rendered_file)
 
 
 app_name = 'webprojects'
 
 urlpatterns = [
+    path('debug-topic/', debug_current_topic, name='debug_topic'),
+     path('xp-stats/', get_xp_stats, name='xp_stats'),
+    path('debug-progress/', debug_progress, name='debug_progress'),
+    path('progress/', get_student_progress, name='get_student_progress'),
+    path('mark-topic-complete/', mark_topic_complete,  name='mark_topic_complete'),
+     path('project/<int:project_id>/set-topic/<int:topic_id>/', 
+         set_current_topic, 
+         name='set_current_topic'),
+    path('get-contextual-hint/', get_contextual_hint, name='get_contextual_hint'),
     path('project/<int:project_id>/file/<int:file_id>/content/', 
          get_file_content, 
          name='get_file_content'),

@@ -23,6 +23,7 @@ def get_general_topic(course):
 
 
 # ---------------- Project ----------------
+
 class Project(models.Model):
     name = models.CharField(max_length=100)
     course = models.ForeignKey(
@@ -66,6 +67,15 @@ class Folder(models.Model):
 
 # ---------------- File ----------------
 class File(models.Model):
+
+    current_topic = models.ForeignKey(
+        'sms.Topics',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='current_files',
+        help_text="Which lesson is this file for?"
+    )
     project = models.ForeignKey(
         Project,
         null=True,
@@ -86,6 +96,14 @@ class File(models.Model):
         null=True,
         blank=True,
         on_delete=models.SET_NULL
+    )
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_files"
     )
 
     name = models.CharField(max_length=300)
@@ -135,6 +153,37 @@ class File(models.Model):
         if self.file:
             return self.file.url
         return ""
+
+# models.py
+# In get_or_create calls, always use the SAME course value
+# Either always pass course=None, or always pass the actual course object
+# The simplest fix — add a property to your model:
+# webprojects/models.py
+class StudentXP(models.Model):
+    student     = models.OneToOneField(User, on_delete=models.CASCADE)
+    total_xp    = models.IntegerField(default=0)
+    streak_days = models.IntegerField(default=0)
+    last_active = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.student.username} — {self.total_xp}XP"
+    
+    
+class StudentProgress(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    course  = models.ForeignKey('sms.Courses', on_delete=models.CASCADE, null=True, blank=True)
+    current_topic    = models.ForeignKey('sms.Topics', on_delete=models.SET_NULL, null=True, blank=True)
+    completed_topics = models.ManyToManyField('sms.Topics', related_name='completed_by_students', blank=True)
+    last_updated     = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('student', 'course')
+
+    @classmethod
+    def get_for_student(cls, user):
+        """Always use this to fetch — avoids duplicate records."""
+        progress, _ = cls.objects.get_or_create(student=user, course=None)
+        return progress   
 
 
 # ---------------- Delete uploaded file when model deleted ----------------

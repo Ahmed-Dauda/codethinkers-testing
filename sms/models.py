@@ -24,7 +24,6 @@ from django.utils.text import slugify
 
 class Categories(models.Model, HitCountMixin):
    
-    
     name = models.CharField(max_length=225, blank=True, null= True, unique=True)
     desc = models.TextField( blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True, blank=True, null= True)
