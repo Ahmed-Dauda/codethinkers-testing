@@ -194,6 +194,24 @@ from django.utils.text import slugify
 from urllib.parse import urlparse, parse_qs
 
 
+# class Topics(models.Model):
+#     categories = models.ForeignKey(Categories, on_delete=models.CASCADE, blank=True, null=True)
+#     courses = models.ForeignKey(Courses, on_delete=models.CASCADE, blank=True, null=True) 
+#     title = models.CharField(max_length=500, blank=True, null=True)  # Displays: "Introduction"
+#     slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)  # URL: "introduction-1"
+#     is_completed = models.BooleanField(default=False)
+#     completed_by = models.ManyToManyField('users.Profile', through='CompletedTopics')
+#     desc = HTMLField(null=True)
+#     transcript = models.TextField(blank=True, null=True)
+#     img_topic = CloudinaryField('topic image', blank=True, null=True)
+#     # video = EmbedVideoField(blank=True, null=True)
+#     video = models.CharField(max_length=500, blank=True, null=True)
+#     topics_url = models.CharField(max_length=500, blank=True, null=True)
+#     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+#     updated = models.DateTimeField(auto_now=True, blank=True, null=True) 
+#     id = models.BigAutoField(primary_key=True)
+#     hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
+
 class Topics(models.Model):
     categories = models.ForeignKey(Categories, on_delete=models.CASCADE, blank=True, null=True)
     courses = models.ForeignKey(Courses, on_delete=models.CASCADE, blank=True, null=True) 
@@ -204,16 +222,81 @@ class Topics(models.Model):
     desc = HTMLField(null=True)
     transcript = models.TextField(blank=True, null=True)
     img_topic = CloudinaryField('topic image', blank=True, null=True)
-    # video = EmbedVideoField(blank=True, null=True)
     video = models.CharField(max_length=500, blank=True, null=True)
     topics_url = models.CharField(max_length=500, blank=True, null=True)
+    
+    # ✅ NEW: AI Validation Fields
+    validation_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('code', 'Code Output Validation'),
+            ('quiz', 'Quiz Question'),
+            ('manual', 'Manual Completion')
+        ],
+        default='manual',
+        help_text="How should this topic be validated?"
+    )
+    
+    # For code validation
+    expected_output = models.TextField(
+        blank=True, 
+        null=True,
+        help_text="Expected output or requirements for code validation (AI will check intelligently)"
+    )
+    
+    # For quiz validation
+    quiz_question = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Quiz question for non-programming topics"
+    )
+    
+    quiz_correct_answer = models.TextField(
+        blank=True,
+        null=True,
+        help_text="The correct answer (AI will accept variations)"
+    )
+    
+    # Optional: Multiple choice options (if you want structured quizzes)
+    quiz_options = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Optional: Multiple choice options as JSON array ["Option A", "Option B", "Option C"]'
+    )
+    
+    # Optional: Hints for students
+    validation_hints = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Hints to show students if they struggle (optional)"
+    )
+    
     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True) 
     id = models.BigAutoField(primary_key=True)
     hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
 
     class Meta:
+        verbose_name = "Topic"
+        verbose_name_plural = "Topics"
         ordering = ['created']
+
+    def __str__(self):
+        return self.title or f"Topic {self.id}"
+    
+    def save(self, *args, **kwargs):
+        # Auto-generate slug if not provided
+        if not self.slug and self.title:
+            from django.utils.text import slugify
+            base_slug = slugify(self.title)
+            slug = base_slug
+            counter = 1
+            while Topics.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
 
     def save(self, *args, **kwargs):
         if not self.slug and self.title and self.courses:
@@ -355,7 +438,6 @@ class CompletedTopics(models.Model):
 
 class FrequentlyAskQuestions(models.Model):
     
-
     title = models.CharField(max_length=225,  null=True, blank =True )
     desc = models.TextField(blank=True, null= True)
     course_type = models.CharField(max_length=500, blank=True, null= True)

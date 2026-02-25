@@ -592,13 +592,8 @@
 }
 
 /* Pulse animation for error line */
-@keyframes errorPulse {
-  0%, 100% { background: rgba(255, 0, 0, 0.1); }
-  50% { background: rgba(255, 0, 0, 0.2); }
-}
-
 .error-line-highlight {
-  animation: errorPulse 2s ease-in-out 3;
+  background: rgba(255, 0, 0, 0.15) !important; /* ✅ Static, no animation */
 }
 </style>
 
@@ -975,7 +970,7 @@ function handleStudyClick(topicId, btn) {
 }
 
 // ── Backend save ───────────────────────────────────────────────
-let currentlyStudyingTopicId = null;
+
 
 function setCurrentTopic(topicId, buttonElement) {
   currentlyStudyingTopicId = topicId;
@@ -1269,7 +1264,10 @@ document.addEventListener('DOMContentLoaded', function () {
   
   <!-- 👇 ADD SPEECH TOGGLE -->
 <button id="speechToggleBtn" onclick="window.toggleSpeech()" style="background: #27ae60; color: white;">
-  🔊 Speech On
+  🔊 Speech on
+</button>
+<button onclick="getManualHint()" style="background: #3498db; color: white;">
+  💡 Get AI Hint
 </button>
 
 <button onclick="getRelevantExamples()" id="examplesBtn" style="background: #3498db; color: white;">
@@ -2147,7 +2145,7 @@ async function applyChanges() {
     const data = await res.json();
 
     if (data.status === "success" && data.code) {
-      if (typeof editor !== "undefined") {
+      if (typeof editor !== 'undefined' && editor) {
         if (editor.setValue) {
           editor.setValue(data.code);
         } else if (editor.getModel) {
@@ -2516,20 +2514,7 @@ console.log('✅ File switching initialized');
         </html>`;
     }
 
-    // ✅ Load saved project files on page load
-    async function loadSavedProject() {
-      try {
-        const res = await fetch(`/webprojects/${PROJECT_ID}/load-files/`);
-        const data = await res.json();
-        if (data.status === "success") {
-          renderPreview(data.html, data.css, data.js);
-        } else {
-          console.warn("No saved project files found");
-        }
-      } catch (err) {
-        console.error("Error loading saved project:", err);
-      }
-    }
+    
 
     // ✅ Run AI and update project
     runButton.addEventListener("click", async () => {
@@ -2572,8 +2557,6 @@ console.log('✅ File switching initialized');
       }
     });
 
-    // ✅ Initial load
-    loadSavedProject();
   });
 </script>
 
@@ -3181,6 +3164,8 @@ function createSaveIndicator() {
   return saveIndicator;
 }
 
+
+
 function showSaveStatus(message, isError = false) {
   const indicator = createSaveIndicator();
   indicator.textContent = message;
@@ -3188,14 +3173,26 @@ function showSaveStatus(message, isError = false) {
     ? 'rgba(231, 76, 60, 0.9)' 
     : 'rgba(46, 204, 113, 0.9)';
   indicator.style.opacity = '1';
+  indicator.style.display = 'block'; // ✅ ADD THIS
   
   setTimeout(() => {
     indicator.style.opacity = '0';
+    setTimeout(() => {
+      indicator.style.display = 'none'; // ✅ ADD THIS
+    }, 300);
   }, 2000);
 }
 
 
-function performAutoSave() {
+let isSaving = false; // Prevent overlapping saves
+
+async function performAutoSave() {
+  // Skip if already saving
+  if (isSaving) {
+    console.log("⏭️ Save already in progress - skipping");
+    return;
+  }
+  
   if (!editor) {
     console.log("⏭️ Editor not ready yet");
     return;
@@ -3203,55 +3200,81 @@ function performAutoSave() {
 
   const currentContent = editor.getValue();
   
-  console.log("=== AUTO-SAVE DEBUG ===");
-  console.log("File ID:", currentFileId);  // ← Use currentFileId instead of hardcoded
-  console.log("Content length:", currentContent.length);
-  console.log("Last saved length:", lastSavedContent.length);
-  console.log("Content changed:", currentContent !== lastSavedContent);
-  
   if (currentContent === lastSavedContent) {
     console.log("⏭️ Skipped - No changes");
     return;
   }
   
+  isSaving = true; // Lock
   console.log("💾 Attempting auto-save...");
-  showSaveStatus('Saving...', false);
   
-  const saveData = {
-    file_id: currentFileId,  // ← Use currentFileId
-    content: currentContent
-  };
-  
-  fetch("{% url 'webprojects:file_autosave' %}", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": "{{ csrf_token }}"
-    },
-    body: JSON.stringify(saveData)
-  })
-  .then(response => {
-    console.log("Response status:", response.status);
-    return response.json();
-  })
-  .then(data => {
-    console.log("Response data:", data);
+  try {
+    const response = await fetch("{% url 'webprojects:file_autosave' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({
+        file_id: currentFileId,
+        content: currentContent
+      }),
+      // ✅ CRITICAL: Don't wait for response
+      keepalive: true
+    });
+    
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    
+    const data = await response.json();
     
     if (data.status === "success") {
       lastSavedContent = currentContent;
       const time = new Date().toLocaleTimeString();
-      console.log(`✅ Auto-saved successfully at ${time}`);
-      showSaveStatus(`✓ Saved ${time}`);
-    } else {
-      console.error("❌ Save failed:", data.message);
-      showSaveStatus('✗ Failed', true);
+      console.log(`✅ Saved at ${time}`);
+      
+      // ✅ Show subtle indicator (not blocking toast)
+      showSaveIndicator(time);
     }
-  })
-  .catch(err => {
-    console.error("❌ Auto-save error:", err);
-    showSaveStatus('✗ Error', true);
-  });
+    
+  } catch (err) {
+    console.error("❌ Save error:", err);
+  } finally {
+    isSaving = false; // Unlock
+  }
 }
+
+// ✅ Non-blocking save indicator (top-right corner)
+function showSaveIndicator(time) {
+  let indicator = document.getElementById('save-indicator');
+  
+  if (!indicator) {
+    indicator = document.createElement('div');
+    indicator.id = 'save-indicator';
+    indicator.style.cssText = `
+      position: fixed;
+      top: 65px;
+      right: 20px;
+      padding: 4px 10px;
+      background: rgba(46, 204, 113, 0.95);
+      color: white;
+      border-radius: 4px;
+      font-size: 11px;
+      z-index: 9999;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    `;
+    document.body.appendChild(indicator);
+  }
+  
+  indicator.textContent = `💾 ${time}`;
+  indicator.style.opacity = '1';
+  
+  // Fade out after 2 seconds
+  setTimeout(() => {
+    indicator.style.opacity = '0.3';
+  }, 2000);
+}
+
 // ============= MONACO EDITOR INITIALIZATION =============
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' } });
 
@@ -3259,12 +3282,28 @@ require(['vs/editor/editor.main'], function () {
   console.log("✅ Monaco Editor loaded");
   
   editor = monaco.editor.create(document.getElementById('container'), {
-    value: `{{ file.content|escapejs }}`,
-    language: getLanguage("{{ file.name }}"),
-    theme: currentTheme,
-    automaticLayout: true,
-    readOnly: false
-  });
+  value: `{{ file.content|escapejs }}`,
+  language: getLanguage("{{ file.name }}"),
+  theme: currentTheme,
+  automaticLayout: true,
+  readOnly: false,
+  
+  // ✅ PERFORMANCE OPTIMIZATIONS:
+  minimap: { enabled: false },              // Disable minimap
+  quickSuggestions: false,                  // Disable auto-complete while typing
+  wordBasedSuggestions: false,              // Disable word suggestions
+  parameterHints: { enabled: false },       // Disable parameter hints
+  suggestOnTriggerCharacters: true,         // Only suggest on . or (
+  acceptSuggestionOnCommitCharacter: false, // Don't auto-accept suggestions
+  tabCompletion: "off",                     // Disable tab completion
+  wordWrap: "on",                           // Enable word wrap (easier on eyes)
+  scrollBeyondLastLine: false,              // Don't scroll past end
+  folding: false,                           // Disable code folding
+  renderLineHighlight: "none",              // Don't highlight current line
+  occurrencesHighlight: false,              // Don't highlight word occurrences
+  renderWhitespace: "none",                 // Don't show whitespace
+  codeLens: false,                          // Disable code lens
+});
 
   console.log("✅ Editor created");
 
@@ -3324,14 +3363,14 @@ let lastAnalyzedCode = '';
 let isAnalyzing = false;
 
 // Listen to code changes
-editor.onDidChangeModelContent(() => {
-  // Debounce - wait 3 seconds after user stops typing
-  clearTimeout(hintTimeout);
+// Listen to code changes
+// editor.onDidChangeModelContent(() => {
+//   clearTimeout(hintTimeout);
   
-  hintTimeout = setTimeout(() => {
-    analyzeCodeInRealTime();
-  }, 3000); // Wait 3 seconds of no typing
-});
+//   hintTimeout = setTimeout(() => {
+//     analyzeCodeInRealTime();
+//   }, 10000); // ✅ 10 seconds - much less CPU usage
+// });
 
 // Find this function and REPLACE it:
 async function analyzeCodeInRealTime() {
@@ -3485,6 +3524,11 @@ function showSmartHint(hint, type, topic) {
     return;
   }
   
+  // Clear any existing timeout
+  if (window.hintAutoHideTimeout) {
+    clearTimeout(window.hintAutoHideTimeout);
+  }
+  
   // Remove all hint type classes
   panel.classList.remove('hint-error', 'hint-success', 'hint-next-step');
   
@@ -3534,44 +3578,20 @@ function showSmartHint(hint, type, topic) {
   // Show panel
   panel.style.display = 'block';
   
-  // ============= IMPROVED: SPEAK AND WAIT =============
-  // Calculate how long the speech will take
-  const wordCount = hint.split(' ').length;
-  const estimatedSpeechTime = (wordCount / 2.5) * 1000; // ~2.5 words per second
-  const minDisplayTime = Math.max(estimatedSpeechTime, 10000); // At least 10 seconds
-  
-  console.log(`Speech estimated time: ${estimatedSpeechTime}ms, Min display: ${minDisplayTime}ms`);
-  
-  // Speak the hint
-
-  
-  // Auto-hide ONLY after speech finishes (for non-errors)
-  if (type !== 'error') {
-    // Clear any existing timeout
-    if (window.hintAutoHideTimeout) {
-      clearTimeout(window.hintAutoHideTimeout);
-    }
+  // ✅ SPEAK WITH CALLBACK - Wait for speech to finish before auto-hiding
+  window.speakText(hint, () => {
+    console.log("Speech completed for hint");
     
-    // Set new timeout based on speech duration
-    window.hintAutoHideTimeout = setTimeout(() => {
-      // Only hide if speech has actually finished
-      if (!window.speechSynthesis.speaking) {
-        if (panel.style.display === 'block') {
+    // Auto-hide ONLY for non-errors, after speech finishes
+    if (type !== 'error') {
+      window.hintAutoHideTimeout = setTimeout(() => {
+        if (panel.style.display === 'block' && !window.speechSynthesis.speaking) {
           closeSmartHint();
         }
-      } else {
-        // Speech still running, wait more
-        console.log("Speech still running, extending display time");
-        setTimeout(() => {
-          if (panel.style.display === 'block' && !window.speechSynthesis.speaking) {
-            closeSmartHint();
-          }
-        }, 5000); // Check again in 5 seconds
-      }
-    }, minDisplayTime);
-  }
+      }, 5000); // Wait 5 more seconds after speech ends
+    }
+  });
 }
-
 // ============= TEXT-TO-SPEECH =============
 
 
@@ -3580,59 +3600,14 @@ let availableVoices = [];
 
 
 
-// Function 2: Load Voices
-function loadVoices() {
-  return new Promise((resolve) => {
-    availableVoices = window.speechSynthesis.getVoices();
-    
-    if (availableVoices.length > 0) {
-      voicesLoaded = true;
-      console.log("✅ Voices loaded:", availableVoices.length);
-      resolve(availableVoices);
-    } else {
-      window.speechSynthesis.onvoiceschanged = () => {
-        availableVoices = window.speechSynthesis.getVoices();
-        voicesLoaded = true;
-        console.log("✅ Voices loaded (delayed):", availableVoices.length);
-        resolve(availableVoices);
-      };
-    }
-  });
-}
-
-
-
-
 // Initialize voices when page loads
+// ✅ REPLACE WITH THIS:
+// Speech is already initialized by the window.speakText system
 if ('speechSynthesis' in window) {
-  loadVoices();
-} else {
-  console.error("❌ Speech not supported");
+  console.log('✅ Speech synthesis available');
 }
 
-// DOM Ready - Initialize
-document.addEventListener('DOMContentLoaded', function() {
-  console.log("🔊 Initializing speech...");
-  
-  if ('speechSynthesis' in window) {
-    // Force load voices
-    let voices = window.speechSynthesis.getVoices();
-    
-    if (voices.length === 0) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        voices = window.speechSynthesis.getVoices();
-        console.log("✅ Loaded voices:", voices.length);
-      };
-    } else {
-      console.log("✅ Voices already loaded:", voices.length);
-    }
-    
-    // Update button state
 
-  } else {
-    console.error("❌ Speech synthesis not supported");
-  }
-});
 // Load voices (needed for some browsers)
 window.speechSynthesis.onvoiceschanged = () => {
   console.log("Voices loaded:", window.speechSynthesis.getVoices().length);
@@ -3660,7 +3635,7 @@ function getManualHint() {
 
 console.log('✅ Smart AI Tutor initialized');  
     // Start autosave interval (every 5 seconds)
-    autoSaveInterval = setInterval(performAutoSave, 5000);
+    // autoSaveInterval = setInterval(performAutoSave, 10000); // 10 seconds instead of 5
     console.log("✅ Auto-save interval started");
     
     // Debounced save on typing
@@ -3670,7 +3645,7 @@ console.log('✅ Smart AI Tutor initialized');
       typingTimer = setTimeout(() => {
         console.log("User stopped typing, triggering save...");
         performAutoSave();
-      }, 2000);
+      }, 5000);
     });
     
     // Save before leaving page
@@ -3988,6 +3963,11 @@ function cleanAIResponse(text) {
 
 function showToast(message) {
   const toast = document.getElementById("toastMessage");
+  if (!toast) {
+    console.error("Toast element not found");
+    return;
+  }
+  
   toast.innerHTML = `
     <span>${message}</span>
     <button onclick="hideToast()" style="
@@ -4003,7 +3983,23 @@ function showToast(message) {
   `;
   toast.style.display = "block";
   toast.style.opacity = "1";
+  
+  // Auto-hide after 3 seconds
+  setTimeout(() => {
+    hideToast();
+  }, 3000);
 }
+
+function hideToast() {
+  const toast = document.getElementById("toastMessage");
+  if (toast) {
+    toast.style.opacity = "0";
+    setTimeout(() => {
+      toast.style.display = "none";
+    }, 500);
+  }
+}
+
 
 function hideToast() {
   const toast = document.getElementById("toastMessage");
@@ -4445,9 +4441,9 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script>
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
 // SPEECH SYSTEM — defined first, before anything else
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
 window.speechEnabled = localStorage.getItem('speechEnabled') !== 'false';
 
 window.updateSpeechButton = function() {
@@ -4457,32 +4453,47 @@ window.updateSpeechButton = function() {
   btn.style.background = window.speechEnabled ? '#27ae60' : '#95a5a6';
 };
 
-window.speakText = function(text) {
-  if (!window.speechEnabled || !text) return;
-  if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  var voices = window.speechSynthesis.getVoices();
-  var trySpeak = function() {
-    var utt = new SpeechSynthesisUtterance(text);
-    utt.rate  = 0.9;
-    utt.pitch = 1.0;
-    utt.lang  = 'en-US';
-    var voices = window.speechSynthesis.getVoices();
-    var good = voices.find(function(v) {
-      return v.lang.startsWith('en') && /Google|Microsoft|Samantha/.test(v.name);
-    }) || voices.find(function(v) { return v.lang.startsWith('en'); }) || voices[0];
-    if (good) utt.voice = good;
-    window.speechSynthesis.speak(utt);
-  };
-  if (voices.length > 0) {
-    setTimeout(trySpeak, 150);
-  } else {
-    window.speechSynthesis.onvoiceschanged = function() {
-      setTimeout(trySpeak, 150);
-    };
+window.speakText = function(text, onFinish) {
+  if (!window.speechEnabled || !text) {
+    if (onFinish) onFinish();
+    return;
   }
+  
+  if (!('speechSynthesis' in window)) {
+    if (onFinish) onFinish();
+    return;
+  }
+  
+  window.speechSynthesis.cancel();
+  
+  setTimeout(() => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    utterance.lang = 'en-US';
+    
+    const voices = window.speechSynthesis.getVoices();
+    const goodVoice = voices.find(v =>
+      v.lang.startsWith('en') && /Google|Microsoft|Samantha/.test(v.name)
+    ) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+    
+    if (goodVoice) utterance.voice = goodVoice;
+    
+    utterance.onend = () => {
+      console.log("🔇 Speech ended");
+      if (onFinish) onFinish();
+    };
+    
+    utterance.onerror = (e) => {
+      console.error("Speech error:", e);
+      if (onFinish) onFinish();
+    };
+    
+    window.speechSynthesis.speak(utterance);
+  }, 150);
 };
 
+// Alias for compatibility
 window.speakHint = window.speakText;
 
 window.toggleSpeech = function() {
@@ -4501,9 +4512,25 @@ window.toggleSpeech = function() {
   window.speakText('Speech is now on. I will guide you as you code.');
 };
 
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
   window.updateSpeechButton();
-  console.log('[Speech] ✅ System ready, toggleSpeech:', typeof window.toggleSpeech);
+  
+  // Force load voices
+  if ('speechSynthesis' in window) {
+    let voices = window.speechSynthesis.getVoices();
+    
+    if (voices.length === 0) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        voices = window.speechSynthesis.getVoices();
+        console.log('[Speech] ✅ Loaded voices:', voices.length);
+      };
+    } else {
+      console.log('[Speech] ✅ Voices already loaded:', voices.length);
+    }
+  }
+  
+  console.log('[Speech] ✅ System ready');
 });
 </script>
 
@@ -4580,10 +4607,6 @@ function loadVoices() {
   });
 }
 
-// Initialize voices
-if ('speechSynthesis' in window) {
-  loadVoices();
-}
 
 // ============= ERROR LINE HIGHLIGHTING =============
 function highlightErrorLine(lineNumber) {
@@ -4847,11 +4870,13 @@ function initializeSmartTutor() {
     hintTimeout = setTimeout(() => {
       console.log("⏰ 3 seconds passed, analyzing now...");
       analyzeCodeInRealTime();
-    }, 3000);
+    }, 10000);
   });
 
   console.log('✅ Smart AI Tutor listener attached');
 }
+
+
 
 function getManualHint() {
   console.log("🖱️ Manual hint requested");
@@ -4875,179 +4900,163 @@ console.log("✅ All functions loaded");
 
 
 <script>
-(function () {
+ 
+ (function () {
   'use strict';
 
-  // ── STATE ────────────────────────────────────────────────────────
+  // ── STATE ──────────────────────────────────────────────────────
   let topicRegistry        = [];
   let activeTopicId        = null;
-  let completionShownForId = null;  // track per-topic, not boolean
+  let activeLang           = 'python';   // ← NEW: tracks current language
+  let completionShownForId = null;
   let lastCode             = '';
   let isFetching           = false;
   let hintCooldown         = false;
   let hintTimer            = null;
 
-  // course_id from template constant (set in SETUP block above)
   function getCourseId() {
     return (typeof window.COURSE_ID !== 'undefined' && window.COURSE_ID)
       ? window.COURSE_ID : null;
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // 1. PROGRESS BAR — injected above Monaco editor
-  // ═══════════════════════════════════════════════════════════════
+  // ── LANGUAGE HELPERS ──────────────────────────────────────────
+  const LANG_PLACEHOLDERS = {
+    python:     '# Write your Python code here\n',
+    javascript: '// Write your JavaScript here\n',
+    html:       '<!-- Write your HTML here -->\n',
+    css:        '/* Write your CSS here */\n',
+    finance:    'Write your answer or calculation here...\n',
+    classroom:  'Write your lesson plan or teaching strategy here...\n',
+    ai:         'Write your AI prompt or tool description here...\n',
+    theory:     'Write your notes or answer here...\n',
+  };
 
+  const LANG_MONACO_MODE = {
+    python:     'python',
+    javascript: 'javascript',
+    html:       'html',
+    css:        'css',
+    finance:    'plaintext',
+    classroom:  'plaintext',
+    ai:         'plaintext',
+    theory:     'plaintext',
+    sql:        'sql',
+  };
 
-  // ── Render progress API data into toolbar + sidebar ────────────
+  const LANG_DISPLAY = {
+    python:     'Python',
+    javascript: 'JavaScript',
+    html:       'HTML',
+    css:        'CSS',
+    finance:    'Finance',
+    classroom:  'Classroom Management',
+    ai:         'AI for Teachers',
+    theory:     'Theory',
+    sql:        'SQL',
+  };
+
+  // ── SWITCH EDITOR LANGUAGE MODE ───────────────────────────────
+  function switchEditorLanguage(lang) {
+    if (!window.editor || !window.monaco) return;
+    const monacoLang = LANG_MONACO_MODE[lang] || 'plaintext';
+    try {
+      monaco.editor.setModelLanguage(window.editor.getModel(), monacoLang);
+      console.log('[SmartTutor] Editor language →', monacoLang);
+    } catch(e) {
+      console.warn('[SmartTutor] Could not switch language:', e);
+    }
+  }
+
+  // ── UPDATE EDITOR PLACEHOLDER (only if empty) ─────────────────
+  function updateEditorPlaceholder(lang) {
+    if (!window.editor) return;
+    const current = window.editor.getValue().trim();
+    const isPlaceholder = Object.values(LANG_PLACEHOLDERS).some(
+      p => current === p.trim()
+    );
+    if (!current || isPlaceholder) {
+      const placeholder = LANG_PLACEHOLDERS[lang] || '';
+      window.editor.setValue(placeholder);
+      // Place cursor at end
+      const model    = window.editor.getModel();
+      const lastLine = model.getLineCount();
+      const lastCol  = model.getLineMaxColumn(lastLine);
+      window.editor.setPosition({ lineNumber: lastLine, column: lastCol });
+    }
+  }
+
+  // ── SIDEBAR PROGRESS ──────────────────────────────────────────
   function renderProgress(data) {
-    // Persist globally so sidebar script can use it
     window._completedTopicIds = data.completed_topic_ids || [];
     window._currentTopicId    = data.current_topic_id;
     window._totalTopicCount   = data.total_count || 0;
 
-    // Toolbar text
     _setText('st-topic-name',  data.current_topic_title || 'None selected');
-    _setText('st-pct-label',   data.overall_pct + '% complete');
-    _setText('st-count-label', data.completed_count + ' / ' + data.total_count + ' topics');
+    _setText('st-pct-label',   (data.overall_pct || 0) + '% complete');
+    _setText('st-count-label', (data.completed_count || 0) + ' / ' + (data.total_count || 0) + ' topics');
 
-    // Fill bar
     const fill = document.getElementById('st-pb-fill');
     if (fill) {
-      fill.style.width = data.overall_pct + '%';
-      fill.style.background =
-        data.overall_pct === 100 ? 'linear-gradient(90deg,#27ae60,#2ecc71)' :
-        data.overall_pct >=  50  ? 'linear-gradient(90deg,#f39c12,#2ecc71)' :
-                                   'linear-gradient(90deg,#3498db,#2ecc71)';
+      fill.style.width = (data.overall_pct || 0) + '%';
     }
 
-    // Dots
-    const dotsEl = document.getElementById('st-topic-dots');
-    if (dotsEl && data.topics) {
-      dotsEl.innerHTML = '';
-      data.topics.forEach(t => {
-        const d = document.createElement('div');
-        d.title = t.title;
-        const size = t.is_current ? '13px' : '10px';
-        const bg   = t.completed ? '#27ae60' : t.is_current ? '#3498db' : '#2a2a3e';
-        const bor  = t.completed ? '#1e8449' : t.is_current ? '#1a6fa3' : '#444';
-        d.style.cssText = `
-          width:${size};height:${size};background:${bg};border:1.5px solid ${bor};
-          border-radius:50%;cursor:default;transition:all .3s;flex-shrink:0;`;
-        d.addEventListener('mouseenter', () => {
-          d.style.transform = 'scale(1.5)';
-          _miniToast((t.completed ? '✅ ' : t.is_current ? '📍 ' : '○ ') + t.title);
-        });
-        d.addEventListener('mouseleave', () => { d.style.transform = 'scale(1)'; });
-        dotsEl.appendChild(d);
-      });
-    }
-
-    // KEY: push into sidebar applyTopicStates (defined in sidebar template)
     if (typeof window.applyTopicStates === 'function') {
       window.applyTopicStates(data);
     }
 
-    // Keep activeTopicId in sync with what DB says is current
     if (data.current_topic_id && !activeTopicId) {
       activeTopicId = data.current_topic_id;
       localStorage.setItem('currentTopicId', activeTopicId);
     }
   }
 
-  function _setText(id, txt) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = txt;
-  }
-
-  function updateStepBadge(idx, total) {
-    const badge = document.getElementById('st-step-badge');
-    const text  = document.getElementById('st-step-text');
-    if (!badge || !text) return;
-    if (total > 0) {
-      badge.style.display = 'flex';
-      text.textContent    = 'Step ' + (idx + 1) + '/' + total;
-    } else {
-      badge.style.display = 'none';
-    }
-  }
-
-  // ── fetchProgress — sends course_id so counts are course-scoped ──
   async function fetchProgress(justCompletedTopicId) {
     if (!window.PROGRESS_URL) return;
     try {
       const courseId = getCourseId();
-      const url      = courseId
+      const url = courseId
         ? window.PROGRESS_URL + '?course_id=' + courseId
         : window.PROGRESS_URL;
-
       const res  = await fetch(url);
       const data = await res.json();
       if (data.status !== 'success') return;
 
-      // Retry if just-completed topic is missing (DB race condition)
       if (justCompletedTopicId) {
         const ids = (data.completed_topic_ids || []).map(Number);
         if (!ids.includes(Number(justCompletedTopicId))) {
-          console.log('[SmartTutor] Retrying progress fetch…');
           await _delay(600);
           const res2  = await fetch(url);
           const data2 = await res2.json();
           if (data2.status === 'success') { renderProgress(data2); return; }
         }
       }
-
       renderProgress(data);
     } catch (e) {
       console.warn('[SmartTutor] fetchProgress:', e);
     }
   }
 
-  // ── markTopicComplete — ticks sidebar INSTANTLY then syncs DB ───
-async function markTopicComplete(topicId) {
+  async function markTopicComplete(topicId) {
     if (!window.MARK_DONE_URL || !topicId) return;
     const courseId = getCourseId();
-
-    // ⚡ INSTANT tick — update DOM and cache before any fetch
     _tickSidebarItem(topicId);
 
     try {
       const res  = await fetch(window.MARK_DONE_URL, {
         method:  'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken':  window.CSRF_TOK || ''
-        },
-        body: JSON.stringify({
-          topic_id:        topicId,
-          course_id:       courseId,
-          advance_to_next: true
-        })
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.CSRF_TOK || '' },
+        body:    JSON.stringify({ topic_id: topicId, course_id: courseId, advance_to_next: true })
       });
       const data = await res.json();
-
       if (data.status === 'success') {
-        console.log('[SmartTutor] ✅ DB marked complete:', topicId);
-
-        // Merge DB completed ids with our optimistic cache
         const merged = new Set([
           ...((data.completed_topic_ids || []).map(Number)),
           ...((window._completedTopicIds || []).map(Number)),
-          Number(topicId)  // always include the one we just completed
+          Number(topicId)
         ]);
         window._completedTopicIds = Array.from(merged);
         window._currentTopicId    = data.next_topic_id || window._currentTopicId;
 
-        // Update toolbar numbers
-        if (data.overall_pct !== undefined) {
-          const fill = document.getElementById('st-pb-fill');
-          if (fill) fill.style.width = data.overall_pct + '%';
-          _setText('st-pct-label',   data.overall_pct + '% complete');
-          _setText('st-count-label', data.completed_count + ' / ' + data.total_count + ' topics');
-          _setText('st-topic-name',  data.next_topic_title || _getText('st-topic-name'));
-        }
-
-        // Apply full state — completed_topic_ids already has topicId merged in
-        // so this will paint the tick GREEN not reset it
         if (typeof window.applyTopicStates === 'function') {
           window.applyTopicStates({
             current_topic_id:    data.next_topic_id    || window._currentTopicId,
@@ -5057,135 +5066,74 @@ async function markTopicComplete(topicId) {
             completed_count:     data.completed_count  || merged.size,
           });
         }
-
-        // ✅ NO fetchProgress() call here — it was racing and overwriting the tick
-        // The data we got back from mark_topic_complete is already fresh from DB
       }
     } catch (e) {
       console.warn('[SmartTutor] markTopicComplete:', e);
     }
-}
-  // Direct DOM tick — updates cache AND DOM atomically so no
-  // subsequent applyTopicStates() call can overwrite the tick.
-function _tickSidebarItem(topicId) {
-    const id = Number(topicId);
-    if (!id) { console.warn('[SmartTutor] _tickSidebarItem: invalid id', topicId); return; }
+  }
 
-    // 1. Update cache first
+  function _tickSidebarItem(topicId) {
+    const id = Number(topicId);
+    if (!id) return;
     const done = new Set((window._completedTopicIds || []).map(Number));
     done.add(id);
     window._completedTopicIds = Array.from(done);
 
-    // 2. Direct DOM update
     const item  = document.getElementById('topic-item-'  + id);
     const btn   = document.getElementById('topic-btn-'   + id);
     const icon  = document.getElementById('topic-icon-'  + id);
     const badge = document.getElementById('topic-badge-' + id);
-
-    if (!item) {
-        console.warn('[SmartTutor] topic-item-' + id + ' not found in DOM');
-        return;
-    }
+    if (!item) return;
 
     item.style.border          = '2px solid #27ae60';
     item.style.backgroundColor = '#f0fff4';
+    if (btn)   { btn.textContent = '✅ Completed'; btn.style.background = '#27ae60'; btn.style.fontWeight = 'bold'; }
+    if (icon)  { icon.textContent = '✅'; }
+    if (badge) { badge.style.display = 'inline-block'; badge.textContent = '✅ Done'; badge.style.background = '#d4edda'; badge.style.color = '#155724'; }
 
-    if (btn) {
-        btn.textContent      = '✅ Completed';
-        btn.style.background = '#27ae60';
-        btn.style.fontWeight = 'bold';
-        btn.style.cursor     = 'pointer';
-    }
-    if (icon)  icon.textContent = '✅';
-    if (badge) {
-        badge.style.display    = 'inline-block';
-        badge.textContent      = '✅ Done';
-        badge.style.background = '#d4edda';
-        badge.style.color      = '#155724';
-        badge.style.border     = '1px solid #c3e6cb';
-    }
-
-    console.log('[SmartTutor] ⚡ DOM tick done for', id, '| all completed:', window._completedTopicIds);
-
-    // 3. Force applyTopicStates with merged cache
     if (typeof window.applyTopicStates === 'function') {
-        window.applyTopicStates({
-            current_topic_id:    window._currentTopicId || null,
-            completed_topic_ids: Array.from(done),
-            total_count:         window._totalTopicCount || 0,
-        });
+      window.applyTopicStates({
+        current_topic_id:    window._currentTopicId || null,
+        completed_topic_ids: Array.from(done),
+        total_count:         window._totalTopicCount || 0,
+      });
     }
-}
-  function _getText(id) {
-    const el = document.getElementById(id);
-    return el ? el.textContent : '';
   }
 
-  function _delay(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-  function _miniToast(msg) {
-    let t = document.getElementById('st-mini-toast');
-    if (!t) {
-      t = document.createElement('div');
-      t.id = 'st-mini-toast';
-      t.style.cssText = `
-        position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
-        background:#333;color:#fff;padding:6px 14px;border-radius:20px;
-        font-size:12px;z-index:99999;pointer-events:none;
-        opacity:0;transition:opacity .2s;`;
-      document.body.appendChild(t);
-    }
-    t.textContent   = msg;
-    t.style.opacity = '1';
-    clearTimeout(t._t);
-    t._t = setTimeout(() => { t.style.opacity = '0'; }, 1800);
-  }
-
-  // ═══════════════════════════════════════════════════════════════
-  // 2. TOPIC REGISTRY
-  // ═══════════════════════════════════════════════════════════════
-
+  // ── TOPIC REGISTRY ────────────────────────────────────────────
   function buildRegistry() {
     topicRegistry = [];
     document.querySelectorAll('.topic-item[data-topic-id]').forEach((item, idx) => {
       const id    = parseInt(item.dataset.topicId, 10);
       const el    = item.querySelector('strong');
-      const title = el
-        ? el.textContent.replace(/^\d+\.\s*/, '').trim()
-        : 'Topic ' + (idx + 1);
-      topicRegistry.push({ id, title, index: idx });
+      const title = el ? el.textContent.replace(/^\d+\.\s*/, '').trim() : 'Topic ' + (idx + 1);
+      const lang  = item.dataset.lang || 'python';   // ← read lang from data attribute if set
+      topicRegistry.push({ id, title, index: idx, lang });
     });
-    console.log('[SmartTutor] Registry:',
-      topicRegistry.map(t => '[' + t.index + '] ' + t.title).join(', '));
   }
 
-  function entryById(id) {
-    return topicRegistry.find(t => t.id === id) || null;
-  }
-
-  function nextEntry() {
+  function entryById(id)  { return topicRegistry.find(t => t.id === id) || null; }
+  function nextEntry()    {
     const cur = entryById(activeTopicId);
     if (!cur) return topicRegistry[0] || null;
     return topicRegistry[cur.index + 1] || null;
   }
 
-  // Wrap setCurrentTopic so the patch stays in sync
+  // Patch setCurrentTopic to also switch editor language
   function patchSetCurrentTopic() {
     const _orig = window.setCurrentTopic;
     window.setCurrentTopic = function (topicId, btn) {
       activeTopicId        = topicId;
-      completionShownForId = null;  // reset so new topic can show completion
+      completionShownForId = null;
       lastCode             = '';
       localStorage.setItem('currentTopicId', topicId);
       if (typeof _orig === 'function') _orig(topicId, btn);
+      // We don't know lang yet — the hint response will tell us
       setTimeout(() => fetchProgress(), 700);
     };
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // 3. EDITOR LISTENER + HINT FETCH
-  // ═══════════════════════════════════════════════════════════════
-
+  // ── EDITOR LISTENER ───────────────────────────────────────────
   function attachEditorListener() {
     if (!window.editor) { setTimeout(attachEditorListener, 500); return; }
     window.editor.onDidChangeModelContent(() => {
@@ -5215,7 +5163,7 @@ function _tickSidebarItem(topicId) {
     const cur      = entryById(activeTopicId);
     const next     = nextEntry();
     const courseId = getCourseId();
-    const err      = detectSyntax(code);
+    const err      = detectSyntax(code, activeLang);
 
     if (err) highlightLine(err.line); else clearHighlight();
 
@@ -5223,20 +5171,17 @@ function _tickSidebarItem(topicId) {
     try {
       const res = await fetch(window.HINT_URL, {
         method:  'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken':  window.CSRF_TOK || ''
-        },
-        body: JSON.stringify({
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.CSRF_TOK || '' },
+        body:    JSON.stringify({
           code,
           file_id:          window.CURRENT_FILE_ID || 0,
           cursor_line:      window.editor.getPosition().lineNumber,
           error:            err ? err.msg : null,
           current_topic:    cur  ? cur.title  : null,
           current_topic_id: cur  ? cur.id     : null,
-          next_topic:       next ? next.title  : null,
-          next_topic_id:    next ? next.id     : null,
-          course_id:        courseId,            // ← FIXED: now sent
+          next_topic:       next ? next.title : null,
+          next_topic_id:    next ? next.id    : null,
+          course_id:        courseId,
           strict_topic:     true
         })
       });
@@ -5244,30 +5189,24 @@ function _tickSidebarItem(topicId) {
       const data = await res.json();
       if (data.status !== 'success') return;
 
-      // Update step badge in toolbar
-      if (data.total_steps > 0) {
-        updateStepBadge(data.step_index || 0, data.total_steps);
+      // ── UPDATE active language from server response ─────────
+      if (data.lang && data.lang !== activeLang) {
+        activeLang = data.lang;
+        switchEditorLanguage(activeLang);
+        console.log('[SmartTutor] Language updated to:', activeLang);
       }
 
-      // ── COMPLETION — only show once per unique topic ───────────
+      if (data.total_steps > 0) updateStepBadge(data.step_index || 0, data.total_steps);
+
       if (data.type === 'topic_complete' && completionShownForId !== activeTopicId) {
-    completionShownForId = activeTopicId;
-
-    console.log('[SmartTutor] 🎯 topic_complete received — ticking now');
-
-    // 1. Tick the DOM immediately using the ID from the response
-    const topicToTick = data.completed_topic_id || activeTopicId;
-    _tickSidebarItem(topicToTick);
-
-    // 2. Celebrate
-    showCompletionPanel(cur, next, data.hint);
-
-    // 3. Save to DB in background
-    markTopicComplete(topicToTick);
-
-} else if (data.type !== 'topic_complete') {
-    showStepPanel(data);
-}
+        completionShownForId = activeTopicId;
+        const topicToTick = data.completed_topic_id || activeTopicId;
+        _tickSidebarItem(topicToTick);
+        showCompletionPanel(cur, next, data.hint);
+        markTopicComplete(topicToTick);
+      } else if (data.type !== 'topic_complete') {
+        showStepPanel(data);
+      }
 
     } catch (e) {
       console.error('[SmartTutor] analyzeCode:', e);
@@ -5278,43 +5217,48 @@ function _tickSidebarItem(topicId) {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // 4. PANEL RENDERING
-  // ═══════════════════════════════════════════════════════════════
+  // ── PANEL RENDERING ───────────────────────────────────────────
 
   function showStepPanel(data) {
-    const {
-      hint, type, topic,
-      step_index, total_steps,
-      current_example, next_example
-    } = data;
+    const { hint, type, topic, step_index, total_steps,
+            current_example, next_example, lang } = data;
 
+    const curLang  = lang || activeLang;
+    const isTheory = ['theory', 'finance', 'classroom', 'ai'].includes(curLang);
     const stepNum  = (step_index ?? 0) + 1;
     const totalNum = total_steps || 1;
-    const pct      = Math.round((stepNum - 1) / totalNum * 100);
+    const pct      = Math.round((stepNum - 1) / Math.max(totalNum, 1) * 100);
     const border   = typeColor(type);
 
     const progressHTML = total_steps > 0 ? `
       <div style="margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;
-                    font-size:11px;color:#666;margin-bottom:3px;">
-          <span>📍 Step ${stepNum} of ${totalNum}</span>
-          <span>${pct}%</span>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:3px;">
+          <span>📍 Step ${stepNum} of ${totalNum}</span><span>${pct}%</span>
         </div>
         <div style="background:#e0e0e0;border-radius:20px;height:5px;overflow:hidden;">
-          <div style="background:#3498db;width:${pct}%;height:100%;
-                      border-radius:20px;transition:width .4s;"></div>
+          <div style="background:${border};width:${pct}%;height:100%;border-radius:20px;transition:width .4s;"></div>
         </div>
       </div>` : '';
 
-    const exampleHTML = current_example ? `
+    // For theory courses, show the key point as text, not a code block
+    const exampleHTML = current_example ? (isTheory ? `
+      <div style="margin:10px 0;padding:12px;background:#f0f8ff;
+                  border-radius:8px;border-left:4px solid #3498db;">
+        <div style="font-size:10px;color:#666;margin-bottom:6px;
+                    text-transform:uppercase;letter-spacing:1px;">
+          📝 Key point to address in your response
+        </div>
+        <p style="color:#2c3e50;font-size:14px;margin:0;line-height:1.6;">
+          ${escHTML(current_example)}
+        </p>
+      </div>` : `
       <div style="margin:10px 0;padding:10px;background:#1e1e1e;
                   border-radius:6px;border-left:4px solid #3498db;">
         <div style="font-size:10px;color:#888;margin-bottom:4px;
                     text-transform:uppercase;letter-spacing:1px;">
-          ✍️ Type this now
+          ✍️ ${LANG_DISPLAY[curLang] || curLang} to write
         </div>
-        <code style="color:#4ec9b0;font-size:14px;font-family:monospace;
+        <code style="color:#4ec9b0;font-size:13px;font-family:monospace;
                      white-space:pre-wrap;">${escHTML(current_example)}</code>
         <button
           onclick="SmartTutor.insertExample(\`${escAttr(current_example)}\`, this)"
@@ -5323,7 +5267,7 @@ function _tickSidebarItem(topicId) {
                  border-radius:3px;cursor:pointer;display:block;">
           📋 Insert into editor
         </button>
-      </div>` : '';
+      </div>`) : '';
 
     const hintHTML = `
       <div style="padding:10px;background:${typeBg(type)};border-radius:6px;
@@ -5332,219 +5276,58 @@ function _tickSidebarItem(topicId) {
         ${escHTML(hint)}
       </div>`;
 
-    const nextHTML = next_example ? `
-      <div style="padding:7px 10px;background:#f5f5f5;border-radius:5px;
-                  font-size:11px;color:#666;border-left:3px solid #ccc;">
-        <strong>Coming up:</strong>
-        <code style="margin-left:5px;color:#333;">${escHTML(next_example)}</code>
-      </div>` : '';
+    // Lang badge
+    const langBadge = curLang ? `
+      <span style="font-size:10px;padding:2px 7px;background:#eee;
+                   border-radius:10px;color:#555;margin-left:6px;">
+        ${LANG_DISPLAY[curLang] || curLang}
+      </span>` : '';
 
     showPanel({
       icon:     typeIcon(type),
-      title:    topic
-                  ? topic + ' — Step ' + stepNum + '/' + totalNum
-                  : typeTitle(type),
+      title:    (topic ? topic : typeTitle(type)) + (langBadge ? ' ' : ''),
+      titleExtra: langBadge,
       border,
       bg:       '#fff',
       left:     border,
-      body:     progressHTML + exampleHTML + hintHTML + nextHTML,
+      body:     progressHTML + exampleHTML + hintHTML,
       speech:   hint,
       autohide: type !== 'error'
     });
   }
 
   function showCompletionPanel(cur, next, hint) {
-    // 🎊 Fire celebration immediately
     _launchCelebration();
 
     const nextBlock = next
       ? `<div style="margin-top:12px;padding:12px;background:#e8fff0;
                      border-radius:8px;border-left:4px solid #27ae60;">
-           <strong>👉 Up next:</strong>
-           <em>${escHTML(next.title)}</em><br>
+           <strong>👉 Up next:</strong> <em>${escHTML(next.title)}</em><br>
            <button onclick="SmartTutor.jumpTo(${next.id})" style="
              margin-top:8px;padding:6px 16px;background:#27ae60;color:white;
-             border:none;border-radius:4px;cursor:pointer;
-             font-size:13px;font-weight:bold;">
+             border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">
              Start Next Topic →
            </button>
          </div>`
-      : `<div style="margin-top:10px;padding:10px;
-                     background:#e8fff0;border-radius:8px;">
-           🏆 <strong>All topics complete! You are a Python star!</strong>
+      : `<div style="margin-top:10px;padding:10px;background:#e8fff0;border-radius:8px;">
+           🏆 <strong>All topics complete! Outstanding work!</strong>
          </div>`;
 
     showPanel({
-      icon:  '🎉',
-      title: 'Topic Complete!',
+      icon: '🎉', title: 'Topic Complete!',
       border: '#27ae60', bg: '#efffef', left: '#27ae60',
-      body:   `<div style="padding:10px;background:#efffef;border-radius:6px;
-                            border-left:4px solid #27ae60;font-size:13px;
-                            line-height:1.6;color:#2c3e50;margin-bottom:8px;">
-                 ${escHTML(hint || 'Great work!')}
-               </div>` + nextBlock,
-      speech:   (hint || 'Great work!') +
-                (next ? ' Up next: ' + next.title + '.' : ''),
+      body: `<div style="padding:10px;background:#efffef;border-radius:6px;
+                          border-left:4px solid #27ae60;font-size:13px;
+                          line-height:1.6;color:#2c3e50;margin-bottom:8px;">
+               ${escHTML(hint || 'Great work!')}
+             </div>` + nextBlock,
+      speech:   (hint || 'Great work!') + (next ? ' Up next: ' + next.title + '.' : ''),
       autohide: false
     });
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // 🎊 CELEBRATION ENGINE
-  // ═══════════════════════════════════════════════════════════════
-
-  function _launchCelebration() {
-    _injectCelebrationStyles();
-    _flashScreenGreen();
-    _fireConfetti();
-    _spawnDancingEmojis();
-  }
-
-  function _injectCelebrationStyles() {
-    if (document.getElementById('st-celebration-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'st-celebration-styles';
-    style.textContent = `
-      @keyframes st-flash {
-        0%   { opacity: 1; }
-        100% { opacity: 0; }
-      }
-      @keyframes st-emoji-rise {
-        0%   { transform: translateY(0)     rotate(0deg)   scale(0.5); opacity: 1; }
-        30%  { transform: translateY(-30vh) rotate(12deg)  scale(1.2); opacity: 1; }
-        60%  { transform: translateY(-60vh) rotate(-8deg)  scale(1.0); opacity: 0.9; }
-        100% { transform: translateY(-95vh) rotate(18deg)  scale(0.6); opacity: 0; }
-      }
-      @keyframes st-emoji-bounce {
-        0%,100% { transform: translateY(0); }
-        50%     { transform: translateY(-18px); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  function _flashScreenGreen() {
-    const flash = document.createElement('div');
-    flash.style.cssText = `
-      position:fixed;top:0;left:0;width:100%;height:100%;
-      background:rgba(39,174,96,0.22);pointer-events:none;
-      z-index:999990;animation:st-flash 700ms ease-out forwards;`;
-    document.body.appendChild(flash);
-    setTimeout(() => flash.remove(), 750);
-  }
-
-  function _fireConfetti() {
-    const COLORS = ['#27ae60','#3498db','#f39c12','#e74c3c',
-                    '#9b59b6','#1abc9c','#f1c40f','#e67e22','#fff'];
-    const COUNT  = 130;
-
-    const canvas = document.createElement('canvas');
-    canvas.style.cssText = `
-      position:fixed;top:0;left:0;width:100%;height:100%;
-      pointer-events:none;z-index:999995;`;
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
-    document.body.appendChild(canvas);
-
-    const ctx = canvas.getContext('2d');
-    const particles = [];
-
-    for (let i = 0; i < COUNT; i++) {
-      const side = Math.random() < 0.5 ? 0 : canvas.width;
-      particles.push({
-        x:       side + (Math.random() - 0.5) * 80,
-        y:       canvas.height * (0.1 + Math.random() * 0.4),
-        vx:      (side === 0 ? 1 : -1) * (2 + Math.random() * 5),
-        vy:      -(4 + Math.random() * 7),
-        size:    5 + Math.random() * 9,
-        color:   COLORS[Math.floor(Math.random() * COLORS.length)],
-        shape:   Math.random() < 0.5 ? 'rect' : 'circle',
-        rot:     Math.random() * 360,
-        rotV:    (Math.random() - 0.5) * 10,
-        alpha:   1,
-        gravity: 0.18 + Math.random() * 0.14,
-        wave:    Math.random() * Math.PI * 2,
-        waveAmp: (Math.random() - 0.5) * 2,
-      });
-    }
-
-    let frame;
-    let tick = 0;
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      tick++;
-      let alive = false;
-
-      particles.forEach(p => {
-        if (p.alpha <= 0.01) return;
-        alive = true;
-        p.vy  += p.gravity;
-        p.x   += p.vx + Math.sin(p.wave + tick * 0.04) * p.waveAmp;
-        p.y   += p.vy;
-        p.rot += p.rotV;
-        if (p.y > canvas.height * 0.75) p.alpha -= 0.03;
-
-        ctx.save();
-        ctx.globalAlpha = Math.max(p.alpha, 0);
-        ctx.translate(p.x, p.y);
-        ctx.rotate((p.rot * Math.PI) / 180);
-        ctx.fillStyle = p.color;
-
-        if (p.shape === 'circle') {
-          ctx.beginPath();
-          ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
-          ctx.fill();
-        } else {
-          ctx.fillRect(-p.size / 2, -p.size / 3, p.size, p.size * 0.6);
-        }
-        ctx.restore();
-      });
-
-      if (alive) {
-        frame = requestAnimationFrame(animate);
-      } else {
-        cancelAnimationFrame(frame);
-        canvas.remove();
-      }
-    };
-
-    frame = requestAnimationFrame(animate);
-    setTimeout(() => { cancelAnimationFrame(frame); canvas.remove(); }, 5500);
-  }
-
-  function _spawnDancingEmojis() {
-    const EMOJIS = ['🎉','⭐','🏆','🎊','✨','🚀','💯','🌟','👏','🔥','💪','😄','🎯','🥳'];
-    const COUNT  = 14;
-
-    for (let i = 0; i < COUNT; i++) {
-      setTimeout(() => {
-        const el   = document.createElement('div');
-        const em   = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-        const left = 3 + Math.random() * 94;
-        const size = 26 + Math.floor(Math.random() * 28);
-        const rise = 1600 + Math.random() * 1400;
-        const delay= Math.random() * 300;
-
-        el.textContent   = em;
-        el.style.cssText = `
-          position:fixed;
-          left:${left}%;
-          bottom:-70px;
-          font-size:${size}px;
-          z-index:999996;
-          pointer-events:none;
-          user-select:none;
-          animation:
-            st-emoji-rise  ${rise}ms ${delay}ms ease-out forwards,
-            st-emoji-bounce 600ms ${delay}ms ease-in-out 3;
-        `;
-        document.body.appendChild(el);
-        setTimeout(() => { if (el.parentNode) el.remove(); }, rise + delay + 200);
-      }, i * 100);
-    }
-  }
-
-  function showPanel({ icon, title, border, bg, left,
+  // ── PANEL DISPLAY ─────────────────────────────────────────────
+  function showPanel({ icon, title, titleExtra='', border, bg, left,
                        body, topic, speech, autohide }) {
     const panel   = document.getElementById('smartHintPanel');
     const content = document.getElementById('hintContent');
@@ -5559,7 +5342,7 @@ function _tickSidebarItem(topicId) {
     panel.style.border       = '2px solid ' + border;
     panel.style.boxShadow    = '0 8px 32px ' + border + '44';
     iconEl.textContent       = icon;
-    titleEl.textContent      = title;
+    titleEl.innerHTML        = escHTML(title) + (titleExtra || '');
     titleEl.style.color      = border;
     content.innerHTML        = body;
     content.style.background = bg;
@@ -5576,9 +5359,7 @@ function _tickSidebarItem(topicId) {
     if (speech) speak(speech);
 
     if (autohide !== false) {
-      const ms = Math.max(
-        ((speech || '').split(' ').length / 2.5) * 1000, 8000
-      ) + 5000;
+      const ms = Math.max(((speech || '').split(' ').length / 2.5) * 1000, 8000) + 5000;
       window.hintAutoHideTimeout = setTimeout(() => {
         if (!window.speechSynthesis.speaking) closePanel();
       }, ms);
@@ -5592,35 +5373,20 @@ function _tickSidebarItem(topicId) {
   }
   window.closeSmartHint = closePanel;
 
-  // ═══════════════════════════════════════════════════════════════
-  // 5. SPEECH
-  // ═══════════════════════════════════════════════════════════════
+  // ── SPEECH ────────────────────────────────────────────────────
+  function speak(text) { window.speakText && window.speakText(text); }
 
-  function speak(text) {
-    if (!('speechSynthesis' in window)) return;
-    if (localStorage.getItem('speechEnabled') === 'false') return;
-    window.speechSynthesis.cancel();
-    setTimeout(() => {
-      const utt  = new SpeechSynthesisUtterance(text);
-      utt.rate   = 0.9; utt.pitch = 1.0; utt.lang = 'en-US';
-      const vx   = window.speechSynthesis.getVoices();
-      const good = vx.find(v =>
-        v.lang.startsWith('en') && /Google|Microsoft|Samantha/.test(v.name)
-      ) || vx.find(v => v.lang.startsWith('en')) || vx[0];
-      if (good) utt.voice = good;
-      window.speechSynthesis.speak(utt);
-    }, 150);
-  }
+  // ── SYNTAX DETECTION — LANGUAGE-AWARE ─────────────────────────
+  function detectSyntax(code, lang) {
+    // Only run Python syntax checks on Python files
+    if (lang !== 'python') return null;
 
-  // ═══════════════════════════════════════════════════════════════
-  // 6. SYNTAX DETECTION + HIGHLIGHT
-  // ═══════════════════════════════════════════════════════════════
-
-  function detectSyntax(code) {
     const lines = code.split('\n');
     for (let i = 0; i < lines.length; i++) {
-      const l = lines[i].trim(), n = i + 1;
+      const l = lines[i].trim();
+      const n = i + 1;
       if (!l || l.startsWith('#')) continue;
+
       const op = (l.match(/\(/g) || []).length;
       const cp = (l.match(/\)/g) || []).length;
       if (op > cp) return { line: n, msg: 'Line ' + n + ': Missing closing )' };
@@ -5639,60 +5405,119 @@ function _tickSidebarItem(topicId) {
 
   function highlightLine(n) {
     if (!window.editor || !window.monaco) return;
-    window._errDec = window.editor.deltaDecorations(
-      window._errDec || [], [{
-        range:   new monaco.Range(n, 1, n, 1000),
-        options: {
-          isWholeLine:         true,
-          className:           'error-line-highlight',
-          glyphMarginClassName:'error-line-glyph'
-        }
-      }]
-    );
+    window._errDec = window.editor.deltaDecorations(window._errDec || [], [{
+      range: new monaco.Range(n, 1, n, 1000),
+      options: { isWholeLine: true, className: 'error-line-highlight', glyphMarginClassName: 'error-line-glyph' }
+    }]);
     window.editor.revealLineInCenter(n);
     setTimeout(clearHighlight, 10000);
   }
-
   function clearHighlight() {
     if (window.editor && window._errDec)
       window._errDec = window.editor.deltaDecorations(window._errDec, []);
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // 7. HELPERS
-  // ═══════════════════════════════════════════════════════════════
+  // ── TOOLBAR ───────────────────────────────────────────────────
+  function updateStepBadge(idx, total) {
+    const badge = document.getElementById('st-step-badge');
+    const text  = document.getElementById('st-step-text');
+    if (!badge || !text) return;
+    if (total > 0) { badge.style.display = 'flex'; text.textContent = 'Step ' + (idx + 1) + '/' + total; }
+    else             badge.style.display = 'none';
+  }
+
+  // ── CELEBRATION ───────────────────────────────────────────────
+  function _launchCelebration() {
+    _flashScreenGreen(); _fireConfetti(); _spawnDancingEmojis();
+  }
+  function _flashScreenGreen() {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(39,174,96,0.22);pointer-events:none;z-index:999990;animation:st-flash 700ms ease-out forwards;';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 750);
+  }
+  function _fireConfetti() {
+    const COLORS = ['#27ae60','#3498db','#f39c12','#e74c3c','#9b59b6','#1abc9c','#f1c40f'];
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999995;';
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    const particles = Array.from({length: 100}, () => ({
+      x: Math.random() * canvas.width, y: -10,
+      vx: (Math.random() - 0.5) * 6, vy: Math.random() * 4 + 2,
+      size: 5 + Math.random() * 8, color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      rot: Math.random() * 360, rotV: (Math.random() - 0.5) * 8, alpha: 1, gravity: 0.15,
+    }));
+    let frame;
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+      particles.forEach(p => {
+        if (p.alpha <= 0.01) return;
+        alive = true;
+        p.vy += p.gravity; p.x += p.vx; p.y += p.vy; p.rot += p.rotV;
+        if (p.y > canvas.height * 0.8) p.alpha -= 0.03;
+        ctx.save(); ctx.globalAlpha = Math.max(p.alpha, 0);
+        ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size/2, -p.size/3, p.size, p.size * 0.6);
+        ctx.restore();
+      });
+      if (alive) frame = requestAnimationFrame(animate);
+      else { cancelAnimationFrame(frame); canvas.remove(); }
+    };
+    frame = requestAnimationFrame(animate);
+    setTimeout(() => { cancelAnimationFrame(frame); canvas.remove(); }, 4000);
+  }
+  function _spawnDancingEmojis() {
+    const EMOJIS = ['🎉','⭐','🏆','🎊','✨','🚀','💯','🌟','👏','🔥','💪','😄','🎯','🥳'];
+    for (let i = 0; i < 12; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.textContent   = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+        el.style.cssText = `position:fixed;left:${3+Math.random()*94}%;bottom:-70px;font-size:${26+Math.random()*24}px;z-index:999996;pointer-events:none;user-select:none;animation:st-emoji-rise ${1600+Math.random()*1400}ms ease-out forwards;`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3200);
+      }, i * 100);
+    }
+  }
+
+  // Inject celebration keyframes
+  const celebStyle = document.createElement('style');
+  celebStyle.textContent = `
+    @keyframes st-flash { 0%{opacity:1} 100%{opacity:0} }
+    @keyframes st-emoji-rise { 0%{transform:translateY(0) scale(.5);opacity:1} 100%{transform:translateY(-90vh) scale(.8);opacity:0} }
+  `;
+  document.head.appendChild(celebStyle);
+
+  // ── HELPERS ───────────────────────────────────────────────────
+  const LANG_DISPLAY_JS = {
+    python:'Python', javascript:'JavaScript', html:'HTML', css:'CSS',
+    finance:'Finance', classroom:'Classroom Management', ai:'AI for Teachers', theory:'Theory',
+  };
 
   function escHTML(s) {
-    return s
-      ? String(s).replace(/[&<>"']/g, t =>
-          ({ '&':'&amp;', '<':'&lt;', '>':'&gt;',
-             '"':'&quot;', "'":'&#39;' }[t]))
-      : '';
+    return s ? String(s).replace(/[&<>"']/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[t])) : '';
   }
-
   function escAttr(s) {
-    return s
-      ? s.replace(/\\/g, '\\\\')
-           .replace(/`/g,  '\\`')
-           .replace(/\$/g, '\\$')
-      : '';
+    return s ? s.replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\$/g,'\\$') : '';
   }
-
   function typeIcon(t) {
-    return { error:'⚠️', start:'🚀', next_step:'💡', improvement:'✨' }[t] || '💡';
+    return {error:'⚠️', start:'🚀', next_step:'💡', improvement:'✨'}[t] || '💡';
   }
   function typeTitle(t) {
-    return { error:'Error', start:'Start Here',
-             next_step:'Next Step', improvement:'Suggestion' }[t] || 'AI Tutor';
+    return {error:'Error', start:'Start Here', next_step:'Next Step', improvement:'Suggestion'}[t] || 'AI Tutor';
   }
   function typeColor(t) {
-    return { error:'#e74c3c', start:'#27ae60',
-             next_step:'#3498db', improvement:'#27ae60' }[t] || '#2c3e50';
+    return {error:'#e74c3c', start:'#27ae60', next_step:'#3498db', improvement:'#27ae60'}[t] || '#2c3e50';
   }
   function typeBg(t) {
-    return { error:'#fff0f0', start:'#efffef',
-             next_step:'#eff8ff', improvement:'#efffef' }[t] || '#f8f9fa';
+    return {error:'#fff0f0', start:'#efffef', next_step:'#eff8ff', improvement:'#efffef'}[t] || '#f8f9fa';
   }
+  function _setText(id, txt) { const el = document.getElementById(id); if (el) el.textContent = txt; }
+  function _delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   function jumpTo(topicId) {
     closePanel();
@@ -5725,88 +5550,60 @@ function _tickSidebarItem(topicId) {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // 8. INIT
-  // ═══════════════════════════════════════════════════════════════
+  // ── POLLING ───────────────────────────────────────────────────
+  function startPolling() {
+    let lastSnapshot = '';
+    setInterval(async () => {
+      try {
+        const courseId = (typeof COURSE_ID !== 'undefined' && COURSE_ID && !isNaN(COURSE_ID)) ? COURSE_ID : null;
+        const url = courseId
+          ? `${window.PROGRESS_URL}?course_id=${courseId}`
+          : window.PROGRESS_URL;
+        const res  = await fetch(url);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.status !== 'success') return;
+        const snapshot = JSON.stringify({ completed: (data.completed_topic_ids || []).sort(), current: data.current_topic_id });
+        if (snapshot === lastSnapshot) return;
+        lastSnapshot = snapshot;
+        const merged = new Set([...(data.completed_topic_ids || []).map(Number), ...(window._completedTopicIds || []).map(Number)]);
+        data.completed_topic_ids = Array.from(merged);
+        renderProgress(data);
+        if (typeof window.applyTopicStates === 'function') window.applyTopicStates(data);
+      } catch (e) { /* silent */ }
+    }, 5000);
+  }
 
+  // ── INIT ──────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     buildRegistry();
     patchSetCurrentTopic();
-   
 
-    // Restore active topic from localStorage
     const saved = localStorage.getItem('currentTopicId');
     if (saved) activeTopicId = parseInt(saved, 10);
 
-    // Load real progress from DB → renderProgress → applyTopicStates → sidebar ticks
     fetchProgress();
-
     attachEditorListener();
 
-    // Allow toolbar "Get Hint" button to force a fresh analysis
+    // Inject celebration styles
+    const s = document.createElement('style');
+    s.textContent = `
+      @keyframes st-flash { 0%{opacity:1}100%{opacity:0} }
+      @keyframes st-emoji-rise {
+        0%{transform:translateY(0) scale(.5);opacity:1}
+        100%{transform:translateY(-90vh) scale(.8);opacity:0}
+      }
+    `;
+    document.head.appendChild(s);
+
     window.getManualHint = () => { lastCode = ''; analyzeCode(); };
     startPolling();
   });
 
   // Public API
-  window.SmartTutor = {
-    jumpTo,
-    insertExample,
-    refreshProgress: () => fetchProgress()
-  };
-// ═══════════════════════════════════════════════════════════════
-// 9. LIVE POLLING — updates sidebar every 5s without page reload
-// ═══════════════════════════════════════════════════════════════
-
-function startPolling() {
-  let lastSnapshot = '';
-
-  setInterval(async () => {
-    try {
-      // Build URL safely — only append course_id if it's a real number
-      const courseId = (typeof COURSE_ID !== 'undefined' && COURSE_ID && !isNaN(COURSE_ID))
-        ? COURSE_ID : null;
-
-      const url = courseId
-        ? `{% url 'webprojects:get_student_progress' %}?course_id=${courseId}`
-        : `{% url 'webprojects:get_student_progress' %}`;
-
-      const res  = await fetch(url);
-      if (!res.ok) return;  // silently skip bad responses
-      const data = await res.json();
-      if (data.status !== 'success') return;
-
-      // Snapshot to detect changes
-      const snapshot = JSON.stringify({
-        completed: (data.completed_topic_ids || []).sort(),
-        current:   data.current_topic_id
-      });
-
-      if (snapshot === lastSnapshot) return;  // nothing changed
-      lastSnapshot = snapshot;
-
-      console.log('[Poll] Change detected — updating sidebar');
-
-      // Merge with optimistic cache so ticks are never lost
-      const merged = new Set([
-        ...(data.completed_topic_ids || []).map(Number),
-        ...(window._completedTopicIds || []).map(Number),
-      ]);
-      data.completed_topic_ids = Array.from(merged);
-
-      renderProgress(data);
-
-      if (typeof window.applyTopicStates === 'function') {
-        window.applyTopicStates(data);
-      }
-
-    } catch (e) {
-      // Silently ignore — don't spam console on every poll failure
-    }
-  }, 5000);
-}
+  window.SmartTutor = { jumpTo, insertExample, refreshProgress: () => fetchProgress() };
 
 })();
-
+  
 </script>
 {% endblock %}

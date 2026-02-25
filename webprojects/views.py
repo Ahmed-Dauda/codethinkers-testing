@@ -53,7 +53,7 @@ from django.contrib.auth.decorators import login_required
 # views.py
 from django.http import JsonResponse
 from collections import defaultdict
-from sms.models import Courses, Topics
+from sms.models import CompletedTopics, Courses, Topics
 
 
 import pandas as pd
@@ -1704,7 +1704,7 @@ from .sandbox_runner import run_code
 
 # webprojects/views.py
 
-def award_xp(user, amount):
+def award_xp(user, amount=100):
     from datetime import date, timedelta
     xp, _ = StudentXP.objects.get_or_create(student=user)
     
@@ -1716,11 +1716,11 @@ def award_xp(user, amount):
         xp.streak_days = 1
     xp.last_active = today
     
-    xp.total_xp += amount
+    xp.total_xp += int(amount)
     xp.save()
     
     return {
-        'xp_gained':  amount,
+        'xp_gained':  int(amount),
         'total_xp':   xp.total_xp,
         'streak':     xp.streak_days,
     }
@@ -3261,3 +3261,138 @@ def run_python_code(request):
             'xp': xp_data,
             "message": "Server error"
         }, status=500)
+    
+
+# views.py
+
+from sms.models import CompletedTopics
+from openai import OpenAI
+import os, json
+
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+
+@require_http_methods(["POST"])
+def validate_topic_completion(request):
+    try:
+        data           = json.loads(request.body)
+        topic_id       = data.get('topic_id')
+        student_code   = data.get('code', '')
+        student_output = data.get('output', '')
+
+        topic = Topics.objects.select_related('courses').get(id=topic_id)
+
+        # ── CODE VALIDATION ───────────────────────────────────────
+        if topic.validation_type == 'code':
+            prompt = f"""You are validating a student's code for a programming lesson.
+
+TOPIC: {topic.title}
+LESSON DESCRIPTION: {topic.desc}
+EXPECTED OUTPUT: {topic.expected_output}
+
+STUDENT'S CODE:
+```python
+{student_code}
+```
+STUDENT'S OUTPUT: {student_output}
+
+Be lenient — if functionally correct, mark as correct.
+Respond ONLY with JSON, no extra text:
+{{"is_correct": true, "feedback": "...", "issues": null}}
+or
+{{"is_correct": false, "feedback": "...", "issues": ["issue1"]}}"""
+
+            result = _ask_openai(prompt, max_tokens=300)
+
+            if result['is_correct']:
+                _mark_complete(request.user, topic)
+                xp_data = award_xp(request.user, 100)
+                return JsonResponse({'status': 'success', 'message': result['feedback'], 'is_correct': True, 'xp': xp_data})
+            else:
+                return JsonResponse({'status': 'success', 'message': result['feedback'], 'is_correct': False, 'issues': result.get('issues', []), 'hints': topic.validation_hints})
+
+        # ── QUIZ VALIDATION ───────────────────────────────────────
+        elif topic.validation_type == 'quiz':
+            student_answer = data.get('answer', '')
+
+            prompt = f"""Validate this quiz answer.
+TOPIC: {topic.title}
+QUESTION: {topic.quiz_question}
+CORRECT ANSWER: {topic.quiz_correct_answer}
+STUDENT'S ANSWER: {student_answer}
+
+Be lenient with phrasing.
+Respond ONLY with JSON:
+{{"is_correct": true, "feedback": "..."}}
+or
+{{"is_correct": false, "feedback": "..."}}"""
+
+            result = _ask_openai(prompt, max_tokens=200)
+
+            if result['is_correct']:
+                _mark_complete(request.user, topic)
+                xp_data = award_xp(request.user, 100)
+                return JsonResponse({'status': 'success', 'message': result['feedback'], 'is_correct': True, 'xp': xp_data})
+            else:
+                return JsonResponse({'status': 'success', 'message': result['feedback'], 'is_correct': False, 'hints': topic.validation_hints})
+
+        # ── MANUAL COMPLETION ─────────────────────────────────────
+        else:
+            _mark_complete(request.user, topic)
+            xp_data = award_xp(request.user, 100)
+            return JsonResponse({'status': 'success', 'message': 'Topic completed!', 'is_correct': True, 'xp': xp_data})
+
+    except Topics.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Topic not found'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'AI returned invalid response, please try again'}, status=500)
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# ─────────────────────────────────────────────────────────────
+def _ask_openai(prompt, max_tokens=300):
+    """Call OpenAI and parse the JSON response."""
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.2,
+        max_tokens=max_tokens,
+    )
+    text = response.choices[0].message.content.strip()
+    if '```json' in text:
+        text = text.split('```json')[1].split('```')[0].strip()
+    elif '```' in text:
+        text = text.split('```')[1].split('```')[0].strip()
+    return json.loads(text)
+
+
+def _mark_complete(user, topic):
+    """Mark topic complete — uses Profile FK as required by Topics.completed_by through model."""
+    try:
+        from users.models import Profile
+        profile = Profile.objects.get(user=user)
+
+        if not CompletedTopics.objects.filter(user=profile, topic=topic).exists():
+            CompletedTopics.objects.create(user=profile, topic=topic)
+            print(f'[validate] ✅ Topic {topic.id} marked complete for {user}')
+        else:
+            print(f'[validate] Already completed topic {topic.id}')
+
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        print(f'[validate] ❌ _mark_complete failed: {e}')        
+
+
+def topic_info(request, topic_id):
+    """Returns topic validation type and quiz question so JS knows what to show."""
+    try:
+        topic = Topics.objects.get(id=topic_id)
+        return JsonResponse({
+            'status':          'success',
+            'validation_type': topic.validation_type or 'code',
+            'quiz_question':   topic.quiz_question   or '',
+        })
+    except Topics.DoesNotExist:
+        return JsonResponse({'status': 'error'}, status=404)        

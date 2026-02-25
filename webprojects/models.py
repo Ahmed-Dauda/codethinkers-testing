@@ -154,11 +154,7 @@ class File(models.Model):
             return self.file.url
         return ""
 
-# models.py
-# In get_or_create calls, always use the SAME course value
-# Either always pass course=None, or always pass the actual course object
-# The simplest fix — add a property to your model:
-# webprojects/models.py
+
 class StudentXP(models.Model):
     student     = models.OneToOneField(User, on_delete=models.CASCADE)
     total_xp    = models.IntegerField(default=0)

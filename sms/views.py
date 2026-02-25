@@ -1430,15 +1430,22 @@ class UserProfileForm(LoginRequiredMixin, CreateView):
         return Profile.objects.all()
 
 class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
-    models = Profile
-    fields = ['first_name', 'last_name', 'gender', 'phone_number', 'countries', 'pro_img', 'bio']
+    model = NewUser
+    fields = [
+        'first_name',
+        'last_name',
+        'username',
+        'phone_number',
+        'countries',
+    ]
     template_name = 'sms/userprofileupdateform.html'
-    success_message = 'TestModel successfully updated!'
-    success_url= reverse_lazy('sms:myprofile')
-    count_hit = True
+    success_url = reverse_lazy('sms:myprofile')
 
     def get_queryset(self):
-        return Profile.objects.all()
+        # Very important: user can only edit their own profile
+        return NewUser.objects.filter(pk=self.request.user.pk)
+    
+    
 
 from django.db.models import OuterRef, Subquery
 from django.shortcuts import render, get_object_or_404
