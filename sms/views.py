@@ -616,11 +616,6 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         context['qcourse'] = course
 
         user = self.request.user.email
-        # content_type
-        # Query the Payment model to get all payments related to the user and course
-        # user_newuser = get_object_or_404(NewUser, email=self.request.user)
-        # if user_newuser.school:
-        #     context['school_name'] = user_newuser.school.school_name
            
         if self.request.user.is_authenticated:
             user_newuser = get_object_or_404(NewUser, email=self.request.user.email)
@@ -1429,21 +1424,36 @@ class UserProfileForm(LoginRequiredMixin, CreateView):
     def get_queryset(self):
         return Profile.objects.all()
 
-class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
-    model = NewUser
+
+class UserProfileUpdateView(LoginRequiredMixin, UpdateView):
+    model = Profile
+    template_name = 'sms/userprofileupdateform.html'
     fields = [
         'first_name',
         'last_name',
         'username',
         'phone_number',
         'countries',
+        'gender',
+        'bio',
+        'pro_img',
     ]
-    template_name = 'sms/userprofileupdateform.html'
     success_url = reverse_lazy('sms:myprofile')
 
-    def get_queryset(self):
-        # Very important: user can only edit their own profile
-        return NewUser.objects.filter(pk=self.request.user.pk)
+    def get_object(self, queryset=None):
+        # Automatically create profile if missing
+        profile, created = Profile.objects.get_or_create(user=self.request.user)
+        return profile
+
+    def form_valid(self, form):
+        # Also update the related NewUser fields
+        user = self.request.user
+        user.first_name = form.cleaned_data.get('first_name', user.first_name)
+        user.last_name = form.cleaned_data.get('last_name', user.last_name)
+        user.username = form.cleaned_data.get('username', user.username)
+        user.save()
+        return super().form_valid(form)
+    
     
     
 

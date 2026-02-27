@@ -664,6 +664,9 @@
   </svg>
   <span id="themeToggleText">Light Mode</span>
 </button>
+
+<span>⚡ <strong id="xpTotal">0</strong> XP</span>
+  <span>🔥 <strong id="xpStreak">0</strong> day streak</span>
     
 </div>
 
@@ -997,9 +1000,22 @@ document.addEventListener('DOMContentLoaded', function () {
     '.topic-item[data-topic-id]'
   ).length;
 
-  // Seed data baked in by Django at render time
+  // ── Fresh data from DB (baked in by Django at render time) ────
   const seedCompleted = {{ completed_topic_ids|safe }};
   const seedCurrent   = {{ current_topic_id|default:"null" }};
+
+  // ── KEY FIX: DB is the source of truth — always use DB data,
+  //    never merge with localStorage. If a record was deleted from
+  //    the DB, we must NOT restore it from localStorage cache.
+  window._completedTopicIds = seedCompleted.map(Number);
+  window._currentTopicId    = seedCurrent;
+
+  // Clear any stale localStorage that might override DB data
+  if (seedCurrent) {
+    localStorage.setItem('currentTopicId', seedCurrent);
+  } else {
+    localStorage.removeItem('currentTopicId');
+  }
 
   applyTopicStates({
     current_topic_id:    seedCurrent,
@@ -1007,7 +1023,6 @@ document.addEventListener('DOMContentLoaded', function () {
     total_count:         window._totalTopicCount,
   });
 
-  // Keep localStorage in sync
   if (seedCurrent) {
     currentlyStudyingTopicId = seedCurrent;
     localStorage.setItem('currentTopicId', seedCurrent);
@@ -1017,9 +1032,15 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 {% comment %} Seed JS with server data so ticks show instantly on load {% endcomment %}
 <script>
-  window._completedTopicIds = {{ completed_topic_ids|safe }};
-  window._currentTopicId    = {{ current_topic_id|default:"null" }};
-  window._totalTopicCount   = {{ topics|length }};
+// DB is always source of truth — never restore completed topics from localStorage
+window._completedTopicIds = {{ completed_topic_ids|safe }};
+window._currentTopicId    = {{ current_topic_id|default:"null" }};
+window._totalTopicCount   = {{ topics|length }};
+
+// Wipe any stale localStorage completed cache
+localStorage.removeItem('completedTopicIds');
+localStorage.removeItem('_completedTopicIds');
+
 </script>
 
 <script>
@@ -1104,17 +1125,19 @@ function setCurrentTopic(topicId, buttonElement) {
   });
 }
 
-function _restoreFromLocalStorage() {
-  const saved = localStorage.getItem('currentTopicId');
-  if (saved) {
+// Always use DB seed data for completed topics, only use localStorage for current topic
+const saved = localStorage.getItem('currentTopicId');
+const currentId = window._currentTopicId || (saved ? parseInt(saved, 10) : null);
+if (currentId) {
+  currentlyStudyingTopicId = currentId;
+  setTimeout(() => {
     applyTopicStates({
-      current_topic_id:    parseInt(saved, 10),
-      completed_topic_ids: window._completedTopicIds || [],
-      total_count:         window._totalTopicCount   || 0
+      current_topic_id:    currentId,
+      completed_topic_ids: window._completedTopicIds || [],  // ← DB only, no localStorage merge
+      total_count:         window._totalTopicCount
     });
-  }
+  }, 100);
 }
-
 // ── Page load restore ──────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -2202,8 +2225,7 @@ document.getElementById('fileChatPrompt').addEventListener('keydown', e => {
   gap: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 ">
-  <span>⚡ <strong id="xpTotal">0</strong> XP</span>
-  <span>🔥 <strong id="xpStreak">0</strong> day streak</span>
+  
 </div>
 
 <!-- +XP float popup -->
@@ -3631,18 +3653,18 @@ function getManualHint() {
 
 console.log('✅ Smart AI Tutor initialized');  
     // Start autosave interval (every 5 seconds)
-    // autoSaveInterval = setInterval(performAutoSave, 10000); // 10 seconds instead of 5
+    autoSaveInterval = setInterval(performAutoSave, 1500); // 10 seconds instead of 5
     console.log("✅ Auto-save interval started");
     
     // Debounced save on typing
-    // let typingTimer;
-    // editor.onDidChangeModelContent(() => {
-    //   clearTimeout(typingTimer);
-    //   typingTimer = setTimeout(() => {
-    //     console.log("User stopped typing, triggering save...");
-    //     performAutoSave();
-    //   }, 5000);
-    // });
+    let typingTimer;
+    editor.onDidChangeModelContent(() => {
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => {
+        console.log("User stopped typing, triggering save...");
+        performAutoSave();
+      }, 5000);
+    });
     
     // Save before leaving page
     window.addEventListener('beforeunload', (e) => {
@@ -3654,6 +3676,7 @@ console.log('✅ Smart AI Tutor initialized');
     
   }, 500);
 
+  
   // === HTML COMPLETIONS ===
   monaco.languages.registerCompletionItemProvider('html', {
     triggerCharacters: ['<', '"', "'", ' ', ':', '.', '{'],
@@ -3857,6 +3880,10 @@ function runCode() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// FIND this in your template and REPLACE the entire executeCode function
+// ═══════════════════════════════════════════════════════════════
+
 function executeCode(code, inputs) {
   const output = document.getElementById("outputText");
   const plotPreview = document.getElementById("plotPreview");
@@ -3884,10 +3911,11 @@ function executeCode(code, inputs) {
   .then(data => {
     if (data.status === "error") {
       output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.error || data.message)}</span>`;
-      return;
+      return;  // ← STOP here — don't validate errored code
     }
 
-    const studentOutput = data.output || "[No output]";
+    // ── Show output in panel ──────────────────────────────────
+    const studentOutput = (data.output || "").trim();
     output.textContent = studentOutput;
 
     // Display plots
@@ -3901,14 +3929,23 @@ function executeCode(code, inputs) {
         plotPreview.appendChild(img);
       });
     }
-    
-    // ✅ AI VALIDATION
+
+    // ── Only validate if there is actual output ───────────────
+    if (!studentOutput || studentOutput === "[No output]") {
+      console.log('[executeCode] No output — skipping validation');
+      return;
+    }
+
+    console.log('[executeCode] Output:', JSON.stringify(studentOutput));
+
+    // ── AI VALIDATION — pass the RAW output exactly as-is ────
     validateWithAI(code, studentOutput);
   })
   .catch(err => {
     output.innerHTML = `<span style="color:red;">❌ Request Failed: ${escapeHTML(err.message)}</span>`;
   });
 }
+
 
 async function submitQuizAnswer(topicId) {
   const answerInput = document.querySelector('#quiz-answer-input');
@@ -3954,7 +3991,7 @@ async function submitQuizAnswer(topicId) {
       showAIFeedback(data.message, true);
     } else {
       showToast('💡 ' + data.message);
-      showAIFeedback(data.message, false);
+      
     }
   } catch (err) {
     showToast('❌ Error submitting answer');
@@ -4031,14 +4068,28 @@ function showQuizModal(question, topicId) {
 //   async function validateWithAI(code, studentOutput) {
 // and REPLACE the entire function with this:
 
+
 async function validateWithAI(code, studentOutput) {
   const topicId = window._currentTopicId || localStorage.getItem('currentTopicId');
+
   if (!topicId) {
     console.log('[validateWithAI] No topic selected — skipping');
     return;
   }
 
-  console.log('[validateWithAI] Validating topic', topicId);
+  const output = (studentOutput || '').trim();
+  if (!output || output === '[No output]') {
+    console.log('[validateWithAI] No output — skipping');
+    return;
+  }
+
+  const done = new Set((window._completedTopicIds || []).map(Number));
+  if (done.has(Number(topicId))) {
+    console.log('[validateWithAI] Topic already completed — skipping');
+    return;
+  }
+
+  console.log('[validateWithAI] Validating topic', topicId, 'output:', output.slice(0, 60));
 
   try {
     const res = await fetch("{% url 'webprojects:validate_topic_completion' %}", {
@@ -4050,7 +4101,7 @@ async function validateWithAI(code, studentOutput) {
       body: JSON.stringify({
         topic_id: Number(topicId),
         code:     code,
-        output:   studentOutput,
+        output:   output,
       })
     });
 
@@ -4058,75 +4109,303 @@ async function validateWithAI(code, studentOutput) {
     console.log('[validateWithAI] Result:', data);
 
     if (data.is_correct) {
-      // ── 1. Show green feedback bubble ──────────────────────────
-      showAIFeedback(data.message, true);
+  showAIFeedback(data.message, true);
+  if (data.xp) handleXPResponse(data.xp);
+  
+  const id = Number(topicId);
+  done.add(id);
+  window._completedTopicIds = Array.from(done);
 
-      // ── 2. XP ──────────────────────────────────────────────────
-      if (data.xp) handleXPResponse(data.xp);
+  const item  = document.getElementById('topic-item-'  + id);
+  const btn   = document.getElementById('topic-btn-'   + id);
+  const icon  = document.getElementById('topic-icon-'  + id);
+  const badge = document.getElementById('topic-badge-' + id);
 
-      // ── 3. Tick sidebar + progress bar immediately ─────────────
-      //    _tickSidebarItem is private to the IIFE, but we can reach
-      //    it by adding the topic to _completedTopicIds and calling
-      //    applyTopicStates directly.
-      const id = Number(topicId);
+  if (item)  { item.style.border = '2px solid #27ae60'; item.style.backgroundColor = '#f0fff4'; }
+  if (btn)   { btn.textContent = '✅ Completed'; btn.style.background = '#27ae60'; btn.style.fontWeight = 'bold'; }
+  if (icon)  { icon.textContent = '✅'; }
+  if (badge) {
+    badge.style.display    = 'inline-block';
+    badge.textContent      = '✅ Done';
+    badge.style.background = '#d4edda';
+    badge.style.color      = '#155724';
+    badge.style.border     = '1px solid #c3e6cb';
+  }
 
-      // Add to global completed cache
-      const done = new Set((window._completedTopicIds || []).map(Number));
-      done.add(id);
-      window._completedTopicIds = Array.from(done);
+  // ✅ Use backend's completion percentage instead of calculating locally
+  const pct = data.completion_percentage || 0;
+  
+  const total    = window._totalTopicCount || 0;
+  const doneCount = done.size;
 
-      // Paint the sidebar row green right now
-      const item  = document.getElementById('topic-item-'  + id);
-      const btn   = document.getElementById('topic-btn-'   + id);
-      const icon  = document.getElementById('topic-icon-'  + id);
-      const badge = document.getElementById('topic-badge-' + id);
+  const fill    = document.getElementById('modules-pb-fill');
+  const label   = document.getElementById('modules-done-label');
+  const pctEl   = document.getElementById('modules-pct-label');
+  const stFill  = document.getElementById('st-pb-fill');
+  const stPct   = document.getElementById('st-pct-label');
+  const stCount = document.getElementById('st-count-label');
 
-      if (item)  { item.style.border = '2px solid #27ae60'; item.style.backgroundColor = '#f0fff4'; }
-      if (btn)   { btn.textContent = '✅ Completed'; btn.style.background = '#27ae60'; btn.style.fontWeight = 'bold'; }
-      if (icon)  { icon.textContent = '✅'; }
-      if (badge) { badge.style.display = 'inline-block'; badge.textContent = '✅ Done';
-                   badge.style.background = '#d4edda'; badge.style.color = '#155724';
-                   badge.style.border = '1px solid #c3e6cb'; }
+  if (fill)    fill.style.width    = pct + '%';
+  if (label)   label.textContent   = doneCount + ' / ' + total + ' topics completed';
+  if (pctEl)   pctEl.textContent   = pct + '%';
+  if (stFill)  stFill.style.width  = pct + '%';
+  if (stPct)   stPct.textContent   = pct + '% complete';
+  if (stCount) stCount.textContent = doneCount + ' / ' + total + ' topics';
 
-      // ── 4. Update overall progress bar ────────────────────────
-      const total = window._totalTopicCount || 0;
-      const doneCount = done.size;
-      const pct = total ? Math.round((doneCount / total) * 100) : 0;
+  // ✅ Check if course is 100% complete using backend data
+  console.log('[validateWithAI] Completion:', pct + '%');
+  if (pct === 100 && data.course_id) {
+    console.log('[validateWithAI] 🎉 Course 100% complete! Showing recommendation...');
+    // Store course ID for recommendation
+    window._currentCourseId = data.course_id;
+    localStorage.setItem('currentCourseId', data.course_id);
+    
+    // Wait for confetti to finish, then show recommendation
+    setTimeout(() => {
+      fetchAndShowNextCourseRecommendation();
+    }, 2000);
+  }
 
-      const fill  = document.getElementById('modules-pb-fill');
-      const label = document.getElementById('modules-done-label');
-      const pctEl = document.getElementById('modules-pct-label');
-      const stFill  = document.getElementById('st-pb-fill');
-      const stPct   = document.getElementById('st-pct-label');
-      const stCount = document.getElementById('st-count-label');
+  if (typeof launchConfetti === 'function') launchConfetti();
+  if (window.SmartTutor) window.SmartTutor.refreshProgress();
 
-      if (fill)    fill.style.width      = pct + '%';
-      if (label)   label.textContent     = doneCount + ' / ' + total + ' topics completed';
-      if (pctEl)   pctEl.textContent     = pct + '%';
-      if (stFill)  stFill.style.width    = pct + '%';
-      if (stPct)   stPct.textContent     = pct + '% complete';
-      if (stCount) stCount.textContent   = doneCount + ' / ' + total + ' topics';
-
-      // ── 5. Confetti 🎊 ─────────────────────────────────────────
-      if (typeof launchConfetti === 'function') launchConfetti();
-
-      // ── 6. Refresh SmartTutor progress (dots + next topic) ─────
-      if (window.SmartTutor) window.SmartTutor.refreshProgress();
-
-    } else {
-      // Not correct yet — show orange hint bubble
-      showAIFeedback(data.message, false);
-    }
+} else {
+  // Show comparison modal when wrong
+  if (data.lesson_code) {
+    showCodeComparison(data.lesson_code, code, data.message, data.hint);
+  }
+} 
 
   } catch (err) {
     console.error('[validateWithAI] Error:', err);
   }
 }
 
+// ========================================
+// ✅ Course Recommendation System
+// ========================================
+
+async function fetchAndShowNextCourseRecommendation() {
+  const currentCourseId = window._currentCourseId || localStorage.getItem('currentCourseId');
+  
+  if (!currentCourseId) {
+    console.log('[recommendation] No current course ID found');
+    return;
+  }
+  
+  try {
+    const res = await fetch(`/webprojects/recommend-next-course/?course_id=${currentCourseId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    const data = await res.json();
+    console.log('[recommendation] Response:', data);
+    
+    if (data.status === 'success' && data.recommended_course) {
+      showCourseRecommendationModal(data.recommended_course, data.current_course);
+    } else {
+      showCourseCompletionCelebration(data.current_course);
+    }
+    
+  } catch (err) {
+    console.error('[recommendation] Error:', err);
+  }
+}
+
+function showCourseRecommendationModal(nextCourse, currentCourse) {
+  const existing = document.getElementById('course-recommendation-overlay');
+  if (existing) existing.remove();
+  
+  const overlay = document.createElement('div');
+  overlay.id = 'course-recommendation-overlay';
+  overlay.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); z-index: 10000;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    animation: fadeIn 0.3s ease;
+  `;
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px; padding: 40px; max-width: 600px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4); color: white; text-align: center;
+    animation: slideInUp 0.4s ease;
+  `;
+  
+  modal.innerHTML = `
+    <div style="font-size: 60px; margin-bottom: 20px;">🎉</div>
+    <h2 style="font-size: 32px; font-weight: bold; margin: 0 0 16px 0; color: white;">
+      Congratulations!
+    </h2>
+    <p style="font-size: 18px; margin: 0 0 30px 0; opacity: 0.95;">
+      You've completed <strong>${escapeHTML(currentCourse.title)}</strong>!
+    </p>
+    <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); 
+                border-radius: 12px; padding: 24px; margin: 30px 0;">
+      <div style="font-size: 16px; margin-bottom: 12px; opacity: 0.9;">
+        🚀 Ready for the next challenge?
+      </div>
+      <h3 style="font-size: 24px; font-weight: bold; margin: 12px 0; color: #fff;">
+        ${escapeHTML(nextCourse.title)}
+      </h3>
+      <p style="font-size: 14px; margin: 12px 0; opacity: 0.85; line-height: 1.6;">
+        ${escapeHTML(nextCourse.description || 'Continue your learning journey with this course!')}
+      </p>
+      <div style="font-size: 14px; margin-top: 16px; opacity: 0.8;">
+        📚 ${nextCourse.topic_count || 0} topics
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px; justify-content: center; margin-top: 30px;">
+      <button onclick="startRecommendedCourse(${nextCourse.id})" 
+              style="background: white; color: #667eea; border: none; 
+                     padding: 14px 32px; border-radius: 8px; cursor: pointer;
+                     font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+        Start Next Course →
+      </button>
+      <button onclick="document.getElementById('course-recommendation-overlay').remove()" 
+              style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white; 
+                     padding: 14px 32px; border-radius: 8px; cursor: pointer;
+                     font-size: 16px; font-weight: bold;">
+        Maybe Later
+      </button>
+    </div>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+function showCourseCompletionCelebration(currentCourse) {
+  const existing = document.getElementById('course-recommendation-overlay');
+  if (existing) existing.remove();
+  
+  const overlay = document.createElement('div');
+  overlay.id = 'course-recommendation-overlay';
+  overlay.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); z-index: 10000;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  `;
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 16px; padding: 40px; max-width: 500px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4); color: white; text-align: center;
+  `;
+  
+  modal.innerHTML = `
+    <div style="font-size: 80px; margin-bottom: 20px;">🏆</div>
+    <h2 style="font-size: 32px; font-weight: bold; margin: 0 0 16px 0;">
+      Course Completed!
+    </h2>
+    <p style="font-size: 18px; margin: 0 0 30px 0; opacity: 0.95;">
+      Amazing work completing <strong>${escapeHTML(currentCourse.title)}</strong>!
+    </p>
+    <button onclick="window.location.href='/courses/'" 
+            style="background: white; color: #f5576c; border: none; 
+                   padding: 14px 32px; border-radius: 8px; cursor: pointer;
+                   font-size: 16px; font-weight: bold;">
+      Explore More Courses
+    </button>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+function startRecommendedCourse(courseId) {
+  window.location.href = `/course/${courseId}/`;
+}
+
+function showCodeComparison(lessonCode, studentCode, feedback) {
+    // Remove any existing comparison
+    const existing = document.getElementById('code-comparison');
+    if (existing) existing.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'code-comparison-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9998;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    `;
+    
+    const comparisonDiv = document.createElement('div');
+    comparisonDiv.id = 'code-comparison';
+    comparisonDiv.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 900px;
+        max-height: 80vh;
+        overflow: auto;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    `;
+    
+    comparisonDiv.innerHTML = `
+        <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 20px;">
+            <div style="font-weight: bold; font-size: 16px; margin-bottom: 16px; color: #856404; white-space: pre-wrap;">
+                ${escapeHTML(feedback)}
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
+                <!-- Expected Code -->
+                <div style="background: #f0fff4; border: 2px solid #28a745; border-radius: 8px; padding: 12px;">
+                    <div style="font-weight: bold; color: #28a745; margin-bottom: 8px; font-size: 14px;">
+                        ✅ Expected Code:
+                    </div>
+                    <pre style="margin: 0; white-space: pre-wrap; font-family: 'Courier New', monospace; 
+                               font-size: 13px; color: #212529; line-height: 1.5;">${escapeHTML(lessonCode)}</pre>
+                </div>
+                
+                <!-- Your Code -->
+                <div style="background: #fff5f5; border: 2px solid #dc3545; border-radius: 8px; padding: 12px;">
+                    <div style="font-weight: bold; color: #dc3545; margin-bottom: 8px; font-size: 14px;">
+                        ❌ Your Code:
+                    </div>
+                    <pre style="margin: 0; white-space: pre-wrap; font-family: 'Courier New', monospace; 
+                               font-size: 13px; color: #212529; line-height: 1.5;">${escapeHTML(studentCode)}</pre>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="document.getElementById('code-comparison-overlay').remove()" 
+                        style="background: #6c757d; color: white; border: none; 
+                               padding: 10px 24px; border-radius: 6px; cursor: pointer;
+                               font-size: 14px; font-weight: bold;">
+                    Got it, close this
+                </button>
+            </div>
+        </div>
+    `;
+    
+    overlay.appendChild(comparisonDiv);
+    document.body.appendChild(overlay);
+    
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            overlay.remove();
+        }
+    });
+}
+
 
 // ── 2. Show feedback bubble above the output panel ─────────────
 function showAIFeedback(message, isCorrect) {
-  // Remove any existing feedback
   const old = document.getElementById('ai-feedback-bubble');
   if (old) old.remove();
 
@@ -4147,18 +4426,26 @@ function showAIFeedback(message, isCorrect) {
     animation: slideInUp 0.3s ease;
     background: ${isCorrect ? '#27ae60' : '#e67e22'};
     border-left: 5px solid ${isCorrect ? '#1e8449' : '#d35400'};
+    white-space: pre-wrap;
   `;
-  bubble.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
-      <span>${isCorrect ? '✅' : '💡'} ${escapeHTML(message)}</span>
-      <button onclick="this.parentElement.parentElement.remove()"
-        style="background:none;border:none;color:white;font-size:18px;cursor:pointer;
-               line-height:1;padding:0;flex-shrink:0;">×</button>
-    </div>
-  `;
+  
+  const content = document.createElement('div');
+  content.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start;gap:10px;';
+  
+  const messageSpan = document.createElement('span');
+  messageSpan.textContent = `${isCorrect ? '✅' : '💡'} ${message}`;
+  
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '×';
+  closeBtn.style.cssText = 'background:none;border:none;color:white;font-size:18px;cursor:pointer;line-height:1;padding:0;flex-shrink:0;';
+  closeBtn.onclick = () => bubble.remove();
+  
+  content.appendChild(messageSpan);
+  content.appendChild(closeBtn);
+  bubble.appendChild(content);
+  
   document.body.appendChild(bubble);
 
-  // Auto-remove after 8 seconds
   setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 8000);
 }
 
@@ -5566,7 +5853,7 @@ function _tickSidebarItem(topicId) {
       }
 
       // ── COMPLETION — only show once per unique topic ───────────
-      if (data.type === 'topic_complete' && completionShownForId !== activeTopicId) {
+    if (data.type === 'topic_complete') {
     completionShownForId = activeTopicId;
 
     console.log('[SmartTutor] 🎯 topic_complete received — ticking now');
@@ -5581,7 +5868,19 @@ function _tickSidebarItem(topicId) {
     // 3. Save to DB in background
     markTopicComplete(topicToTick);
 
-} else if (data.type !== 'topic_complete') {
+ } else // ── COMPLETION from hint system — NEVER mark complete here ────
+if (data.type === 'topic_complete') {
+    // The hint system only sees CODE, not actual output.
+    // Only validateWithAI (which checks real output) can mark complete.
+    // Just show encouragement panel, nothing else.
+    console.log('[SmartTutor] topic_complete hint received — encouragement only, NOT marking complete');
+    if (completionShownForId !== activeTopicId) {
+        completionShownForId = activeTopicId;
+        showCompletionPanel(cur, next, data.hint);
+        // ❌ NO _tickSidebarItem
+        // ❌ NO markTopicComplete
+    }
+} else {
     showStepPanel(data);
 }
 

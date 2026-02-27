@@ -789,6 +789,7 @@ from django.views.decorators.http import require_http_methods
 # NEW: Progress API endpoint — called by the editor on load + after
 #      each topic completion to refresh the sidebar progress bar.
 # ─────────────────────────────────────────────────────────────────
+
 @login_required
 def get_student_progress(request):
     try:
@@ -3268,8 +3269,34 @@ def run_python_code(request):
 from sms.models import CompletedTopics
 from openai import OpenAI
 import os, json
+# Add these imports at the top of your views.py if not already present:
+import re
+import os
+import sys
+import subprocess
+import tempfile
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# ✅ Clean up lesson code for display (remove ALL comments)
+def _clean_lesson_code_for_display(desc):
+    """Remove both standalone comment lines AND inline comments."""
+    lines = desc.splitlines()
+    cleaned_lines = []
+    
+    for line in lines:
+        # Skip empty lines and full-line comments
+        stripped = line.strip()
+        if not stripped or stripped.startswith('#'):
+            continue
+        
+        # Remove inline comments (text after #)
+        if '#' in line:
+            code_part = line.split('#')[0].rstrip()
+            if code_part:  # Only add if there's actual code
+                cleaned_lines.append(code_part)
+        else:
+            cleaned_lines.append(line.rstrip())
+    
+    return '\n'.join(cleaned_lines)
 
 
 @require_http_methods(["POST"])
@@ -3277,116 +3304,545 @@ def validate_topic_completion(request):
     try:
         data           = json.loads(request.body)
         topic_id       = data.get('topic_id')
-        student_code   = data.get('code', '')
-        student_output = data.get('output', '')
+        student_code   = data.get('code', '').strip()
+        student_output = data.get('output', '').strip()
 
         topic = Topics.objects.select_related('courses').get(id=topic_id)
 
-        # ── CODE VALIDATION ───────────────────────────────────────
+        print(f'[validate] topic={topic.title}')
+        print(f'[validate] topic.desc={repr(topic.desc)}')
+        print(f'[validate] student_code={repr(student_code[:120])}')
+        print(f'[validate] student_output={repr(student_output)}')
+
+        # ✅ Track attempt count for progressive hints
+        attempt_key = f'topic_{topic_id}_attempts'
+        attempts = request.session.get(attempt_key, 0)
+
         if topic.validation_type == 'code':
-            prompt = f"""You are validating a student's code for a programming lesson.
 
-TOPIC: {topic.title}
-LESSON DESCRIPTION: {topic.desc}
-EXPECTED OUTPUT: {topic.expected_output}
+            if not student_output:
+                return JsonResponse({
+                    'status': 'success', 'is_correct': False,
+                    'message': '⚠️ Run your code first — no output detected.',
+                })
 
-STUDENT'S CODE:
-```python
-{student_code}
-```
-STUDENT'S OUTPUT: {student_output}
+            desc         = (topic.desc or '').replace('\r\n', '\n').replace('\r', '\n').strip()
+            student_code = student_code.replace('\r\n', '\n').replace('\r', '\n').strip()
+            has_print    = bool(re.search(r'print\s*\(', desc))
 
-Be lenient — if functionally correct, mark as correct.
-Respond ONLY with JSON, no extra text:
-{{"is_correct": true, "feedback": "...", "issues": null}}
-or
-{{"is_correct": false, "feedback": "...", "issues": ["issue1"]}}"""
+            print(f'[validate] desc normalized={repr(desc)}')
+            print(f'[validate] has_print={has_print}')
 
-            result = _ask_openai(prompt, max_tokens=300)
+            if has_print:
+                print(f'[validate] ▶️ trying to extract expected output with AI')
+                expected_output = _extract_expected_output_with_ai(desc)
+                print(f'[validate] expected_output from AI={repr(expected_output)}')
+                
+                # Fallback to running code if AI fails
+                if expected_output is None:
+                    print(f'[validate] ⚠️ falling back to GPT compare')
+                    result = _gpt_compare(desc, student_output)
+                else:
+                    # ✅ Step 1: Check if output matches
+                    output_matches = (student_output.strip() == expected_output.strip())
+                    print(f'[validate] Comparing: student="{student_output.strip()}" vs expected="{expected_output.strip()}"')
+                    print(f'[validate] output_matches={output_matches}')
+                    
+                    if not output_matches:
+                        # Output is wrong - fail immediately WITH progressive hints
+                        attempts += 1
+                        request.session[attempt_key] = attempts
+                        print(f'[validate] Attempt #{attempts} for topic {topic_id}')
+                        
+                        hint = _get_progressive_hint(attempts, topic)
+                        
+                        # ✅ Clean up lesson code for display
+                        lesson_display = _clean_lesson_code_for_display(desc)
+                        
+                        return JsonResponse({
+                            'status': 'success',
+                            'is_correct': False,
+                            'message': f'❌ Expected output: "{expected_output}" but you got: "{student_output}". Try again.',
+                            'hint': hint,
+                            'attempts': attempts,
+                            'show_solution': attempts >= 4,
+                            'lesson_code': lesson_display,  # ✅ ADDED
+                        })
+                    else:
+                        # ✅ Step 2: Output is correct, now validate code structure
+                        print(f'[validate] Output correct, now validating code structure with AI')
+                        code_validation = _validate_code_structure_with_ai(desc, student_code, attempts)
+                        print(f'[validate] code_validation={code_validation}')
+                        
+                        result = code_validation
+
+            else:
+                assignments = re.findall(r'^\s*([a-zA-Z_]\w*)\s*=\s*([^=\n#][^\n#]*)', desc, re.MULTILINE)
+                required    = [(var.strip(), val.strip()) for var, val in assignments]
+                print(f'[validate] CASE B required={required}')
+
+                missing = []
+                for var, val in required:
+                    pattern = rf'\b{re.escape(var)}\s*=\s*{re.escape(val)}'
+                    if not re.search(pattern, student_code):
+                        missing.append(f'{var} = {val}')
+
+                if missing:
+                    # ✅ Increment attempts on failure
+                    attempts += 1
+                    request.session[attempt_key] = attempts
+                    
+                    # ✅ Progressive hints
+                    hint = _get_progressive_hint(attempts, topic, missing)
+                    
+                    # ✅ Clean up lesson code for display
+                    lesson_display = _clean_lesson_code_for_display(desc)
+                    
+                    return JsonResponse({
+                        'status': 'success', 'is_correct': False,
+                        'message': f'❌ Missing required assignments: {", ".join(missing)}',
+                        'hint': hint,
+                        'attempts': attempts,
+                        'lesson_code': lesson_display,  # ✅ ADDED
+                    })
+
+                result = {'is_correct': True, 'feedback': '✅ Well done! You completed all required assignments.'}
+
+            print(f'[validate] result={result}')
 
             if result['is_correct']:
+                # ✅ Reset attempts on success
+                request.session[attempt_key] = 0
+                
                 _mark_complete(request.user, topic)
                 xp_data = award_xp(request.user, 100)
-                return JsonResponse({'status': 'success', 'message': result['feedback'], 'is_correct': True, 'xp': xp_data})
-            else:
-                return JsonResponse({'status': 'success', 'message': result['feedback'], 'is_correct': False, 'issues': result.get('issues', []), 'hints': topic.validation_hints})
+                
+                # ✅ NEW: Calculate completion percentage
+                from users.models import Profile
+                profile = Profile.objects.get(user=request.user)
+                
+                # Get total topics in this course
+                total_topics = Topics.objects.filter(courses=topic.courses).count()
+                
+                # Get completed topics in this course
+                completed_topics = CompletedTopics.objects.filter(
+                    user=profile,
+                    topic__courses=topic.courses
+                ).count()
+                
+                completion_pct = round((completed_topics / total_topics * 100)) if total_topics > 0 else 0
+                
+                return JsonResponse({
+                    'status': 'success', 
+                    'is_correct': True,
+                    'message': result['feedback'], 
+                    'xp': xp_data,
+                    'completion_percentage': completion_pct,  # ✅ ADD THIS
+                    'course_id': topic.courses.id if topic.courses else None,  # ✅ ADD THIS
+                })
 
-        # ── QUIZ VALIDATION ───────────────────────────────────────
         elif topic.validation_type == 'quiz':
-            student_answer = data.get('answer', '')
+            student_answer = data.get('answer', '').strip()
 
-            prompt = f"""Validate this quiz answer.
+            if not student_answer:
+                return JsonResponse({
+                    'status': 'success', 'is_correct': False,
+                    'message': '⚠️ Please type an answer before submitting.',
+                })
+
+            prompt = f"""You are a strict teacher marking a quiz answer.
 TOPIC: {topic.title}
 QUESTION: {topic.quiz_question}
 CORRECT ANSWER: {topic.quiz_correct_answer}
-STUDENT'S ANSWER: {student_answer}
-
-Be lenient with phrasing.
-Respond ONLY with JSON:
+STUDENT ANSWER: {student_answer}
+Be strict. Respond ONLY with JSON:
 {{"is_correct": true, "feedback": "..."}}
 or
 {{"is_correct": false, "feedback": "..."}}"""
 
-            result = _ask_openai(prompt, max_tokens=200)
+            result = _call_gpt(prompt, max_tokens=150)
 
             if result['is_correct']:
+                # ✅ Reset attempts on success
+                request.session[attempt_key] = 0
+                
                 _mark_complete(request.user, topic)
                 xp_data = award_xp(request.user, 100)
-                return JsonResponse({'status': 'success', 'message': result['feedback'], 'is_correct': True, 'xp': xp_data})
+                return JsonResponse({
+                    'status': 'success', 'is_correct': True,
+                    'message': result['feedback'], 'xp': xp_data,
+                })
             else:
-                return JsonResponse({'status': 'success', 'message': result['feedback'], 'is_correct': False, 'hints': topic.validation_hints})
+                # ✅ Increment attempts and provide hints
+                attempts += 1
+                request.session[attempt_key] = attempts
+                hint = _get_progressive_hint(attempts, topic)
+                
+                # ✅ For quiz, show full desc (might have explanatory text)
+                lesson_display = (topic.desc or '').replace('\r\n', '\n').replace('\r', '\n').strip()
+                
+                return JsonResponse({
+                    'status': 'success', 
+                    'is_correct': False,
+                    'message': result['feedback'],
+                    'hint': hint,
+                    'attempts': attempts,
+                    'show_solution': attempts >= 3,  # Quiz gets solution earlier
+                    'lesson_code': lesson_display,  # ✅ ADDED
+                })
 
-        # ── MANUAL COMPLETION ─────────────────────────────────────
         else:
             _mark_complete(request.user, topic)
             xp_data = award_xp(request.user, 100)
-            return JsonResponse({'status': 'success', 'message': 'Topic completed!', 'is_correct': True, 'xp': xp_data})
+            return JsonResponse({
+                'status': 'success', 'is_correct': True,
+                'message': 'Topic completed!', 'xp': xp_data,
+            })
 
     except Topics.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Topic not found'}, status=404)
-    except json.JSONDecodeError:
-        return JsonResponse({'status': 'error', 'message': 'AI returned invalid response, please try again'}, status=500)
     except Exception as e:
         import traceback; traceback.print_exc()
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
-# ─────────────────────────────────────────────────────────────
-def _ask_openai(prompt, max_tokens=300):
-    """Call OpenAI and parse the JSON response."""
+
+def _get_progressive_hint(attempts, topic, missing=None):
+    """Provide increasingly helpful hints based on attempt count."""
+    
+    if attempts == 1:
+        return "💡 Take another look at the lesson code. What's different?"
+    
+    elif attempts == 2:
+        if topic.validation_hints:
+            return f"💡 Hint: {topic.validation_hints}"
+        return "💡 Compare your code carefully with the example. Check variable names and syntax."
+    
+    elif attempts == 3:
+        if missing:
+            return f"💡 You're missing: {', '.join(missing)}. Try adding these exact lines."
+        return "💡 Almost there! Review the lesson code line by line and match it exactly."
+    
+    elif attempts >= 4:
+        return "💡 Having trouble? Click 'Show Solution' below to see the correct answer."
+    
+    return None
+
+
+def _validate_code_structure_with_ai(lesson_code, student_code, attempts=0):
+    """Use AI to check if student code follows the lesson requirements, not just output."""
+    
+    # Normalize both codes
+    lesson_code = lesson_code.replace('\r\n', '\n').replace('\r', '\n').strip()
+    student_code = student_code.replace('\r\n', '\n').replace('\r', '\n').strip()
+    
+    # Remove comment-only lines for comparison
+    lesson_runnable = '\n'.join(
+        line for line in lesson_code.splitlines()
+        if not line.strip().startswith('#')
+    ).strip()
+    
+    # ✅ Add attempt context for more helpful feedback
+    attempt_context = ""
+    if attempts > 0:
+        attempt_context = f"\nThis is the student's attempt #{attempts + 1}. "
+        if attempts >= 2:
+            attempt_context += "Provide more specific guidance since they're struggling."
+    
+    prompt = f"""You are a strict Python teacher checking if a student followed the lesson instructions.
+
+LESSON CODE (what they should learn):
+{lesson_runnable}
+
+STUDENT CODE (what they wrote):
+{student_code}
+{attempt_context}
+
+Your task:
+1. Check if the student used the SAME approach as the lesson (same variables, same logic)
+2. The output might be correct, but did they write the code correctly?
+3. If lesson has "age = 16" and "print(age)", student MUST use a variable, not just "print(16)"
+4. If lesson has calculations like "print(2 + 3)", student should do the calculation, not hardcode "print(5)"
+5. If lesson defines variables, student must define them too, not skip them
+
+Be strict but fair. Minor differences in whitespace are okay if the logic is the same.
+
+When providing example code in feedback, use actual newlines (\\n) to separate lines.
+
+Respond ONLY with JSON:
+{{"is_correct": true, "feedback": "✅ Perfect! You followed the lesson correctly."}}
+or
+{{"is_correct": false, "feedback": "❌ You got the right output, but [specific issue]. Example:\\n[correct code]"}}"""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a strict Python teacher. Respond ONLY with valid JSON. Use \\n for line breaks in code examples."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0,
+            max_tokens=250,
+            response_format={"type": "json_object"},
+        )
+        result = json.loads(response.choices[0].message.content.strip())
+        
+        # ✅ Convert \n in feedback to actual newlines for proper formatting
+        if 'feedback' in result:
+            result['feedback'] = result['feedback'].replace('\\n', '\n')
+        
+        print(f'[validate] AI code validation result: {result}')
+        return result
+    except Exception as e:
+        print(f'[validate] _validate_code_structure_with_ai failed: {e}')
+        import traceback
+        traceback.print_exc()
+        # If AI fails, be lenient and accept correct output
+        return {
+            'is_correct': True,
+            'feedback': '✅ Correct output! (Code validation unavailable)'
+        }
+
+
+
+@require_http_methods(["POST"])
+def get_topic_solution(request):
+    """Provide solution after multiple failed attempts."""
+    try:
+        data = json.loads(request.body)
+        topic_id = data.get('topic_id')
+        
+        topic = Topics.objects.get(id=topic_id)
+        
+        # Check if student has attempted enough times
+        attempt_key = f'topic_{topic_id}_attempts'
+        attempts = request.session.get(attempt_key, 0)
+        
+        if attempts < 3:  # Require at least 3 attempts before showing solution
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Try a few more times before viewing the solution!'
+            }, status=403)
+        
+        # Extract the solution from the lesson code
+        desc = (topic.desc or '').replace('\r\n', '\n').replace('\r', '\n').strip()
+        solution = '\n'.join(
+            line for line in desc.splitlines()
+            if not line.strip().startswith('#')
+        ).strip()
+        
+        return JsonResponse({
+            'status': 'success',
+            'solution': solution,
+            'explanation': 'Here is the correct solution. Study it carefully and try again!'
+        })
+        
+    except Topics.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Topic not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+def _validate_code_structure_with_ai(lesson_code, student_code, attempts=0):
+    """Use AI to check if student code follows the lesson requirements, not just output."""
+    
+    # Normalize both codes
+    lesson_code = lesson_code.replace('\r\n', '\n').replace('\r', '\n').strip()
+    student_code = student_code.replace('\r\n', '\n').replace('\r', '\n').strip()
+    
+    # Remove comment-only lines for comparison
+    lesson_runnable = '\n'.join(
+        line for line in lesson_code.splitlines()
+        if not line.strip().startswith('#')
+    ).strip()
+    
+    prompt = f"""You are a strict Python teacher checking if a student followed the lesson instructions.
+
+LESSON CODE (what they should learn):
+{lesson_runnable}
+
+STUDENT CODE (what they wrote):
+{student_code}
+
+Your task:
+1. Check if the student used the SAME approach as the lesson (same variables, same logic)
+2. The output might be correct, but did they write the code correctly?
+3. If lesson has "age = 16" and "print(age)", student MUST use a variable, not just "print(16)"
+4. If lesson has calculations like "print(2 + 3)", student should do the calculation, not hardcode "print(5)"
+5. If lesson defines variables, student must define them too, not skip them
+
+Be strict but fair. Minor differences in whitespace are okay if the logic is the same.
+
+When providing example code in feedback, use actual newlines (\\n) to separate lines.
+
+Respond ONLY with JSON:
+{{"is_correct": true, "feedback": "✅ Perfect! You followed the lesson correctly."}}
+or
+{{"is_correct": false, "feedback": "❌ You got the right output, but [specific issue]. Example:\\nname = 'ahmed'\\nprint(name)"}}"""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a strict Python teacher. Respond ONLY with valid JSON. Use \\n for line breaks in code examples."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0,
+            max_tokens=250,
+            response_format={"type": "json_object"},
+        )
+        result = json.loads(response.choices[0].message.content.strip())
+        
+        # ✅ Convert \n in feedback to actual newlines for proper formatting
+        if 'feedback' in result:
+            result['feedback'] = result['feedback'].replace('\\n', '\n')
+        
+        print(f'[validate] AI code validation result: {result}')
+        return result
+    except Exception as e:
+        print(f'[validate] _validate_code_structure_with_ai failed: {e}')
+        import traceback
+        traceback.print_exc()
+        # If AI fails, be lenient and accept correct output
+        return {
+            'is_correct': True,
+            'feedback': '✅ Correct output! (Code validation unavailable)'
+        }
+    
+
+def _extract_expected_output_with_ai(desc):
+    """Use GPT to determine what the code in desc should print."""
+    prompt = f"""Look at this Python lesson code:
+{desc}
+
+What is the EXACT expected output when this code runs? 
+If there are multiple print statements, include all outputs (each on a new line).
+If there are no print statements, respond with "NO_OUTPUT".
+
+Respond ONLY with the expected output text itself, nothing else. No explanations, no JSON, just the raw output."""
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a Python interpreter. Return only the exact output, nothing else."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0,
+            max_tokens=150,
+        )
+        output = response.choices[0].message.content.strip()
+        return None if output == "NO_OUTPUT" else output
+    except Exception as e:
+        print(f'[validate] _extract_expected_output_with_ai failed: {e}')
+        return None    
+
+
+        
+def _run_code_safely(code):
+    """Run lesson code in subprocess and return its output."""
+    fname = None
+    try:
+        code = code.replace('\r\n', '\n').replace('\r', '\n').strip()
+
+        # Strip comment-only lines so they don't interfere with execution
+        runnable = '\n'.join(
+            line for line in code.splitlines()
+            if not line.strip().startswith('#')
+        ).strip()
+
+        print(f'[validate] _run_code_safely runnable={repr(runnable)}')
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
+            f.write(runnable)
+            fname = f.name
+
+        print(f'[validate] _run_code_safely fname={fname}')
+
+        result = subprocess.run(
+            [sys.executable, fname],
+            capture_output=True, text=True, timeout=5
+        )
+
+        print(f'[validate] _run_code_safely returncode={result.returncode}')
+        print(f'[validate] _run_code_safely stdout={repr(result.stdout)}')
+        print(f'[validate] _run_code_safely stderr={repr(result.stderr)}')
+
+        expected_output = result.stdout.strip() if result.returncode == 0 else None
+        print(f'[validate] _run_code_safely expected_output={repr(expected_output)}')
+
+        if result.returncode != 0:
+            print(f'[validate] lesson code error: {result.stderr}')
+
+        return expected_output
+
+    except Exception as e:
+        print(f'[validate] _run_code_safely failed: {e}')
+        import traceback; traceback.print_exc()
+        return None
+    finally:
+        # Always clean up temp file
+        if fname and os.path.exists(fname):
+            try:
+                os.unlink(fname)
+            except Exception:
+                pass
+
+            
+def _gpt_compare(desc, student_output):
+    prompt = f"""The lesson code is:
+{desc}
+
+What does this code print when run? That is the expected output.
+The student output was: {student_output}
+Does it match exactly?
+
+Respond ONLY with JSON:
+{{"is_correct": true, "feedback": "Correct!"}}
+or
+{{"is_correct": false, "expected": "X", "feedback": "Expected X but got Y."}}"""
+    return _call_gpt(prompt)
+
+
+def _call_gpt(prompt, max_tokens=200):
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2,
+        messages=[
+            {"role": "system", "content": "You are a strict Python teacher. Respond ONLY with valid JSON."},
+            {"role": "user",   "content": prompt}
+        ],
+        temperature=0,
         max_tokens=max_tokens,
+        response_format={"type": "json_object"},
     )
-    text = response.choices[0].message.content.strip()
-    if '```json' in text:
-        text = text.split('```json')[1].split('```')[0].strip()
-    elif '```' in text:
-        text = text.split('```')[1].split('```')[0].strip()
-    return json.loads(text)
+    return json.loads(response.choices[0].message.content.strip())
 
 
 def _mark_complete(user, topic):
-    """Mark topic complete — uses Profile FK as required by Topics.completed_by through model."""
     try:
         from users.models import Profile
+        from webprojects.models import StudentProgress
+
         profile = Profile.objects.get(user=user)
 
         if not CompletedTopics.objects.filter(user=profile, topic=topic).exists():
             CompletedTopics.objects.create(user=profile, topic=topic)
-            print(f'[validate] ✅ Topic {topic.id} marked complete for {user}')
-        else:
-            print(f'[validate] Already completed topic {topic.id}')
+            print(f'[validate] ✅ CompletedTopics saved: topic {topic.id} for {user}')
+
+        progress, _ = StudentProgress.objects.get_or_create(
+            student=user,
+            defaults={'current_topic': topic}
+        )
+        if not progress.completed_topics.filter(id=topic.id).exists():
+            progress.completed_topics.add(topic)
+            print(f'[validate] ✅ StudentProgress updated: topic {topic.id}')
 
     except Exception as e:
         import traceback; traceback.print_exc()
-        print(f'[validate] ❌ _mark_complete failed: {e}')        
+        print(f'[validate] ❌ _mark_complete failed: {e}')
 
 
 def topic_info(request, topic_id):
-    """Returns topic validation type and quiz question so JS knows what to show."""
     try:
         topic = Topics.objects.get(id=topic_id)
         return JsonResponse({
@@ -3395,4 +3851,74 @@ def topic_info(request, topic_id):
             'quiz_question':   topic.quiz_question   or '',
         })
     except Topics.DoesNotExist:
-        return JsonResponse({'status': 'error'}, status=404)        
+        return JsonResponse({'status': 'error'}, status=404)
+        
+@require_http_methods(["GET"])
+def recommend_next_course(request):
+    """Recommend the next course based on current course completion."""
+    try:
+        course_id = request.GET.get('course_id')
+        
+        if not course_id:
+            return JsonResponse({'status': 'error', 'message': 'No course ID provided'}, status=400)
+        
+        current_course = Courses.objects.get(id=course_id)
+        
+        # Get user's completed courses
+        from users.models import Profile
+        profile = Profile.objects.get(user=request.user)
+        completed_course_ids = CompletedTopics.objects.filter(
+            user=profile
+        ).values_list('topic__courses_id', flat=True).distinct()
+        
+        # Find next course in sequence (same category, not completed)
+        next_course = Courses.objects.filter(
+            categories=current_course.categories,
+            # ✅ REMOVED: is_published=True (field doesn't exist)
+        ).exclude(
+            id__in=completed_course_ids
+        ).exclude(
+            id=current_course.id
+        ).order_by('created').first()
+        
+        if not next_course:
+            # Try to find any course not completed
+            next_course = Courses.objects.exclude(
+                id__in=completed_course_ids
+                # ✅ REMOVED: is_published=True
+            ).order_by('-created').first()
+        
+        if next_course:
+            topic_count = Topics.objects.filter(courses=next_course).count()
+            
+            return JsonResponse({
+                'status': 'success',
+                'recommended_course': {
+                    'id': next_course.id,
+                    'title': next_course.title,
+                    'description': next_course.desc,
+                    'topic_count': topic_count,
+                },
+                'current_course': {
+                    'id': current_course.id,
+                    'title': current_course.title,
+                }
+            })
+        else:
+            return JsonResponse({
+                'status': 'success',
+                'recommended_course': None,
+                'current_course': {
+                    'id': current_course.id,
+                    'title': current_course.title,
+                },
+                'message': 'No more courses available. Great job!'
+            })
+        
+    except Courses.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Course not found'}, status=404)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    

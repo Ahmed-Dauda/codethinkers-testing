@@ -19,7 +19,7 @@
         <img src="/static/sms/images/newlogo3.jpg" width="100" height="100" class="rounded-circle mb-2" alt="Default Image">
       {% endif %}
       <hr>
-      <p class="font-weight-bold">Names: {{ profile.first_name }} {{ profile.last_name }}</p>
+      <p class="font-weight-bold">Names: {{ profile.first_name|capfirst  }} {{ profile.last_name|capfirst  }}</p>
       <p>Last Profile Update: {{ profile.updated|timesince }}</p>
       <p>Sex: {{ profile.gender }}</p>
       <p>Username: {{ profile.username }}</p>
@@ -44,7 +44,9 @@
       <p>Date Created: {{ profile.created }} ({{ profile.created|timesince }})</p>
       <p>Biography: {{ profile.bio }}</p>
       <hr style="color: rgb(16, 2, 37);">
-      <a href="{{ profile.get_absolute_url }}" class="btn btn-outline-primary">Edit Profile</a>
+      <a href="{% url 'sms:userprofileupdateform' %}" class="btn btn-outline-primary">
+    Edit Profile
+</a>
     </div>
 
   </div>

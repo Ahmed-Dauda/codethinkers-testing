@@ -2083,7 +2083,7 @@ def generate_certificate_pdf(ctx: dict) -> BytesIO:
     full_name = f"{ctx['first_name']} {ctx['last_name']}".strip()
     c.setFillColor(BLUE_DARK)
     c.setFont("Times-BoldItalic", 36)
-    c.drawCentredString(cx, y, full_name)
+    c.drawCentredString(cx, y, full_name.title())
 
     y -= 10
 

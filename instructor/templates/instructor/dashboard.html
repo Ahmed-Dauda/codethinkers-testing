@@ -175,10 +175,10 @@
                             {% endif %}
                         </td>
                         <td>
-                            <strong>${{ course.price|floatformat:2 }}</strong>
+                            <strong>${{ course.price }}</strong>
                             {% if course.cert_price %}
                                 <br>
-                                <small class="text-muted">Cert: ${{ course.cert_price|floatformat:2 }}</small>
+                                <small class="text-muted">Cert: ${{ course.cert_price }}</small>
                             {% endif %}
                         </td>
                         <td>

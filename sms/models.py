@@ -212,6 +212,7 @@ from urllib.parse import urlparse, parse_qs
 #     id = models.BigAutoField(primary_key=True)
 #     hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
 
+
 class Topics(models.Model):
     categories = models.ForeignKey(Categories, on_delete=models.CASCADE, blank=True, null=True)
     courses = models.ForeignKey(Courses, on_delete=models.CASCADE, blank=True, null=True) 
@@ -227,15 +228,15 @@ class Topics(models.Model):
     
     # ✅ NEW: AI Validation Fields
     validation_type = models.CharField(
-        max_length=20,
-        choices=[
-            ('code', 'Code Output Validation'),
-            ('quiz', 'Quiz Question'),
-            ('manual', 'Manual Completion')
-        ],
-        default='manual',
+    max_length=20,
+    choices=[
+        ('code', 'Code Output Validation'),
+        ('quiz', 'Quiz Question'),
+        ('manual', 'Manual Completion')
+    ],
+        default='code',  # ✅ Changed from 'manual'
         help_text="How should this topic be validated?"
-    )
+        )
     
     # For code validation
     expected_output = models.TextField(
@@ -270,6 +271,10 @@ class Topics(models.Model):
         null=True,
         help_text="Hints to show students if they struggle (optional)"
     )
+    test_cases = models.JSONField(
+    default=list,
+    help_text='Test cases: [{"input": "5", "expected_output": "25"}]'
+)
     
     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True) 
@@ -435,6 +440,45 @@ class CompletedTopics(models.Model):
 
     def __str__(self):
         return f'{self.user.username} - {self.topic.title}'
+
+
+# Add this to your sms/models.py
+# It keeps StudentProgress.completed_topics in sync whenever
+# a CompletedTopics record is deleted from Django Admin
+
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=CompletedTopics)
+def sync_progress_on_save(sender, instance, created, **kwargs):
+    """When CompletedTopics is created, add to StudentProgress too."""
+    if not created:
+        return
+    try:
+        from webprojects.models import StudentProgress  # adjust app name
+        progress, _ = StudentProgress.objects.get_or_create(
+            student=instance.user.user,  # Profile → NewUser
+            defaults={'current_topic': instance.topic}
+        )
+        progress.completed_topics.add(instance.topic)
+    except Exception as e:
+        print(f'[signal] sync_progress_on_save failed: {e}')
+
+
+@receiver(post_delete, sender=CompletedTopics)
+def sync_progress_on_delete(sender, instance, **kwargs):
+    """When CompletedTopics is deleted, remove from StudentProgress too."""
+    try:
+        from webprojects.models import StudentProgress  # adjust app name
+        progress = StudentProgress.objects.filter(
+            student=instance.user.user  # Profile → NewUser
+        ).first()
+        if progress:
+            progress.completed_topics.remove(instance.topic)
+            print(f'[signal] Removed topic {instance.topic.id} from StudentProgress')
+    except Exception as e:
+        print(f'[signal] sync_progress_on_delete failed: {e}')
+
 
 class FrequentlyAskQuestions(models.Model):
     

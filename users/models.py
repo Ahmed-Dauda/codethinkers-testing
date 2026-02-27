@@ -42,37 +42,46 @@ class CustomUserManager(BaseUserManager):
 
 class NewUser(AbstractBaseUser, PermissionsMixin):
 
-    last_activity = models.DateTimeField(null=True, blank=True)  # add this field
+    last_activity = models.DateTimeField(null=True, blank=True)
     email = models.EmailField(max_length=254, unique=True)
-    username = models.CharField(max_length=35,  blank=True)
+    username = models.CharField(max_length=35, blank=True)
     school = models.ForeignKey('quiz.School', on_delete=models.SET_NULL, blank=True, null=True)
     student_class = models.CharField(max_length=254, null=True, blank=True)
-    # referral_code = models.CharField(max_length=225, blank=True, null=True)
-    phone_number = models.CharField(max_length=254, blank= True)
+    phone_number = models.CharField(max_length=254, blank=True)
     first_name = models.CharField(max_length=254, null=True, blank=True)
     last_name = models.CharField(max_length=254, null=True, blank=True)
-    countries = models.CharField(max_length=254,  blank=True, null=True)
+    countries = models.CharField(max_length=254, blank=True, null=True)
+
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     last_login = models.DateTimeField(null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
-    
 
     USERNAME_FIELD = 'email'
-    # USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'username'
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
 
-    def __str__(self):
-        return f'{self.email}'
     class Meta:
-        #  pass
-      db_table = 'auth_user'
+        db_table = 'auth_user'
 
+    def save(self, *args, **kwargs):
+        # Strip spaces + Proper case formatting
+        if self.first_name:
+            self.first_name = self.first_name.strip().title()
 
+        if self.last_name:
+            self.last_name = self.last_name.strip().title()
+
+        if self.username:
+            self.username = self.username.strip()
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.email
 
 
 gender_choice = [
@@ -119,8 +128,8 @@ class Profile(models.Model):
     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
-    def get_absolute_url(self):
-        return reverse('sms:userprofileupdateform', kwargs={'pk': self.pk})
+    # def get_absolute_url(self):
+    #     return reverse('sms:userprofileupdateform', kwargs={'pk': self.pk})
     def __str__(self):
       return f'{self.first_name} {self.last_name}'
 
