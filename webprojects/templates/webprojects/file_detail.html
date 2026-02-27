@@ -4322,24 +4322,25 @@ function startRecommendedCourse(courseId) {
   window.location.href = `/course/${courseId}/`;
 }
 
-function showCodeComparison(lessonCode, studentCode, feedback) {
-    // Remove any existing comparison
-    const existing = document.getElementById('code-comparison');
+
+
+function showCodeComparison(lessonCode, studentCode, feedback, hint) {
+    const existing = document.getElementById('code-comparison-overlay');
     if (existing) existing.remove();
     
     const overlay = document.createElement('div');
     overlay.id = 'code-comparison-overlay';
     overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.5); 
         z-index: 9998;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
         padding: 20px;
     `;
     
@@ -4355,11 +4356,150 @@ function showCodeComparison(lessonCode, studentCode, feedback) {
         box-shadow: 0 10px 40px rgba(0,0,0,0.3);
     `;
     
+    const cleanCode = (code) => code.trim();
+    
+    const expectedClean = cleanCode(lessonCode);
+    const studentClean = cleanCode(studentCode);
+    
+    const expectedNonEmpty = expectedClean.split('\n').filter(line => line.trim());
+    const studentNonEmpty = studentClean.split('\n').filter(line => line.trim());
+    
+    let expectedHTML = '';
+    let studentHTML = '';
+    let errorCount = 0;
+    let fixSuggestions = [];
+    
+    // ✅ Helper function to highlight character differences
+    const highlightDifferences = (expected, actual) => {
+        let result = '';
+        const maxLen = Math.max(expected.length, actual.length);
+        
+        for (let i = 0; i < maxLen; i++) {
+            const expChar = expected[i] || '';
+            const actChar = actual[i] || '';
+            
+            if (expChar !== actChar) {
+                if (actChar) {
+                    // Character is wrong
+                    result += `<span style="background: #ff5252; color: white; padding: 0 2px; border-radius: 2px; font-weight: bold;">${escapeHTML(actChar)}</span>`;
+                }
+            } else {
+                result += escapeHTML(actChar);
+            }
+        }
+        
+        return result;
+    };
+    
+    for (let i = 0; i < Math.max(expectedNonEmpty.length, studentNonEmpty.length); i++) {
+        const expectedLine = expectedNonEmpty[i] || '';
+        const studentLine = studentNonEmpty[i] || '';
+        const lineNum = i + 1;
+        
+        const expectedTrimmed = expectedLine.trim();
+        const studentTrimmed = studentLine.trim();
+        
+        const isMatch = expectedTrimmed === studentTrimmed;
+        
+        if (!isMatch && expectedTrimmed && studentTrimmed) {
+            errorCount++;
+            
+            // ✅ Generate fix suggestion for this line
+            const differences = [];
+            for (let j = 0; j < Math.max(expectedTrimmed.length, studentTrimmed.length); j++) {
+                if (expectedTrimmed[j] !== studentTrimmed[j]) {
+                    if (expectedTrimmed[j] && studentTrimmed[j]) {
+                        differences.push(`Change '${studentTrimmed[j]}' to '${expectedTrimmed[j]}'`);
+                    } else if (!studentTrimmed[j]) {
+                        differences.push(`Add '${expectedTrimmed[j]}'`);
+                    } else {
+                        differences.push(`Remove '${studentTrimmed[j]}'`);
+                    }
+                }
+            }
+            
+            // Find what needs to be changed (simple case-insensitive check)
+            if (expectedTrimmed.toLowerCase() === studentTrimmed.toLowerCase()) {
+                // Case difference
+                fixSuggestions.push({
+                    line: lineNum,
+                    issue: 'Capitalization',
+                    fix: `Change to: <code style="background: #e8f5e9; padding: 2px 6px; border-radius: 3px; font-family: monospace;">${escapeHTML(expectedTrimmed)}</code>`
+                });
+            } else {
+                // Other difference
+                fixSuggestions.push({
+                    line: lineNum,
+                    issue: 'Text mismatch',
+                    fix: `Change to: <code style="background: #e8f5e9; padding: 2px 6px; border-radius: 3px; font-family: monospace;">${escapeHTML(expectedTrimmed)}</code>`
+                });
+            }
+        }
+        
+        // Expected code side
+        if (expectedTrimmed) {
+            expectedHTML += `<div style="display: flex; padding: 4px 0;">
+                <span style="color: #999; width: 30px; text-align: right; margin-right: 12px; user-select: none; flex-shrink: 0;">${lineNum}</span>
+                <span style="flex: 1; font-family: 'Courier New', monospace; ${!isMatch && studentTrimmed ? 'background: #fff3cd; padding: 2px 4px; border-radius: 3px;' : ''}">${escapeHTML(expectedLine)}</span>
+            </div>`;
+        }
+        
+        // Student code side with character-level highlighting
+        if (studentTrimmed) {
+            const hasError = !isMatch && expectedTrimmed;
+            const displayLine = hasError ? highlightDifferences(expectedTrimmed, studentTrimmed) : escapeHTML(studentLine);
+            
+            studentHTML += `<div style="display: flex; padding: 4px 0;">
+                <span style="color: #999; width: 30px; text-align: right; margin-right: 12px; user-select: none; flex-shrink: 0;">${lineNum}</span>
+                <span style="flex: 1; font-family: 'Courier New', monospace; ${hasError ? 'background: #ffebee; padding: 2px 4px; border-radius: 3px; border-left: 3px solid #dc3545;' : ''}">${displayLine}</span>
+                ${hasError ? '<span style="color: #dc3545; margin-left: 8px; font-weight: bold; flex-shrink: 0;">⚠️</span>' : ''}
+            </div>`;
+        }
+    }
+    
+    const hintHTML = hint ? `
+        <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px; 
+                    margin-top: 16px; border-radius: 4px;">
+            <div style="font-weight: bold; color: #1976d2; margin-bottom: 4px;">💡 Hint:</div>
+            <div style="color: #1565c0; white-space: pre-wrap;">${escapeHTML(hint)}</div>
+        </div>
+    ` : '';
+    
+    // ✅ Generate fix suggestions HTML
+    const fixSuggestionsHTML = fixSuggestions.length > 0 ? `
+        <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 12px; 
+                    margin-top: 16px; border-radius: 4px;">
+            <div style="font-weight: bold; color: #2e7d32; margin-bottom: 8px;">🔧 How to Fix:</div>
+            ${fixSuggestions.map(fix => `
+                <div style="color: #1b5e20; font-size: 14px; margin-bottom: 8px;">
+                    <strong>Line ${fix.line}:</strong> ${fix.issue}<br>
+                    <span style="margin-left: 20px;">${fix.fix}</span>
+                </div>
+            `).join('')}
+        </div>
+    ` : '';
+    
+    const errorSummaryHTML = errorCount > 0 ? `
+        <div style="background: #ffebee; border-left: 4px solid #dc3545; padding: 12px; 
+                    margin-bottom: 16px; border-radius: 4px;">
+            <div style="font-weight: bold; color: #c62828; margin-bottom: 4px;">
+                ⚠️ Found ${errorCount} error${errorCount > 1 ? 's' : ''}
+            </div>
+            <div style="color: #d32f2f; font-size: 14px;">
+                Wrong characters are <span style="background: #ff5252; color: white; padding: 2px 4px; border-radius: 2px; font-weight: bold;">highlighted in red</span>
+            </div>
+        </div>
+    ` : '';
+    
     comparisonDiv.innerHTML = `
         <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 20px;">
             <div style="font-weight: bold; font-size: 16px; margin-bottom: 16px; color: #856404; white-space: pre-wrap;">
                 ${escapeHTML(feedback)}
             </div>
+            
+            ${errorSummaryHTML}
+            ${fixSuggestionsHTML}
+            ${hintHTML}
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
                 <!-- Expected Code -->
@@ -4367,8 +4507,9 @@ function showCodeComparison(lessonCode, studentCode, feedback) {
                     <div style="font-weight: bold; color: #28a745; margin-bottom: 8px; font-size: 14px;">
                         ✅ Expected Code:
                     </div>
-                    <pre style="margin: 0; white-space: pre-wrap; font-family: 'Courier New', monospace; 
-                               font-size: 13px; color: #212529; line-height: 1.5;">${escapeHTML(lessonCode)}</pre>
+                    <div style="font-size: 13px; color: #212529; line-height: 1.8;">
+                        ${expectedHTML}
+                    </div>
                 </div>
                 
                 <!-- Your Code -->
@@ -4376,9 +4517,16 @@ function showCodeComparison(lessonCode, studentCode, feedback) {
                     <div style="font-weight: bold; color: #dc3545; margin-bottom: 8px; font-size: 14px;">
                         ❌ Your Code:
                     </div>
-                    <pre style="margin: 0; white-space: pre-wrap; font-family: 'Courier New', monospace; 
-                               font-size: 13px; color: #212529; line-height: 1.5;">${escapeHTML(studentCode)}</pre>
+                    <div style="font-size: 13px; color: #212529; line-height: 1.8;">
+                        ${studentHTML}
+                    </div>
                 </div>
+            </div>
+            
+            <div style="background: #e3f2fd; padding: 12px; margin-top: 16px; border-radius: 6px; font-size: 13px; color: #1565c0;">
+                <strong>🔍 Legend:</strong> 
+                <span style="background: #ff5252; color: white; padding: 2px 6px; border-radius: 2px; font-weight: bold; margin: 0 4px;">Red</span> = Wrong character
+                • Blank lines between code don't matter
             </div>
             
             <div style="text-align: center; margin-top: 20px;">
@@ -4386,7 +4534,7 @@ function showCodeComparison(lessonCode, studentCode, feedback) {
                         style="background: #6c757d; color: white; border: none; 
                                padding: 10px 24px; border-radius: 6px; cursor: pointer;
                                font-size: 14px; font-weight: bold;">
-                    Got it, close this
+                    Got it, let me try again
                 </button>
             </div>
         </div>
@@ -4395,13 +4543,13 @@ function showCodeComparison(lessonCode, studentCode, feedback) {
     overlay.appendChild(comparisonDiv);
     document.body.appendChild(overlay);
     
-    // Close on overlay click
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
             overlay.remove();
         }
     });
 }
+
 
 
 // ── 2. Show feedback bubble above the output panel ─────────────

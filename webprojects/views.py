@@ -3399,10 +3399,79 @@ def validate_topic_completion(request):
             desc         = (topic.desc or '').replace('\r\n', '\n').replace('\r', '\n').strip()
             student_code = student_code.replace('\r\n', '\n').replace('\r', '\n').strip()
             has_print    = bool(re.search(r'print\s*\(', desc))
+            has_input    = bool(re.search(r'input\s*\(', desc))  # ✅ ADD THIS
 
             print(f'[validate] desc normalized={repr(desc)}')
             print(f'[validate] has_print={has_print}')
+            print(f'[validate] has_input={has_input}')  # ✅ ADD THIS
 
+            # ✅ NEW: Special handling for input() lessons
+            if has_input:
+                print(f'[validate] Lesson has input() - using code structure validation only')
+                
+                # Check if student used input()
+                if 'input(' not in student_code.lower():
+                    attempts += 1
+                    request.session[attempt_key] = attempts
+                    hint = _get_progressive_hint(attempts, topic)
+                    lesson_display = _clean_lesson_code_for_display(desc)
+                    
+                    return JsonResponse({
+                        'status': 'success',
+                        'is_correct': False,
+                        'message': '❌ Your code must use the input() function to get user input.',
+                        'hint': hint,
+                        'attempts': attempts,
+                        'show_solution': attempts >= 4,
+                        'lesson_code': lesson_display,
+                    })
+                
+                # Validate code structure with AI (lenient for input)
+                code_validation = _validate_code_structure_with_ai_for_input(desc, student_code, attempts)
+                
+                if code_validation['is_correct']:
+                    # ✅ Reset attempts on success
+                    request.session[attempt_key] = 0
+                    
+                    _mark_complete(request.user, topic)
+                    xp_data = award_xp(request.user, 100)
+                    
+                    # Calculate completion percentage
+                    from users.models import Profile
+                    profile = Profile.objects.get(user=request.user)
+                    total_topics = Topics.objects.filter(courses=topic.courses).count()
+                    completed_topics = CompletedTopics.objects.filter(
+                        user=profile,
+                        topic__courses=topic.courses
+                    ).count()
+                    completion_pct = round((completed_topics / total_topics * 100)) if total_topics > 0 else 0
+                    
+                    return JsonResponse({
+                        'status': 'success', 
+                        'is_correct': True,
+                        'message': code_validation['feedback'], 
+                        'xp': xp_data,
+                        'completion_percentage': completion_pct,
+                        'course_id': topic.courses.id if topic.courses else None,
+                    })
+                else:
+                    # ✅ Increment attempts on failure
+                    attempts += 1
+                    request.session[attempt_key] = attempts
+                    hint = _get_progressive_hint(attempts, topic)
+                    lesson_display = _clean_lesson_code_for_display(desc)
+                    
+                    return JsonResponse({
+                        'status': 'success', 
+                        'is_correct': False,
+                        'message': code_validation['feedback'],
+                        'hint': hint,
+                        'attempts': attempts,
+                        'show_solution': attempts >= 4,
+                        'lesson_code': lesson_display,
+                    })
+
+            # ✅ Continue with normal validation for non-input lessons
             if has_print:
                 print(f'[validate] ▶️ trying to extract expected output with AI')
                 expected_output = _extract_expected_output_with_ai(desc)
@@ -3425,8 +3494,6 @@ def validate_topic_completion(request):
                         print(f'[validate] Attempt #{attempts} for topic {topic_id}')
                         
                         hint = _get_progressive_hint(attempts, topic)
-                        
-                        # ✅ Clean up lesson code for display
                         lesson_display = _clean_lesson_code_for_display(desc)
                         
                         return JsonResponse({
@@ -3436,7 +3503,7 @@ def validate_topic_completion(request):
                             'hint': hint,
                             'attempts': attempts,
                             'show_solution': attempts >= 4,
-                            'lesson_code': lesson_display,  # ✅ ADDED
+                            'lesson_code': lesson_display,
                         })
                     else:
                         # ✅ Step 2: Output is correct, now validate code structure
@@ -3464,8 +3531,6 @@ def validate_topic_completion(request):
                     
                     # ✅ Progressive hints
                     hint = _get_progressive_hint(attempts, topic, missing)
-                    
-                    # ✅ Clean up lesson code for display
                     lesson_display = _clean_lesson_code_for_display(desc)
                     
                     return JsonResponse({
@@ -3473,7 +3538,7 @@ def validate_topic_completion(request):
                         'message': f'❌ Missing required assignments: {", ".join(missing)}',
                         'hint': hint,
                         'attempts': attempts,
-                        'lesson_code': lesson_display,  # ✅ ADDED
+                        'lesson_code': lesson_display,
                     })
 
                 result = {'is_correct': True, 'feedback': '✅ Well done! You completed all required assignments.'}
@@ -3487,19 +3552,14 @@ def validate_topic_completion(request):
                 _mark_complete(request.user, topic)
                 xp_data = award_xp(request.user, 100)
                 
-                # ✅ NEW: Calculate completion percentage
+                # Calculate completion percentage
                 from users.models import Profile
                 profile = Profile.objects.get(user=request.user)
-                
-                # Get total topics in this course
                 total_topics = Topics.objects.filter(courses=topic.courses).count()
-                
-                # Get completed topics in this course
                 completed_topics = CompletedTopics.objects.filter(
                     user=profile,
                     topic__courses=topic.courses
                 ).count()
-                
                 completion_pct = round((completed_topics / total_topics * 100)) if total_topics > 0 else 0
                 
                 return JsonResponse({
@@ -3507,8 +3567,27 @@ def validate_topic_completion(request):
                     'is_correct': True,
                     'message': result['feedback'], 
                     'xp': xp_data,
-                    'completion_percentage': completion_pct,  # ✅ ADD THIS
-                    'course_id': topic.courses.id if topic.courses else None,  # ✅ ADD THIS
+                    'completion_percentage': completion_pct,
+                    'course_id': topic.courses.id if topic.courses else None,
+                })
+            else:
+                # ✅ Increment attempts on failure
+                attempts += 1
+                request.session[attempt_key] = attempts
+                print(f'[validate] Attempt #{attempts} for topic {topic_id}')
+                
+                # ✅ Progressive hints
+                hint = _get_progressive_hint(attempts, topic)
+                lesson_display = _clean_lesson_code_for_display(desc)
+                
+                return JsonResponse({
+                    'status': 'success', 
+                    'is_correct': False,
+                    'message': result['feedback'],
+                    'hint': hint,
+                    'attempts': attempts,
+                    'show_solution': attempts >= 4,
+                    'lesson_code': lesson_display,
                 })
 
         elif topic.validation_type == 'quiz':
@@ -3547,8 +3626,6 @@ or
                 attempts += 1
                 request.session[attempt_key] = attempts
                 hint = _get_progressive_hint(attempts, topic)
-                
-                # ✅ For quiz, show full desc (might have explanatory text)
                 lesson_display = (topic.desc or '').replace('\r\n', '\n').replace('\r', '\n').strip()
                 
                 return JsonResponse({
@@ -3557,8 +3634,8 @@ or
                     'message': result['feedback'],
                     'hint': hint,
                     'attempts': attempts,
-                    'show_solution': attempts >= 3,  # Quiz gets solution earlier
-                    'lesson_code': lesson_display,  # ✅ ADDED
+                    'show_solution': attempts >= 3,
+                    'lesson_code': lesson_display,
                 })
 
         else:
@@ -3574,7 +3651,7 @@ or
     except Exception as e:
         import traceback; traceback.print_exc()
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
+    
 
 
 def _get_progressive_hint(attempts, topic, missing=None):
@@ -3599,20 +3676,15 @@ def _get_progressive_hint(attempts, topic, missing=None):
     return None
 
 
-def _validate_code_structure_with_ai(lesson_code, student_code, attempts=0):
-    """Use AI to check if student code follows the lesson requirements, not just output."""
+# ✅ ADD THIS NEW FUNCTION
+def _validate_code_structure_with_ai_for_input(lesson_code, student_code, attempts=0):
+    """Validate code with input() - focus on structure, not output."""
     
-    # Normalize both codes
     lesson_code = lesson_code.replace('\r\n', '\n').replace('\r', '\n').strip()
     student_code = student_code.replace('\r\n', '\n').replace('\r', '\n').strip()
     
-    # Remove comment-only lines for comparison
-    lesson_runnable = '\n'.join(
-        line for line in lesson_code.splitlines()
-        if not line.strip().startswith('#')
-    ).strip()
+    lesson_runnable = _clean_lesson_code_for_display(lesson_code)
     
-    # ✅ Add attempt context for more helpful feedback
     attempt_context = ""
     if attempts > 0:
         attempt_context = f"\nThis is the student's attempt #{attempts + 1}. "
@@ -3628,21 +3700,29 @@ STUDENT CODE (what they wrote):
 {student_code}
 {attempt_context}
 
-Your task:
-1. Check if the student used the SAME approach as the lesson (same variables, same logic)
-2. The output might be correct, but did they write the code correctly?
-3. If lesson has "age = 16" and "print(age)", student MUST use a variable, not just "print(16)"
-4. If lesson has calculations like "print(2 + 3)", student should do the calculation, not hardcode "print(5)"
-5. If lesson defines variables, student must define them too, not skip them
+IMPORTANT: This lesson uses input() which requires user input, so we CANNOT compare output.
+Instead, check:
+1. Did the student use input() to get user input?
+2. Did they store the input in a variable if required?
+3. Did they print the result if required?
+4. Is the overall structure and logic correct?
 
-Be strict but fair. Minor differences in whitespace are okay if the logic is the same.
+Be lenient about:
+- Variable names (if lesson uses "name", student can use "user_name" or "n")
+- Exact prompt text in input() (as long as it makes sense)
+- Output formatting differences (f-strings vs concatenation)
+
+Be strict about:
+- Must use input() if lesson uses it
+- Must use print() if lesson uses it
+- Must follow the same basic logic flow
 
 When providing example code in feedback, use actual newlines (\\n) to separate lines.
 
 Respond ONLY with JSON:
-{{"is_correct": true, "feedback": "✅ Perfect! You followed the lesson correctly."}}
+{{"is_correct": true, "feedback": "✅ Great! You used input() correctly and followed the lesson structure."}}
 or
-{{"is_correct": false, "feedback": "❌ You got the right output, but [specific issue]. Example:\\n[correct code]"}}"""
+{{"is_correct": false, "feedback": "❌ [specific issue]. Example:\\n[correct code]"}}"""
 
     try:
         response = client.chat.completions.create(
@@ -3657,22 +3737,20 @@ or
         )
         result = json.loads(response.choices[0].message.content.strip())
         
-        # ✅ Convert \n in feedback to actual newlines for proper formatting
         if 'feedback' in result:
             result['feedback'] = result['feedback'].replace('\\n', '\n')
         
-        print(f'[validate] AI code validation result: {result}')
+        print(f'[validate] AI code validation result (input): {result}')
         return result
     except Exception as e:
-        print(f'[validate] _validate_code_structure_with_ai failed: {e}')
+        print(f'[validate] _validate_code_structure_with_ai_for_input failed: {e}')
         import traceback
         traceback.print_exc()
-        # If AI fails, be lenient and accept correct output
         return {
             'is_correct': True,
-            'feedback': '✅ Correct output! (Code validation unavailable)'
+            'feedback': '✅ Good! You used input() and your code ran successfully.'
         }
-
+        
 
 
 @require_http_methods(["POST"])
