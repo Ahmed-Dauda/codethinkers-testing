@@ -3277,26 +3277,96 @@ import subprocess
 import tempfile
 
 # ✅ Clean up lesson code for display (remove ALL comments)
+from bs4 import BeautifulSoup
+import re
+
 def _clean_lesson_code_for_display(desc):
-    """Remove both standalone comment lines AND inline comments."""
-    lines = desc.splitlines()
-    cleaned_lines = []
+    """Remove HTML tags and extract only Python code from lesson description."""
     
-    for line in lines:
-        # Skip empty lines and full-line comments
-        stripped = line.strip()
-        if not stripped or stripped.startswith('#'):
-            continue
+    if not desc:
+        return ""
+    
+    # Try to parse as HTML
+    try:
+        soup = BeautifulSoup(desc, 'html.parser')
         
-        # Remove inline comments (text after #)
-        if '#' in line:
-            code_part = line.split('#')[0].rstrip()
-            if code_part:  # Only add if there's actual code
-                cleaned_lines.append(code_part)
-        else:
-            cleaned_lines.append(line.rstrip())
+        # Find all code blocks (pre > code tags)
+        code_blocks = soup.find_all('code', class_='language-python')
+        
+        if code_blocks:
+            # Extract code from all Python code blocks
+            code_lines = []
+            for block in code_blocks:
+                code_text = block.get_text().strip()
+                # Remove comment lines
+                for line in code_text.splitlines():
+                    stripped = line.strip()
+                    if stripped and not stripped.startswith('#'):
+                        # Remove inline comments
+                        if '#' in line:
+                            code_part = line.split('#')[0].rstrip()
+                            if code_part:
+                                code_lines.append(code_part)
+                        else:
+                            code_lines.append(line.rstrip())
+            
+            return '\n'.join(code_lines)
+        
+        # Fallback: if no code blocks, try to find any <pre> or <code> tags
+        pre_tags = soup.find_all('pre')
+        if pre_tags:
+            code_lines = []
+            for pre in pre_tags:
+                code_text = pre.get_text().strip()
+                for line in code_text.splitlines():
+                    stripped = line.strip()
+                    if stripped and not stripped.startswith('#'):
+                        if '#' in line:
+                            code_part = line.split('#')[0].rstrip()
+                            if code_part:
+                                code_lines.append(code_part)
+                        else:
+                            code_lines.append(line.rstrip())
+            return '\n'.join(code_lines)
+        
+        # Last resort: strip all HTML and look for Python patterns
+        text = soup.get_text()
+        lines = text.splitlines()
+        code_lines = []
+        for line in lines:
+            stripped = line.strip()
+            # Look for Python code patterns
+            if stripped and (
+                'print(' in stripped or
+                stripped.startswith('import ') or
+                '=' in stripped and not stripped.startswith('#')
+            ):
+                if not stripped.startswith('#'):
+                    if '#' in line:
+                        code_part = line.split('#')[0].rstrip()
+                        if code_part:
+                            code_lines.append(code_part)
+                    else:
+                        code_lines.append(line.rstrip())
+        
+        return '\n'.join(code_lines)
     
-    return '\n'.join(cleaned_lines)
+    except Exception as e:
+        print(f'[clean_lesson_code] HTML parsing failed: {e}')
+        # Fallback to simple text processing
+        lines = desc.splitlines()
+        code_lines = []
+        for line in lines:
+            stripped = line.strip()
+            if stripped and not stripped.startswith('#') and not stripped.startswith('<'):
+                if '#' in line:
+                    code_part = line.split('#')[0].rstrip()
+                    if code_part:
+                        code_lines.append(code_part)
+                else:
+                    code_lines.append(line.rstrip())
+        
+        return '\n'.join(code_lines)
 
 
 @require_http_methods(["POST"])
