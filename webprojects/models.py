@@ -8,18 +8,18 @@ from django.dispatch import receiver
 
 
 # ---------------- Helper ----------------
-def get_general_topic(course):
-    if not course:
-        return None
+# def get_general_topic(course):
+#     if not course:
+#         return None
 
-    general_topic, _ = Topics.objects.get_or_create(
-        title="General",
-        courses=course,
-        defaults={
-            "categories": course.categories if course.categories else None
-        }
-    )
-    return general_topic
+#     general_topic, _ = Topics.objects.get_or_create(
+#         title="General",
+#         courses=course,
+#         defaults={
+#             "categories": course.categories if course.categories else None
+#         }
+#     )
+#     return general_topic
 
 
 # ---------------- Project ----------------
@@ -178,13 +178,13 @@ def delete_file_on_model_delete(sender, instance, **kwargs):
 #         instance.topic = get_general_topic(instance.course)
 
 
-@receiver(pre_save, sender=Folder)
-def set_folder_topic(sender, instance, **kwargs):
-    if not instance.topic and instance.project:
-        instance.topic = get_general_topic(instance.project.course)
+# @receiver(pre_save, sender=Folder)
+# def set_folder_topic(sender, instance, **kwargs):
+#     if not instance.topic and instance.project:
+#         instance.topic = get_general_topic(instance.project.course)
 
 
-@receiver(pre_save, sender=File)
-def set_file_topic(sender, instance, **kwargs):
-    if not instance.topic and instance.project and instance.project.course:
-        instance.topic = get_general_topic(instance.project.course)
+# @receiver(pre_save, sender=File)
+# def set_file_topic(sender, instance, **kwargs):
+#     if not instance.topic and instance.project and instance.project.course:
+#         instance.topic = get_general_topic(instance.project.course)
