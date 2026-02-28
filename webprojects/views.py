@@ -170,8 +170,7 @@ def create_project(request):
         try:
             data = json.loads(request.body)
             name = data.get('name', '').strip()
-            course_id = data.get('course_id')  # 👈 IMPORTANT
-            
+            course_id = data.get('course_id')
 
             if not name:
                 return JsonResponse({
@@ -180,17 +179,13 @@ def create_project(request):
                 })
 
             # ---------------- COURSE RESOLUTION ----------------
-            course = Courses.objects.filter(title=name).first()
-
+            course = None
+            if course_id:
+                course = Courses.objects.filter(pk=course_id).first()
+            if not course:
+                course = Courses.objects.filter(title=name).first()
             print("CREATE PROJECT COURSE:", course)
             # ---------------------------------------------------
-
-            # Get or create DEFAULT topic FOR THIS COURSE
-            default_topic, _ = Topics.objects.get_or_create(
-                title="General",
-                courses=course
-            )
-            print('topic',default_topic)
 
             # Prevent duplicate projects per user
             existing_project = Project.objects.filter(
@@ -229,29 +224,26 @@ def create_project(request):
             project = Project.objects.create(
                 user=request.user,
                 name=name,
-                course=course,          # ✅ FIXED
-                topic=default_topic     # ✅ course-aware topic
+                course=course,
+                topic=None
             )
 
             folder = Folder.objects.create(
                 project=project,
                 name="Main",
-                topic=default_topic
+                topic=None
             )
-            
+
             file = File.objects.create(
                 name='main' + ext,
                 project=project,
                 folder=folder,
                 created_by=request.user,
                 content=default_content,
-                topic=default_topic
+                topic=None
             )
 
-            course_name = file.project.name
-            print("Created project:", course_name, "with file:", file.name, "and topic:", default_topic.title)
-
-           
+            print("Created project:", project.name, "| file:", file.name)
             # ------------------------------------------------
 
             return JsonResponse({
@@ -273,8 +265,7 @@ def create_project(request):
 
     return render(request, 'webprojects/create_project.html', {
         'projects': user_projects
-    })
-    
+    })    
 
 # editor/views.py
 # views.py
@@ -843,7 +834,8 @@ def get_student_progress(request):
     except Exception as e:
         import traceback; traceback.print_exc()
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-        
+
+
 @login_required
 @require_http_methods(["POST"])
 def mark_topic_complete(request):
@@ -853,27 +845,26 @@ def mark_topic_complete(request):
         topic_id  = data.get('topic_id')
         course_id = data.get('course_id')
 
-        from sms.models import Topics
+        from sms.models import Topics, Courses
         topic = Topics.objects.get(id=topic_id)
 
-        # ✅ FIX: get existing record regardless of course
-        progress = StudentProgress.objects.filter(
-            student=request.user
-        ).order_by('-last_updated').first()
+        # ✅ Get the course object
+        course = Courses.objects.filter(id=course_id).first() if course_id else None
 
-        if not progress:
-            progress = StudentProgress.objects.create(
-                student=request.user,
-                current_topic=topic
-            )
+        # ✅ Get or create progress PER USER PER COURSE
+        progress, _ = StudentProgress.objects.get_or_create(
+            student=request.user,
+            course=course,
+            defaults={'current_topic': topic}
+        )
 
-        # Mark complete
+        # Mark topic as complete
         progress.completed_topics.add(topic)
 
         # Advance to next topic within same course
         course_topics = list(
             Topics.objects.filter(courses_id=course_id).order_by('id')
-        ) if course_id else list(Topics.objects.all().order_by('id'))
+        ) if course_id else []
 
         next_topic = None
         ids = [t.id for t in course_topics]
@@ -887,7 +878,7 @@ def mark_topic_complete(request):
 
         progress.save()
 
-        # Return counts scoped to course
+        # ✅ Counts scoped strictly to THIS course's topics
         completed_ids      = set(progress.completed_topics.values_list('id', flat=True))
         sidebar_ids        = set(ids)
         relevant_completed = completed_ids & sidebar_ids
@@ -903,7 +894,7 @@ def mark_topic_complete(request):
             'completed_topic_ids': list(completed_ids),
             'completed_count':     done,
             'total_count':         total,
-            'xp': xp_data,
+            'xp':                  xp_data,
             'overall_pct':         pct,
         })
 
@@ -912,8 +903,7 @@ def mark_topic_complete(request):
     except Exception as e:
         import traceback; traceback.print_exc()
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-        
-
+    
 
 # views.py - Add this temporary debug view
 
@@ -1767,7 +1757,8 @@ def file_detail(request, project_id, file_id):
     # ✅ FIX: get progress without course=None filter
     from .models import StudentProgress
     progress = StudentProgress.objects.filter(
-        student=request.user
+        student=request.user,
+        course=course
     ).prefetch_related('completed_topics').order_by('-last_updated').first()
 
     completed_topic_ids = list(
@@ -3384,7 +3375,6 @@ def validate_topic_completion(request):
         print(f'[validate] student_code={repr(student_code[:120])}')
         print(f'[validate] student_output={repr(student_output)}')
 
-        # ✅ Track attempt count for progressive hints
         attempt_key = f'topic_{topic_id}_attempts'
         attempts = request.session.get(attempt_key, 0)
 
@@ -3399,44 +3389,60 @@ def validate_topic_completion(request):
             desc         = (topic.desc or '').replace('\r\n', '\n').replace('\r', '\n').strip()
             student_code = student_code.replace('\r\n', '\n').replace('\r', '\n').strip()
             has_print    = bool(re.search(r'print\s*\(', desc))
-            has_input    = bool(re.search(r'input\s*\(', desc))  # ✅ ADD THIS
+            has_input    = bool(re.search(r'input\s*\(', desc))
 
             print(f'[validate] desc normalized={repr(desc)}')
-            print(f'[validate] has_print={has_print}')
-            print(f'[validate] has_input={has_input}')  # ✅ ADD THIS
+            print(f'[validate] has_print={has_print}  has_input={has_input}')
 
-            # ✅ NEW: Special handling for input() lessons
+            # ── CASE A: lesson has input() → validate code structure ──
             if has_input:
-                print(f'[validate] Lesson has input() - using code structure validation only')
-                
-                # Check if student used input()
+                print(f'[validate] ▶️ CASE A — input() detected')
+
+                # Check if student used input() at all
                 if 'input(' not in student_code.lower():
                     attempts += 1
                     request.session[attempt_key] = attempts
                     hint = _get_progressive_hint(attempts, topic)
                     lesson_display = _clean_lesson_code_for_display(desc)
-                    
                     return JsonResponse({
-                        'status': 'success',
-                        'is_correct': False,
+                        'status': 'success', 'is_correct': False,
                         'message': '❌ Your code must use the input() function to get user input.',
                         'hint': hint,
                         'attempts': attempts,
                         'show_solution': attempts >= 4,
                         'lesson_code': lesson_display,
                     })
-                
-                # Validate code structure with AI (lenient for input)
-                code_validation = _validate_code_structure_with_ai_for_input(desc, student_code, attempts)
-                
+
+                # ── Fast path: normalize and compare directly ─────────
+                def _normalize(code):
+                    lines = []
+                    for line in code.splitlines():
+                        line = line.strip()
+                        if line and not line.startswith('#'):
+                            lines.append(line)
+                    return '\n'.join(lines)
+
+                lesson_normalized  = _normalize(desc)
+                student_normalized = _normalize(student_code)
+
+                print(f'[validate] lesson_normalized={repr(lesson_normalized)}')
+                print(f'[validate] student_normalized={repr(student_normalized)}')
+
+                if lesson_normalized == student_normalized:
+                    print(f'[validate] ✅ Code matches exactly — auto-passing')
+                    code_validation = {
+                        'is_correct': True,
+                        'feedback': '✅ Perfect! Your code matches the lesson exactly.'
+                    }
+                else:
+                    print(f'[validate] Code differs — calling AI structure check')
+                    code_validation = _validate_code_structure_with_ai_for_input(desc, student_code, attempts)
+
                 if code_validation['is_correct']:
-                    # ✅ Reset attempts on success
                     request.session[attempt_key] = 0
-                    
                     _mark_complete(request.user, topic)
                     xp_data = award_xp(request.user, 100)
-                    
-                    # Calculate completion percentage
+
                     from users.models import Profile
                     profile = Profile.objects.get(user=request.user)
                     total_topics = Topics.objects.filter(courses=topic.courses).count()
@@ -3445,25 +3451,21 @@ def validate_topic_completion(request):
                         topic__courses=topic.courses
                     ).count()
                     completion_pct = round((completed_topics / total_topics * 100)) if total_topics > 0 else 0
-                    
+
                     return JsonResponse({
-                        'status': 'success', 
-                        'is_correct': True,
-                        'message': code_validation['feedback'], 
+                        'status': 'success', 'is_correct': True,
+                        'message': code_validation['feedback'],
                         'xp': xp_data,
                         'completion_percentage': completion_pct,
                         'course_id': topic.courses.id if topic.courses else None,
                     })
                 else:
-                    # ✅ Increment attempts on failure
                     attempts += 1
                     request.session[attempt_key] = attempts
                     hint = _get_progressive_hint(attempts, topic)
                     lesson_display = _clean_lesson_code_for_display(desc)
-                    
                     return JsonResponse({
-                        'status': 'success', 
-                        'is_correct': False,
+                        'status': 'success', 'is_correct': False,
                         'message': code_validation['feedback'],
                         'hint': hint,
                         'attempts': attempts,
@@ -3471,34 +3473,27 @@ def validate_topic_completion(request):
                         'lesson_code': lesson_display,
                     })
 
-            # ✅ Continue with normal validation for non-input lessons
-            if has_print:
-                print(f'[validate] ▶️ trying to extract expected output with AI')
+            # ── CASE B: print() only → run and compare output ─────────
+            elif has_print:
+                print(f'[validate] ▶️ CASE B — print() only, running lesson code')
                 expected_output = _extract_expected_output_with_ai(desc)
                 print(f'[validate] expected_output from AI={repr(expected_output)}')
-                
-                # Fallback to running code if AI fails
+
                 if expected_output is None:
                     print(f'[validate] ⚠️ falling back to GPT compare')
                     result = _gpt_compare(desc, student_output)
                 else:
-                    # ✅ Step 1: Check if output matches
                     output_matches = (student_output.strip() == expected_output.strip())
                     print(f'[validate] Comparing: student="{student_output.strip()}" vs expected="{expected_output.strip()}"')
                     print(f'[validate] output_matches={output_matches}')
-                    
+
                     if not output_matches:
-                        # Output is wrong - fail immediately WITH progressive hints
                         attempts += 1
                         request.session[attempt_key] = attempts
-                        print(f'[validate] Attempt #{attempts} for topic {topic_id}')
-                        
                         hint = _get_progressive_hint(attempts, topic)
                         lesson_display = _clean_lesson_code_for_display(desc)
-                        
                         return JsonResponse({
-                            'status': 'success',
-                            'is_correct': False,
+                            'status': 'success', 'is_correct': False,
                             'message': f'❌ Expected output: "{expected_output}" but you got: "{student_output}". Try again.',
                             'hint': hint,
                             'attempts': attempts,
@@ -3506,17 +3501,16 @@ def validate_topic_completion(request):
                             'lesson_code': lesson_display,
                         })
                     else:
-                        # ✅ Step 2: Output is correct, now validate code structure
                         print(f'[validate] Output correct, now validating code structure with AI')
                         code_validation = _validate_code_structure_with_ai(desc, student_code, attempts)
                         print(f'[validate] code_validation={code_validation}')
-                        
                         result = code_validation
 
+            # ── CASE C: no print/input → check assignments ─────────────
             else:
                 assignments = re.findall(r'^\s*([a-zA-Z_]\w*)\s*=\s*([^=\n#][^\n#]*)', desc, re.MULTILINE)
                 required    = [(var.strip(), val.strip()) for var, val in assignments]
-                print(f'[validate] CASE B required={required}')
+                print(f'[validate] CASE C required={required}')
 
                 missing = []
                 for var, val in required:
@@ -3525,14 +3519,10 @@ def validate_topic_completion(request):
                         missing.append(f'{var} = {val}')
 
                 if missing:
-                    # ✅ Increment attempts on failure
                     attempts += 1
                     request.session[attempt_key] = attempts
-                    
-                    # ✅ Progressive hints
                     hint = _get_progressive_hint(attempts, topic, missing)
                     lesson_display = _clean_lesson_code_for_display(desc)
-                    
                     return JsonResponse({
                         'status': 'success', 'is_correct': False,
                         'message': f'❌ Missing required assignments: {", ".join(missing)}',
@@ -3546,13 +3536,10 @@ def validate_topic_completion(request):
             print(f'[validate] result={result}')
 
             if result['is_correct']:
-                # ✅ Reset attempts on success
                 request.session[attempt_key] = 0
-                
                 _mark_complete(request.user, topic)
                 xp_data = award_xp(request.user, 100)
-                
-                # Calculate completion percentage
+
                 from users.models import Profile
                 profile = Profile.objects.get(user=request.user)
                 total_topics = Topics.objects.filter(courses=topic.courses).count()
@@ -3561,28 +3548,22 @@ def validate_topic_completion(request):
                     topic__courses=topic.courses
                 ).count()
                 completion_pct = round((completed_topics / total_topics * 100)) if total_topics > 0 else 0
-                
+
                 return JsonResponse({
-                    'status': 'success', 
-                    'is_correct': True,
-                    'message': result['feedback'], 
+                    'status': 'success', 'is_correct': True,
+                    'message': result['feedback'],
                     'xp': xp_data,
                     'completion_percentage': completion_pct,
                     'course_id': topic.courses.id if topic.courses else None,
                 })
             else:
-                # ✅ Increment attempts on failure
                 attempts += 1
                 request.session[attempt_key] = attempts
                 print(f'[validate] Attempt #{attempts} for topic {topic_id}')
-                
-                # ✅ Progressive hints
                 hint = _get_progressive_hint(attempts, topic)
                 lesson_display = _clean_lesson_code_for_display(desc)
-                
                 return JsonResponse({
-                    'status': 'success', 
-                    'is_correct': False,
+                    'status': 'success', 'is_correct': False,
                     'message': result['feedback'],
                     'hint': hint,
                     'attempts': attempts,
@@ -3612,9 +3593,7 @@ or
             result = _call_gpt(prompt, max_tokens=150)
 
             if result['is_correct']:
-                # ✅ Reset attempts on success
                 request.session[attempt_key] = 0
-                
                 _mark_complete(request.user, topic)
                 xp_data = award_xp(request.user, 100)
                 return JsonResponse({
@@ -3622,15 +3601,12 @@ or
                     'message': result['feedback'], 'xp': xp_data,
                 })
             else:
-                # ✅ Increment attempts and provide hints
                 attempts += 1
                 request.session[attempt_key] = attempts
                 hint = _get_progressive_hint(attempts, topic)
                 lesson_display = (topic.desc or '').replace('\r\n', '\n').replace('\r', '\n').strip()
-                
                 return JsonResponse({
-                    'status': 'success', 
-                    'is_correct': False,
+                    'status': 'success', 'is_correct': False,
                     'message': result['feedback'],
                     'hint': hint,
                     'attempts': attempts,
@@ -3650,8 +3626,7 @@ or
         return JsonResponse({'status': 'error', 'message': 'Topic not found'}, status=404)
     except Exception as e:
         import traceback; traceback.print_exc()
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-    
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)    
 
 
 def _get_progressive_hint(attempts, topic, missing=None):

@@ -727,7 +727,8 @@ function createEditorProject(courseId, courseTitle) {
             "X-CSRFToken": '{{ csrf_token }}'
         },
         body: JSON.stringify({
-            name: courseTitle  // ✅ Use course title here
+            name: courseTitle,
+            course_id: courseId    // ✅ ADD THIS LINE
         })
     })
     .then(res => res.json())

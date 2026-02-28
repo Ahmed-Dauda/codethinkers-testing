@@ -666,7 +666,7 @@
 </button>
 
 <span>⚡ <strong id="xpTotal">0</strong> XP</span>
-  <span>🔥 <strong id="xpStreak">0</strong> day streak</span>
+<span>🔥 <strong id="xpStreak">0</strong> day streak</span>
     
 </div>
 
@@ -826,7 +826,7 @@
       class="topic-study-btn"
       id="topic-btn-{{ topic.id }}"
       data-topic-id="{{ topic.id }}"
-      onclick="handleStudyClick({{ topic.id }}, this)"
+      onclick="event.stopPropagation(); handleStudyClick({{ topic.id }}, this)"
       style="
         margin: 5px 0 0;
         padding: 4px 10px;
@@ -961,39 +961,48 @@ function _renderSidebarProgress(done, total, pct) {
   }
 }
 
-// ── Study button click ─────────────────────────────────────────
+
 function handleStudyClick(topicId, btn) {
-  // Instant optimistic paint — keeps already-completed topics green
-  applyTopicStates({
-    current_topic_id:    topicId,
-    completed_topic_ids: window._completedTopicIds || [],
-    total_count:         window._totalTopicCount   || 0,
-  });
-  setCurrentTopic(topicId, btn);
+  window._justClickedStudy = true;
+  setTimeout(() => { window._justClickedStudy = false; }, 800);
+
+  setTimeout(() => {
+    window._currentTopicId = topicId;
+    localStorage.setItem('currentTopicId', topicId);
+    currentlyStudyingTopicId = topicId;
+
+    applyTopicStates({
+      current_topic_id:    topicId,
+      completed_topic_ids: window._completedTopicIds || [],
+      total_count:         window._totalTopicCount   || 0,
+    });
+
+    setCurrentTopic(topicId, btn);
+  }, 0);
 }
 
 // ── Backend save ───────────────────────────────────────────────
 
 
-function setCurrentTopic(topicId, buttonElement) {
+async function setCurrentTopic(topicId, buttonElement) {
   currentlyStudyingTopicId = topicId;
   localStorage.setItem('currentTopicId', topicId);
 
-  fetch(`/webprojects/project/{{ file.project.id }}/set-topic/${topicId}/`, {
-    method: 'POST',
-    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-  })
-  .then(res => res.json())
-  .then(data => {
+  try {
+    const res  = await fetch(`/webprojects/project/{{ file.project.id }}/set-topic/${topicId}/`, {
+      method:  'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    });
+    const data = await res.json();
     if (data.status === 'success') {
       showToast('📍 ' + (data.topic_title || data.message || 'Topic selected'));
     } else {
       showToast('❌ Failed to set topic');
     }
-  })
-  .catch(() => showToast('❌ Connection error'));
+  } catch {
+    // Silently fail — local state already updated
+  }
 }
-
 
 document.addEventListener('DOMContentLoaded', function () {
   window._totalTopicCount = document.querySelectorAll(
@@ -1071,59 +1080,13 @@ function _updateOverallBadge(done, total) {
     ` <span style="color:#3498db;font-size:11px;">${pct}%</span>`;
 }
 
-// ── Study button click ─────────────────────────────────────────────
-// This should already exist - just verify it's there:
-function handleStudyClick(topicId, btn) {
-  // Store topic ID globally
-  window._currentTopicId = topicId;
-  localStorage.setItem('currentTopicId', topicId);
-  
-  // Instant optimistic update
-  applyTopicStates({
-    current_topic_id: topicId,
-    completed_topic_ids: window._completedTopicIds || [],
-    total_count: window._totalTopicCount || 0
-  });
-  
-  setCurrentTopic(topicId, btn);
-  
-  console.log("✅ Topic set to:", topicId);  // ← Add this debug log
-}
 
+// ── Single declaration — used by handleStudyClick and setCurrentTopic ──
+let currentlyStudyingTopicId = null;
 // Check what's stored
 console.log("window._currentTopicId:", window._currentTopicId);
 console.log("localStorage:", localStorage.getItem('currentTopicId'));
 
-
-// ── Backend save ───────────────────────────────────────────────────
-let currentlyStudyingTopicId = null;
-
-function setCurrentTopic(topicId, buttonElement) {
-  if (!buttonElement) { console.error('❌ buttonElement undefined'); return; }
-
-  currentlyStudyingTopicId = topicId;
-  localStorage.setItem('currentTopicId', topicId);
-
-  fetch(`/webprojects/project/{{ file.project.id }}/set-topic/${topicId}/`, {
-    method: 'POST',
-    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === 'success') {
-      showToast('📍 ' + (data.topic_title || data.message || 'Topic selected'));
-      localStorage.setItem('currentTopicId', topicId);
-    } else {
-      showToast('❌ Failed to set topic');
-      _restoreFromLocalStorage();
-    }
-  })
-  .catch(err => {
-    console.error('Error setting topic:', err);
-    showToast('❌ Connection error');
-    _restoreFromLocalStorage();
-  });
-}
 
 // Always use DB seed data for completed topics, only use localStorage for current topic
 const saved = localStorage.getItem('currentTopicId');
@@ -2581,21 +2544,33 @@ console.log('✅ File switching initialized');
 <!-- side content js -->
 
 <script>
-  function toggleDesc(id, el, lang) {
-    const desc = document.getElementById(id);
-    if(desc.style.display === "none") {
-      desc.style.display = "block";
-      el.querySelector(".toggle-icon").textContent = "➖";
-
-      // Apply Prism highlighting
-      const codeEl = desc.querySelector('code');
-      codeEl.className = 'language-' + lang;
-      Prism.highlightElement(codeEl);
-    } else {
-      desc.style.display = "none";
-      el.querySelector(".toggle-icon").textContent = "➕";
+function toggleDesc(id, el, lang) {
+  const desc = document.getElementById(id);
+  if (desc.style.display === "none") {
+    // Don't open if this topic was JUST set to studying (within last 800ms)
+    const topicId = parseInt(id.replace('topic-', ''), 10);
+    if (topicId === currentlyStudyingTopicId && window._justClickedStudy) {
+      return; // block open briefly
     }
+    desc.style.display = "block";
+    el.querySelector(".toggle-icon").textContent = "➖";
+
+    // ── Defer Prism highlighting so UI opens instantly ────────
+    setTimeout(() => {
+      const codeEl = desc.querySelector('code');
+      if (codeEl) {
+        codeEl.className = 'language-' + lang;
+        Prism.highlightElement(codeEl);
+      }
+    }, 50);
+
+  } else {
+    desc.style.display = "none";
+    el.querySelector(".toggle-icon").textContent = "➕";
   }
+}
+
+
 </script>
 
 <!-- your sidebar content below... -->
@@ -3597,6 +3572,7 @@ function showSmartHint(hint, type, topic) {
   panel.style.display = 'block';
   
   // ✅ SPEAK WITH CALLBACK - Wait for speech to finish before auto-hiding
+// ✅ SPEAK WITH CALLBACK - Wait for speech to finish before auto-hiding
   window.speakText(hint, () => {
     console.log("Speech completed for hint");
     
@@ -3609,7 +3585,16 @@ function showSmartHint(hint, type, topic) {
       }, 5000); // Wait 5 more seconds after speech ends
     }
   });
+} // ← closes showSmartHint
+
+
+function closeSmartHint() {
+  const panel = document.getElementById('smartHintPanel');
+  if (panel) panel.style.display = 'none';
+  window.speechSynthesis.cancel();
 }
+
+// ============= TEXT-TO-SPEECH =============
 // ============= TEXT-TO-SPEECH =============
 
 
@@ -4215,6 +4200,8 @@ async function fetchAndShowNextCourseRecommendation() {
   }
 }
 
+
+
 function showCourseRecommendationModal(nextCourse, currentCourse) {
   const existing = document.getElementById('course-recommendation-overlay');
   if (existing) existing.remove();
@@ -4252,7 +4239,9 @@ function showCourseRecommendationModal(nextCourse, currentCourse) {
       <h3 style="font-size: 24px; font-weight: bold; margin: 12px 0; color: #fff;">
         ${escapeHTML(nextCourse.title)}
       </h3>
-      <p style="font-size: 14px; margin: 12px 0; opacity: 0.85; line-height: 1.6;">
+      <p style="font-size: 14px; margin: 12px 0; opacity: 0.85; line-height: 1.6;
+          display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+          overflow: hidden; text-overflow: ellipsis;">
         ${escapeHTML(nextCourse.description || 'Continue your learning journey with this course!')}
       </p>
       <div style="font-size: 14px; margin-top: 16px; opacity: 0.8;">
@@ -4438,7 +4427,7 @@ function showCodeComparison(lessonCode, studentCode, feedback, hint) {
         
         // Expected code side
         if (expectedTrimmed) {
-            expectedHTML += `<div style="display: flex; padding: 4px 0;">
+            expectedHTML += `<div style="display: flex; padding: 4px 0; user-select: none;">
                 <span style="color: #999; width: 30px; text-align: right; margin-right: 12px; user-select: none; flex-shrink: 0;">${lineNum}</span>
                 <span style="flex: 1; font-family: 'Courier New', monospace; ${!isMatch && studentTrimmed ? 'background: #fff3cd; padding: 2px 4px; border-radius: 3px;' : ''}">${escapeHTML(expectedLine)}</span>
             </div>`;
@@ -4501,7 +4490,7 @@ function showCodeComparison(lessonCode, studentCode, feedback, hint) {
             ${fixSuggestionsHTML}
             ${hintHTML}
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;user-select: none;">
                 <!-- Expected Code -->
                 <div style="background: #f0fff4; border: 2px solid #28a745; border-radius: 8px; padding: 12px;">
                     <div style="font-weight: bold; color: #28a745; margin-bottom: 8px; font-size: 14px;">
@@ -4563,6 +4552,7 @@ function showAIFeedback(message, isCorrect) {
     position: fixed;
     bottom: 160px;
     right: 20px;
+    user-select: none;
     max-width: 380px;
     padding: 14px 18px;
     border-radius: 10px;

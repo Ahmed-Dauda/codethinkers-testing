@@ -170,16 +170,7 @@ def ai_topics_generator_obj(request):
                         'transcript': transcript
                     }
                 )
-                # topic_obj, created = Topics.objects.update_or_create(
-                #     slug=slug,
-                #     courses=course_obj,  # ensures uniqueness per course
-                #     defaults={
-                #         'categories': category_obj,
-                #         'title': title,
-                #         'desc': desc,
-                #         'transcript': transcript
-                #     }
-                # )
+
                 saved += 1
 
         messages.success(request, f"{saved} topics saved successfully.")
@@ -265,7 +256,7 @@ def ai_topics_generator_obj(request):
             - Include **at least 5 runnable code examples** (if relevant), formatted properly, each with **line-by-line comments**.  
             - Provide **solutions** for exercises or challenges.  
             - Include **real-world examples** where this concept applies.  
-            - End each topic with a **mini-project or small assignment**, explained step by step.
+            
 
             4. Python lessons:
             - Always format code exactly as:
