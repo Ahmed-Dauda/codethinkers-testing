@@ -869,9 +869,15 @@ function applyTopicStates(data) {
   // the server response, a stale response (that arrived before the
   // DB committed) wipes out the tick the student just earned.
   // Solution: always take the UNION of both sets.
-  const incoming     = new Set((data.completed_topic_ids || []).map(Number));
-  const cached       = new Set((window._completedTopicIds || []).map(Number));
-  const completedSet = new Set([...incoming, ...cached]); // union — never lose a tick
+const incoming     = new Set((data.completed_topic_ids || []).map(Number));
+
+  // Only merge cache if we are on the same course — never carry over from another course
+  const sameCourse   = !data.course_id || !window._currentCourseId || 
+                       (Number(data.course_id) === Number(window._currentCourseId));
+  const cached       = sameCourse 
+                       ? new Set((window._completedTopicIds || []).map(Number))
+                       : new Set();
+  const completedSet = new Set([...incoming, ...cached]);
 
   const allItems = document.querySelectorAll('.topic-item[data-topic-id]');
   const total    = data.total_count || allItems.length;
@@ -1009,44 +1015,46 @@ document.addEventListener('DOMContentLoaded', function () {
     '.topic-item[data-topic-id]'
   ).length;
 
-  // ── Fresh data from DB (baked in by Django at render time) ────
+  // DB is the ONLY source of truth — baked in at render time by Django
   const seedCompleted = {{ completed_topic_ids|safe }};
   const seedCurrent   = {{ current_topic_id|default:"null" }};
 
-  // ── KEY FIX: DB is the source of truth — always use DB data,
-  //    never merge with localStorage. If a record was deleted from
-  //    the DB, we must NOT restore it from localStorage cache.
+  // Hard reset — ignore everything from localStorage or memory
   window._completedTopicIds = seedCompleted.map(Number);
   window._currentTopicId    = seedCurrent;
+  currentlyStudyingTopicId  = seedCurrent;
 
-  // Clear any stale localStorage that might override DB data
-  if (seedCurrent) {
-    localStorage.setItem('currentTopicId', seedCurrent);
-  } else {
-    localStorage.removeItem('currentTopicId');
-  }
+  // Wipe all localStorage topic state
+  localStorage.removeItem('currentTopicId');
+  localStorage.removeItem('completedTopicIds');
+  localStorage.removeItem('_completedTopicIds');
 
   applyTopicStates({
     current_topic_id:    seedCurrent,
     completed_topic_ids: seedCompleted,
     total_count:         window._totalTopicCount,
   });
-
-  if (seedCurrent) {
-    currentlyStudyingTopicId = seedCurrent;
-    localStorage.setItem('currentTopicId', seedCurrent);
-  }
 });
-
 </script>
 {% comment %} Seed JS with server data so ticks show instantly on load {% endcomment %}
 <script>
-// DB is always source of truth — never restore completed topics from localStorage
-window._completedTopicIds = {{ completed_topic_ids|safe }};
+// Scope completed topics to THIS course only
+const _thisCourseId = {{ course_id|default:"null" }};
+window._currentCourseId   = _thisCourseId;
+window._completedTopicIds = _thisCourseId ? {{ completed_topic_ids|safe }} : [];
 window._currentTopicId    = {{ current_topic_id|default:"null" }};
 window._totalTopicCount   = {{ topics|length }};
 
-// Wipe any stale localStorage completed cache
+// Wipe any stale localStorage completed cache from other courses
+const _storedCourseId = localStorage.getItem('currentCourseId');
+if (_storedCourseId && _storedCourseId != _thisCourseId) {
+  // Different course — clear stale data
+  localStorage.removeItem('completedTopicIds');
+  localStorage.removeItem('_completedTopicIds');
+  localStorage.removeItem('currentTopicId');
+  console.log('[Course] Cleared stale data from course', _storedCourseId);
+}
+localStorage.setItem('currentCourseId', _thisCourseId);
 localStorage.removeItem('completedTopicIds');
 localStorage.removeItem('_completedTopicIds');
 
@@ -1089,36 +1097,38 @@ console.log("localStorage:", localStorage.getItem('currentTopicId'));
 
 
 // Always use DB seed data for completed topics, only use localStorage for current topic
+// Always use DB seed data — never restore from localStorage
 const saved = localStorage.getItem('currentTopicId');
-const currentId = window._currentTopicId || (saved ? parseInt(saved, 10) : null);
+const currentId = window._currentTopicId || null; // ← ignore localStorage
 if (currentId) {
   currentlyStudyingTopicId = currentId;
   setTimeout(() => {
     applyTopicStates({
       current_topic_id:    currentId,
-      completed_topic_ids: window._completedTopicIds || [],  // ← DB only, no localStorage merge
+      completed_topic_ids: window._completedTopicIds || [],
       total_count:         window._totalTopicCount
     });
   }, 100);
 }
 // ── Page load restore ──────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', function () {
-  // Count topics for the progress line
-  window._totalTopicCount = document.querySelectorAll('.topic-item[data-topic-id]').length;
+// document.addEventListener('DOMContentLoaded', function () {
+//   // Count topics for the progress line
+//   window._totalTopicCount = document.querySelectorAll('.topic-item[data-topic-id]').length;
 
-  const saved = localStorage.getItem('currentTopicId');
-  if (saved) {
-    currentlyStudyingTopicId = parseInt(saved, 10);
-    setTimeout(() => {
-      applyTopicStates({
-        current_topic_id:    currentlyStudyingTopicId,
-        completed_topic_ids: window._completedTopicIds || [],
-        total_count:         window._totalTopicCount
-      });
-    }, 100);
-  }
-});
+//   const saved = localStorage.getItem('currentTopicId');
+//   if (saved) {
+//     currentlyStudyingTopicId = parseInt(saved, 10);
+//     setTimeout(() => {
+//       applyTopicStates({
+//         current_topic_id:    currentlyStudyingTopicId,
+//         completed_topic_ids: window._completedTopicIds || [],
+//         total_count:         window._totalTopicCount
+//       });
+//     }, 100);
+//   }
+// });
+
 </script>
 <!-- ===== Style ===== -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" rel="stylesheet"/>
@@ -2546,14 +2556,18 @@ console.log('✅ File switching initialized');
 <script>
 function toggleDesc(id, el, lang) {
   const desc = document.getElementById(id);
+  const topicId = parseInt(id.replace('topic-', ''), 10);
+
   if (desc.style.display === "none") {
-    // Don't open if this topic was JUST set to studying (within last 800ms)
-    const topicId = parseInt(id.replace('topic-', ''), 10);
-    if (topicId === currentlyStudyingTopicId && window._justClickedStudy) {
-      return; // block open briefly
-    }
     desc.style.display = "block";
     el.querySelector(".toggle-icon").textContent = "➖";
+
+    // ── Auto-click Study This Topic when opening ──────────────
+    const btn = document.getElementById('topic-btn-' + topicId);
+    if (btn && btn.textContent.trim().includes('📚 Study This Topic')) {
+      // Only auto-study if not already studying or completed
+      btn.click();
+    }
 
     // ── Defer Prism highlighting so UI opens instantly ────────
     setTimeout(() => {
@@ -2569,7 +2583,6 @@ function toggleDesc(id, el, lang) {
     el.querySelector(".toggle-icon").textContent = "➕";
   }
 }
-
 
 </script>
 
@@ -5717,9 +5730,14 @@ console.log("✅ All functions loaded");
     if (!window.PROGRESS_URL) return;
     try {
       const courseId = getCourseId();
-      const url      = courseId
-        ? window.PROGRESS_URL + '?course_id=' + courseId
-        : window.PROGRESS_URL;
+
+      // Always require a course_id — without it we get cross-course pollution
+      if (!courseId) {
+        console.warn('[SmartTutor] No course_id — skipping fetchProgress');
+        return;
+      }
+
+      const url = window.PROGRESS_URL + '?course_id=' + courseId;
 
       const res  = await fetch(url);
       const data = await res.json();

@@ -781,6 +781,7 @@ from django.views.decorators.http import require_http_methods
 #      each topic completion to refresh the sidebar progress bar.
 # ─────────────────────────────────────────────────────────────────
 
+
 @login_required
 def get_student_progress(request):
     try:
@@ -795,7 +796,8 @@ def get_student_progress(request):
 
         # ✅ FIX: no course=None filter
         progress = StudentProgress.objects.filter(
-            student=request.user
+            student=request.user,
+            course_id=course_id if course_id else None
         ).prefetch_related('completed_topics').order_by('-last_updated').first()
 
         current_topic = progress.current_topic if progress else None
