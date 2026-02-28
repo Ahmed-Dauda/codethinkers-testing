@@ -232,14 +232,18 @@ def ai_topics_generator_obj(request):
         Generate exactly course topics for a "{course_title}" course under the "{category_title}" category.
         Apply this difficulty setting: {difficulty}.
         {category_instruction}
+        IMPORTANT: The "title" field in every JSON object must be copied EXACTLY from the learning objectives provided. Do not paraphrase, shorten, or rename any title.
         """
 
         # If user provided custom objectives
         if custom_objectives:
             objectives_list = [obj.strip() for obj in custom_objectives.split("\n") if obj.strip()]
-            prompt += "\nUse the following learning objectives exactly in this order:\n"
+            prompt += "\nCRITICAL RULE — TITLE MUST MATCH EXACTLY:\n"
+            prompt += "You MUST use the following as the EXACT 'title' values. Do NOT rephrase, summarize, shorten, or rewrite them in any way. Copy them character-for-character.\n\n"
             for i, obj in enumerate(objectives_list, start=1):
-                prompt += f"{i}. {obj}\n"
+                prompt += f"{i}. TITLE MUST BE EXACTLY: \"{obj}\"\n"
+            prompt += "\nIf you change any title even slightly, your output is wrong. The title in JSON must be a copy-paste of the text above.\n"
+
 
 
         if is_programming:
