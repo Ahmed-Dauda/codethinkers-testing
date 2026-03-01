@@ -347,6 +347,14 @@
     border: 2px solid transparent;
     background-color: white;
     transition: all 0.3s ease;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.sidebar {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
 }
 
 .topic-item.active {
@@ -792,7 +800,8 @@
   >
     <a href="javascript:void(0);"
        class="topic-toggle d-flex justify-content-between align-items-center"
-       onclick="toggleDesc('topic-{{ topic.id }}', this, '{{ topic.language|default:"python" }}')">
+       onclick="toggleDesc('topic-{{ topic.id }}', this, '{{ topic.language|default:"python" }}')"
+      >
 
       <span class="d-flex align-items-center gap-2">
         <!-- Icon: JS sets this to ✅ 📍 or ○ -->
@@ -969,22 +978,27 @@ function _renderSidebarProgress(done, total, pct) {
 
 
 function handleStudyClick(topicId, btn) {
-  window._justClickedStudy = true;
-  setTimeout(() => { window._justClickedStudy = false; }, 800);
+  // Already studying or completed — do nothing
+  if (topicId === window._currentTopicId) return;
+  const done = new Set((window._completedTopicIds || []).map(Number));
+  if (done.has(Number(topicId))) return;
 
-  setTimeout(() => {
-    window._currentTopicId = topicId;
-    localStorage.setItem('currentTopicId', topicId);
-    currentlyStudyingTopicId = topicId;
+  // Update state immediately
+  window._currentTopicId   = topicId;
+  currentlyStudyingTopicId = topicId;
+  localStorage.setItem('currentTopicId', topicId);
 
+  // Paint UI in next frame
+  requestAnimationFrame(() => {
     applyTopicStates({
       current_topic_id:    topicId,
       completed_topic_ids: window._completedTopicIds || [],
       total_count:         window._totalTopicCount   || 0,
     });
+  });
 
-    setCurrentTopic(topicId, btn);
-  }, 0);
+  // Backend save — completely non-blocking
+  setTimeout(() => setCurrentTopic(topicId, btn), 100);
 }
 
 // ── Backend save ───────────────────────────────────────────────
@@ -1258,9 +1272,7 @@ if (currentId) {
 <button id="speechToggleBtn" onclick="window.toggleSpeech()" style="background: #27ae60; color: white;">
   🔊 Speech on
 </button>
-<button onclick="getManualHint()" style="background: #3498db; color: white;">
-  💡 Get AI Hint
-</button>
+
 
 <button onclick="getRelevantExamples()" id="examplesBtn" style="background: #3498db; color: white;">
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2562,11 +2574,11 @@ function toggleDesc(id, el, lang) {
     desc.style.display = "block";
     el.querySelector(".toggle-icon").textContent = "➖";
 
-    // ── Auto-click Study This Topic when opening ──────────────
+    // ── Auto-trigger Study This Topic after UI has opened ─────
+    // ── Auto-trigger Study This Topic — fully deferred ────────
     const btn = document.getElementById('topic-btn-' + topicId);
     if (btn && btn.textContent.trim().includes('📚 Study This Topic')) {
-      // Only auto-study if not already studying or completed
-      btn.click();
+      setTimeout(() => handleStudyClick(topicId, btn), 50);
     }
 
     // ── Defer Prism highlighting so UI opens instantly ────────
@@ -2628,20 +2640,21 @@ function toggleDesc(id, el, lang) {
 
     document.addEventListener('mousemove', (e) => {
       if (!isResizing) return;
+      e.preventDefault();
       
       const width = startWidth + (e.clientX - startX);
-      const minWidth = 200; // Minimum sidebar width
-      const maxWidth = 950; // Maximum sidebar width
+      const minWidth = 200;
+      const maxWidth = 950;
       
       if (width >= minWidth && width <= maxWidth) {
-        sidebar.style.width = width + 'px';
-        sidebar.style.flexBasis = width + 'px';
-        sidebar.style.minWidth = width + 'px';
-        
-        // Relayout Monaco Editor during resize
-        if (window.editor?.layout) {
-          window.editor.layout();
-        }
+        requestAnimationFrame(() => {
+          sidebar.style.width = width + 'px';
+          sidebar.style.flexBasis = width + 'px';
+          sidebar.style.minWidth = width + 'px';
+          if (window.editor?.layout) {
+            window.editor.layout();
+          }
+        });
       }
     });
 
@@ -4626,14 +4639,15 @@ function closeQuizModal() {
 async function checkIfQuizTopic(topicId) {
   try {
     const res  = await fetch(`/webprojects/topic-info/${topicId}/`);
+    if (!res.ok) return; // silently skip
     const data = await res.json();
 
     if (data.validation_type === 'quiz' && data.quiz_question) {
-      showQuizModal(data.quiz_question, topicId);
+      // Defer modal so it never blocks the click thread
+      setTimeout(() => showQuizModal(data.quiz_question, topicId), 0);
     }
   } catch (e) {
-    // Silently fail — topic-info endpoint may not exist yet
-    // Add the view below if you want auto quiz triggering
+    // Silently fail
   }
 }
 </script>
@@ -6547,11 +6561,17 @@ function startPolling() {
       console.log('[Poll] Change detected — updating sidebar');
 
       // Merge with optimistic cache so ticks are never lost
-      const merged = new Set([
-        ...(data.completed_topic_ids || []).map(Number),
-        ...(window._completedTopicIds || []).map(Number),
-      ]);
-      data.completed_topic_ids = Array.from(merged);
+      // Only merge if same course — never pollute across courses
+      const sameCourse = !data.course_id || !window._currentCourseId ||
+                         (Number(data.course_id) === Number(window._currentCourseId));
+
+      if (sameCourse) {
+        const merged = new Set([
+          ...(data.completed_topic_ids || []).map(Number),
+          ...(window._completedTopicIds || []).map(Number),
+        ]);
+        data.completed_topic_ids = Array.from(merged);
+      }
 
       renderProgress(data);
 
