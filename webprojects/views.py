@@ -781,7 +781,6 @@ from django.views.decorators.http import require_http_methods
 #      each topic completion to refresh the sidebar progress bar.
 # ─────────────────────────────────────────────────────────────────
 
-
 @login_required
 def get_student_progress(request):
     try:
@@ -794,7 +793,6 @@ def get_student_progress(request):
         else:
             all_topics = list(Topics.objects.all().order_by('id'))
 
-        # ✅ FIX: no course=None filter
         progress = StudentProgress.objects.filter(
             student=request.user,
             course_id=course_id if course_id else None
@@ -806,7 +804,7 @@ def get_student_progress(request):
         ) if progress else set()
 
         sidebar_ids        = {t.id for t in all_topics}
-        relevant_completed = completed_ids & sidebar_ids
+        relevant_completed = completed_ids & sidebar_ids  # ← course-scoped
 
         total = len(all_topics)
         done  = len(relevant_completed)
@@ -816,7 +814,7 @@ def get_student_progress(request):
             {
                 'id':         t.id,
                 'title':      t.title,
-                'completed':  t.id in completed_ids,
+                'completed':  t.id in relevant_completed,  # ← was completed_ids
                 'is_current': bool(current_topic and t.id == current_topic.id),
             }
             for t in all_topics
@@ -826,7 +824,7 @@ def get_student_progress(request):
             'status':               'success',
             'current_topic_id':     current_topic.id    if current_topic else None,
             'current_topic_title':  current_topic.title if current_topic else 'None selected',
-            'completed_topic_ids':  list(completed_ids),
+            'completed_topic_ids':  list(relevant_completed),  # ← was completed_ids
             'completed_count':      done,
             'total_count':          total,
             'overall_pct':          pct,
@@ -837,6 +835,7 @@ def get_student_progress(request):
         import traceback; traceback.print_exc()
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
+        
 
 @login_required
 @require_http_methods(["POST"])
@@ -1763,9 +1762,13 @@ def file_detail(request, project_id, file_id):
         course=course
     ).prefetch_related('completed_topics').order_by('-last_updated').first()
 
+    # Get only topic IDs that belong to THIS course
+    course_topic_ids = set(topics.values_list('id', flat=True))
+
     completed_topic_ids = list(
-        progress.completed_topics.values_list('id', flat=True)
+        progress.completed_topics.filter(id__in=course_topic_ids).values_list('id', flat=True)
     ) if progress else []
+
 
     current_topic_id = (
         progress.current_topic.id

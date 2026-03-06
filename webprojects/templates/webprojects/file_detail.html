@@ -1024,31 +1024,71 @@ async function setCurrentTopic(topicId, buttonElement) {
   }
 }
 
+// ✅ NEW: Database is ONLY source of truth - no localStorage
 document.addEventListener('DOMContentLoaded', function () {
+  console.log('[Init] Loading progress from database...');
+  
   window._totalTopicCount = document.querySelectorAll(
     '.topic-item[data-topic-id]'
   ).length;
 
-  // DB is the ONLY source of truth — baked in at render time by Django
-  const seedCompleted = {{ completed_topic_ids|safe }};
-  const seedCurrent   = {{ current_topic_id|default:"null" }};
-
-  // Hard reset — ignore everything from localStorage or memory
-  window._completedTopicIds = seedCompleted.map(Number);
-  window._currentTopicId    = seedCurrent;
-  currentlyStudyingTopicId  = seedCurrent;
-
-  // Wipe all localStorage topic state
-  localStorage.removeItem('currentTopicId');
-  localStorage.removeItem('completedTopicIds');
-  localStorage.removeItem('_completedTopicIds');
-
-  applyTopicStates({
-    current_topic_id:    seedCurrent,
-    completed_topic_ids: seedCompleted,
-    total_count:         window._totalTopicCount,
-  });
+  // Get course ID from template
+  const courseId = {{ course_id|default:"null" }};
+  
+  // Fetch fresh data from database on every page load
+  fetchProgressFromDatabase(courseId);
 });
+
+// ✅ Fetch progress from database (called on page load)
+async function fetchProgressFromDatabase(courseId) {
+  try {
+    const url = courseId 
+      ? `/webprojects/student-progress/?course_id=${courseId}`
+      : `/webprojects/student-progress/`;
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.status === 'success') {
+      console.log('[Init] ✅ Database data loaded:', {
+        current: data.current_topic_id,
+        completed: data.completed_topic_ids,
+        total: data.total_count,
+        percentage: data.overall_pct
+      });
+      
+      // Store in memory (NOT localStorage)
+      window._completedTopicIds = data.completed_topic_ids || [];
+      window._currentTopicId = data.current_topic_id;
+      window._totalTopicCount = data.total_count || 0;
+      window._currentCourseId = courseId;
+      
+      // Apply to UI
+      applyTopicStates({
+        current_topic_id: data.current_topic_id,
+        completed_topic_ids: data.completed_topic_ids || [],
+        total_count: data.total_count || 0,
+        overall_pct: data.overall_pct || 0,
+        topics: data.topics || []
+      });
+      
+      // Update progress bar
+      const fill = document.getElementById('modules-pb-fill');
+      const label = document.getElementById('modules-done-label');
+      const pctEl = document.getElementById('modules-pct-label');
+      
+      if (fill) fill.style.width = data.overall_pct + '%';
+      if (label) label.textContent = data.completed_count + ' / ' + data.total_count + ' topics completed';
+      if (pctEl) pctEl.textContent = data.overall_pct + '%';
+      
+      console.log('[Init] ✅ UI updated from database');
+    } else {
+      console.error('[Init] ❌ Failed to load progress:', data.message);
+    }
+  } catch (error) {
+    console.error('[Init] ❌ Error fetching progress:', error);
+  }
+}
 </script>
 {% comment %} Seed JS with server data so ticks show instantly on load {% endcomment %}
 <script>
@@ -4252,7 +4292,7 @@ function showCourseRecommendationModal(nextCourse, currentCourse) {
   modal.innerHTML = `
     <div style="font-size: 60px; margin-bottom: 20px;">🎉</div>
     <h2 style="font-size: 32px; font-weight: bold; margin: 0 0 16px 0; color: white;">
-      Congratulations!
+      Congratulations, {{ request.user.get_full_name|default:request.user.username }}!
     </h2>
     <p style="font-size: 18px; margin: 0 0 30px 0; opacity: 0.95;">
       You've completed <strong>${escapeHTML(currentCourse.title)}</strong>!
@@ -4316,7 +4356,7 @@ function showCourseCompletionCelebration(currentCourse) {
   modal.innerHTML = `
     <div style="font-size: 80px; margin-bottom: 20px;">🏆</div>
     <h2 style="font-size: 32px; font-weight: bold; margin: 0 0 16px 0;">
-      Course Completed!
+     Congratulations, {{ request.user.get_full_name|default:request.user.username }}!
     </h2>
     <p style="font-size: 18px; margin: 0 0 30px 0; opacity: 0.95;">
       Amazing work completing <strong>${escapeHTML(currentCourse.title)}</strong>!
