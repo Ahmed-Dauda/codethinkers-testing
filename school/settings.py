@@ -157,7 +157,7 @@ SITE_ID = 2
 # ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 from django.urls import reverse_lazy
 
-ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
 ACCOUNT_LOGIN_ON_PASSWORD_RESET = False
@@ -473,7 +473,7 @@ DATABASES = {
 
 #local development settings
 
-import dj_database_url
+# import dj_database_url
 
 # DATABASES = {
 #     'default': {

@@ -4,19 +4,160 @@
 {% block head_title %}{% trans "Signup" %}{% endblock %}
 
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* Basic pure CSS styling */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --slate-900: #0d1117;
+    --slate-800: #1a2030;
+    --slate-200: #e6edf3;
+    --slate-100: #f0f6fc;
+    --gold: #c9a96e;
+    --gold-light: #e8cc99;
+    --gold-dim: rgba(201,169,110,0.15);
+    --muted: #6c757d;
+    --white: #ffffff;
+    --radius: 10px;
+  }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--slate-100);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    background-image:
+      radial-gradient(ellipse 70% 50% at 15% 15%, rgba(201,169,110,0.07) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 70% at 85% 85%, rgba(201,169,110,0.05) 0%, transparent 65%);
+  }
+
+  .auth-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 14px;
+  }
+
+  /* ── Top Sign In Banner ── */
+  .signin-banner {
+    width: 460px;
+    max-width: 95vw;
+    background: linear-gradient(135deg, var(--slate-900) 0%, var(--slate-800) 100%);
+    border-radius: 14px;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid rgba(201,169,110,0.2);
+    box-shadow: 0 4px 16px rgba(13,17,23,0.12);
+    animation: rise 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .signin-banner p {
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.72);
+    font-weight: 300;
+  }
+
+  .signin-banner p strong {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .btn-signin-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 20px;
+    background: linear-gradient(135deg, #c9a96e, #e8cc99);
+    color: var(--slate-900);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    border-radius: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: 16px;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    box-shadow: 0 2px 10px rgba(201,169,110,0.35);
+  }
+
+  .btn-signin-top:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(201,169,110,0.45);
+    opacity: 0.92;
+  }
+
+  /* ── Card ── */
+  .auth-card {
+    width: 460px;
+    max-width: 95vw;
+    background: var(--white);
+    border-radius: 20px;
+    padding: 52px 48px 44px;
+    box-shadow:
+      0 0 0 1px rgba(13,17,23,0.06),
+      0 24px 64px rgba(13,17,23,0.10),
+      0 4px 12px rgba(13,17,23,0.05);
+    animation: rise 0.55s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(20px) scale(0.99); }
+    to   { opacity: 1; transform: translateY(0)   scale(1); }
+  }
+
+  /* ── Header ── */
+  .form-header { margin-bottom: 28px; }
+
+  .form-header .kicker {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 7px;
+  }
+
+  .form-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--slate-900);
+    line-height: 1.2;
+  }
+
+  .form-header p {
+    margin-top: 8px;
+    font-size: 13.5px;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  /* ── Form Fields ── */
   form#signup_form {
-    max-width: 400px;
-    margin: auto;
-    padding: 1rem;
-    background: #f9f9f9;
-    border-radius: 10px;
-    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
   }
 
   form#signup_form p {
-    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 14px;
+  }
+
+  form#signup_form label {
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
   }
 
   form#signup_form input[type="text"],
@@ -24,70 +165,187 @@
   form#signup_form input[type="password"],
   form#signup_form select {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
+    padding: 11px 13px;
+    border: 1.5px solid var(--slate-200);
+    border-radius: var(--radius);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    color: var(--slate-900);
+    background: var(--slate-100);
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    -webkit-appearance: none;
+  }
+
+  form#signup_form input:focus,
+  form#signup_form select:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(201,169,110,0.13);
+  }
+
+  /* Honeypot */
+  #id_honeypot, #id_js_honeypot { display: none !important; }
+
+  /* ── Password strength hint ── */
+  form#signup_form .helptext {
+    font-size: 11.5px;
+    color: #adb5bd;
+    margin-top: 5px;
+    line-height: 1.5;
+  }
+
+  /* ── Error messages ── */
+  form#signup_form .errorlist {
+    list-style: none;
+    margin-top: 5px;
+  }
+
+  form#signup_form .errorlist li {
+    font-size: 12px;
+    color: #e03535;
+    background: #fff5f5;
+    border-left: 3px solid #e03535;
+    padding: 6px 10px;
     border-radius: 5px;
   }
 
-  form#signup_form button {
+  /* ── Submit Button ── */
+  .btn-signup {
     width: 100%;
-    padding: 0.7rem;
-    background-color: #4CAF50;
-    color: white;
+    margin-top: 6px;
+    padding: 13px;
+    background: var(--slate-900);
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
     border: none;
-    border-radius: 5px;
-    font-weight: bold;
+    border-radius: var(--radius);
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s, transform 0.12s, box-shadow 0.2s;
   }
 
-  form#signup_form button:hover {
-    background-color: #45a049;
+  .btn-signup::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, var(--gold-dim) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.2s;
   }
 
-  /* Hide honeypot fields from view */
-  #id_honeypot, #id_js_honeypot {
+  .btn-signup:hover {
+    background: var(--slate-800);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(13,17,23,0.15);
+  }
+
+  .btn-signup:hover::before { opacity: 1; }
+  .btn-signup:active { transform: translateY(0); box-shadow: none; }
+
+  /* ── Button Spinner ── */
+  .btn-signup .btn-text { transition: opacity 0.2s; }
+  .btn-signup .btn-spinner {
     display: none;
+    width: 18px; height: 18px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  @keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  .btn-signup.loading .btn-text { opacity: 0; }
+  .btn-signup.loading .btn-spinner { display: block; }
+  .btn-signup.loading { pointer-events: none; opacity: 0.85; }
+
+  /* ── Footer ── */
+  .card-footer {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--slate-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .card-footer a {
+    font-size: 15px;
+    font-weight: 800;
+    text-decoration: none;
+    background: linear-gradient(135deg, #c9a96e, #e8cc99);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    border-bottom: 2.5px solid var(--gold);
+    padding-bottom: 1px;
+    transition: opacity 0.15s;
+  }
+
+  .card-footer a:hover { opacity: 0.75; }
+
+  @media (max-width: 520px) {
+    .auth-card { padding: 36px 24px 32px; }
+    .signin-banner { flex-wrap: wrap; gap: 10px; padding: 14px 18px; }
+    .btn-signin-top { margin-left: 0; width: 100%; justify-content: center; }
   }
 </style>
 
-<div class="container">
-  <h1>{% trans "Sign Up" %}</h1>
-  <p>
-    {% blocktrans %} Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}
-  </p>
+<div class="auth-wrapper">
 
-  <!-- <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
-    {% csrf_token %}
-    {{ form.as_p }}
+  <!-- Top banner -->
+  <div class="signin-banner">
+    <p><strong>Already have an account?</strong> Sign in here.</p>
+    <a class="btn-signin-top" href="{{ login_url }}">Sign In &rarr;</a>
+  </div>
 
-    <input type="hidden" name="honeypot" id="honeypot" />
-    <input type="hidden" name="js_honeypot" id="js_honeypot" value="" />
+  <!-- Card -->
+  <div class="auth-card">
+    <div class="form-header">
+      <div class="kicker">Create Account</div>
+      <h1>{% trans "Sign Up" %}</h1>
+      <p>Join us today — it only takes a moment.</p>
+    </div>
 
-    {% if redirect_field_value %}
-      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-    {% endif %}
+    <form id="signup_form" method="post" action="{% url 'account_signup' %}">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn-signup" type="submit">
+        <span class="btn-text">{% trans "Create Account" %} &rarr;</span>
+        <span class="btn-spinner"></span>
+      </button>
 
-    <button class="btn" type="submit">{% trans "Sign Up" %} &raquo;</button>
+      <script>
+        document.addEventListener("DOMContentLoaded", function(){
+          var jsTrap = document.getElementById('id_js_honeypot');
+          if (jsTrap) jsTrap.value = 'human';
 
-    <script>
-      document.getElementById('js_honeypot').value = 'human';
-    </script>
-</form> -->
+          var form = document.getElementById('signup_form');
+          var btn  = form.querySelector('.btn-signup');
+          form.addEventListener('submit', function(){
+            btn.classList.add('loading');
+          });
+        });
+      </script>
+    </form>
 
-<form id="signup_form" method="post" action="{% url 'account_signup' %}">
-  {% csrf_token %}
-  {{ form.as_p }}
+    <div class="card-footer">
+      <span>Already have an account?</span>
+      <a href="{{ login_url }}">Sign In &rarr;</a>
+    </div>
+  </div>
 
-  <button type="submit">Sign Up</button>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", function(){
-      var jsTrap = document.getElementById('id_js_honeypot');
-      if (jsTrap) jsTrap.value = 'human';
-    });
-  </script>
-</form>
-
-  
 </div>
 {% endblock %}
