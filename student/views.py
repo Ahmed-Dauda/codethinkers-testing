@@ -574,14 +574,20 @@ def pdf_document_list(request):
 
 
 
-
 @login_required
 def take_exams_view(request):
+    course_id = request.GET.get('course_id')
+    
+    if course_id:
+        from quiz.models import Course as ExamCourse
+        exam_course = ExamCourse.objects.filter(id=course_id).first()
+        if exam_course:
+            # Redirect directly to that specific exam
+            return redirect('student:start-exam', pk=exam_course.id)
+    
     categories = Categories.objects.prefetch_related('category').all()
-    context = {
-        'categories': categories
-    }
-    return render(request, 'student/dashboard/take_exams.html', context)
+    return render(request, 'student/dashboard/take_exams.html', {'categories': categories})
+
 
 # @login_required
 # def take_exams_view(request):

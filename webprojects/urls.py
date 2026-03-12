@@ -1,16 +1,20 @@
 from django.urls import path
 from webprojects.views import (ai_python_completion,ai_suggest_code, file_autosave, create_file, create_folder, 
 create_project, 
-file_delete, file_preview, get_code_examples, get_contextual_hint, get_file_content, get_student_progress, get_xp_stats, mark_topic_complete, project_detail,
+file_delete, file_preview, get_code_examples, get_contextual_hint, get_course_exam, get_file_content, get_student_courses, get_student_progress, get_xp_stats, mark_topic_complete, project_detail,
 file_detail, project_files_json, public_folder_view, recommend_next_course, 
 run_python_code, set_current_topic, share_preview_view, file_chat, topic_info,
-upload_file_ajax, validate_topic_completion, view_rendered_file)
+upload_file_ajax, validate_topic_completion, view_rendered_file, voice_chat_tutor)
+
 
 
 app_name = 'webprojects'
 
 urlpatterns = [
     # In urls.py
+    path('get-course-exam/<int:course_id>/', get_course_exam, name='get_course_exam'),
+    path('student-courses/', get_student_courses, name='student_courses'),
+    path('voice-chat-tutor/', voice_chat_tutor, name='voice_chat_tutor'),
     path('recommend-next-course/', recommend_next_course, name='recommend_next_course'),
     path('topic-info/<int:topic_id>/', topic_info, name='topic_info'),
    path('validate-topic/', validate_topic_completion, name='validate_topic_completion'),

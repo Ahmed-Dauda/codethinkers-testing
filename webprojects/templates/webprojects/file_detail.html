@@ -628,7 +628,7 @@
       Create Project
     </a>
     
-    <a href="{% url 'student:take-exam' %}">
+    <a href="#" onclick="goToExam({{ course_id|default:0 }})">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M9 11l3 3L22 4"/>
         <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
@@ -761,7 +761,7 @@
 
 <hr>
 
-<h4 class="mb-3">contact us: 08065636249</h4>
+<h4 class="mb-3">08065636249</h4>
 <h2 class="mb-3">Modules</h2>
 
 <!-- Overall progress bar — filled by JS -->
@@ -1278,6 +1278,8 @@ if (currentId) {
   </div>
 </div>
 
+
+
 {% endblock %}
 
 
@@ -1308,21 +1310,7 @@ if (currentId) {
   <!-- <button id="aiBtn" onclick="getAISuggestion()">💡 AI Suggest</button> -->
 
   
-  <!-- 👇 ADD SPEECH TOGGLE -->
-<button id="speechToggleBtn" onclick="window.toggleSpeech()" style="background: #27ae60; color: white;">
-  🔊 Speech on
-</button>
 
-
-<button onclick="getRelevantExamples()" id="examplesBtn" style="background: #3498db; color: white;">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <rect x="3" y="3" width="7" height="7"></rect>
-    <rect x="14" y="3" width="7" height="7"></rect>
-    <rect x="14" y="14" width="7" height="7"></rect>
-    <rect x="3" y="14" width="7" height="7"></rect>
-  </svg>
-  Show Examples 📚
-</button>
   <button id="toggleAIBtn">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"/>
@@ -1777,217 +1765,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 <script>
-// ============= RELEVANT EXAMPLES =============
-let currentExamples = [];
 
-async function getRelevantExamples() {
-  const code = editor.getValue();
-  const selection = editor.getSelection();
-  const cursorLine = selection.startLineNumber;
-  const selectedText = editor.getModel().getValueInRange(selection);
-  
-  // Show panel with loading state
-  const examplesPanel = document.getElementById('examplesPanel');
-  const examplesOverlay = document.getElementById('examplesOverlay');
-  const examplesContent = document.getElementById('examplesContent');
-  
-  // Show overlay and panel
-  if (examplesOverlay) examplesOverlay.style.display = 'block';
-  examplesPanel.style.display = 'block';
-  
-  examplesContent.innerHTML = `
-    <div style="text-align: center; padding: 40px;">
-      <div class="spinner" style="margin: 0 auto 15px;"></div>
-      <p style="color: rgba(255,255,255,0.8);">🔍 Finding relevant examples...</p>
-    </div>
-  `;
-  
-  try {
-    const response = await fetch("{% url 'webprojects:get_code_examples' %}", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token }}"
-      },
-      body: JSON.stringify({
-        code: code,
-        cursor_line: cursorLine,
-        selected_text: selectedText,
-        file_id: {{ file.id }}
-      })
-    });
-    
-    const data = await response.json();
-    
-    if (data.status === "success" && data.examples) {
-      currentExamples = data.examples;
-      displayExamples(data.examples);
-    } else {
-      examplesContent.innerHTML = `
-        <div style="text-align: center; padding: 30px;">
-          <span style="font-size: 48px;">❌</span>
-          <p style="margin-top: 15px;">No examples found</p>
-          <small style="opacity: 0.7;">${escapeHTML(data.message || '')}</small>
-        </div>
-      `;
-    }
-  } catch (error) {
-    examplesContent.innerHTML = `
-      <div style="text-align: center; padding: 30px;">
-        <span style="font-size: 48px;">⚠️</span>
-        <p style="margin-top: 15px;">Connection error</p>
-        <small style="opacity: 0.7;">${escapeHTML(error.message)}</small>
-      </div>
-    `;
-  }
 }
 
-function displayExamples(examples) {
-  const examplesContent = document.getElementById('examplesContent');
-  
-  if (!examples || examples.length === 0) {
-    examplesContent.innerHTML = `
-      <div style="text-align: center; padding: 30px;">
-        <span style="font-size: 48px;">📝</span>
-        <p style="margin-top: 15px; color: rgba(255,255,255,0.9);">
-          No examples found yet. Keep coding!
-        </p>
-      </div>
-    `;
-    return;
-  }
-  
-  examplesContent.innerHTML = '';
-  
-  examples.forEach((example, index) => {
-    const exampleDiv = document.createElement('div');
-    exampleDiv.className = 'code-example-item';
-    exampleDiv.style.cssText = `
-      margin-bottom: 20px;
-      padding: 15px;
-      background: rgba(0,0,0,0.3);
-      border-left: 4px solid #3498db;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    `;
-    
-    exampleDiv.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <div>
-          <span style="
-            background: rgba(52, 152, 219, 0.3);
-            color: #3498db;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-          ">${example.category || 'Example'}</span>
-        </div>
-        <span style="font-size: 24px;">${getCategoryEmoji(example.category)}</span>
-      </div>
-      
-      <h4 style="color: white; margin: 10px 0; font-size: 16px;">
-        ${example.title}
-      </h4>
-      
-      <p style="color: rgba(255,255,255,0.8); font-size: 13px; margin-bottom: 12px; line-height: 1.5;">
-        ${example.explanation}
-      </p>
-      
-      <pre style="
-        background: rgba(0,0,0,0.4);
-        padding: 12px;
-        border-radius: 6px;
-        overflow-x: auto;
-        font-size: 13px;
-        line-height: 1.5;
-        border: 1px solid rgba(255,255,255,0.1);
-        margin-bottom: 10px;
-      "><code>${escapeHTML(example.code)}</code></pre>
-    `;
-    
-    // Hover effect
-    exampleDiv.addEventListener('mouseenter', () => {
-      exampleDiv.style.background = 'rgba(52, 152, 219, 0.2)';
-      exampleDiv.style.transform = 'translateX(5px)';
-    });
-    
-    exampleDiv.addEventListener('mouseleave', () => {
-      exampleDiv.style.background = 'rgba(0,0,0,0.3)';
-      exampleDiv.style.transform = 'translateX(0)';
-    });
-    
-    examplesContent.appendChild(exampleDiv);
-  });
-}
-
-function getCategoryEmoji(category) {
-  const emojis = {
-    'input': '⌨️',
-    'loops': '🔄',
-    'conditionals': '🔀',
-    'functions': '⚙️',
-    'lists': '📋',
-    'strings': '📝',
-    'math': '🔢',
-    'files': '📁',
-    'beginner': '🌱',
-    'intermediate': '🚀',
-    'advanced': '⭐'
-  };
-  
-  return emojis[category?.toLowerCase()] || '💡';
-}
-
-
-
-
-
-function closeExamplesPanel() {
-  document.getElementById('examplesPanel').style.display = 'none';
-  const overlay = document.getElementById('examplesOverlay');
-  if (overlay) overlay.style.display = 'none';
-  currentExamples = [];
-}
-
-// Make examples panel draggable (same as hint panel)
-document.addEventListener('DOMContentLoaded', function() {
-  const examplesPanel = document.getElementById('examplesPanel');
-  const dragHandle = document.getElementById('examplesDragHandle');
-  const resizeHandle = document.getElementById('examplesResizeHandle');
-  
-  if (!examplesPanel || !dragHandle) return;
-  
-  let isDragging = false;
-  let dragOffsetX = 0;
-  let dragOffsetY = 0;
-  
-  dragHandle.addEventListener('mousedown', function(e) {
-    if (e.target.tagName === 'BUTTON') return;
-    isDragging = true;
-    dragOffsetX = e.clientX - examplesPanel.offsetLeft;
-    dragOffsetY = e.clientY - examplesPanel.offsetTop;
-    e.preventDefault();
-  });
-  
-  document.addEventListener('mousemove', function(e) {
-    if (!isDragging) return;
-    let newLeft = e.clientX - dragOffsetX;
-    let newTop = e.clientY - dragOffsetY;
-    const maxLeft = window.innerWidth - examplesPanel.offsetWidth;
-    const maxTop = window.innerHeight - examplesPanel.offsetHeight;
-    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-    newTop = Math.max(0, Math.min(newTop, maxTop));
-    examplesPanel.style.left = newLeft + 'px';
-    examplesPanel.style.top = newTop + 'px';
-  });
-  
-  document.addEventListener('mouseup', function() {
-    isDragging = false;
-  });
-});  
+ 
 </script>
 
 <script>
@@ -4223,7 +4004,7 @@ async function validateWithAI(code, studentOutput) {
 } else {
   // Show comparison modal when wrong
   if (data.lesson_code) {
-    showCodeComparison(data.lesson_code, code, data.message, data.hint);
+    showCodeComparison(data.lesson_code, code,data.hint);
   }
 } 
 
@@ -4308,25 +4089,40 @@ function showCourseRecommendationModal(nextCourse, currentCourse) {
       <p style="font-size: 14px; margin: 12px 0; opacity: 0.85; line-height: 1.6;
           display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
           overflow: hidden; text-overflow: ellipsis;">
-        ${escapeHTML(nextCourse.description || 'Continue your learning journey with this course!')}
+        ${(nextCourse.description || 'Continue your learning journey with this course!').replace(/<[^>]*>/g, '')}
       </p>
       <div style="font-size: 14px; margin-top: 16px; opacity: 0.8;">
         📚 ${nextCourse.topic_count || 0} topics
       </div>
     </div>
-    <div style="display: flex; gap: 12px; justify-content: center; margin-top: 30px;">
-      <button onclick="startRecommendedCourse(${nextCourse.id})" 
-              style="background: white; color: #667eea; border: none; 
-                     padding: 14px 32px; border-radius: 8px; cursor: pointer;
-                     font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-        Start Next Course →
-      </button>
-      <button onclick="document.getElementById('course-recommendation-overlay').remove()" 
-              style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white; 
-                     padding: 14px 32px; border-radius: 8px; cursor: pointer;
-                     font-size: 16px; font-weight: bold;">
-        Maybe Later
-      </button>
+    <div style="display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 30px;">
+      <a onclick="goToExam(${currentCourse ? currentCourse.id : 0})" href="#" style="
+        display: flex; align-items: center; gap: 10px;
+        background: white; color: #f5576c;
+        padding: 16px 40px; border-radius: 8px;
+        font-size: 18px; font-weight: bold;
+        text-decoration: none;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+        </svg>
+        Take Exam Now 🎓
+      </a>
+      <div style="display: flex; gap: 12px;">
+        <button onclick="startRecommendedCourse(${nextCourse.id})" 
+                style="background: white; color: #667eea; border: none; 
+                       padding: 14px 32px; border-radius: 8px; cursor: pointer;
+                       font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+          Start Next Course →
+        </button>
+        <button onclick="document.getElementById('course-recommendation-overlay').remove()" 
+                style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white; 
+                       padding: 14px 32px; border-radius: 8px; cursor: pointer;
+                       font-size: 16px; font-weight: bold;">
+          Maybe Later
+        </button>
+      </div>
     </div>
   `;
   
@@ -4356,17 +4152,35 @@ function showCourseCompletionCelebration(currentCourse) {
   modal.innerHTML = `
     <div style="font-size: 80px; margin-bottom: 20px;">🏆</div>
     <h2 style="font-size: 32px; font-weight: bold; margin: 0 0 16px 0;">
-     Congratulations, {{ request.user.get_full_name|default:request.user.username }}!
+      Congratulations, {{ request.user.get_full_name|default:request.user.username }}!
     </h2>
     <p style="font-size: 18px; margin: 0 0 30px 0; opacity: 0.95;">
       Amazing work completing <strong>${escapeHTML(currentCourse.title)}</strong>!
+      You are now ready to take the exam. 🎓
     </p>
-    <button onclick="window.location.href='/courses/'" 
-            style="background: white; color: #f5576c; border: none; 
-                   padding: 14px 32px; border-radius: 8px; cursor: pointer;
-                   font-size: 16px; font-weight: bold;">
-      Explore More Courses
-    </button>
+    <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+      <a href="#" onclick="goToExam(${currentCourse ? currentCourse.id : 0})" style="
+        display: flex; align-items: center; gap: 10px;
+        background: white; color: #f5576c; 
+        padding: 16px 40px; border-radius: 8px;
+        font-size: 18px; font-weight: bold;
+        text-decoration: none;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        transition: transform 0.2s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+        </svg>
+        Take Exam Now
+      </a>
+      <button onclick="window.location.href='/courses/'" style="
+        background: rgba(255,255,255,0.2); color: white;
+        border: 2px solid white; padding: 12px 32px;
+        border-radius: 8px; cursor: pointer;
+        font-size: 14px; font-weight: bold;">
+        Explore More Courses
+      </button>
+    </div>
   `;
   
   overlay.appendChild(modal);
@@ -4411,13 +4225,21 @@ function showCodeComparison(lessonCode, studentCode, feedback, hint) {
         box-shadow: 0 10px 40px rgba(0,0,0,0.3);
     `;
     
-    const cleanCode = (code) => code.trim();
+    const cleanCode = (code) => code
+        .split('\n')
+        .map(line => line.replace(/#.*$/, '').trimEnd())
+        .filter(line => line.trim())
+        .join('\n');
     
     const expectedClean = cleanCode(lessonCode);
     const studentClean = cleanCode(studentCode);
     
-    const expectedNonEmpty = expectedClean.split('\n').filter(line => line.trim());
-    const studentNonEmpty = studentClean.split('\n').filter(line => line.trim());
+    const expectedNonEmpty = expectedClean.split('\n')
+        .map(line => line.replace(/#.*$/, '').trimEnd())
+        .filter(line => line.trim());
+    const studentNonEmpty = studentClean.split('\n')
+        .map(line => line.replace(/#.*$/, '').trimEnd())
+        .filter(line => line.trim());
     
     let expectedHTML = '';
     let studentHTML = '';
@@ -4512,28 +4334,6 @@ function showCodeComparison(lessonCode, studentCode, feedback, hint) {
         }
     }
     
-    const hintHTML = hint ? `
-        <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px; 
-                    margin-top: 16px; border-radius: 4px;">
-            <div style="font-weight: bold; color: #1976d2; margin-bottom: 4px;">💡 Hint:</div>
-            <div style="color: #1565c0; white-space: pre-wrap;">${escapeHTML(hint)}</div>
-        </div>
-    ` : '';
-    
-    // ✅ Generate fix suggestions HTML
-    const fixSuggestionsHTML = fixSuggestions.length > 0 ? `
-        <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 12px; 
-                    margin-top: 16px; border-radius: 4px;">
-            <div style="font-weight: bold; color: #2e7d32; margin-bottom: 8px;">🔧 How to Fix:</div>
-            ${fixSuggestions.map(fix => `
-                <div style="color: #1b5e20; font-size: 14px; margin-bottom: 8px;">
-                    <strong>Line ${fix.line}:</strong> ${fix.issue}<br>
-                    <span style="margin-left: 20px;">${fix.fix}</span>
-                </div>
-            `).join('')}
-        </div>
-    ` : '';
-    
     const errorSummaryHTML = errorCount > 0 ? `
         <div style="background: #ffebee; border-left: 4px solid #dc3545; padding: 12px; 
                     margin-bottom: 16px; border-radius: 4px;">
@@ -4552,9 +4352,7 @@ function showCodeComparison(lessonCode, studentCode, feedback, hint) {
                 ${escapeHTML(feedback)}
             </div>
             
-            ${errorSummaryHTML}
-            ${fixSuggestionsHTML}
-            ${hintHTML}
+           ${errorSummaryHTML}
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;user-select: none;">
                 <!-- Expected Code -->
@@ -4585,7 +4383,7 @@ function showCodeComparison(lessonCode, studentCode, feedback, hint) {
             </div>
             
             <div style="text-align: center; margin-top: 20px;">
-                <button onclick="document.getElementById('code-comparison-overlay').remove()" 
+                <button onclick="document.getElementById('code-comparison-overlay').remove(); stopVoiceChat();" 
                         style="background: #6c757d; color: white; border: none; 
                                padding: 10px 24px; border-radius: 6px; cursor: pointer;
                                font-size: 14px; font-weight: bold;">
@@ -4595,12 +4393,84 @@ function showCodeComparison(lessonCode, studentCode, feedback, hint) {
         </div>
     `;
     
+    // Store codes for voice chat
+    voiceChatExpectedCode = lessonCode || '';
+    voiceChatStudentCode  = studentCode || '';
+    voiceChatHistory      = [];
+
+    // Voice chat panel — sits BELOW the comparison modal
+    const voiceChatDiv = document.createElement('div');
+    voiceChatDiv.id = 'voice-chat-below';
+    voiceChatDiv.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        max-width: 900px;
+        width: 100%;
+        margin-top: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    `;
+    voiceChatDiv.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:22px;">🤖</span>
+                <strong style="font-size:15px; color:#2c3e50;">AI Tutor — Talk about this error</strong>
+            </div>
+            <span style="font-size:11px; color:#aaa;">Press mic or type to ask</span>
+        </div>
+
+        <!-- Chat history -->
+        <div id="voice-chat-history" style="
+            min-height: 80px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            line-height: 1.6;
+            border: 1px solid #dee2e6;">
+            <div style="color:#888; font-style:italic;">
+                👋 I can see both versions of your code. Ask me anything — or press the mic and speak!
+            </div>
+        </div>
+
+        <!-- Input row -->
+        <div style="display:flex; gap:8px; align-items:center;">
+            <button id="mic-btn" onclick="toggleMic()" style="
+                width:48px; height:48px; border-radius:50%;
+                background:#e74c3c; color:white; border:none;
+                font-size:20px; cursor:pointer; flex-shrink:0;
+                transition:all 0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+                🎤
+            </button>
+            <input id="voice-chat-input" type="text"
+                placeholder="Type your question or press the mic..."
+                onkeydown="if(event.key==='Enter') sendVoiceChatMessage()"
+                style="flex:1; padding:10px 14px; border:1px solid #ccc;
+                       border-radius:24px; font-size:13px; outline:none;" />
+            <button onclick="sendVoiceChatMessage()" style="
+                padding:10px 18px; background:#27ae60; color:white;
+                border:none; border-radius:24px; cursor:pointer;
+                font-size:13px; font-weight:bold;">Send</button>
+        </div>
+        <div id="mic-status" style="font-size:11px; color:#888; text-align:center; margin-top:6px; min-height:16px;"></div>
+    `;
+
     overlay.appendChild(comparisonDiv);
+    overlay.appendChild(voiceChatDiv);
     document.body.appendChild(overlay);
-    
+
+    // Speak the opening greeting
+    setTimeout(() => {
+        window.speakText("I can see the difference between your code and the expected code. What would you like help with?");
+    }, 600);
+
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
             overlay.remove();
+            stopVoiceChat();
         }
     });
 }
@@ -5228,13 +5098,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // ══════════════════════════════════════════════════════════════
 window.speechEnabled = localStorage.getItem('speechEnabled') !== 'false';
 
-window.updateSpeechButton = function() {
-  var btn = document.getElementById('speechToggleBtn');
-  if (!btn) return;
-  btn.textContent      = window.speechEnabled ? '🔊 Speech On' : '🔇 Speech Off';
-  btn.style.background = window.speechEnabled ? '#27ae60' : '#95a5a6';
-};
-
 window.speakText = function(text, onFinish) {
   if (!window.speechEnabled || !text) {
     if (onFinish) onFinish();
@@ -5277,22 +5140,6 @@ window.speakText = function(text, onFinish) {
 
 // Alias for compatibility
 window.speakHint = window.speakText;
-
-window.toggleSpeech = function() {
-  console.log('[Speech] toggleSpeech called');
-  window.speechEnabled = !window.speechEnabled;
-  localStorage.setItem('speechEnabled', window.speechEnabled);
-  window.updateSpeechButton();
-
-  if (!window.speechEnabled) {
-    window.speechSynthesis.cancel();
-    if (typeof showToast === 'function') showToast('🔇 Speech disabled');
-    return;
-  }
-
-  if (typeof showToast === 'function') showToast('🔊 Speech enabled');
-  window.speakText('Speech is now on. I will guide you as you code.');
-};
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -6628,4 +6475,265 @@ function startPolling() {
 })();
 
 </script>
+
+<script>
+// ============= VOICE CHAT FOR CODE COMPARISON =============
+let voiceChatHistory      = [];
+let voiceChatExpectedCode = '';
+let voiceChatStudentCode  = '';
+let recognition           = null;
+let isListening           = false;
+
+function stopVoiceChat() {
+    if (recognition) {
+        try { recognition.stop(); } catch(e) {}
+        recognition = null;
+    }
+    isListening = false;
+    const micBtn = document.getElementById('mic-btn');
+    if (micBtn) { micBtn.style.background = '#e74c3c'; micBtn.textContent = '🎤'; }
+    window.speechSynthesis && window.speechSynthesis.cancel();
+}
+
+function toggleMic() {
+    if (isListening) {
+        stopVoiceChat();
+        const micStatus = document.getElementById('mic-status');
+        if (micStatus) micStatus.textContent = '';
+        return;
+    }
+
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        addChatBubble('system', '⚠️ Your browser does not support speech recognition. Please type instead.');
+        return;
+    }
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.continuous      = true;
+    recognition.interimResults  = true;
+    recognition.lang            = 'en-US';
+
+    const micBtn    = document.getElementById('mic-btn');
+    const micStatus = document.getElementById('mic-status');
+    const input     = document.getElementById('voice-chat-input');
+
+    recognition.onstart = () => {
+        isListening            = true;
+        micBtn.style.background = '#27ae60';
+        micBtn.textContent      = '⏹️';
+        micStatus.textContent   = '🎙️ Listening...';
+    };
+
+
+    let silenceTimer = null;
+
+    recognition.onresult = (e) => {
+        clearTimeout(silenceTimer);
+        const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
+        input.value           = transcript;
+        micStatus.textContent = '🎙️ ' + transcript;
+
+        // Only send after 2 seconds of silence
+        silenceTimer = setTimeout(() => {
+            recognition.stop();
+        }, 2000);
+    };
+
+    recognition.onend = () => {
+        isListening             = false;
+        micBtn.style.background = '#e74c3c';
+        micBtn.textContent      = '🎤';
+        micStatus.textContent   = '';
+        clearTimeout(silenceTimer);
+        const text = input.value.trim();
+        if (text) sendVoiceChatMessage();
+    };
+
+    recognition.onerror = () => {
+        isListening             = false;
+        micBtn.style.background = '#e74c3c';
+        micBtn.textContent      = '🎤';
+        micStatus.textContent   = '⚠️ Could not hear you, please try again.';
+        setTimeout(() => { micStatus.textContent = ''; }, 3000);
+    };
+
+    recognition.start();
+}
+
+async function sendVoiceChatMessage() {
+    const input   = document.getElementById('voice-chat-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    input.value = '';
+    addChatBubble('student', message);
+
+    const thinkingId = 'thinking-' + Date.now();
+    addChatBubble('ai', '⏳ Thinking...', thinkingId);
+
+    const systemPrompt = `You are a friendly Python tutor helping a student fix their code.
+
+EXPECTED CODE (correct):
+\`\`\`python
+${voiceChatExpectedCode}
+\`\`\`
+
+STUDENT CODE (has mistakes):
+\`\`\`python
+${voiceChatStudentCode}
+\`\`\`
+
+Rules:
+- Be warm and encouraging
+- Show the student EXACTLY what line is wrong and what to change it to
+- Give the exact corrected code so they can fix it immediately
+- Explain WHY the fix works in simple terms
+- Keep the explanation short and clear
+- Use markdown code blocks (triple backticks) for ALL code examples
+- Always put each line of code on its own line inside the code block
+- When showing the full corrected code, show it exactly as it should be typed, one statement per line
+- Add a blank line between your explanation sentences for readability`;
+
+    const messages = [];
+    voiceChatHistory.forEach(h => {
+        messages.push({ role: h.role === 'student' ? 'user' : 'assistant', content: h.text });
+    });
+    messages.push({ role: 'user', content: message });
+
+    try {
+        const response = await fetch('/webprojects/voice-chat-tutor/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                system_prompt: systemPrompt,
+                messages:      messages
+            })
+        });
+
+        const data  = await response.json();
+        const reply = data.reply || "Sorry, I couldn't process that. Please try again.";
+
+        const thinkingEl = document.getElementById(thinkingId);
+        if (thinkingEl) thinkingEl.remove();
+
+        addChatBubble('ai', reply);
+        voiceChatHistory.push({ role: 'student', text: message });
+        voiceChatHistory.push({ role: 'ai',      text: reply  });
+
+        // Respond in text AND speak it
+        window.speakText(reply);
+
+    } catch (err) {
+        const thinkingEl = document.getElementById(thinkingId);
+        if (thinkingEl) thinkingEl.remove();
+        addChatBubble('system', '⚠️ Connection error. Please try again.');
+    }
+}
+
+function formatChatMessage(text) {
+    // Replace ```python ... ``` or ``` ... ``` blocks with styled code blocks
+    text = text.replace(/```(?:python)?\n?([\s\S]*?)```/g, (match, code) => {
+        const lines = code.trim().split('\n');
+        const linesHTML = lines.map((line, i) =>
+            `<div style="display:flex; gap:12px; padding:2px 0;">
+                <span style="
+                    color:#555;
+                    font-size:11px;
+                    min-width:18px;
+                    text-align:right;
+                    user-select:none;
+                    padding-top:1px;
+                    border-right:1px solid #333;
+                    padding-right:8px;
+                    flex-shrink:0;
+                ">${i + 1}</span>
+                <span style="color:#4ec9b0;">${escapeHTML(line) || '&nbsp;'}</span>
+            </div>`
+        ).join('');
+        return `<div style="
+            background:#1e1e1e;
+            font-family:monospace;
+            font-size:12px;
+            padding:10px 12px;
+            border-radius:6px;
+            margin:6px 0;
+            line-height:1.8;
+            border-left:3px solid #3498db;
+        ">${linesHTML}</div>`;
+    });
+    // Replace single backtick `code` with inline code style
+    text = text.replace(/`([^`]+)`/g,
+        `<code style="background:#1e1e1e;color:#4ec9b0;
+         padding:1px 5px;border-radius:3px;font-size:12px;">$1</code>`
+    );
+
+    // Replace newlines with <br>
+    text = text.replace(/\n/g, '<br>');
+
+    return text;
+}
+
+function addChatBubble(role, text, id) {
+    const history = document.getElementById('voice-chat-history');
+    if (!history) return;
+
+    const bubble    = document.createElement('div');
+    if (id) bubble.id = id;
+    const isStudent = role === 'student';
+    const isSystem  = role === 'system';
+
+    bubble.style.cssText = `
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: ${isStudent ? 'flex-end' : 'flex-start'};
+    `;
+    bubble.innerHTML = `
+        <div style="
+            max-width: 85%;
+            padding: 8px 12px;
+            border-radius: ${isStudent ? '12px 12px 2px 12px' : '12px 12px 12px 2px'};
+            background: ${isStudent ? '#3498db' : isSystem ? '#f8d7da' : '#e8f4f8'};
+            color: ${isStudent ? 'white' : isSystem ? '#721c24' : '#2c3e50'};
+            font-size: 13px;
+            line-height: 1.5;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        ">
+            ${!isStudent ? `<span style="font-size:10px;font-weight:bold;color:#888;
+                display:block;margin-bottom:3px;">
+                ${isSystem ? '⚠️ SYSTEM' : '🤖 AI TUTOR'}</span>` : ''}
+            ${formatChatMessage(text)}
+        </div>
+    `;
+
+    history.appendChild(bubble);
+    history.scrollTop = history.scrollHeight;
+}  
+
+
+async function goToExam(courseId) {
+  if (!courseId) {
+    window.location.href = "{% url 'student:take-exam' %}";
+    return;
+  }
+
+  try {
+    const res  = await fetch(`/webprojects/get-course-exam/${courseId}/`);
+    const data = await res.json();
+
+    if (data.status === 'success') {
+      // Go directly to the specific exam
+      window.location.href = `{% url 'student:take-exam' %}?course_id=${data.exam_course_id}`;
+    } else {
+      // No exam linked yet — go to general exam page
+      window.location.href = "{% url 'student:take-exam' %}";
+    }
+  } catch (e) {
+    window.location.href = "{% url 'student:take-exam' %}";
+  }
+}
+  </script>
 {% endblock %}

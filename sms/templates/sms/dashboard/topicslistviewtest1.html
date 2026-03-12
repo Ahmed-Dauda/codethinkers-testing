@@ -490,8 +490,9 @@ table-layout: fixed; // ***********add this
                     </h4>
                     <br>
 
-                    <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
-                    
+                   <h3 class="card text-center text-danger">
+    <a href="javascript:void(0)" onclick="goToExam('{{ course.id }}')">Take Exam</a>
+</h3>
                 {% else %}
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;"></p>
                 {% endif %}
@@ -585,7 +586,27 @@ table-layout: fixed; // ***********add this
 
     </script>    
 
+<script>
+async function goToExam(courseId) {
+    if (!courseId) {
+        window.location.href = "{% url 'student:take-exam' %}";
+        return;
+    }
 
+    try {
+        const res  = await fetch(`/webprojects/get-course-exam/${courseId}/`);
+        const data = await res.json();
+
+        if (data.status === 'success') {
+            window.location.href = "{% url 'student:take-exam' %}?course_id=" + data.exam_course_id;
+        } else {
+            window.location.href = "{% url 'student:take-exam' %}";
+        }
+    } catch (e) {
+        window.location.href = "{% url 'student:take-exam' %}";
+    }
+}
+</script>
 <!-- iframe videos -->
 <!-- 
 <script>

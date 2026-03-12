@@ -84,6 +84,29 @@ import os
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
+@csrf_exempt  
+def voice_chat_tutor(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        messages = data.get('messages', [])
+        system_prompt = data.get('system_prompt', '')
+
+        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        
+        response = client.chat.completions.create(
+            model='gpt-4o-mini',
+            messages=[{'role': 'system', 'content': system_prompt}] + messages,
+            max_tokens=300,
+        )
+        
+        reply = response.choices[0].message.content
+        return JsonResponse({'reply': reply})
+    
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 # @login_required
 # def create_project(request):
@@ -3272,6 +3295,71 @@ import sys
 import subprocess
 import tempfile
 
+def get_student_courses(request):
+    from sms.models import Courses, StudentProgress
+    
+    try:
+        courses = Courses.objects.filter(is_programming=True)
+        result = []
+        
+        for course in courses:
+            total_topics = course.topics.count()
+            
+            try:
+                progress = StudentProgress.objects.get(
+                    student=request.user,
+                    course=course
+                )
+                completed = progress.completed_topics.count()
+            except StudentProgress.DoesNotExist:
+                completed = 0
+            
+            pct = round((completed / total_topics) * 100) if total_topics > 0 else 0
+            
+            result.append({
+                'id':           course.id,
+                'title':        course.title,
+                'total_topics': total_topics,
+                'completed':    completed,
+                'pct':          pct,
+            })
+        
+        return JsonResponse({'status': 'success', 'courses': result})
+    
+    except Exception as e:
+        import traceback
+        return JsonResponse({
+            'status': 'error',
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        })
+
+
+def get_course_exam(request, course_id):
+    from sms.models import Courses
+    from quiz.models import Course as ExamCourse
+    
+    try:
+        programming_course = Courses.objects.get(id=course_id)
+        # Find the exam course linked to this programming course
+        exam_course = ExamCourse.objects.filter(
+            course_name=programming_course
+        ).first()
+        
+        if exam_course:
+            return JsonResponse({
+                'status': 'success',
+                'exam_course_id': exam_course.id
+            })
+        else:
+            return JsonResponse({
+                'status': 'none',
+                'message': 'No exam found for this course'
+            })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'error': str(e)})
+
+        
 # ✅ Clean up lesson code for display (remove ALL comments)
 from bs4 import BeautifulSoup
 import re
@@ -3651,7 +3739,7 @@ def _get_progressive_hint(attempts, topic, missing=None):
         return "💡 Almost there! Review the lesson code line by line and match it exactly."
     
     elif attempts >= 4:
-        return "💡 Having trouble? Click 'Show Solution' below to see the correct answer."
+        return ""
     
     return None
 

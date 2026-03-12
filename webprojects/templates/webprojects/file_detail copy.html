@@ -347,6 +347,14 @@
     border: 2px solid transparent;
     background-color: white;
     transition: all 0.3s ease;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.sidebar {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
 }
 
 .topic-item.active {
@@ -664,6 +672,9 @@
   </svg>
   <span id="themeToggleText">Light Mode</span>
 </button>
+
+<span>⚡ <strong id="xpTotal">0</strong> XP</span>
+<span>🔥 <strong id="xpStreak">0</strong> day streak</span>
     
 </div>
 
@@ -750,7 +761,7 @@
 
 <hr>
 
-
+<h4 class="mb-3">08065636249</h4>
 <h2 class="mb-3">Modules</h2>
 
 <!-- Overall progress bar — filled by JS -->
@@ -789,7 +800,8 @@
   >
     <a href="javascript:void(0);"
        class="topic-toggle d-flex justify-content-between align-items-center"
-       onclick="toggleDesc('topic-{{ topic.id }}', this, '{{ topic.language|default:"python" }}')">
+       onclick="toggleDesc('topic-{{ topic.id }}', this, '{{ topic.language|default:"python" }}')"
+      >
 
       <span class="d-flex align-items-center gap-2">
         <!-- Icon: JS sets this to ✅ 📍 or ○ -->
@@ -823,7 +835,7 @@
       class="topic-study-btn"
       id="topic-btn-{{ topic.id }}"
       data-topic-id="{{ topic.id }}"
-      onclick="handleStudyClick({{ topic.id }}, this)"
+      onclick="event.stopPropagation(); handleStudyClick({{ topic.id }}, this)"
       style="
         margin: 5px 0 0;
         padding: 4px 10px;
@@ -866,9 +878,15 @@ function applyTopicStates(data) {
   // the server response, a stale response (that arrived before the
   // DB committed) wipes out the tick the student just earned.
   // Solution: always take the UNION of both sets.
-  const incoming     = new Set((data.completed_topic_ids || []).map(Number));
-  const cached       = new Set((window._completedTopicIds || []).map(Number));
-  const completedSet = new Set([...incoming, ...cached]); // union — never lose a tick
+const incoming     = new Set((data.completed_topic_ids || []).map(Number));
+
+  // Only merge cache if we are on the same course — never carry over from another course
+  const sameCourse   = !data.course_id || !window._currentCourseId || 
+                       (Number(data.course_id) === Number(window._currentCourseId));
+  const cached       = sameCourse 
+                       ? new Set((window._completedTopicIds || []).map(Number))
+                       : new Set();
+  const completedSet = new Set([...incoming, ...cached]);
 
   const allItems = document.querySelectorAll('.topic-item[data-topic-id]');
   const total    = data.total_count || allItems.length;
@@ -958,68 +976,142 @@ function _renderSidebarProgress(done, total, pct) {
   }
 }
 
-// ── Study button click ─────────────────────────────────────────
+
 function handleStudyClick(topicId, btn) {
-  // Instant optimistic paint — keeps already-completed topics green
-  applyTopicStates({
-    current_topic_id:    topicId,
-    completed_topic_ids: window._completedTopicIds || [],
-    total_count:         window._totalTopicCount   || 0,
+  // Already studying or completed — do nothing
+  if (topicId === window._currentTopicId) return;
+  const done = new Set((window._completedTopicIds || []).map(Number));
+  if (done.has(Number(topicId))) return;
+
+  // Update state immediately
+  window._currentTopicId   = topicId;
+  currentlyStudyingTopicId = topicId;
+  localStorage.setItem('currentTopicId', topicId);
+
+  // Paint UI in next frame
+  requestAnimationFrame(() => {
+    applyTopicStates({
+      current_topic_id:    topicId,
+      completed_topic_ids: window._completedTopicIds || [],
+      total_count:         window._totalTopicCount   || 0,
+    });
   });
-  setCurrentTopic(topicId, btn);
+
+  // Backend save — completely non-blocking
+  setTimeout(() => setCurrentTopic(topicId, btn), 100);
 }
 
 // ── Backend save ───────────────────────────────────────────────
 
 
-function setCurrentTopic(topicId, buttonElement) {
+async function setCurrentTopic(topicId, buttonElement) {
   currentlyStudyingTopicId = topicId;
   localStorage.setItem('currentTopicId', topicId);
 
-  fetch(`/webprojects/project/{{ file.project.id }}/set-topic/${topicId}/`, {
-    method: 'POST',
-    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-  })
-  .then(res => res.json())
-  .then(data => {
+  try {
+    const res  = await fetch(`/webprojects/project/{{ file.project.id }}/set-topic/${topicId}/`, {
+      method:  'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    });
+    const data = await res.json();
     if (data.status === 'success') {
       showToast('📍 ' + (data.topic_title || data.message || 'Topic selected'));
     } else {
       showToast('❌ Failed to set topic');
     }
-  })
-  .catch(() => showToast('❌ Connection error'));
+  } catch {
+    // Silently fail — local state already updated
+  }
 }
 
-
+// ✅ NEW: Database is ONLY source of truth - no localStorage
 document.addEventListener('DOMContentLoaded', function () {
+  console.log('[Init] Loading progress from database...');
+  
   window._totalTopicCount = document.querySelectorAll(
     '.topic-item[data-topic-id]'
   ).length;
 
-  // Seed data baked in by Django at render time
-  const seedCompleted = {{ completed_topic_ids|safe }};
-  const seedCurrent   = {{ current_topic_id|default:"null" }};
-
-  applyTopicStates({
-    current_topic_id:    seedCurrent,
-    completed_topic_ids: seedCompleted,
-    total_count:         window._totalTopicCount,
-  });
-
-  // Keep localStorage in sync
-  if (seedCurrent) {
-    currentlyStudyingTopicId = seedCurrent;
-    localStorage.setItem('currentTopicId', seedCurrent);
-  }
+  // Get course ID from template
+  const courseId = {{ course_id|default:"null" }};
+  
+  // Fetch fresh data from database on every page load
+  fetchProgressFromDatabase(courseId);
 });
 
+// ✅ Fetch progress from database (called on page load)
+async function fetchProgressFromDatabase(courseId) {
+  try {
+    const url = courseId 
+      ? `/webprojects/student-progress/?course_id=${courseId}`
+      : `/webprojects/student-progress/`;
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.status === 'success') {
+      console.log('[Init] ✅ Database data loaded:', {
+        current: data.current_topic_id,
+        completed: data.completed_topic_ids,
+        total: data.total_count,
+        percentage: data.overall_pct
+      });
+      
+      // Store in memory (NOT localStorage)
+      window._completedTopicIds = data.completed_topic_ids || [];
+      window._currentTopicId = data.current_topic_id;
+      window._totalTopicCount = data.total_count || 0;
+      window._currentCourseId = courseId;
+      
+      // Apply to UI
+      applyTopicStates({
+        current_topic_id: data.current_topic_id,
+        completed_topic_ids: data.completed_topic_ids || [],
+        total_count: data.total_count || 0,
+        overall_pct: data.overall_pct || 0,
+        topics: data.topics || []
+      });
+      
+      // Update progress bar
+      const fill = document.getElementById('modules-pb-fill');
+      const label = document.getElementById('modules-done-label');
+      const pctEl = document.getElementById('modules-pct-label');
+      
+      if (fill) fill.style.width = data.overall_pct + '%';
+      if (label) label.textContent = data.completed_count + ' / ' + data.total_count + ' topics completed';
+      if (pctEl) pctEl.textContent = data.overall_pct + '%';
+      
+      console.log('[Init] ✅ UI updated from database');
+    } else {
+      console.error('[Init] ❌ Failed to load progress:', data.message);
+    }
+  } catch (error) {
+    console.error('[Init] ❌ Error fetching progress:', error);
+  }
+}
 </script>
 {% comment %} Seed JS with server data so ticks show instantly on load {% endcomment %}
 <script>
-  window._completedTopicIds = {{ completed_topic_ids|safe }};
-  window._currentTopicId    = {{ current_topic_id|default:"null" }};
-  window._totalTopicCount   = {{ topics|length }};
+// Scope completed topics to THIS course only
+const _thisCourseId = {{ course_id|default:"null" }};
+window._currentCourseId   = _thisCourseId;
+window._completedTopicIds = _thisCourseId ? {{ completed_topic_ids|safe }} : [];
+window._currentTopicId    = {{ current_topic_id|default:"null" }};
+window._totalTopicCount   = {{ topics|length }};
+
+// Wipe any stale localStorage completed cache from other courses
+const _storedCourseId = localStorage.getItem('currentCourseId');
+if (_storedCourseId && _storedCourseId != _thisCourseId) {
+  // Different course — clear stale data
+  localStorage.removeItem('completedTopicIds');
+  localStorage.removeItem('_completedTopicIds');
+  localStorage.removeItem('currentTopicId');
+  console.log('[Course] Cleared stale data from course', _storedCourseId);
+}
+localStorage.setItem('currentCourseId', _thisCourseId);
+localStorage.removeItem('completedTopicIds');
+localStorage.removeItem('_completedTopicIds');
+
 </script>
 
 <script>
@@ -1050,93 +1142,47 @@ function _updateOverallBadge(done, total) {
     ` <span style="color:#3498db;font-size:11px;">${pct}%</span>`;
 }
 
-// ── Study button click ─────────────────────────────────────────────
-// This should already exist - just verify it's there:
-function handleStudyClick(topicId, btn) {
-  // Store topic ID globally
-  window._currentTopicId = topicId;
-  localStorage.setItem('currentTopicId', topicId);
-  
-  // Instant optimistic update
-  applyTopicStates({
-    current_topic_id: topicId,
-    completed_topic_ids: window._completedTopicIds || [],
-    total_count: window._totalTopicCount || 0
-  });
-  
-  setCurrentTopic(topicId, btn);
-  
-  console.log("✅ Topic set to:", topicId);  // ← Add this debug log
-}
 
+// ── Single declaration — used by handleStudyClick and setCurrentTopic ──
+let currentlyStudyingTopicId = null;
 // Check what's stored
 console.log("window._currentTopicId:", window._currentTopicId);
 console.log("localStorage:", localStorage.getItem('currentTopicId'));
 
-// Test backend
-fetch('/webprojects/debug-topic/')
-  .then(r => r.json())
-  .then(d => console.log("Backend knows:", d));
 
-// ── Backend save ───────────────────────────────────────────────────
-let currentlyStudyingTopicId = null;
-
-function setCurrentTopic(topicId, buttonElement) {
-  if (!buttonElement) { console.error('❌ buttonElement undefined'); return; }
-
-  currentlyStudyingTopicId = topicId;
-  localStorage.setItem('currentTopicId', topicId);
-
-  fetch(`/webprojects/project/{{ file.project.id }}/set-topic/${topicId}/`, {
-    method: 'POST',
-    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === 'success') {
-      showToast('📍 ' + (data.topic_title || data.message || 'Topic selected'));
-      localStorage.setItem('currentTopicId', topicId);
-    } else {
-      showToast('❌ Failed to set topic');
-      _restoreFromLocalStorage();
-    }
-  })
-  .catch(err => {
-    console.error('Error setting topic:', err);
-    showToast('❌ Connection error');
-    _restoreFromLocalStorage();
-  });
-}
-
-function _restoreFromLocalStorage() {
-  const saved = localStorage.getItem('currentTopicId');
-  if (saved) {
+// Always use DB seed data for completed topics, only use localStorage for current topic
+// Always use DB seed data — never restore from localStorage
+const saved = localStorage.getItem('currentTopicId');
+const currentId = window._currentTopicId || null; // ← ignore localStorage
+if (currentId) {
+  currentlyStudyingTopicId = currentId;
+  setTimeout(() => {
     applyTopicStates({
-      current_topic_id:    parseInt(saved, 10),
+      current_topic_id:    currentId,
       completed_topic_ids: window._completedTopicIds || [],
-      total_count:         window._totalTopicCount   || 0
+      total_count:         window._totalTopicCount
     });
-  }
+  }, 100);
 }
-
 // ── Page load restore ──────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', function () {
-  // Count topics for the progress line
-  window._totalTopicCount = document.querySelectorAll('.topic-item[data-topic-id]').length;
+// document.addEventListener('DOMContentLoaded', function () {
+//   // Count topics for the progress line
+//   window._totalTopicCount = document.querySelectorAll('.topic-item[data-topic-id]').length;
 
-  const saved = localStorage.getItem('currentTopicId');
-  if (saved) {
-    currentlyStudyingTopicId = parseInt(saved, 10);
-    setTimeout(() => {
-      applyTopicStates({
-        current_topic_id:    currentlyStudyingTopicId,
-        completed_topic_ids: window._completedTopicIds || [],
-        total_count:         window._totalTopicCount
-      });
-    }, 100);
-  }
-});
+//   const saved = localStorage.getItem('currentTopicId');
+//   if (saved) {
+//     currentlyStudyingTopicId = parseInt(saved, 10);
+//     setTimeout(() => {
+//       applyTopicStates({
+//         current_topic_id:    currentlyStudyingTopicId,
+//         completed_topic_ids: window._completedTopicIds || [],
+//         total_count:         window._totalTopicCount
+//       });
+//     }, 100);
+//   }
+// });
+
 </script>
 <!-- ===== Style ===== -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" rel="stylesheet"/>
@@ -1266,9 +1312,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <button id="speechToggleBtn" onclick="window.toggleSpeech()" style="background: #27ae60; color: white;">
   🔊 Speech on
 </button>
-<button onclick="getManualHint()" style="background: #3498db; color: white;">
-  💡 Get AI Hint
-</button>
+
 
 <button onclick="getRelevantExamples()" id="examplesBtn" style="background: #3498db; color: white;">
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2206,8 +2250,7 @@ document.getElementById('fileChatPrompt').addEventListener('keydown', e => {
   gap: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 ">
-  <span>⚡ <strong id="xpTotal">0</strong> XP</span>
-  <span>🔥 <strong id="xpStreak">0</strong> day streak</span>
+  
 </div>
 
 <!-- +XP float popup -->
@@ -2563,21 +2606,36 @@ console.log('✅ File switching initialized');
 <!-- side content js -->
 
 <script>
-  function toggleDesc(id, el, lang) {
-    const desc = document.getElementById(id);
-    if(desc.style.display === "none") {
-      desc.style.display = "block";
-      el.querySelector(".toggle-icon").textContent = "➖";
+function toggleDesc(id, el, lang) {
+  const desc = document.getElementById(id);
+  const topicId = parseInt(id.replace('topic-', ''), 10);
 
-      // Apply Prism highlighting
-      const codeEl = desc.querySelector('code');
-      codeEl.className = 'language-' + lang;
-      Prism.highlightElement(codeEl);
-    } else {
-      desc.style.display = "none";
-      el.querySelector(".toggle-icon").textContent = "➕";
+  if (desc.style.display === "none") {
+    desc.style.display = "block";
+    el.querySelector(".toggle-icon").textContent = "➖";
+
+    // ── Auto-trigger Study This Topic after UI has opened ─────
+    // ── Auto-trigger Study This Topic — fully deferred ────────
+    const btn = document.getElementById('topic-btn-' + topicId);
+    if (btn && btn.textContent.trim().includes('📚 Study This Topic')) {
+      setTimeout(() => handleStudyClick(topicId, btn), 50);
     }
+
+    // ── Defer Prism highlighting so UI opens instantly ────────
+    setTimeout(() => {
+      const codeEl = desc.querySelector('code');
+      if (codeEl) {
+        codeEl.className = 'language-' + lang;
+        Prism.highlightElement(codeEl);
+      }
+    }, 50);
+
+  } else {
+    desc.style.display = "none";
+    el.querySelector(".toggle-icon").textContent = "➕";
   }
+}
+
 </script>
 
 <!-- your sidebar content below... -->
@@ -2622,20 +2680,21 @@ console.log('✅ File switching initialized');
 
     document.addEventListener('mousemove', (e) => {
       if (!isResizing) return;
+      e.preventDefault();
       
       const width = startWidth + (e.clientX - startX);
-      const minWidth = 200; // Minimum sidebar width
-      const maxWidth = 950; // Maximum sidebar width
+      const minWidth = 200;
+      const maxWidth = 950;
       
       if (width >= minWidth && width <= maxWidth) {
-        sidebar.style.width = width + 'px';
-        sidebar.style.flexBasis = width + 'px';
-        sidebar.style.minWidth = width + 'px';
-        
-        // Relayout Monaco Editor during resize
-        if (window.editor?.layout) {
-          window.editor.layout();
-        }
+        requestAnimationFrame(() => {
+          sidebar.style.width = width + 'px';
+          sidebar.style.flexBasis = width + 'px';
+          sidebar.style.minWidth = width + 'px';
+          if (window.editor?.layout) {
+            window.editor.layout();
+          }
+        });
       }
     });
 
@@ -3579,6 +3638,7 @@ function showSmartHint(hint, type, topic) {
   panel.style.display = 'block';
   
   // ✅ SPEAK WITH CALLBACK - Wait for speech to finish before auto-hiding
+// ✅ SPEAK WITH CALLBACK - Wait for speech to finish before auto-hiding
   window.speakText(hint, () => {
     console.log("Speech completed for hint");
     
@@ -3591,7 +3651,16 @@ function showSmartHint(hint, type, topic) {
       }, 5000); // Wait 5 more seconds after speech ends
     }
   });
+} // ← closes showSmartHint
+
+
+function closeSmartHint() {
+  const panel = document.getElementById('smartHintPanel');
+  if (panel) panel.style.display = 'none';
+  window.speechSynthesis.cancel();
 }
+
+// ============= TEXT-TO-SPEECH =============
 // ============= TEXT-TO-SPEECH =============
 
 
@@ -3635,7 +3704,7 @@ function getManualHint() {
 
 console.log('✅ Smart AI Tutor initialized');  
     // Start autosave interval (every 5 seconds)
-    // autoSaveInterval = setInterval(performAutoSave, 10000); // 10 seconds instead of 5
+    autoSaveInterval = setInterval(performAutoSave, 1500); // 10 seconds instead of 5
     console.log("✅ Auto-save interval started");
     
     // Debounced save on typing
@@ -3658,6 +3727,7 @@ console.log('✅ Smart AI Tutor initialized');
     
   }, 500);
 
+  
   // === HTML COMPLETIONS ===
   monaco.languages.registerCompletionItemProvider('html', {
     triggerCharacters: ['<', '"', "'", ' ', ':', '.', '{'],
@@ -3861,6 +3931,10 @@ function runCode() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// FIND this in your template and REPLACE the entire executeCode function
+// ═══════════════════════════════════════════════════════════════
+
 function executeCode(code, inputs) {
   const output = document.getElementById("outputText");
   const plotPreview = document.getElementById("plotPreview");
@@ -3888,11 +3962,14 @@ function executeCode(code, inputs) {
   .then(data => {
     if (data.status === "error") {
       output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.error || data.message)}</span>`;
-      return;
+      return;  // ← STOP here — don't validate errored code
     }
 
-    output.textContent = data.output || "[No output]";
+    // ── Show output in panel ──────────────────────────────────
+    const studentOutput = (data.output || "").trim();
+    output.textContent = studentOutput;
 
+    // Display plots
     plotPreview.innerHTML = "";
     if (Array.isArray(data.images) && data.images.length > 0) {
       data.images.forEach(src => {
@@ -3903,10 +3980,715 @@ function executeCode(code, inputs) {
         plotPreview.appendChild(img);
       });
     }
+
+    // ── Only validate if there is actual output ───────────────
+    if (!studentOutput || studentOutput === "[No output]") {
+      console.log('[executeCode] No output — skipping validation');
+      return;
+    }
+
+    console.log('[executeCode] Output:', JSON.stringify(studentOutput));
+
+    // ── AI VALIDATION — pass the RAW output exactly as-is ────
+    validateWithAI(code, studentOutput);
   })
   .catch(err => {
     output.innerHTML = `<span style="color:red;">❌ Request Failed: ${escapeHTML(err.message)}</span>`;
   });
+}
+
+
+async function submitQuizAnswer(topicId) {
+  const answerInput = document.querySelector('#quiz-answer-input');
+  
+  if (!answerInput || !answerInput.value.trim()) {
+    showToast('⚠️ Please enter an answer');
+    return;
+  }
+  
+  const answer = answerInput.value.trim();
+  
+  // Show AI thinking
+  showToast('🤖 AI is checking your answer...');
+  
+  try {
+    const response = await fetch("{% url 'webprojects:validate_topic_completion' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({
+        topic_id: topicId,
+        answer: answer
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.is_correct) {
+      showToast('🎉 ' + data.message);
+      closeQuizModal();
+      
+      if (data.xp) {
+        handleXPResponse(data.xp);
+      }
+      
+      if (typeof window.SmartTutor !== 'undefined') {
+        window.SmartTutor.refreshProgress();
+      }
+      
+      launchConfetti();
+      showAIFeedback(data.message, true);
+    } else {
+      showToast('💡 ' + data.message);
+      
+    }
+  } catch (err) {
+    showToast('❌ Error submitting answer');
+  }
+}
+
+function showQuizModal(question, topicId) {
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 10000;
+    max-width: 500px;
+    width: 90%;
+  `;
+  
+  modal.innerHTML = `
+    <h3 style="color: #2c3e50; margin-bottom: 20px;">📝 Quiz Question</h3>
+    <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">${escapeHTML(question)}</p>
+    
+    <textarea 
+      id="quiz-answer-input" 
+      placeholder="Type your answer here..."
+      style="
+        width: 100%;
+        min-height: 100px;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        resize: vertical;
+      "
+    ></textarea>
+    
+    <button onclick="submitQuizAnswer(${topicId})" style="
+      width: 100%;
+      padding: 12px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    ">Submit Answer</button>
+    
+    <button onclick="closeQuizModal()" style="
+      width: 100%;
+      padding: 12px;
+      background: #95a5a6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+    ">Cancel</button>
+  `;
+  
+  document.body.appendChild(modal);
+  window.currentQuizModal = modal;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AI VALIDATION — paste this script block into your template
+
+// FIND this entire function in your template:
+//   async function validateWithAI(code, studentOutput) {
+// and REPLACE the entire function with this:
+
+
+async function validateWithAI(code, studentOutput) {
+  const topicId = window._currentTopicId || localStorage.getItem('currentTopicId');
+
+  if (!topicId) {
+    console.log('[validateWithAI] No topic selected — skipping');
+    return;
+  }
+
+  const output = (studentOutput || '').trim();
+  if (!output || output === '[No output]') {
+    console.log('[validateWithAI] No output — skipping');
+    return;
+  }
+
+  const done = new Set((window._completedTopicIds || []).map(Number));
+  if (done.has(Number(topicId))) {
+    console.log('[validateWithAI] Topic already completed — skipping');
+    return;
+  }
+
+  console.log('[validateWithAI] Validating topic', topicId, 'output:', output.slice(0, 60));
+
+  try {
+    const res = await fetch("{% url 'webprojects:validate_topic_completion' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({
+        topic_id: Number(topicId),
+        code:     code,
+        output:   output,
+      })
+    });
+
+    const data = await res.json();
+    console.log('[validateWithAI] Result:', data);
+
+    if (data.is_correct) {
+  showAIFeedback(data.message, true);
+  if (data.xp) handleXPResponse(data.xp);
+  
+  const id = Number(topicId);
+  done.add(id);
+  window._completedTopicIds = Array.from(done);
+
+  const item  = document.getElementById('topic-item-'  + id);
+  const btn   = document.getElementById('topic-btn-'   + id);
+  const icon  = document.getElementById('topic-icon-'  + id);
+  const badge = document.getElementById('topic-badge-' + id);
+
+  if (item)  { item.style.border = '2px solid #27ae60'; item.style.backgroundColor = '#f0fff4'; }
+  if (btn)   { btn.textContent = '✅ Completed'; btn.style.background = '#27ae60'; btn.style.fontWeight = 'bold'; }
+  if (icon)  { icon.textContent = '✅'; }
+  if (badge) {
+    badge.style.display    = 'inline-block';
+    badge.textContent      = '✅ Done';
+    badge.style.background = '#d4edda';
+    badge.style.color      = '#155724';
+    badge.style.border     = '1px solid #c3e6cb';
+  }
+
+  // ✅ Use backend's completion percentage instead of calculating locally
+  const pct = data.completion_percentage || 0;
+  
+  const total    = window._totalTopicCount || 0;
+  const doneCount = done.size;
+
+  const fill    = document.getElementById('modules-pb-fill');
+  const label   = document.getElementById('modules-done-label');
+  const pctEl   = document.getElementById('modules-pct-label');
+  const stFill  = document.getElementById('st-pb-fill');
+  const stPct   = document.getElementById('st-pct-label');
+  const stCount = document.getElementById('st-count-label');
+
+  if (fill)    fill.style.width    = pct + '%';
+  if (label)   label.textContent   = doneCount + ' / ' + total + ' topics completed';
+  if (pctEl)   pctEl.textContent   = pct + '%';
+  if (stFill)  stFill.style.width  = pct + '%';
+  if (stPct)   stPct.textContent   = pct + '% complete';
+  if (stCount) stCount.textContent = doneCount + ' / ' + total + ' topics';
+
+  // ✅ Check if course is 100% complete using backend data
+  console.log('[validateWithAI] Completion:', pct + '%');
+  if (pct === 100 && data.course_id) {
+    console.log('[validateWithAI] 🎉 Course 100% complete! Showing recommendation...');
+    // Store course ID for recommendation
+    window._currentCourseId = data.course_id;
+    localStorage.setItem('currentCourseId', data.course_id);
+    
+    // Wait for confetti to finish, then show recommendation
+    setTimeout(() => {
+      fetchAndShowNextCourseRecommendation();
+    }, 2000);
+  }
+
+  if (typeof launchConfetti === 'function') launchConfetti();
+  if (window.SmartTutor) window.SmartTutor.refreshProgress();
+
+} else {
+  // Show comparison modal when wrong
+  if (data.lesson_code) {
+    showCodeComparison(data.lesson_code, code,data.hint);
+  }
+} 
+
+  } catch (err) {
+    console.error('[validateWithAI] Error:', err);
+  }
+}
+
+// ========================================
+// ✅ Course Recommendation System
+// ========================================
+
+async function fetchAndShowNextCourseRecommendation() {
+  const currentCourseId = window._currentCourseId || localStorage.getItem('currentCourseId');
+  
+  if (!currentCourseId) {
+    console.log('[recommendation] No current course ID found');
+    return;
+  }
+  
+  try {
+    const res = await fetch(`/webprojects/recommend-next-course/?course_id=${currentCourseId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    const data = await res.json();
+    console.log('[recommendation] Response:', data);
+    
+    if (data.status === 'success' && data.recommended_course) {
+      showCourseRecommendationModal(data.recommended_course, data.current_course);
+    } else {
+      showCourseCompletionCelebration(data.current_course);
+    }
+    
+  } catch (err) {
+    console.error('[recommendation] Error:', err);
+  }
+}
+
+
+
+function showCourseRecommendationModal(nextCourse, currentCourse) {
+  const existing = document.getElementById('course-recommendation-overlay');
+  if (existing) existing.remove();
+  
+  const overlay = document.createElement('div');
+  overlay.id = 'course-recommendation-overlay';
+  overlay.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); z-index: 10000;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    animation: fadeIn 0.3s ease;
+  `;
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px; padding: 40px; max-width: 600px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4); color: white; text-align: center;
+    animation: slideInUp 0.4s ease;
+  `;
+  
+  modal.innerHTML = `
+    <div style="font-size: 60px; margin-bottom: 20px;">🎉</div>
+    <h2 style="font-size: 32px; font-weight: bold; margin: 0 0 16px 0; color: white;">
+      Congratulations, {{ request.user.get_full_name|default:request.user.username }}!
+    </h2>
+    <p style="font-size: 18px; margin: 0 0 30px 0; opacity: 0.95;">
+      You've completed <strong>${escapeHTML(currentCourse.title)}</strong>!
+    </p>
+    <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); 
+                border-radius: 12px; padding: 24px; margin: 30px 0;">
+      <div style="font-size: 16px; margin-bottom: 12px; opacity: 0.9;">
+        🚀 Ready for the next challenge?
+      </div>
+      <h3 style="font-size: 24px; font-weight: bold; margin: 12px 0; color: #fff;">
+        ${escapeHTML(nextCourse.title)}
+      </h3>
+      <p style="font-size: 14px; margin: 12px 0; opacity: 0.85; line-height: 1.6;
+          display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+          overflow: hidden; text-overflow: ellipsis;">
+        ${escapeHTML(nextCourse.description || 'Continue your learning journey with this course!')}
+      </p>
+      <div style="font-size: 14px; margin-top: 16px; opacity: 0.8;">
+        📚 ${nextCourse.topic_count || 0} topics
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px; justify-content: center; margin-top: 30px;">
+      <button onclick="startRecommendedCourse(${nextCourse.id})" 
+              style="background: white; color: #667eea; border: none; 
+                     padding: 14px 32px; border-radius: 8px; cursor: pointer;
+                     font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+        Start Next Course →
+      </button>
+      <button onclick="document.getElementById('course-recommendation-overlay').remove()" 
+              style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white; 
+                     padding: 14px 32px; border-radius: 8px; cursor: pointer;
+                     font-size: 16px; font-weight: bold;">
+        Maybe Later
+      </button>
+    </div>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+function showCourseCompletionCelebration(currentCourse) {
+  const existing = document.getElementById('course-recommendation-overlay');
+  if (existing) existing.remove();
+  
+  const overlay = document.createElement('div');
+  overlay.id = 'course-recommendation-overlay';
+  overlay.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); z-index: 10000;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  `;
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 16px; padding: 40px; max-width: 500px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4); color: white; text-align: center;
+  `;
+  
+  modal.innerHTML = `
+    <div style="font-size: 80px; margin-bottom: 20px;">🏆</div>
+    <h2 style="font-size: 32px; font-weight: bold; margin: 0 0 16px 0;">
+     Congratulations, {{ request.user.get_full_name|default:request.user.username }}!
+    </h2>
+    <p style="font-size: 18px; margin: 0 0 30px 0; opacity: 0.95;">
+      Amazing work completing <strong>${escapeHTML(currentCourse.title)}</strong>!
+    </p>
+    <button onclick="window.location.href='/courses/'" 
+            style="background: white; color: #f5576c; border: none; 
+                   padding: 14px 32px; border-radius: 8px; cursor: pointer;
+                   font-size: 16px; font-weight: bold;">
+      Explore More Courses
+    </button>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+function startRecommendedCourse(courseId) {
+  window.location.href = `/course/${courseId}/`;
+}
+
+
+
+function showCodeComparison(lessonCode, studentCode, feedback, hint) {
+    const existing = document.getElementById('code-comparison-overlay');
+    if (existing) existing.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'code-comparison-overlay';
+    overlay.style.cssText = `
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5); 
+        z-index: 9998;
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        padding: 20px;
+    `;
+    
+    const comparisonDiv = document.createElement('div');
+    comparisonDiv.id = 'code-comparison';
+    comparisonDiv.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 900px;
+        max-height: 80vh;
+        overflow: auto;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    `;
+    
+    const cleanCode = (code) => code.trim();
+    
+    const expectedClean = cleanCode(lessonCode);
+    const studentClean = cleanCode(studentCode);
+    
+    const expectedNonEmpty = expectedClean.split('\n').filter(line => line.trim());
+    const studentNonEmpty = studentClean.split('\n').filter(line => line.trim());
+    
+    let expectedHTML = '';
+    let studentHTML = '';
+    let errorCount = 0;
+    let fixSuggestions = [];
+    
+    // ✅ Helper function to highlight character differences
+    const highlightDifferences = (expected, actual) => {
+        let result = '';
+        const maxLen = Math.max(expected.length, actual.length);
+        
+        for (let i = 0; i < maxLen; i++) {
+            const expChar = expected[i] || '';
+            const actChar = actual[i] || '';
+            
+            if (expChar !== actChar) {
+                if (actChar) {
+                    // Character is wrong
+                    result += `<span style="background: #ff5252; color: white; padding: 0 2px; border-radius: 2px; font-weight: bold;">${escapeHTML(actChar)}</span>`;
+                }
+            } else {
+                result += escapeHTML(actChar);
+            }
+        }
+        
+        return result;
+    };
+    
+    for (let i = 0; i < Math.max(expectedNonEmpty.length, studentNonEmpty.length); i++) {
+        const expectedLine = expectedNonEmpty[i] || '';
+        const studentLine = studentNonEmpty[i] || '';
+        const lineNum = i + 1;
+        
+        const expectedTrimmed = expectedLine.trim();
+        const studentTrimmed = studentLine.trim();
+        
+        const isMatch = expectedTrimmed === studentTrimmed;
+        
+        if (!isMatch && expectedTrimmed && studentTrimmed) {
+            errorCount++;
+            
+            // ✅ Generate fix suggestion for this line
+            const differences = [];
+            for (let j = 0; j < Math.max(expectedTrimmed.length, studentTrimmed.length); j++) {
+                if (expectedTrimmed[j] !== studentTrimmed[j]) {
+                    if (expectedTrimmed[j] && studentTrimmed[j]) {
+                        differences.push(`Change '${studentTrimmed[j]}' to '${expectedTrimmed[j]}'`);
+                    } else if (!studentTrimmed[j]) {
+                        differences.push(`Add '${expectedTrimmed[j]}'`);
+                    } else {
+                        differences.push(`Remove '${studentTrimmed[j]}'`);
+                    }
+                }
+            }
+            
+            // Find what needs to be changed (simple case-insensitive check)
+            if (expectedTrimmed.toLowerCase() === studentTrimmed.toLowerCase()) {
+                // Case difference
+                fixSuggestions.push({
+                    line: lineNum,
+                    issue: 'Capitalization',
+                    fix: `Change to: <code style="background: #e8f5e9; padding: 2px 6px; border-radius: 3px; font-family: monospace;">${escapeHTML(expectedTrimmed)}</code>`
+                });
+            } else {
+                // Other difference
+                fixSuggestions.push({
+                    line: lineNum,
+                    issue: 'Text mismatch',
+                    fix: `Change to: <code style="background: #e8f5e9; padding: 2px 6px; border-radius: 3px; font-family: monospace;">${escapeHTML(expectedTrimmed)}</code>`
+                });
+            }
+        }
+        
+        // Expected code side
+        if (expectedTrimmed) {
+            expectedHTML += `<div style="display: flex; padding: 4px 0; user-select: none;">
+                <span style="color: #999; width: 30px; text-align: right; margin-right: 12px; user-select: none; flex-shrink: 0;">${lineNum}</span>
+                <span style="flex: 1; font-family: 'Courier New', monospace; ${!isMatch && studentTrimmed ? 'background: #fff3cd; padding: 2px 4px; border-radius: 3px;' : ''}">${escapeHTML(expectedLine)}</span>
+            </div>`;
+        }
+        
+        // Student code side with character-level highlighting
+        if (studentTrimmed) {
+            const hasError = !isMatch && expectedTrimmed;
+            const displayLine = hasError ? highlightDifferences(expectedTrimmed, studentTrimmed) : escapeHTML(studentLine);
+            
+            studentHTML += `<div style="display: flex; padding: 4px 0;">
+                <span style="color: #999; width: 30px; text-align: right; margin-right: 12px; user-select: none; flex-shrink: 0;">${lineNum}</span>
+                <span style="flex: 1; font-family: 'Courier New', monospace; ${hasError ? 'background: #ffebee; padding: 2px 4px; border-radius: 3px; border-left: 3px solid #dc3545;' : ''}">${displayLine}</span>
+                ${hasError ? '<span style="color: #dc3545; margin-left: 8px; font-weight: bold; flex-shrink: 0;">⚠️</span>' : ''}
+            </div>`;
+        }
+    }
+    
+    const hintHTML = hint ? `
+        <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px; 
+                    margin-top: 16px; border-radius: 4px;">
+            <div style="font-weight: bold; color: #1976d2; margin-bottom: 4px;">💡 Hint:</div>
+            <div style="color: #1565c0; white-space: pre-wrap;">${escapeHTML(hint)}</div>
+        </div>
+    ` : '';
+    
+    // ✅ Generate fix suggestions HTML
+    const fixSuggestionsHTML = fixSuggestions.length > 0 ? `
+        <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 12px; 
+                    margin-top: 16px; border-radius: 4px;">
+            <div style="font-weight: bold; color: #2e7d32; margin-bottom: 8px;">🔧 How to Fix:</div>
+            ${fixSuggestions.map(fix => `
+                <div style="color: #1b5e20; font-size: 14px; margin-bottom: 8px;">
+                    <strong>Line ${fix.line}:</strong> ${fix.issue}<br>
+                    <span style="margin-left: 20px;">${fix.fix}</span>
+                </div>
+            `).join('')}
+        </div>
+    ` : '';
+    
+    const errorSummaryHTML = errorCount > 0 ? `
+        <div style="background: #ffebee; border-left: 4px solid #dc3545; padding: 12px; 
+                    margin-bottom: 16px; border-radius: 4px;">
+            <div style="font-weight: bold; color: #c62828; margin-bottom: 4px;">
+                ⚠️ Found ${errorCount} error${errorCount > 1 ? 's' : ''}
+            </div>
+            <div style="color: #d32f2f; font-size: 14px;">
+                Wrong characters are <span style="background: #ff5252; color: white; padding: 2px 4px; border-radius: 2px; font-weight: bold;">highlighted in red</span>
+            </div>
+        </div>
+    ` : '';
+    
+    comparisonDiv.innerHTML = `
+        <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 20px;">
+            <div style="font-weight: bold; font-size: 16px; margin-bottom: 16px; color: #856404; white-space: pre-wrap;">
+                ${escapeHTML(feedback)}
+            </div>
+            
+            ${errorSummaryHTML}
+            ${fixSuggestionsHTML}
+            ${hintHTML}
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;user-select: none;">
+                <!-- Expected Code -->
+                <div style="background: #f0fff4; border: 2px solid #28a745; border-radius: 8px; padding: 12px;">
+                    <div style="font-weight: bold; color: #28a745; margin-bottom: 8px; font-size: 14px;">
+                        ✅ Expected Code:
+                    </div>
+                    <div style="font-size: 13px; color: #212529; line-height: 1.8;">
+                        ${expectedHTML}
+                    </div>
+                </div>
+                
+                <!-- Your Code -->
+                <div style="background: #fff5f5; border: 2px solid #dc3545; border-radius: 8px; padding: 12px;">
+                    <div style="font-weight: bold; color: #dc3545; margin-bottom: 8px; font-size: 14px;">
+                        ❌ Your Code:
+                    </div>
+                    <div style="font-size: 13px; color: #212529; line-height: 1.8;">
+                        ${studentHTML}
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background: #e3f2fd; padding: 12px; margin-top: 16px; border-radius: 6px; font-size: 13px; color: #1565c0;">
+                <strong>🔍 Legend:</strong> 
+                <span style="background: #ff5252; color: white; padding: 2px 6px; border-radius: 2px; font-weight: bold; margin: 0 4px;">Red</span> = Wrong character
+                • Blank lines between code don't matter
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="document.getElementById('code-comparison-overlay').remove()" 
+                        style="background: #6c757d; color: white; border: none; 
+                               padding: 10px 24px; border-radius: 6px; cursor: pointer;
+                               font-size: 14px; font-weight: bold;">
+                    Got it, let me try again
+                </button>
+            </div>
+        </div>
+    `;
+    
+    overlay.appendChild(comparisonDiv);
+    document.body.appendChild(overlay);
+    
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            overlay.remove();
+        }
+    });
+}
+
+
+
+// ── 2. Show feedback bubble above the output panel ─────────────
+function showAIFeedback(message, isCorrect) {
+  const old = document.getElementById('ai-feedback-bubble');
+  if (old) old.remove();
+
+  const bubble = document.createElement('div');
+  bubble.id = 'ai-feedback-bubble';
+  bubble.style.cssText = `
+    position: fixed;
+    bottom: 160px;
+    right: 20px;
+    user-select: none;
+    max-width: 380px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: white;
+    z-index: 9999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    animation: slideInUp 0.3s ease;
+    background: ${isCorrect ? '#27ae60' : '#e67e22'};
+    border-left: 5px solid ${isCorrect ? '#1e8449' : '#d35400'};
+    white-space: pre-wrap;
+  `;
+  
+  const content = document.createElement('div');
+  content.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start;gap:10px;';
+  
+  const messageSpan = document.createElement('span');
+  messageSpan.textContent = `${isCorrect ? '✅' : '💡'} ${message}`;
+  
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '×';
+  closeBtn.style.cssText = 'background:none;border:none;color:white;font-size:18px;cursor:pointer;line-height:1;padding:0;flex-shrink:0;';
+  closeBtn.onclick = () => bubble.remove();
+  
+  content.appendChild(messageSpan);
+  content.appendChild(closeBtn);
+  bubble.appendChild(content);
+  
+  document.body.appendChild(bubble);
+
+  setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 8000);
+}
+
+// ── 3. Auto-show quiz modal when student clicks "Study This Topic"
+//       and the topic is a quiz type ────────────────────────────
+function closeQuizModal() {
+  if (window.currentQuizModal) {
+    window.currentQuizModal.remove();
+    window.currentQuizModal = null;
+  }
+  // Remove backdrop
+  const backdrop = document.getElementById('quiz-backdrop');
+  if (backdrop) backdrop.remove();
+}
+
+// Patch setCurrentTopic to auto-show quiz for non-code topics
+(function patchForQuiz() {
+  const _origHandleStudy = window.handleStudyClick;
+  window.handleStudyClick = function(topicId, btn) {
+    if (typeof _origHandleStudy === 'function') _origHandleStudy(topicId, btn);
+
+    // After a short delay, check if this topic needs a quiz
+    setTimeout(() => checkIfQuizTopic(topicId), 600);
+  };
+})();
+
+async function checkIfQuizTopic(topicId) {
+  try {
+    const res  = await fetch(`/webprojects/topic-info/${topicId}/`);
+    if (!res.ok) return; // silently skip
+    const data = await res.json();
+
+    if (data.validation_type === 'quiz' && data.quiz_question) {
+      // Defer modal so it never blocks the click thread
+      setTimeout(() => showQuizModal(data.quiz_question, topicId), 0);
+    }
+  } catch (e) {
+    // Silently fail
+  }
 }
 </script>
 
@@ -4900,163 +5682,185 @@ console.log("✅ All functions loaded");
 
 
 <script>
- 
- (function () {
+  
+(function () {
   'use strict';
 
-  // ── STATE ──────────────────────────────────────────────────────
+  // ── STATE ────────────────────────────────────────────────────────
   let topicRegistry        = [];
   let activeTopicId        = null;
-  let activeLang           = 'python';   // ← NEW: tracks current language
-  let completionShownForId = null;
+  let completionShownForId = null;  // track per-topic, not boolean
   let lastCode             = '';
   let isFetching           = false;
   let hintCooldown         = false;
   let hintTimer            = null;
 
+  // course_id from template constant (set in SETUP block above)
   function getCourseId() {
     return (typeof window.COURSE_ID !== 'undefined' && window.COURSE_ID)
       ? window.COURSE_ID : null;
   }
 
-  // ── LANGUAGE HELPERS ──────────────────────────────────────────
-  const LANG_PLACEHOLDERS = {
-    python:     '# Write your Python code here\n',
-    javascript: '// Write your JavaScript here\n',
-    html:       '<!-- Write your HTML here -->\n',
-    css:        '/* Write your CSS here */\n',
-    finance:    'Write your answer or calculation here...\n',
-    classroom:  'Write your lesson plan or teaching strategy here...\n',
-    ai:         'Write your AI prompt or tool description here...\n',
-    theory:     'Write your notes or answer here...\n',
-  };
+  // ═══════════════════════════════════════════════════════════════
+  // 1. PROGRESS BAR — injected above Monaco editor
+  // ═══════════════════════════════════════════════════════════════
 
-  const LANG_MONACO_MODE = {
-    python:     'python',
-    javascript: 'javascript',
-    html:       'html',
-    css:        'css',
-    finance:    'plaintext',
-    classroom:  'plaintext',
-    ai:         'plaintext',
-    theory:     'plaintext',
-    sql:        'sql',
-  };
 
-  const LANG_DISPLAY = {
-    python:     'Python',
-    javascript: 'JavaScript',
-    html:       'HTML',
-    css:        'CSS',
-    finance:    'Finance',
-    classroom:  'Classroom Management',
-    ai:         'AI for Teachers',
-    theory:     'Theory',
-    sql:        'SQL',
-  };
-
-  // ── SWITCH EDITOR LANGUAGE MODE ───────────────────────────────
-  function switchEditorLanguage(lang) {
-    if (!window.editor || !window.monaco) return;
-    const monacoLang = LANG_MONACO_MODE[lang] || 'plaintext';
-    try {
-      monaco.editor.setModelLanguage(window.editor.getModel(), monacoLang);
-      console.log('[SmartTutor] Editor language →', monacoLang);
-    } catch(e) {
-      console.warn('[SmartTutor] Could not switch language:', e);
-    }
-  }
-
-  // ── UPDATE EDITOR PLACEHOLDER (only if empty) ─────────────────
-  function updateEditorPlaceholder(lang) {
-    if (!window.editor) return;
-    const current = window.editor.getValue().trim();
-    const isPlaceholder = Object.values(LANG_PLACEHOLDERS).some(
-      p => current === p.trim()
-    );
-    if (!current || isPlaceholder) {
-      const placeholder = LANG_PLACEHOLDERS[lang] || '';
-      window.editor.setValue(placeholder);
-      // Place cursor at end
-      const model    = window.editor.getModel();
-      const lastLine = model.getLineCount();
-      const lastCol  = model.getLineMaxColumn(lastLine);
-      window.editor.setPosition({ lineNumber: lastLine, column: lastCol });
-    }
-  }
-
-  // ── SIDEBAR PROGRESS ──────────────────────────────────────────
+  // ── Render progress API data into toolbar + sidebar ────────────
   function renderProgress(data) {
+    // Persist globally so sidebar script can use it
     window._completedTopicIds = data.completed_topic_ids || [];
     window._currentTopicId    = data.current_topic_id;
     window._totalTopicCount   = data.total_count || 0;
 
+    // Toolbar text
     _setText('st-topic-name',  data.current_topic_title || 'None selected');
-    _setText('st-pct-label',   (data.overall_pct || 0) + '% complete');
-    _setText('st-count-label', (data.completed_count || 0) + ' / ' + (data.total_count || 0) + ' topics');
+    _setText('st-pct-label',   data.overall_pct + '% complete');
+    _setText('st-count-label', data.completed_count + ' / ' + data.total_count + ' topics');
 
+    // Fill bar
     const fill = document.getElementById('st-pb-fill');
     if (fill) {
-      fill.style.width = (data.overall_pct || 0) + '%';
+      fill.style.width = data.overall_pct + '%';
+      fill.style.background =
+        data.overall_pct === 100 ? 'linear-gradient(90deg,#27ae60,#2ecc71)' :
+        data.overall_pct >=  50  ? 'linear-gradient(90deg,#f39c12,#2ecc71)' :
+                                   'linear-gradient(90deg,#3498db,#2ecc71)';
     }
 
+    // Dots
+    const dotsEl = document.getElementById('st-topic-dots');
+    if (dotsEl && data.topics) {
+      dotsEl.innerHTML = '';
+      data.topics.forEach(t => {
+        const d = document.createElement('div');
+        d.title = t.title;
+        const size = t.is_current ? '13px' : '10px';
+        const bg   = t.completed ? '#27ae60' : t.is_current ? '#3498db' : '#2a2a3e';
+        const bor  = t.completed ? '#1e8449' : t.is_current ? '#1a6fa3' : '#444';
+        d.style.cssText = `
+          width:${size};height:${size};background:${bg};border:1.5px solid ${bor};
+          border-radius:50%;cursor:default;transition:all .3s;flex-shrink:0;`;
+        d.addEventListener('mouseenter', () => {
+          d.style.transform = 'scale(1.5)';
+          _miniToast((t.completed ? '✅ ' : t.is_current ? '📍 ' : '○ ') + t.title);
+        });
+        d.addEventListener('mouseleave', () => { d.style.transform = 'scale(1)'; });
+        dotsEl.appendChild(d);
+      });
+    }
+
+    // KEY: push into sidebar applyTopicStates (defined in sidebar template)
     if (typeof window.applyTopicStates === 'function') {
       window.applyTopicStates(data);
     }
 
+    // Keep activeTopicId in sync with what DB says is current
     if (data.current_topic_id && !activeTopicId) {
       activeTopicId = data.current_topic_id;
       localStorage.setItem('currentTopicId', activeTopicId);
     }
   }
 
+  function _setText(id, txt) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = txt;
+  }
+
+  function updateStepBadge(idx, total) {
+    const badge = document.getElementById('st-step-badge');
+    const text  = document.getElementById('st-step-text');
+    if (!badge || !text) return;
+    if (total > 0) {
+      badge.style.display = 'flex';
+      text.textContent    = 'Step ' + (idx + 1) + '/' + total;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  // ── fetchProgress — sends course_id so counts are course-scoped ──
   async function fetchProgress(justCompletedTopicId) {
     if (!window.PROGRESS_URL) return;
     try {
       const courseId = getCourseId();
-      const url = courseId
-        ? window.PROGRESS_URL + '?course_id=' + courseId
-        : window.PROGRESS_URL;
+
+      // Always require a course_id — without it we get cross-course pollution
+      if (!courseId) {
+        console.warn('[SmartTutor] No course_id — skipping fetchProgress');
+        return;
+      }
+
+      const url = window.PROGRESS_URL + '?course_id=' + courseId;
+
       const res  = await fetch(url);
       const data = await res.json();
       if (data.status !== 'success') return;
 
+      // Retry if just-completed topic is missing (DB race condition)
       if (justCompletedTopicId) {
         const ids = (data.completed_topic_ids || []).map(Number);
         if (!ids.includes(Number(justCompletedTopicId))) {
+          console.log('[SmartTutor] Retrying progress fetch…');
           await _delay(600);
           const res2  = await fetch(url);
           const data2 = await res2.json();
           if (data2.status === 'success') { renderProgress(data2); return; }
         }
       }
+
       renderProgress(data);
     } catch (e) {
       console.warn('[SmartTutor] fetchProgress:', e);
     }
   }
 
-  async function markTopicComplete(topicId) {
+  // ── markTopicComplete — ticks sidebar INSTANTLY then syncs DB ───
+async function markTopicComplete(topicId) {
     if (!window.MARK_DONE_URL || !topicId) return;
     const courseId = getCourseId();
+
+    // ⚡ INSTANT tick — update DOM and cache before any fetch
     _tickSidebarItem(topicId);
 
     try {
       const res  = await fetch(window.MARK_DONE_URL, {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.CSRF_TOK || '' },
-        body:    JSON.stringify({ topic_id: topicId, course_id: courseId, advance_to_next: true })
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken':  window.CSRF_TOK || ''
+        },
+        body: JSON.stringify({
+          topic_id:        topicId,
+          course_id:       courseId,
+          advance_to_next: true
+        })
       });
       const data = await res.json();
+
       if (data.status === 'success') {
+        console.log('[SmartTutor] ✅ DB marked complete:', topicId);
+
+        // Merge DB completed ids with our optimistic cache
         const merged = new Set([
           ...((data.completed_topic_ids || []).map(Number)),
           ...((window._completedTopicIds || []).map(Number)),
-          Number(topicId)
+          Number(topicId)  // always include the one we just completed
         ]);
         window._completedTopicIds = Array.from(merged);
         window._currentTopicId    = data.next_topic_id || window._currentTopicId;
 
+        // Update toolbar numbers
+        if (data.overall_pct !== undefined) {
+          const fill = document.getElementById('st-pb-fill');
+          if (fill) fill.style.width = data.overall_pct + '%';
+          _setText('st-pct-label',   data.overall_pct + '% complete');
+          _setText('st-count-label', data.completed_count + ' / ' + data.total_count + ' topics');
+          _setText('st-topic-name',  data.next_topic_title || _getText('st-topic-name'));
+        }
+
+        // Apply full state — completed_topic_ids already has topicId merged in
+        // so this will paint the tick GREEN not reset it
         if (typeof window.applyTopicStates === 'function') {
           window.applyTopicStates({
             current_topic_id:    data.next_topic_id    || window._currentTopicId,
@@ -5066,74 +5870,135 @@ console.log("✅ All functions loaded");
             completed_count:     data.completed_count  || merged.size,
           });
         }
+
+        // ✅ NO fetchProgress() call here — it was racing and overwriting the tick
+        // The data we got back from mark_topic_complete is already fresh from DB
       }
     } catch (e) {
       console.warn('[SmartTutor] markTopicComplete:', e);
     }
-  }
-
-  function _tickSidebarItem(topicId) {
+}
+  // Direct DOM tick — updates cache AND DOM atomically so no
+  // subsequent applyTopicStates() call can overwrite the tick.
+function _tickSidebarItem(topicId) {
     const id = Number(topicId);
-    if (!id) return;
+    if (!id) { console.warn('[SmartTutor] _tickSidebarItem: invalid id', topicId); return; }
+
+    // 1. Update cache first
     const done = new Set((window._completedTopicIds || []).map(Number));
     done.add(id);
     window._completedTopicIds = Array.from(done);
 
+    // 2. Direct DOM update
     const item  = document.getElementById('topic-item-'  + id);
     const btn   = document.getElementById('topic-btn-'   + id);
     const icon  = document.getElementById('topic-icon-'  + id);
     const badge = document.getElementById('topic-badge-' + id);
-    if (!item) return;
+
+    if (!item) {
+        console.warn('[SmartTutor] topic-item-' + id + ' not found in DOM');
+        return;
+    }
 
     item.style.border          = '2px solid #27ae60';
     item.style.backgroundColor = '#f0fff4';
-    if (btn)   { btn.textContent = '✅ Completed'; btn.style.background = '#27ae60'; btn.style.fontWeight = 'bold'; }
-    if (icon)  { icon.textContent = '✅'; }
-    if (badge) { badge.style.display = 'inline-block'; badge.textContent = '✅ Done'; badge.style.background = '#d4edda'; badge.style.color = '#155724'; }
 
-    if (typeof window.applyTopicStates === 'function') {
-      window.applyTopicStates({
-        current_topic_id:    window._currentTopicId || null,
-        completed_topic_ids: Array.from(done),
-        total_count:         window._totalTopicCount || 0,
-      });
+    if (btn) {
+        btn.textContent      = '✅ Completed';
+        btn.style.background = '#27ae60';
+        btn.style.fontWeight = 'bold';
+        btn.style.cursor     = 'pointer';
     }
+    if (icon)  icon.textContent = '✅';
+    if (badge) {
+        badge.style.display    = 'inline-block';
+        badge.textContent      = '✅ Done';
+        badge.style.background = '#d4edda';
+        badge.style.color      = '#155724';
+        badge.style.border     = '1px solid #c3e6cb';
+    }
+
+    console.log('[SmartTutor] ⚡ DOM tick done for', id, '| all completed:', window._completedTopicIds);
+
+    // 3. Force applyTopicStates with merged cache
+    if (typeof window.applyTopicStates === 'function') {
+        window.applyTopicStates({
+            current_topic_id:    window._currentTopicId || null,
+            completed_topic_ids: Array.from(done),
+            total_count:         window._totalTopicCount || 0,
+        });
+    }
+}
+  function _getText(id) {
+    const el = document.getElementById(id);
+    return el ? el.textContent : '';
   }
 
-  // ── TOPIC REGISTRY ────────────────────────────────────────────
+  function _delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function _miniToast(msg) {
+    let t = document.getElementById('st-mini-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'st-mini-toast';
+      t.style.cssText = `
+        position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+        background:#333;color:#fff;padding:6px 14px;border-radius:20px;
+        font-size:12px;z-index:99999;pointer-events:none;
+        opacity:0;transition:opacity .2s;`;
+      document.body.appendChild(t);
+    }
+    t.textContent   = msg;
+    t.style.opacity = '1';
+    clearTimeout(t._t);
+    t._t = setTimeout(() => { t.style.opacity = '0'; }, 1800);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 2. TOPIC REGISTRY
+  // ═══════════════════════════════════════════════════════════════
+
   function buildRegistry() {
     topicRegistry = [];
     document.querySelectorAll('.topic-item[data-topic-id]').forEach((item, idx) => {
       const id    = parseInt(item.dataset.topicId, 10);
       const el    = item.querySelector('strong');
-      const title = el ? el.textContent.replace(/^\d+\.\s*/, '').trim() : 'Topic ' + (idx + 1);
-      const lang  = item.dataset.lang || 'python';   // ← read lang from data attribute if set
-      topicRegistry.push({ id, title, index: idx, lang });
+      const title = el
+        ? el.textContent.replace(/^\d+\.\s*/, '').trim()
+        : 'Topic ' + (idx + 1);
+      topicRegistry.push({ id, title, index: idx });
     });
+    console.log('[SmartTutor] Registry:',
+      topicRegistry.map(t => '[' + t.index + '] ' + t.title).join(', '));
   }
 
-  function entryById(id)  { return topicRegistry.find(t => t.id === id) || null; }
-  function nextEntry()    {
+  function entryById(id) {
+    return topicRegistry.find(t => t.id === id) || null;
+  }
+
+  function nextEntry() {
     const cur = entryById(activeTopicId);
     if (!cur) return topicRegistry[0] || null;
     return topicRegistry[cur.index + 1] || null;
   }
 
-  // Patch setCurrentTopic to also switch editor language
+  // Wrap setCurrentTopic so the patch stays in sync
   function patchSetCurrentTopic() {
     const _orig = window.setCurrentTopic;
     window.setCurrentTopic = function (topicId, btn) {
       activeTopicId        = topicId;
-      completionShownForId = null;
+      completionShownForId = null;  // reset so new topic can show completion
       lastCode             = '';
       localStorage.setItem('currentTopicId', topicId);
       if (typeof _orig === 'function') _orig(topicId, btn);
-      // We don't know lang yet — the hint response will tell us
       setTimeout(() => fetchProgress(), 700);
     };
   }
 
-  // ── EDITOR LISTENER ───────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════
+  // 3. EDITOR LISTENER + HINT FETCH
+  // ═══════════════════════════════════════════════════════════════
+
   function attachEditorListener() {
     if (!window.editor) { setTimeout(attachEditorListener, 500); return; }
     window.editor.onDidChangeModelContent(() => {
@@ -5163,7 +6028,7 @@ console.log("✅ All functions loaded");
     const cur      = entryById(activeTopicId);
     const next     = nextEntry();
     const courseId = getCourseId();
-    const err      = detectSyntax(code, activeLang);
+    const err      = detectSyntax(code);
 
     if (err) highlightLine(err.line); else clearHighlight();
 
@@ -5171,17 +6036,20 @@ console.log("✅ All functions loaded");
     try {
       const res = await fetch(window.HINT_URL, {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.CSRF_TOK || '' },
-        body:    JSON.stringify({
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken':  window.CSRF_TOK || ''
+        },
+        body: JSON.stringify({
           code,
           file_id:          window.CURRENT_FILE_ID || 0,
           cursor_line:      window.editor.getPosition().lineNumber,
           error:            err ? err.msg : null,
           current_topic:    cur  ? cur.title  : null,
           current_topic_id: cur  ? cur.id     : null,
-          next_topic:       next ? next.title : null,
-          next_topic_id:    next ? next.id    : null,
-          course_id:        courseId,
+          next_topic:       next ? next.title  : null,
+          next_topic_id:    next ? next.id     : null,
+          course_id:        courseId,            // ← FIXED: now sent
           strict_topic:     true
         })
       });
@@ -5189,24 +6057,42 @@ console.log("✅ All functions loaded");
       const data = await res.json();
       if (data.status !== 'success') return;
 
-      // ── UPDATE active language from server response ─────────
-      if (data.lang && data.lang !== activeLang) {
-        activeLang = data.lang;
-        switchEditorLanguage(activeLang);
-        console.log('[SmartTutor] Language updated to:', activeLang);
+      // Update step badge in toolbar
+      if (data.total_steps > 0) {
+        updateStepBadge(data.step_index || 0, data.total_steps);
       }
 
-      if (data.total_steps > 0) updateStepBadge(data.step_index || 0, data.total_steps);
+      // ── COMPLETION — only show once per unique topic ───────────
+    if (data.type === 'topic_complete') {
+    completionShownForId = activeTopicId;
 
-      if (data.type === 'topic_complete' && completionShownForId !== activeTopicId) {
+    console.log('[SmartTutor] 🎯 topic_complete received — ticking now');
+
+    // 1. Tick the DOM immediately using the ID from the response
+    const topicToTick = data.completed_topic_id || activeTopicId;
+    _tickSidebarItem(topicToTick);
+
+    // 2. Celebrate
+    showCompletionPanel(cur, next, data.hint);
+
+    // 3. Save to DB in background
+    markTopicComplete(topicToTick);
+
+ } else // ── COMPLETION from hint system — NEVER mark complete here ────
+if (data.type === 'topic_complete') {
+    // The hint system only sees CODE, not actual output.
+    // Only validateWithAI (which checks real output) can mark complete.
+    // Just show encouragement panel, nothing else.
+    console.log('[SmartTutor] topic_complete hint received — encouragement only, NOT marking complete');
+    if (completionShownForId !== activeTopicId) {
         completionShownForId = activeTopicId;
-        const topicToTick = data.completed_topic_id || activeTopicId;
-        _tickSidebarItem(topicToTick);
         showCompletionPanel(cur, next, data.hint);
-        markTopicComplete(topicToTick);
-      } else if (data.type !== 'topic_complete') {
-        showStepPanel(data);
-      }
+        // ❌ NO _tickSidebarItem
+        // ❌ NO markTopicComplete
+    }
+} else {
+    showStepPanel(data);
+}
 
     } catch (e) {
       console.error('[SmartTutor] analyzeCode:', e);
@@ -5217,48 +6103,43 @@ console.log("✅ All functions loaded");
     }
   }
 
-  // ── PANEL RENDERING ───────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════
+  // 4. PANEL RENDERING
+  // ═══════════════════════════════════════════════════════════════
 
   function showStepPanel(data) {
-    const { hint, type, topic, step_index, total_steps,
-            current_example, next_example, lang } = data;
+    const {
+      hint, type, topic,
+      step_index, total_steps,
+      current_example, next_example
+    } = data;
 
-    const curLang  = lang || activeLang;
-    const isTheory = ['theory', 'finance', 'classroom', 'ai'].includes(curLang);
     const stepNum  = (step_index ?? 0) + 1;
     const totalNum = total_steps || 1;
-    const pct      = Math.round((stepNum - 1) / Math.max(totalNum, 1) * 100);
+    const pct      = Math.round((stepNum - 1) / totalNum * 100);
     const border   = typeColor(type);
 
     const progressHTML = total_steps > 0 ? `
       <div style="margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:3px;">
-          <span>📍 Step ${stepNum} of ${totalNum}</span><span>${pct}%</span>
+        <div style="display:flex;justify-content:space-between;
+                    font-size:11px;color:#666;margin-bottom:3px;">
+          <span>📍 Step ${stepNum} of ${totalNum}</span>
+          <span>${pct}%</span>
         </div>
         <div style="background:#e0e0e0;border-radius:20px;height:5px;overflow:hidden;">
-          <div style="background:${border};width:${pct}%;height:100%;border-radius:20px;transition:width .4s;"></div>
+          <div style="background:#3498db;width:${pct}%;height:100%;
+                      border-radius:20px;transition:width .4s;"></div>
         </div>
       </div>` : '';
 
-    // For theory courses, show the key point as text, not a code block
-    const exampleHTML = current_example ? (isTheory ? `
-      <div style="margin:10px 0;padding:12px;background:#f0f8ff;
-                  border-radius:8px;border-left:4px solid #3498db;">
-        <div style="font-size:10px;color:#666;margin-bottom:6px;
-                    text-transform:uppercase;letter-spacing:1px;">
-          📝 Key point to address in your response
-        </div>
-        <p style="color:#2c3e50;font-size:14px;margin:0;line-height:1.6;">
-          ${escHTML(current_example)}
-        </p>
-      </div>` : `
+    const exampleHTML = current_example ? `
       <div style="margin:10px 0;padding:10px;background:#1e1e1e;
                   border-radius:6px;border-left:4px solid #3498db;">
         <div style="font-size:10px;color:#888;margin-bottom:4px;
                     text-transform:uppercase;letter-spacing:1px;">
-          ✍️ ${LANG_DISPLAY[curLang] || curLang} to write
+          ✍️ Type this now
         </div>
-        <code style="color:#4ec9b0;font-size:13px;font-family:monospace;
+        <code style="color:#4ec9b0;font-size:14px;font-family:monospace;
                      white-space:pre-wrap;">${escHTML(current_example)}</code>
         <button
           onclick="SmartTutor.insertExample(\`${escAttr(current_example)}\`, this)"
@@ -5267,7 +6148,7 @@ console.log("✅ All functions loaded");
                  border-radius:3px;cursor:pointer;display:block;">
           📋 Insert into editor
         </button>
-      </div>`) : '';
+      </div>` : '';
 
     const hintHTML = `
       <div style="padding:10px;background:${typeBg(type)};border-radius:6px;
@@ -5276,58 +6157,219 @@ console.log("✅ All functions loaded");
         ${escHTML(hint)}
       </div>`;
 
-    // Lang badge
-    const langBadge = curLang ? `
-      <span style="font-size:10px;padding:2px 7px;background:#eee;
-                   border-radius:10px;color:#555;margin-left:6px;">
-        ${LANG_DISPLAY[curLang] || curLang}
-      </span>` : '';
+    const nextHTML = next_example ? `
+      <div style="padding:7px 10px;background:#f5f5f5;border-radius:5px;
+                  font-size:11px;color:#666;border-left:3px solid #ccc;">
+        <strong>Coming up:</strong>
+        <code style="margin-left:5px;color:#333;">${escHTML(next_example)}</code>
+      </div>` : '';
 
     showPanel({
       icon:     typeIcon(type),
-      title:    (topic ? topic : typeTitle(type)) + (langBadge ? ' ' : ''),
-      titleExtra: langBadge,
+      title:    topic
+                  ? topic + ' — Step ' + stepNum + '/' + totalNum
+                  : typeTitle(type),
       border,
       bg:       '#fff',
       left:     border,
-      body:     progressHTML + exampleHTML + hintHTML,
+      body:     progressHTML + exampleHTML + hintHTML + nextHTML,
       speech:   hint,
       autohide: type !== 'error'
     });
   }
 
   function showCompletionPanel(cur, next, hint) {
+    // 🎊 Fire celebration immediately
     _launchCelebration();
 
     const nextBlock = next
       ? `<div style="margin-top:12px;padding:12px;background:#e8fff0;
                      border-radius:8px;border-left:4px solid #27ae60;">
-           <strong>👉 Up next:</strong> <em>${escHTML(next.title)}</em><br>
+           <strong>👉 Up next:</strong>
+           <em>${escHTML(next.title)}</em><br>
            <button onclick="SmartTutor.jumpTo(${next.id})" style="
              margin-top:8px;padding:6px 16px;background:#27ae60;color:white;
-             border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">
+             border:none;border-radius:4px;cursor:pointer;
+             font-size:13px;font-weight:bold;">
              Start Next Topic →
            </button>
          </div>`
-      : `<div style="margin-top:10px;padding:10px;background:#e8fff0;border-radius:8px;">
-           🏆 <strong>All topics complete! Outstanding work!</strong>
+      : `<div style="margin-top:10px;padding:10px;
+                     background:#e8fff0;border-radius:8px;">
+           🏆 <strong>All topics complete! You are a Python star!</strong>
          </div>`;
 
     showPanel({
-      icon: '🎉', title: 'Topic Complete!',
+      icon:  '🎉',
+      title: 'Topic Complete!',
       border: '#27ae60', bg: '#efffef', left: '#27ae60',
-      body: `<div style="padding:10px;background:#efffef;border-radius:6px;
-                          border-left:4px solid #27ae60;font-size:13px;
-                          line-height:1.6;color:#2c3e50;margin-bottom:8px;">
-               ${escHTML(hint || 'Great work!')}
-             </div>` + nextBlock,
-      speech:   (hint || 'Great work!') + (next ? ' Up next: ' + next.title + '.' : ''),
+      body:   `<div style="padding:10px;background:#efffef;border-radius:6px;
+                            border-left:4px solid #27ae60;font-size:13px;
+                            line-height:1.6;color:#2c3e50;margin-bottom:8px;">
+                 ${escHTML(hint || 'Great work!')}
+               </div>` + nextBlock,
+      speech:   (hint || 'Great work!') +
+                (next ? ' Up next: ' + next.title + '.' : ''),
       autohide: false
     });
   }
 
-  // ── PANEL DISPLAY ─────────────────────────────────────────────
-  function showPanel({ icon, title, titleExtra='', border, bg, left,
+  // ═══════════════════════════════════════════════════════════════
+  // 🎊 CELEBRATION ENGINE
+  // ═══════════════════════════════════════════════════════════════
+
+  function _launchCelebration() {
+    _injectCelebrationStyles();
+    _flashScreenGreen();
+    _fireConfetti();
+    _spawnDancingEmojis();
+  }
+
+  function _injectCelebrationStyles() {
+    if (document.getElementById('st-celebration-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'st-celebration-styles';
+    style.textContent = `
+      @keyframes st-flash {
+        0%   { opacity: 1; }
+        100% { opacity: 0; }
+      }
+      @keyframes st-emoji-rise {
+        0%   { transform: translateY(0)     rotate(0deg)   scale(0.5); opacity: 1; }
+        30%  { transform: translateY(-30vh) rotate(12deg)  scale(1.2); opacity: 1; }
+        60%  { transform: translateY(-60vh) rotate(-8deg)  scale(1.0); opacity: 0.9; }
+        100% { transform: translateY(-95vh) rotate(18deg)  scale(0.6); opacity: 0; }
+      }
+      @keyframes st-emoji-bounce {
+        0%,100% { transform: translateY(0); }
+        50%     { transform: translateY(-18px); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function _flashScreenGreen() {
+    const flash = document.createElement('div');
+    flash.style.cssText = `
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      background:rgba(39,174,96,0.22);pointer-events:none;
+      z-index:999990;animation:st-flash 700ms ease-out forwards;`;
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 750);
+  }
+
+  function _fireConfetti() {
+    const COLORS = ['#27ae60','#3498db','#f39c12','#e74c3c',
+                    '#9b59b6','#1abc9c','#f1c40f','#e67e22','#fff'];
+    const COUNT  = 130;
+
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = `
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      pointer-events:none;z-index:999995;`;
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    const particles = [];
+
+    for (let i = 0; i < COUNT; i++) {
+      const side = Math.random() < 0.5 ? 0 : canvas.width;
+      particles.push({
+        x:       side + (Math.random() - 0.5) * 80,
+        y:       canvas.height * (0.1 + Math.random() * 0.4),
+        vx:      (side === 0 ? 1 : -1) * (2 + Math.random() * 5),
+        vy:      -(4 + Math.random() * 7),
+        size:    5 + Math.random() * 9,
+        color:   COLORS[Math.floor(Math.random() * COLORS.length)],
+        shape:   Math.random() < 0.5 ? 'rect' : 'circle',
+        rot:     Math.random() * 360,
+        rotV:    (Math.random() - 0.5) * 10,
+        alpha:   1,
+        gravity: 0.18 + Math.random() * 0.14,
+        wave:    Math.random() * Math.PI * 2,
+        waveAmp: (Math.random() - 0.5) * 2,
+      });
+    }
+
+    let frame;
+    let tick = 0;
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      tick++;
+      let alive = false;
+
+      particles.forEach(p => {
+        if (p.alpha <= 0.01) return;
+        alive = true;
+        p.vy  += p.gravity;
+        p.x   += p.vx + Math.sin(p.wave + tick * 0.04) * p.waveAmp;
+        p.y   += p.vy;
+        p.rot += p.rotV;
+        if (p.y > canvas.height * 0.75) p.alpha -= 0.03;
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(p.alpha, 0);
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rot * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+
+        if (p.shape === 'circle') {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillRect(-p.size / 2, -p.size / 3, p.size, p.size * 0.6);
+        }
+        ctx.restore();
+      });
+
+      if (alive) {
+        frame = requestAnimationFrame(animate);
+      } else {
+        cancelAnimationFrame(frame);
+        canvas.remove();
+      }
+    };
+
+    frame = requestAnimationFrame(animate);
+    setTimeout(() => { cancelAnimationFrame(frame); canvas.remove(); }, 5500);
+  }
+
+  function _spawnDancingEmojis() {
+    const EMOJIS = ['🎉','⭐','🏆','🎊','✨','🚀','💯','🌟','👏','🔥','💪','😄','🎯','🥳'];
+    const COUNT  = 14;
+
+    for (let i = 0; i < COUNT; i++) {
+      setTimeout(() => {
+        const el   = document.createElement('div');
+        const em   = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+        const left = 3 + Math.random() * 94;
+        const size = 26 + Math.floor(Math.random() * 28);
+        const rise = 1600 + Math.random() * 1400;
+        const delay= Math.random() * 300;
+
+        el.textContent   = em;
+        el.style.cssText = `
+          position:fixed;
+          left:${left}%;
+          bottom:-70px;
+          font-size:${size}px;
+          z-index:999996;
+          pointer-events:none;
+          user-select:none;
+          animation:
+            st-emoji-rise  ${rise}ms ${delay}ms ease-out forwards,
+            st-emoji-bounce 600ms ${delay}ms ease-in-out 3;
+        `;
+        document.body.appendChild(el);
+        setTimeout(() => { if (el.parentNode) el.remove(); }, rise + delay + 200);
+      }, i * 100);
+    }
+  }
+
+  function showPanel({ icon, title, border, bg, left,
                        body, topic, speech, autohide }) {
     const panel   = document.getElementById('smartHintPanel');
     const content = document.getElementById('hintContent');
@@ -5342,7 +6384,7 @@ console.log("✅ All functions loaded");
     panel.style.border       = '2px solid ' + border;
     panel.style.boxShadow    = '0 8px 32px ' + border + '44';
     iconEl.textContent       = icon;
-    titleEl.innerHTML        = escHTML(title) + (titleExtra || '');
+    titleEl.textContent      = title;
     titleEl.style.color      = border;
     content.innerHTML        = body;
     content.style.background = bg;
@@ -5359,7 +6401,9 @@ console.log("✅ All functions loaded");
     if (speech) speak(speech);
 
     if (autohide !== false) {
-      const ms = Math.max(((speech || '').split(' ').length / 2.5) * 1000, 8000) + 5000;
+      const ms = Math.max(
+        ((speech || '').split(' ').length / 2.5) * 1000, 8000
+      ) + 5000;
       window.hintAutoHideTimeout = setTimeout(() => {
         if (!window.speechSynthesis.speaking) closePanel();
       }, ms);
@@ -5373,20 +6417,23 @@ console.log("✅ All functions loaded");
   }
   window.closeSmartHint = closePanel;
 
-  // ── SPEECH ────────────────────────────────────────────────────
-  function speak(text) { window.speakText && window.speakText(text); }
+  // ═══════════════════════════════════════════════════════════════
+  // 5. SPEECH
+  // ═══════════════════════════════════════════════════════════════
 
-  // ── SYNTAX DETECTION — LANGUAGE-AWARE ─────────────────────────
-  function detectSyntax(code, lang) {
-    // Only run Python syntax checks on Python files
-    if (lang !== 'python') return null;
+  function speak(text) {
+  window.speakText(text);  // ← Use the global function
+}
 
+  // ═══════════════════════════════════════════════════════════════
+  // 6. SYNTAX DETECTION + HIGHLIGHT
+  // ═══════════════════════════════════════════════════════════════
+
+  function detectSyntax(code) {
     const lines = code.split('\n');
     for (let i = 0; i < lines.length; i++) {
-      const l = lines[i].trim();
-      const n = i + 1;
+      const l = lines[i].trim(), n = i + 1;
       if (!l || l.startsWith('#')) continue;
-
       const op = (l.match(/\(/g) || []).length;
       const cp = (l.match(/\)/g) || []).length;
       if (op > cp) return { line: n, msg: 'Line ' + n + ': Missing closing )' };
@@ -5405,119 +6452,60 @@ console.log("✅ All functions loaded");
 
   function highlightLine(n) {
     if (!window.editor || !window.monaco) return;
-    window._errDec = window.editor.deltaDecorations(window._errDec || [], [{
-      range: new monaco.Range(n, 1, n, 1000),
-      options: { isWholeLine: true, className: 'error-line-highlight', glyphMarginClassName: 'error-line-glyph' }
-    }]);
+    window._errDec = window.editor.deltaDecorations(
+      window._errDec || [], [{
+        range:   new monaco.Range(n, 1, n, 1000),
+        options: {
+          isWholeLine:         true,
+          className:           'error-line-highlight',
+          glyphMarginClassName:'error-line-glyph'
+        }
+      }]
+    );
     window.editor.revealLineInCenter(n);
     setTimeout(clearHighlight, 10000);
   }
+
   function clearHighlight() {
     if (window.editor && window._errDec)
       window._errDec = window.editor.deltaDecorations(window._errDec, []);
   }
 
-  // ── TOOLBAR ───────────────────────────────────────────────────
-  function updateStepBadge(idx, total) {
-    const badge = document.getElementById('st-step-badge');
-    const text  = document.getElementById('st-step-text');
-    if (!badge || !text) return;
-    if (total > 0) { badge.style.display = 'flex'; text.textContent = 'Step ' + (idx + 1) + '/' + total; }
-    else             badge.style.display = 'none';
-  }
-
-  // ── CELEBRATION ───────────────────────────────────────────────
-  function _launchCelebration() {
-    _flashScreenGreen(); _fireConfetti(); _spawnDancingEmojis();
-  }
-  function _flashScreenGreen() {
-    const el = document.createElement('div');
-    el.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(39,174,96,0.22);pointer-events:none;z-index:999990;animation:st-flash 700ms ease-out forwards;';
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 750);
-  }
-  function _fireConfetti() {
-    const COLORS = ['#27ae60','#3498db','#f39c12','#e74c3c','#9b59b6','#1abc9c','#f1c40f'];
-    const canvas = document.createElement('canvas');
-    canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999995;';
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
-    document.body.appendChild(canvas);
-    const ctx = canvas.getContext('2d');
-    const particles = Array.from({length: 100}, () => ({
-      x: Math.random() * canvas.width, y: -10,
-      vx: (Math.random() - 0.5) * 6, vy: Math.random() * 4 + 2,
-      size: 5 + Math.random() * 8, color: COLORS[Math.floor(Math.random() * COLORS.length)],
-      rot: Math.random() * 360, rotV: (Math.random() - 0.5) * 8, alpha: 1, gravity: 0.15,
-    }));
-    let frame;
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      let alive = false;
-      particles.forEach(p => {
-        if (p.alpha <= 0.01) return;
-        alive = true;
-        p.vy += p.gravity; p.x += p.vx; p.y += p.vy; p.rot += p.rotV;
-        if (p.y > canvas.height * 0.8) p.alpha -= 0.03;
-        ctx.save(); ctx.globalAlpha = Math.max(p.alpha, 0);
-        ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI / 180);
-        ctx.fillStyle = p.color;
-        ctx.fillRect(-p.size/2, -p.size/3, p.size, p.size * 0.6);
-        ctx.restore();
-      });
-      if (alive) frame = requestAnimationFrame(animate);
-      else { cancelAnimationFrame(frame); canvas.remove(); }
-    };
-    frame = requestAnimationFrame(animate);
-    setTimeout(() => { cancelAnimationFrame(frame); canvas.remove(); }, 4000);
-  }
-  function _spawnDancingEmojis() {
-    const EMOJIS = ['🎉','⭐','🏆','🎊','✨','🚀','💯','🌟','👏','🔥','💪','😄','🎯','🥳'];
-    for (let i = 0; i < 12; i++) {
-      setTimeout(() => {
-        const el = document.createElement('div');
-        el.textContent   = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-        el.style.cssText = `position:fixed;left:${3+Math.random()*94}%;bottom:-70px;font-size:${26+Math.random()*24}px;z-index:999996;pointer-events:none;user-select:none;animation:st-emoji-rise ${1600+Math.random()*1400}ms ease-out forwards;`;
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 3200);
-      }, i * 100);
-    }
-  }
-
-  // Inject celebration keyframes
-  const celebStyle = document.createElement('style');
-  celebStyle.textContent = `
-    @keyframes st-flash { 0%{opacity:1} 100%{opacity:0} }
-    @keyframes st-emoji-rise { 0%{transform:translateY(0) scale(.5);opacity:1} 100%{transform:translateY(-90vh) scale(.8);opacity:0} }
-  `;
-  document.head.appendChild(celebStyle);
-
-  // ── HELPERS ───────────────────────────────────────────────────
-  const LANG_DISPLAY_JS = {
-    python:'Python', javascript:'JavaScript', html:'HTML', css:'CSS',
-    finance:'Finance', classroom:'Classroom Management', ai:'AI for Teachers', theory:'Theory',
-  };
+  // ═══════════════════════════════════════════════════════════════
+  // 7. HELPERS
+  // ═══════════════════════════════════════════════════════════════
 
   function escHTML(s) {
-    return s ? String(s).replace(/[&<>"']/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[t])) : '';
+    return s
+      ? String(s).replace(/[&<>"']/g, t =>
+          ({ '&':'&amp;', '<':'&lt;', '>':'&gt;',
+             '"':'&quot;', "'":'&#39;' }[t]))
+      : '';
   }
+
   function escAttr(s) {
-    return s ? s.replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\$/g,'\\$') : '';
+    return s
+      ? s.replace(/\\/g, '\\\\')
+           .replace(/`/g,  '\\`')
+           .replace(/\$/g, '\\$')
+      : '';
   }
+
   function typeIcon(t) {
-    return {error:'⚠️', start:'🚀', next_step:'💡', improvement:'✨'}[t] || '💡';
+    return { error:'⚠️', start:'🚀', next_step:'💡', improvement:'✨' }[t] || '💡';
   }
   function typeTitle(t) {
-    return {error:'Error', start:'Start Here', next_step:'Next Step', improvement:'Suggestion'}[t] || 'AI Tutor';
+    return { error:'Error', start:'Start Here',
+             next_step:'Next Step', improvement:'Suggestion' }[t] || 'AI Tutor';
   }
   function typeColor(t) {
-    return {error:'#e74c3c', start:'#27ae60', next_step:'#3498db', improvement:'#27ae60'}[t] || '#2c3e50';
+    return { error:'#e74c3c', start:'#27ae60',
+             next_step:'#3498db', improvement:'#27ae60' }[t] || '#2c3e50';
   }
   function typeBg(t) {
-    return {error:'#fff0f0', start:'#efffef', next_step:'#eff8ff', improvement:'#efffef'}[t] || '#f8f9fa';
+    return { error:'#fff0f0', start:'#efffef',
+             next_step:'#eff8ff', improvement:'#efffef' }[t] || '#f8f9fa';
   }
-  function _setText(id, txt) { const el = document.getElementById(id); if (el) el.textContent = txt; }
-  function _delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   function jumpTo(topicId) {
     closePanel();
@@ -5550,60 +6538,94 @@ console.log("✅ All functions loaded");
     }
   }
 
-  // ── POLLING ───────────────────────────────────────────────────
-  function startPolling() {
-    let lastSnapshot = '';
-    setInterval(async () => {
-      try {
-        const courseId = (typeof COURSE_ID !== 'undefined' && COURSE_ID && !isNaN(COURSE_ID)) ? COURSE_ID : null;
-        const url = courseId
-          ? `${window.PROGRESS_URL}?course_id=${courseId}`
-          : window.PROGRESS_URL;
-        const res  = await fetch(url);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.status !== 'success') return;
-        const snapshot = JSON.stringify({ completed: (data.completed_topic_ids || []).sort(), current: data.current_topic_id });
-        if (snapshot === lastSnapshot) return;
-        lastSnapshot = snapshot;
-        const merged = new Set([...(data.completed_topic_ids || []).map(Number), ...(window._completedTopicIds || []).map(Number)]);
-        data.completed_topic_ids = Array.from(merged);
-        renderProgress(data);
-        if (typeof window.applyTopicStates === 'function') window.applyTopicStates(data);
-      } catch (e) { /* silent */ }
-    }, 5000);
-  }
+  // ═══════════════════════════════════════════════════════════════
+  // 8. INIT
+  // ═══════════════════════════════════════════════════════════════
 
-  // ── INIT ──────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     buildRegistry();
     patchSetCurrentTopic();
+   
 
+    // Restore active topic from localStorage
     const saved = localStorage.getItem('currentTopicId');
     if (saved) activeTopicId = parseInt(saved, 10);
 
+    // Load real progress from DB → renderProgress → applyTopicStates → sidebar ticks
     fetchProgress();
+
     attachEditorListener();
 
-    // Inject celebration styles
-    const s = document.createElement('style');
-    s.textContent = `
-      @keyframes st-flash { 0%{opacity:1}100%{opacity:0} }
-      @keyframes st-emoji-rise {
-        0%{transform:translateY(0) scale(.5);opacity:1}
-        100%{transform:translateY(-90vh) scale(.8);opacity:0}
-      }
-    `;
-    document.head.appendChild(s);
-
+    // Allow toolbar "Get Hint" button to force a fresh analysis
     window.getManualHint = () => { lastCode = ''; analyzeCode(); };
     startPolling();
   });
 
   // Public API
-  window.SmartTutor = { jumpTo, insertExample, refreshProgress: () => fetchProgress() };
+  window.SmartTutor = {
+    jumpTo,
+    insertExample,
+    refreshProgress: () => fetchProgress()
+  };
+// ═══════════════════════════════════════════════════════════════
+// 9. LIVE POLLING — updates sidebar every 5s without page reload
+// ═══════════════════════════════════════════════════════════════
+
+function startPolling() {
+  let lastSnapshot = '';
+
+  setInterval(async () => {
+    try {
+      // Build URL safely — only append course_id if it's a real number
+      const courseId = (typeof COURSE_ID !== 'undefined' && COURSE_ID && !isNaN(COURSE_ID))
+        ? COURSE_ID : null;
+
+      const url = courseId
+        ? `{% url 'webprojects:get_student_progress' %}?course_id=${courseId}`
+        : `{% url 'webprojects:get_student_progress' %}`;
+
+      const res  = await fetch(url);
+      if (!res.ok) return;  // silently skip bad responses
+      const data = await res.json();
+      if (data.status !== 'success') return;
+
+      // Snapshot to detect changes
+      const snapshot = JSON.stringify({
+        completed: (data.completed_topic_ids || []).sort(),
+        current:   data.current_topic_id
+      });
+
+      if (snapshot === lastSnapshot) return;  // nothing changed
+      lastSnapshot = snapshot;
+
+      console.log('[Poll] Change detected — updating sidebar');
+
+      // Merge with optimistic cache so ticks are never lost
+      // Only merge if same course — never pollute across courses
+      const sameCourse = !data.course_id || !window._currentCourseId ||
+                         (Number(data.course_id) === Number(window._currentCourseId));
+
+      if (sameCourse) {
+        const merged = new Set([
+          ...(data.completed_topic_ids || []).map(Number),
+          ...(window._completedTopicIds || []).map(Number),
+        ]);
+        data.completed_topic_ids = Array.from(merged);
+      }
+
+      renderProgress(data);
+
+      if (typeof window.applyTopicStates === 'function') {
+        window.applyTopicStates(data);
+      }
+
+    } catch (e) {
+      // Silently ignore — don't spam console on every poll failure
+    }
+  }, 5000);
+}
 
 })();
-  
+
 </script>
 {% endblock %}

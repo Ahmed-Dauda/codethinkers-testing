@@ -459,7 +459,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 # # Update database configuration from $DATABASE_URL
 
-#production settings for heroku
+#production settings for herokus
 
 import dj_database_url
 DATABASES = {
