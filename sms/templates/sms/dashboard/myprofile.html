@@ -1,182 +1,818 @@
 {% extends 'sms/dashboard/base.html' %}
 {% load hitcount_tags %}
+{% load static %}
 
 {% block title %}My Profile{% endblock %}
 
 {% block content %}
 
-<div class="portlet light bordered card-body">
+<style>
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
 
-  <!-- User Profile Info -->
-  {% for profile in user_profile %}
-  <div class="row list-separated profile-stat">
+.profile-dashboard {
+    background: #f5f7fa;
+    min-height: 100vh;
+    padding: 30px 20px;
+}
 
-    <!-- Profile Image & Basic Info -->
-    <div class="col-md-4 col-sm-4 col-xs-6 text-center">
-      {% if profile.pro_img %}
-        <img src="{{ profile.pro_img.url }}" width="100" height="100" class="rounded-circle mb-2" alt="Profile Image">
-      {% else %}
-        <img src="/static/sms/images/newlogo3.jpg" width="100" height="100" class="rounded-circle mb-2" alt="Default Image">
-      {% endif %}
-      <hr>
-      <p class="font-weight-bold">Names: {{ profile.first_name|capfirst  }} {{ profile.last_name|capfirst  }}</p>
-      <p>Last Profile Update: {{ profile.updated|timesince }}</p>
-      <p>Sex: {{ profile.gender }}</p>
-      <p>Username: {{ profile.username }}</p>
-    </div>
+.profile-header {
+    background: var(--primary-gradient);
+    border-radius: 20px;
+    padding: 40px;
+    color: white;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
 
-    <!-- Contact & Links -->
-    <div class="col-md-4 col-sm-4 col-xs-6">
-      <p>Email: {{ profile.user }}</p>
-      <p>Country: {{ profile.countries }}</p>
-      <a class="btn btn-primary mb-2" href="https://wa.me/23409031568177">Customer Support</a>
-      
-      {% if request.user.is_superuser %}
-        <div class="mt-2">
-          <a class="btn btn-danger mb-1 d-block" href="{% url 'users:schoolstudentview' %}">School Student View</a>
-          <a class="btn btn-secondary d-block" href="{% url 'users:quick_dashboard' %}">Dashboard</a>
-        </div>
-      {% endif %}
-    </div>
+.profile-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
 
-    <!-- Additional Info -->
-    <div class="col-md-4 col-sm-4 col-xs-6">
-      <p>Date Created: {{ profile.created }} ({{ profile.created|timesince }})</p>
-      <p>Biography: {{ profile.bio }}</p>
-      <hr style="color: rgb(16, 2, 37);">
-      <a href="{% url 'sms:userprofileupdateform' %}" class="btn btn-outline-primary">
-    Edit Profile
-</a>
-    </div>
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 5px solid white;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    object-fit: cover;
+    margin-bottom: 20px;
+}
 
-  </div>
-  {% endfor %}
+.profile-name {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
 
-  <hr>
+.profile-meta {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    opacity: 0.95;
+}
 
-  <!-- School Name -->
-  {% if school_name %}
-    <p class="text-danger">School Name: {{ school_name }}</p>
-  {% endif %}
+.profile-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-  <!-- Navigation -->
-  <div class="text-center mb-3">
-    <a href="{% url 'sms:homepage' %}">Go to Homepage</a>
-  </div>
+.profile-meta-item i {
+    font-size: 1.1rem;
+}
 
-  <!-- Completed Courses -->
-  <h3 class="text-center mb-3">Completed Courses</h3>
+.stat-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
 
-  {% for course in courses %}
-    {% for course_max_marks in max_marks_per_course %}
-      {% if course|lower == course_max_marks.exam__course_name__title|lower %}
-        {% if course_max_marks.max_marks >= course.pass_mark %}
-          {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
-            <div class="d-flex align-items-center font-weight-bold mb-1">
-              {{ course }}
-              <a class="ml-2 btn btn-sm btn-success" href="{% url 'student:pdf_id_view' course.id %}">Download</a>
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: var(--primary-gradient);
+}
+
+.stat-card.success::before { background: var(--success-gradient); }
+.stat-card.danger::before { background: var(--danger-gradient); }
+.stat-card.info::before { background: var(--info-gradient); }
+.stat-card.warning::before { background: var(--warning-gradient); }
+
+.stat-card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    background: var(--primary-gradient);
+    color: white;
+}
+
+.stat-card.success .stat-card-icon { background: var(--success-gradient); }
+.stat-card.danger .stat-card-icon { background: var(--danger-gradient); }
+.stat-card.info .stat-card-icon { background: var(--info-gradient); }
+.stat-card.warning .stat-card-icon { background: var(--warning-gradient); }
+
+.stat-card-title {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-card-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.dashboard-card-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dashboard-card-title i {
+    color: #667eea;
+}
+
+.btn-modern {
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary-modern {
+    background: var(--primary-gradient);
+    color: white;
+}
+
+.btn-success-modern {
+    background: var(--success-gradient);
+    color: white;
+}
+
+.btn-danger-modern {
+    background: var(--danger-gradient);
+    color: white;
+}
+
+.btn-outline-modern {
+    background: white;
+    border: 2px solid #667eea;
+    color: #667eea;
+}
+
+.btn-outline-modern:hover {
+    background: #667eea;
+    color: white;
+}
+
+.course-item {
+    background: #f8f9fa;
+    border-left: 4px solid #28a745;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.course-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.course-name {
+    font-weight: 600;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.course-name i {
+    color: #28a745;
+    font-size: 1.2rem;
+}
+
+.referral-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 25px;
+}
+
+.referral-input-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.referral-input {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-weight: 500;
+}
+
+.referral-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.table-modern {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+.table-modern thead th {
+    background: #f8f9fa;
+    padding: 15px;
+    font-weight: 600;
+    color: #2d3748;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    border: none;
+}
+
+.table-modern tbody tr {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.table-modern tbody tr:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.table-modern tbody td {
+    padding: 20px 15px;
+    border: none;
+    vertical-align: middle;
+}
+
+.table-modern tbody tr td:first-child {
+    border-radius: 10px 0 0 10px;
+}
+
+.table-modern tbody tr td:last-child {
+    border-radius: 0 10px 10px 0;
+}
+
+.badge-modern {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.badge-success-modern {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-primary-modern {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.info-item i {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--primary-gradient);
+    color: white;
+    font-size: 1.1rem;
+}
+
+.info-item-content {
+    flex: 1;
+}
+
+.info-item-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 3px;
+}
+
+.info-item-value {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .profile-header {
+        padding: 30px 20px;
+        text-align: center;
+    }
+    
+    .profile-meta {
+        justify-content: center;
+    }
+    
+    .stat-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-actions {
+        flex-direction: column;
+    }
+    
+    .btn-modern {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #dee2e6;
+    margin-bottom: 20px;
+}
+
+.copy-success {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(40, 167, 69, 0.3);
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+</style>
+
+<div class="profile-dashboard">
+    <div class="container-fluid" style="max-width: 1400px;">
+
+        {% for profile in user_profile %}
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
+                    {% if profile.pro_img %}
+                        <img src="{{ profile.pro_img.url }}" class="profile-avatar" alt="Profile Image">
+                    {% else %}
+                        <img src="/static/sms/images/newlogo3.jpg" class="profile-avatar" alt="Default Image">
+                    {% endif %}
+                </div>
+                <div class="col-md-9">
+                    <h1 class="profile-name">{{ profile.first_name|capfirst }} {{ profile.last_name|capfirst }}</h1>
+                    <div class="profile-meta">
+                        <div class="profile-meta-item">
+                            <i class="fas fa-user"></i>
+                            <span>@{{ profile.username }}</span>
+                        </div>
+                        <div class="profile-meta-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>{{ profile.user }}</span>
+                        </div>
+                        <div class="profile-meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>{{ profile.countries }}</span>
+                        </div>
+                        <div class="profile-meta-item">
+                            <i class="fas fa-venus-mars"></i>
+                            <span>{{ profile.gender }}</span>
+                        </div>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="{% url 'sms:userprofileupdateform' %}" class="btn-modern btn-outline-modern">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
+                        <a href="https://wa.me/23409031568177" class="btn-modern btn-success-modern">
+                            <i class="fab fa-whatsapp"></i> Customer Support
+                        </a>
+                        {% if request.user.is_superuser %}
+                            <a href="{% url 'users:quick_dashboard' %}" class="btn-modern btn-primary-modern">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'account_logout' %}" class="btn-modern btn-danger-modern">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
             </div>
-            <p>&#10004; Great Work! You have passed all requirements and can view your course certificate now.</p>
-          {% endif %}
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stat-cards">
+            <div class="stat-card">
+                <div class="stat-card-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-card-title">Member Since</div>
+                <div class="stat-card-value">{{ profile.created|timesince }}</div>
+            </div>
+
+            <div class="stat-card success">
+                <div class="stat-card-icon">
+                    <i class="fas fa-certificate"></i>
+                </div>
+                <div class="stat-card-title">Completed Courses</div>
+                <div class="stat-card-value">{{ courses|length }}</div>
+            </div>
+
+            <div class="stat-card info">
+                <div class="stat-card-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-card-title">Last Update</div>
+                <div class="stat-card-value">{{ profile.updated|timesince }}</div>
+            </div>
+
+            {% if school_name %}
+            <div class="stat-card warning">
+                <div class="stat-card-icon">
+                    <i class="fas fa-school"></i>
+                </div>
+                <div class="stat-card-title">School</div>
+                <div class="stat-card-value" style="font-size: 1.2rem;">{{ school_name }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Profile Information -->
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <h3 class="dashboard-card-title">
+                    <i class="fas fa-user-circle"></i>
+                    Profile Information
+                </h3>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <i class="fas fa-id-card"></i>
+                    <div class="info-item-content">
+                        <div class="info-item-label">Full Name</div>
+                        <div class="info-item-value">{{ profile.first_name|capfirst }} {{ profile.last_name|capfirst }}</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-envelope"></i>
+                    <div class="info-item-content">
+                        <div class="info-item-label">Email</div>
+                        <div class="info-item-value">{{ profile.user }}</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-globe"></i>
+                    <div class="info-item-content">
+                        <div class="info-item-label">Country</div>
+                        <div class="info-item-value">{{ profile.countries }}</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-venus-mars"></i>
+                    <div class="info-item-content">
+                        <div class="info-item-label">Gender</div>
+                        <div class="info-item-value">{{ profile.gender }}</div>
+                    </div>
+                </div>
+            </div>
+            {% if profile.bio %}
+            <div class="mt-4 p-3" style="background: #f8f9fa; border-radius: 10px;">
+                <h6 class="text-muted mb-2"><i class="fas fa-quote-left"></i> Biography</h6>
+                <p class="mb-0">{{ profile.bio }}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <!-- Completed Courses -->
+        {% if courses or certificate_payments %}
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <h3 class="dashboard-card-title">
+                    <i class="fas fa-graduation-cap"></i>
+                    Completed Courses & Certificates
+                </h3>
+                <span class="badge-modern badge-success-modern">{{ courses|length }} Completed</span>
+            </div>
+
+            {% for course in courses %}
+                {% for course_max_marks in max_marks_per_course %}
+                    {% if course|lower == course_max_marks.exam__course_name__title|lower %}
+                        {% if course_max_marks.max_marks >= course.pass_mark %}
+                            {% if course.course_name.cert_price == None and course.course_name.price == None or school_name %}
+                                <div class="course-item">
+                                    <div class="course-name">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>{{ course }}</span>
+                                    </div>
+                                    <a href="{% url 'student:pdf_id_view' course.id %}" class="btn-modern btn-success-modern">
+                                        <i class="fas fa-download"></i> Download Certificate
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+            {% for certificate_payment in certificate_payments %}
+                {% for certificate_pay in certificate_payment.courses.all %}
+                    <div class="course-item">
+                        <div class="course-name">
+                            <i class="fas fa-check-circle"></i>
+                            <span>{{ certificate_pay }}</span>
+                        </div>
+                        <a href="{% url 'student:pdf_id_view' certificate_pay.id %}" class="btn-modern btn-success-modern">
+                            <i class="fas fa-download"></i> Download Certificate
+                        </a>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            {% if not courses and not certificate_payments %}
+            <div class="empty-state">
+                <i class="fas fa-graduation-cap"></i>
+                <h5>No Completed Courses Yet</h5>
+                <p>Start learning and earn your certificates!</p>
+            </div>
+            {% endif %}
+        </div>
         {% endif %}
-      {% endif %}
-    {% endfor %}
-  {% endfor %}
 
-  <!-- Certificate Payments -->
-  {% for certificate_payment in certificate_payments %}
-    {% for certificate_pay in certificate_payment.courses.all %}
-      <div class="d-flex align-items-center font-weight-bold mb-1">
-        {{ certificate_pay }}
-        <a class="ml-2 btn btn-sm btn-success" href="{% url 'student:pdf_id_view' certificate_pay.id %}">Download</a>
-      </div>
-      <p>&#10004; Great Work! You have passed all requirements and can view your course certificate now.</p>
-    {% endfor %}
-  {% endfor %}
+        <!-- Referral Section -->
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <h3 class="dashboard-card-title">
+                    <i class="fas fa-users"></i>
+                    Referral Program
+                </h3>
+            </div>
 
-  <hr>
+            {% if referrer_mentor == 0 %}
+                <div class="text-center py-5">
+                    <i class="fas fa-user-plus" style="font-size: 4rem; color: #667eea; margin-bottom: 20px;"></i>
+                    <h4>Join Our Referral Program</h4>
+                    <p class="text-muted mb-4">Earn rewards by referring students to our platform</p>
+                    <a href="{% url 'users:become_referrer' %}" class="btn-modern btn-primary-modern">
+                        <i class="fas fa-hand-pointer"></i> Become a Referrer
+                    </a>
+                </div>
+            {% else %}
+                <!-- Referral Stats -->
+                <div class="stat-cards">
+                    <div class="stat-card success">
+                        <div class="stat-card-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-card-title">Total Referrals</div>
+                        <div class="stat-card-value">{{ referrer_mentor.f_code_count }}</div>
+                    </div>
 
-  <!-- Referral Section -->
-  <h1 class="text-danger">Referral Details</h1>
-  {% if referrer_mentor == 0 %}
-    <h3><a href="{% url 'users:become_referrer' %}">Become a Referrer, Click Here</a></h3>
-  {% else %}
-    <div class="mb-3">
-      <p>Your Referral Link:</p>
-      <input type="text" id="referralLink" value="{{ request.scheme }}://{{ request.get_host }}{% url 'users:referral_signup' referrer_code=referrer_code %}" readonly>
-      <button onclick="copyToClipboard()" class="btn btn-secondary btn-sm">Copy</button>
+                    <div class="stat-card warning">
+                        <div class="stat-card-icon">
+                            <i class="fas fa-naira-sign"></i>
+                        </div>
+                        <div class="stat-card-title">Total Earnings</div>
+                        <div class="stat-card-value">₦{{ total_amount }}</div>
+                    </div>
+
+                    <div class="stat-card info">
+                        <div class="stat-card-icon">
+                            <i class="fas fa-percent"></i>
+                        </div>
+                        <div class="stat-card-title">Commission Rate</div>
+                        <div class="stat-card-value">
+                            {% for percentage in percentage_referer %}
+                                {{ percentage.referer_per }}%
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referral Link -->
+                <div class="referral-card">
+                    <h4><i class="fas fa-link"></i> Your Referral Link</h4>
+                    <p style="opacity: 0.9;">Share this link with friends and earn commissions!</p>
+                    <div class="referral-input-group">
+                        <input type="text" id="referralLink" class="referral-input" value="{{ request.scheme }}://{{ request.get_host }}{% url 'users:referral_signup' referrer_code=referrer_code %}" readonly>
+                        <button onclick="copyToClipboard()" class="btn-modern btn-outline-modern" style="color: white; border-color: white;">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bank Details -->
+                <div class="dashboard-card-header mt-4">
+                    <h4 class="dashboard-card-title">
+                        <i class="fas fa-university"></i>
+                        Payment Information
+                    </h4>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <i class="fas fa-user"></i>
+                        <div class="info-item-content">
+                            <div class="info-item-label">Account Name</div>
+                            <div class="info-item-value">{{ account_name }}</div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-credit-card"></i>
+                        <div class="info-item-content">
+                            <div class="info-item-label">Account Number</div>
+                            <div class="info-item-value">{{ account_number }}</div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-university"></i>
+                        <div class="info-item-content">
+                            <div class="info-item-label">Bank</div>
+                            <div class="info-item-value">{{ bank }}</div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-phone"></i>
+                        <div class="info-item-content">
+                            <div class="info-item-label">Phone Number</div>
+                            <div class="info-item-value">{{ phone_no }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referral Payments Table -->
+                {% if referrer_mentor.related_payments %}
+                <div class="dashboard-card-header mt-4">
+                    <h4 class="dashboard-card-title">
+                        <i class="fas fa-history"></i>
+                        Referral History
+                    </h4>
+                </div>
+                <div class="table-responsive">
+                    <table class="table-modern">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Course</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in referrer_mentor.related_payments %}
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-user-circle text-primary"></i>
+                                        {{ payment.first_name }} {{ payment.last_name }}
+                                    </td>
+                                    <td>{{ payment.content_type }}</td>
+                                    <td>
+                                        <span class="badge-modern badge-success-modern">
+                                            ₦{{ payment.amount }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <i class="far fa-calendar"></i>
+                                        {{ payment.date_created|date:"M d, Y" }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h5>No Referral Payments Yet</h5>
+                    <p>Start sharing your referral link to earn commissions!</p>
+                </div>
+                {% endif %}
+
+            {% endif %}
+        </div>
+
     </div>
-
-    {% for percentage in percentage_referer %}
-      <p class="text-success text-center">Note: Your earning is {{ percentage.referer_per }}% of the certificates purchased</p>
-    {% endfor %}
-
-    <!-- Referrer Information Table -->
-    <p class="text-danger">Referrer Information</p>
-    <div class="table-responsive">
-      <table class="table table-bordered">
-        <thead class="thead-dark">
-          <tr>
-            <th>Referral Code</th>
-            <th>Purchases</th>
-            <th>Total Earnings (#)</th>
-            <th>Account Name</th>
-            <th>Account Number</th>
-            <th>Bank</th>
-            <th>Phone Number</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{{ referrer_mentor.referrer_code }}</td>
-            <td>{{ referrer_mentor.f_code_count }}</td>
-            <td>{{ total_amount }}</td>
-            <td>{{ account_name }}</td>
-            <td>{{ account_number }}</td>
-            <td>{{ bank }}</td>
-            <td>{{ phone_no }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Referred Students Table -->
-    <p class="text-danger">Referred Students and Courses</p>
-    <div class="table-responsive">
-      <table class="table table-bordered">
-        <thead class="thead-dark">
-          <tr>
-            <th>Names</th>
-            <th>Amount (#)</th>
-            <th>Courses</th>
-            <th>Date of Payment</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for payment in referrer_mentor.related_payments %}
-            <tr>
-              <td>{{ payment.first_name }} {{ payment.last_name }}</td>
-              <td>{{ payment.amount }}</td>
-              <td>{{ payment.content_type }}</td>
-              <td>{{ payment.date_created }}</td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="4" class="text-center">No payments found.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-  {% endif %}
-
 </div>
 
 <script>
 function copyToClipboard() {
     var copyText = document.getElementById("referralLink");
     copyText.select();
-    document.execCommand("copy");
-    alert("Copied the referral link: " + copyText.value);
+    copyText.setSelectionRange(0, 99999);
+    
+    navigator.clipboard.writeText(copyText.value).then(function() {
+        // Show success notification
+        const notification = document.createElement('div');
+        notification.className = 'copy-success';
+        notification.innerHTML = '<i class="fas fa-check-circle"></i> Referral link copied!';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }, function(err) {
+        alert("Copied: " + copyText.value);
+    });
 }
 </script>
 
