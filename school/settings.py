@@ -308,6 +308,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'users.middleware.BotSignupProtectionMiddleware',  # Your custom middleware
+    'users.middleware.VisitTrackingMiddleware',  # Adjust path to your app
 
 ]
 

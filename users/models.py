@@ -7,6 +7,95 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 
+# In your models.py (in the appropriate app, e.g., users/models.py)
+
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+
+class UserVisit(models.Model):
+    """Track every visit/session by users"""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE,
+        related_name='visits',
+        null=True,
+        blank=True  # Allow anonymous visits
+    )
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    
+    # Session tracking
+    session_key = models.CharField(max_length=40, blank=True)
+    
+    # Timestamps
+    visit_time = models.DateTimeField(default=timezone.now, db_index=True)
+    last_activity = models.DateTimeField(default=timezone.now)
+    
+    # Visit details
+    entry_page = models.URLField(max_length=500, blank=True)
+    referrer = models.URLField(max_length=500, blank=True)
+    
+    # Device info
+    device_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('desktop', 'Desktop'),
+            ('mobile', 'Mobile'),
+            ('tablet', 'Tablet'),
+            ('unknown', 'Unknown')
+        ],
+        default='unknown'
+    )
+    browser = models.CharField(max_length=50, blank=True)
+    os = models.CharField(max_length=50, blank=True)
+    
+    # Location (optional - requires GeoIP)
+    country = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    
+    # Duration
+    duration_seconds = models.IntegerField(default=0)  # Session duration
+    page_views = models.IntegerField(default=1)
+    
+    # Session ended
+    session_ended = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-visit_time']
+        indexes = [
+            models.Index(fields=['user', '-visit_time']),
+            models.Index(fields=['-visit_time']),
+            models.Index(fields=['session_key']),
+        ]
+    
+    def __str__(self):
+        user_str = self.user.username if self.user else f"Anonymous ({self.ip_address})"
+        return f"{user_str} - {self.visit_time.strftime('%Y-%m-%d %H:%M')}"
+    
+    def update_activity(self):
+        """Update last activity and calculate duration"""
+        now = timezone.now()
+        self.duration_seconds = (now - self.visit_time).total_seconds()
+        self.last_activity = now
+        self.page_views += 1
+        self.save(update_fields=['last_activity', 'duration_seconds', 'page_views'])
+
+
+class PageView(models.Model):
+    """Track individual page views within a visit"""
+    visit = models.ForeignKey(UserVisit, on_delete=models.CASCADE, related_name='pages')
+    url = models.URLField(max_length=500)
+    title = models.CharField(max_length=200, blank=True)
+    timestamp = models.DateTimeField(default=timezone.now, db_index=True)
+    time_on_page = models.IntegerField(default=0)  # seconds
+    
+    class Meta:
+        ordering = ['timestamp']
+    
+    def __str__(self):
+        return f"{self.url} - {self.timestamp.strftime('%H:%M:%S')}"
+
 
 class CustomUserManager(BaseUserManager):
 

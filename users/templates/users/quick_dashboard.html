@@ -24,7 +24,7 @@
 .dashboard-btn i { font-size: 1.1rem; }
 
 body { background-color: #f4f6f8; font-family: "Segoe UI", Arial, sans-serif; margin: 0; padding: 0; }
-.container-fluid { max-width: 1200px; margin: auto; padding: 20px; }
+.container-fluid { max-width: 1400px; margin: auto; padding: 20px; }
 .card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.2s ease-in-out; }
 .card:hover { transform: translateY(-3px); }
 .card-header { background-color: #007bff; color: #fff; font-weight: 600; padding: 12px 15px; border-radius: 8px 8px 0 0; }
@@ -34,30 +34,308 @@ thead { background-color: #f0f2f5; }
 tr:hover { background-color: #fafafa; }
 .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; }
 .bg-success { background-color: #28a745; color: #fff; }
+.bg-info { background-color: #17a2b8; color: #fff; }
+.bg-warning { background-color: #ffc107; color: #000; }
+.bg-danger { background-color: #dc3545; color: #fff; }
 .text-primary { color: #007bff; }
 .text-muted { color: #6c757d; }
 .fw-bold { font-weight: bold; }
 .row { display: flex; flex-wrap: wrap; gap: 20px; }
-.col-md-4, .col-md-6 { flex: 1; min-width: 250px; }
-.online-dot { height: 10px; width: 10px; background: #4CAF50; border-radius: 50%; display: inline-block; margin-left: 8px; }
+.col-md-3, .col-md-4, .col-md-6 { flex: 1; min-width: 250px; }
+.online-dot { height: 10px; width: 10px; background: #4CAF50; border-radius: 50%; display: inline-block; margin-left: 8px; animation: pulse 2s infinite; }
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
 canvas { width: 100% !important; height: 300px !important; }
+
+/* Visit Stats Cards */
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+}
+.stat-card.blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.stat-card.green { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.stat-card.orange { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.stat-card.purple { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.stat-card .stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 10px 0;
+}
+.stat-card .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.stat-card .stat-icon {
+    font-size: 2rem;
+    opacity: 0.3;
+    position: absolute;
+    right: 20px;
+    top: 20px;
+}
+
+/* Device/Browser Pills */
+.device-pill {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 5px;
+    border-radius: 20px;
+    background: #f0f2f5;
+    font-size: 0.9rem;
+}
+.device-pill .count {
+    background: #007bff;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 8px;
+    font-weight: bold;
+}
+
+/* Chart Container */
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin: 20px 0;
+}
 </style>
 
 <div class="container-fluid mt-4">
 
-    <!-- Quick Link -->
+    <!-- Quick Links -->
     <div class="mb-4">
         <a href="{% url 'quiz:ai_assessment_selector' %}" class="btn btn-primary dashboard-btn">
-            <i class="fas fa-robot me-2"></i> Go to AI Assessment Selector
+            <i class="fas fa-robot"></i> AI Assessment Selector
         </a>
         <a href="{% url 'instructor:dashboard' %}" class="btn btn-primary dashboard-btn">
-            <i class="fas fa-robot me-2"></i> Instructor Dashboard
+            <i class="fas fa-chalkboard-teacher"></i> Instructor Dashboard
         </a>
     </div>
 
-    <!-- Payment Stats -->
+    <!-- Visit Statistics Overview -->
+    <h2 class="mb-3 fw-bold text-primary"><i class="fas fa-chart-line"></i> Platform Visit Analytics</h2>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card blue">
+                <i class="fas fa-users stat-icon"></i>
+                <div class="stat-label">Total Visits</div>
+                <div class="stat-number">{{ total_visits|default:0 }}</div>
+                <small>All Time</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card green">
+                <i class="fas fa-user-check stat-icon"></i>
+                <div class="stat-label">Unique Visitors</div>
+                <div class="stat-number">{{ unique_visitors|default:0 }}</div>
+                <small>All Time</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card orange">
+                <i class="fas fa-calendar-day stat-icon"></i>
+                <div class="stat-label">Today's Visits</div>
+                <div class="stat-number" id="today-visits">{{ today_visits|default:0 }}</div>
+                <small>Last 24 Hours</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card purple">
+                <i class="fas fa-clock stat-icon"></i>
+                <div class="stat-label">Avg Session</div>
+                <div class="stat-number">{{ avg_session_duration|default:0 }}</div>
+                <small>Minutes</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly/Yearly Visit Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <h6 class="text-muted">This Month</h6>
+                <h3 class="fw-bold text-primary">{{ month_visits|default:0 }}</h3>
+                <small class="text-muted">Visits</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <h6 class="text-muted">This Year</h6>
+                <h3 class="fw-bold text-primary">{{ year_visits|default:0 }}</h3>
+                <small class="text-muted">Visits</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <h6 class="text-muted">Avg Page Views</h6>
+                <h3 class="fw-bold text-primary">{{ avg_page_views|default:0 }}</h3>
+                <small class="text-muted">Per Session</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- New vs Returning Visitors -->
     <div class="card mb-4">
-        <div class="card-header">Payment Statistics</div>
+        <div class="card-header">
+            <i class="fas fa-user-friends"></i> Visitor Types (This Month)
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 text-center">
+                    <h4 class="text-success">{{ new_visitors_count|default:0 }}</h4>
+                    <p class="text-muted">New Visitors</p>
+                </div>
+                <div class="col-md-6 text-center">
+                    <h4 class="text-info">{{ returning_visitors_count|default:0 }}</h4>
+                    <p class="text-muted">Returning Visitors</p>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="visitorTypeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Device & Browser Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-mobile-alt"></i> Device Breakdown
+                </div>
+                <div class="card-body">
+                    {% for device in device_stats %}
+                        <div class="device-pill">
+                            <i class="fas fa-{% if device.device_type == 'mobile' %}mobile{% elif device.device_type == 'tablet' %}tablet{% else %}desktop{% endif %}"></i>
+                            {{ device.device_type|title }}
+                            <span class="count">{{ device.count }}</span>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted">No device data available</p>
+                    {% endfor %}
+                    <div class="chart-container mt-3">
+                        <canvas id="deviceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chrome"></i> Browser Breakdown
+                </div>
+                <div class="card-body">
+                    {% for browser in browser_stats %}
+                        <div class="device-pill">
+                            <i class="fab fa-{% if 'chrome' in browser.browser|lower %}chrome{% elif 'firefox' in browser.browser|lower %}firefox{% elif 'safari' in browser.browser|lower %}safari{% elif 'edge' in browser.browser|lower %}edge{% else %}internet-explorer{% endif %}"></i>
+                            {{ browser.browser }}
+                            <span class="count">{{ browser.count }}</span>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted">No browser data available</p>
+                    {% endfor %}
+                    <div class="chart-container mt-3">
+                        <canvas id="browserChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visit Trends (Last 30 Days) -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-chart-area"></i> Visit Trends (Last 30 Days)
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="visitTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Most Visited Pages -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-file-alt"></i> Most Visited Pages
+        </div>
+        <div class="card-body">
+            {% if top_pages %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Page URL</th>
+                                <th>Views</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for page in top_pages %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><code>{{ page.url|truncatechars:80 }}</code></td>
+                                    <td><span class="badge bg-primary">{{ page.views }}</span></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No page view data available</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Top Referrers -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-link"></i> Top Referral Sources
+        </div>
+        <div class="card-body">
+            {% if top_referrers %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Referrer</th>
+                                <th>Visits</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ref in top_referrers %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><code>{{ ref.referrer|truncatechars:80 }}</code></td>
+                                    <td><span class="badge bg-success">{{ ref.count }}</span></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No referrer data available</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Payment Statistics -->
+    <h2 class="mb-3 fw-bold text-primary mt-5"><i class="fas fa-dollar-sign"></i> Payment Statistics</h2>
+    <div class="card mb-4">
+        <div class="card-header">Payment Overview</div>
         <div class="table-responsive p-2">
             <table class="table table-striped table-hover align-middle">
                 <thead>
@@ -113,10 +391,13 @@ canvas { width: 100% !important; height: 300px !important; }
 
     <!-- Online Users -->
     <div class="card mb-4">
-        <div class="card-header">Currently Online</div>
+        <div class="card-header">
+            <i class="fas fa-circle text-success"></i> Currently Online <span class="badge bg-success" id="online-count">{{ online_users|length }}</span>
+        </div>
         <ul id="online-users-list" class="list-group list-group-flush">
             {% for user in online_users %}
                 <li class="list-group-item">
+                    <i class="fas fa-user-circle text-primary"></i>
                     {{ user.username|default:user.email }}
                     <span class="online-dot"></span>
                 </li>
@@ -126,47 +407,55 @@ canvas { width: 100% !important; height: 300px !important; }
         </ul>
     </div>
 
-    <!-- Quick Stats Cards -->
-    <h2 class="mb-3 fw-bold text-primary">Quick Dashboard</h2>
+    <!-- Platform Quick Stats -->
+    <h2 class="mb-3 fw-bold text-primary"><i class="fas fa-tachometer-alt"></i> Platform Overview</h2>
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card text-center">
                 <h6 class="text-muted">Total Students</h6>
                 <h3 class="fw-bold text-primary">{{ total_students }}</h3>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card text-center">
                 <h6 class="text-muted">Total Courses</h6>
                 <h3 class="fw-bold text-primary">{{ total_courses }}</h3>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card text-center">
                 <h6 class="text-muted">Active Schools</h6>
                 <h3 class="fw-bold text-primary">{{ active_schools }}</h3>
             </div>
         </div>
-    </div>
-
-    <div class="row mt-3">
-        <div class="col-md-6">
+        <div class="col-md-3">
             <div class="card text-center">
                 <h6 class="text-muted">Quizzes Today</h6>
                 <h3 class="fw-bold text-primary">{{ quizzes_today }}</h3>
             </div>
         </div>
+    </div>
+
+    <div class="row mt-3 mb-4">
         <div class="col-md-6">
             <div class="card text-center">
                 <h6 class="text-muted">Average Score</h6>
                 <h3 class="fw-bold text-primary">{{ avg_score|default:"0"|floatformat:2 }}</h3>
             </div>
         </div>
+        <div class="col-md-6">
+            <div class="card text-center">
+                <h6 class="text-muted">Active Visitors (5min)</h6>
+                <h3 class="fw-bold text-success" id="active-visitors">{{ online_users|length }}</h3>
+            </div>
+        </div>
     </div>
 
     <!-- Top Certificate Downloads -->
     <div class="card mt-4">
-        <div class="card-header bg-primary text-white">Top Certificate Downloads</div>
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-certificate"></i> Top Certificate Downloads
+        </div>
         <div class="card-body">
             {% if course_downloads %}
                 <div class="table-responsive">
@@ -195,7 +484,9 @@ canvas { width: 100% !important; height: 300px !important; }
 
     <!-- Top Badge Downloads -->
     <div class="card mt-4">
-        <div class="card-header bg-success text-white">Top Badge Downloads</div>
+        <div class="card-header bg-success text-white">
+            <i class="fas fa-medal"></i> Top Badge Downloads
+        </div>
         <div class="card-body">
             {% if badge_downloads %}
                 <div class="table-responsive">
@@ -231,12 +522,15 @@ canvas { width: 100% !important; height: 300px !important; }
     </div>
 
     <!-- Top Students -->
-    <div class="card mt-4">
-        <div class="card-header">Top Students</div>
+    <div class="card mt-4 mb-5">
+        <div class="card-header">
+            <i class="fas fa-trophy"></i> Top Students
+        </div>
         <div class="card-body table-responsive">
             <table class="table table-striped align-middle">
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th>Username</th>
                         <th>Average Score</th>
                     </tr>
@@ -244,12 +538,16 @@ canvas { width: 100% !important; height: 300px !important; }
                 <tbody>
                     {% for student in top_students %}
                         <tr>
-                            <td>{{ student.student__username }}</td>
-                            <td>{{ student.avg_score|floatformat:2 }}</td>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <i class="fas fa-user-graduate text-primary"></i>
+                                {{ student.student__username }}
+                            </td>
+                            <td><span class="badge bg-info">{{ student.avg_score|floatformat:2 }}%</span></td>
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="2" class="text-center text-muted">No data available</td>
+                            <td colspan="3" class="text-center text-muted">No data available</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -259,18 +557,28 @@ canvas { width: 100% !important; height: 300px !important; }
 
 </div>
 
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
 <script>
+// Real-time updates for online users and visit stats
 function fetchOnlineUsers() {
     fetch("{% url 'users:online_users_api' %}")
         .then(response => response.json())
         .then(data => {
             let list = document.getElementById('online-users-list');
+            let countBadge = document.getElementById('online-count');
+            let activeVisitors = document.getElementById('active-visitors');
+            
+            countBadge.textContent = data.users.length;
+            activeVisitors.textContent = data.users.length;
+            
             list.innerHTML = '';
             if (data.users.length > 0) {
                 data.users.forEach(user => {
                     let li = document.createElement('li');
                     li.className = 'list-group-item';
-                    li.innerHTML = `${user.username || user.email} <span class="online-dot"></span>`;
+                    li.innerHTML = `<i class="fas fa-user-circle text-primary"></i> ${user.username || user.email} <span class="online-dot"></span>`;
                     list.appendChild(li);
                 });
             } else {
@@ -279,7 +587,123 @@ function fetchOnlineUsers() {
         });
 }
 
+// Fetch visit stats
+function fetchVisitStats() {
+    fetch("{% url 'users:visit_stats_api' %}")
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('today-visits').textContent = data.today_visits;
+            document.getElementById('active-visitors').textContent = data.active_visitors;
+        });
+}
+
+// Update every 5 seconds
 setInterval(fetchOnlineUsers, 5000);
+setInterval(fetchVisitStats, 5000);
+
+// Charts
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Visitor Type Chart (Pie)
+    const visitorTypeCtx = document.getElementById('visitorTypeChart');
+    if (visitorTypeCtx) {
+        new Chart(visitorTypeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['New Visitors', 'Returning Visitors'],
+                datasets: [{
+                    data: [{{ new_visitors_count|default:0 }}, {{ returning_visitors_count|default:0 }}],
+                    backgroundColor: ['#28a745', '#17a2b8']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+    
+    // Device Chart (Doughnut)
+    const deviceCtx = document.getElementById('deviceChart');
+    if (deviceCtx) {
+        new Chart(deviceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [{% for d in device_stats %}'{{ d.device_type|title }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+                datasets: [{
+                    data: [{% for d in device_stats %}{{ d.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                    backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+    
+    // Browser Chart (Bar)
+    const browserCtx = document.getElementById('browserChart');
+    if (browserCtx) {
+        new Chart(browserCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for b in browser_stats %}'{{ b.browser }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Visits',
+                    data: [{% for b in browser_stats %}{{ b.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                    backgroundColor: '#007bff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+    
+    // Visit Trend Chart (Line)
+    const visitTrendCtx = document.getElementById('visitTrendChart');
+    if (visitTrendCtx) {
+        new Chart(visitTrendCtx, {
+            type: 'line',
+            data: {
+                labels: [{% for v in visits_by_day %}'{{ v.day|date:"M d" }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Visits',
+                    data: [{% for v in visits_by_day %}{{ v.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+    
+});
 </script>
 
 {% endblock %}

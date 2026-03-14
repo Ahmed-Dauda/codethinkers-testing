@@ -146,6 +146,10 @@ from .models import BadgeDownload
 #     return render(request, "users/quick_dashboard.html", context)
 
 from django.db.models import Q, Count, Sum, Avg
+from django.db.models import Count, Sum, Avg, Q
+from django.db.models.functions import TruncDate, TruncHour
+from datetime import timedelta
+from .models import UserVisit, PageView
 
 def dashboard_view(request):
     now = timezone.now()
@@ -153,6 +157,95 @@ def dashboard_view(request):
     # Get filter params from GET request
     month = int(request.GET.get('month', now.month))
     year = int(request.GET.get('year', now.year))
+
+    # === NEW: Visit Statistics ===
+    
+    # Total visits all time
+    total_visits = UserVisit.objects.count()
+    
+    # Unique visitors all time
+    unique_visitors = UserVisit.objects.values('user').distinct().count()
+    
+    # Today's visits
+    today_visits = UserVisit.objects.filter(
+        visit_time__date=now.date()
+    ).count()
+    
+    # This month's visits
+    month_visits = UserVisit.objects.filter(
+        visit_time__year=year,
+        visit_time__month=month
+    ).count()
+    
+    # This year's visits
+    year_visits = UserVisit.objects.filter(
+        visit_time__year=year
+    ).count()
+    
+    # Average session duration (in minutes)
+    avg_session_duration = UserVisit.objects.filter(
+        session_ended=True
+    ).aggregate(
+        avg_duration=Avg('duration_seconds')
+    )['avg_duration'] or 0
+    avg_session_duration = round(avg_session_duration / 60, 2)  # Convert to minutes
+    
+    # Average page views per session
+    avg_page_views = UserVisit.objects.aggregate(
+        avg_views=Avg('page_views')
+    )['avg_views'] or 0
+    avg_page_views = round(avg_page_views, 2)
+    
+    # Device breakdown
+    device_stats = UserVisit.objects.values('device_type').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
+    # Browser breakdown
+    browser_stats = UserVisit.objects.values('browser').annotate(
+        count=Count('id')
+    ).order_by('-count')[:5]
+    
+    # Most visited pages
+    top_pages = PageView.objects.values('url').annotate(
+        views=Count('id')
+    ).order_by('-views')[:10]
+    
+    # Visits by hour (last 24 hours)
+    visits_by_hour = UserVisit.objects.filter(
+        visit_time__gte=now - timedelta(hours=24)
+    ).annotate(
+        hour=TruncHour('visit_time')
+    ).values('hour').annotate(
+        count=Count('id')
+    ).order_by('hour')
+    
+    # Visits by day (last 30 days)
+    visits_by_day = UserVisit.objects.filter(
+        visit_time__gte=now - timedelta(days=30)
+    ).annotate(
+        day=TruncDate('visit_time')
+    ).values('day').annotate(
+        count=Count('id')
+    ).order_by('day')
+    
+    # New vs returning visitors (this month)
+    new_visitors_count = UserVisit.objects.filter(
+        visit_time__year=year,
+        visit_time__month=month,
+        user__isnull=False
+    ).values('user').annotate(
+        visit_count=Count('id')
+    ).filter(visit_count=1).count()
+    
+    returning_visitors_count = month_visits - new_visitors_count
+    
+    # Top referring sites
+    top_referrers = UserVisit.objects.exclude(
+        Q(referrer='') | Q(referrer__isnull=True)
+    ).values('referrer').annotate(
+        count=Count('id')
+    ).order_by('-count')[:10]
 
     # === Certificate download stats ===
     course_downloads = (
@@ -178,7 +271,6 @@ def dashboard_view(request):
         counts['course_name'] = course.course_name
         badge_downloads.append(counts)
 
-    # Sort from highest to lowest total downloads
     badge_downloads = sorted(badge_downloads, key=lambda x: x['total_downloads'], reverse=True)
 
     # === Online users in last 5 mins ===
@@ -212,7 +304,6 @@ def dashboard_view(request):
         "documents": calc_totals(DocPayment),
     }
 
-    # Total for month/year
     total_month = sum([p['month_total'] for p in payment_stats.values()])
     total_year = sum([p['year_total'] for p in payment_stats.values()])
 
@@ -239,17 +330,60 @@ def dashboard_view(request):
         "total_year": total_year,
         "selected_month": month,
         "selected_year": year,
+        
+        # ✅ NEW: Visit statistics
+        "total_visits": total_visits,
+        "unique_visitors": unique_visitors,
+        "today_visits": today_visits,
+        "month_visits": month_visits,
+        "year_visits": year_visits,
+        "avg_session_duration": avg_session_duration,
+        "avg_page_views": avg_page_views,
+        "device_stats": device_stats,
+        "browser_stats": browser_stats,
+        "top_pages": top_pages,
+        "visits_by_hour": visits_by_hour,
+        "visits_by_day": visits_by_day,
+        "new_visitors_count": new_visitors_count,
+        "returning_visitors_count": returning_visitors_count,
+        "top_referrers": top_referrers,
     }
 
     return render(request, "users/quick_dashboard.html", context)
 
+def visit_stats_api(request):
+    """API endpoint for real-time visit statistics"""
+    now = timezone.now()
+    
+    # Current active visitors (last 5 minutes)
+    active_visitors = UserVisit.objects.filter(
+        last_activity__gte=now - timedelta(minutes=5)
+    ).count()
+    
+    # Today's stats
+    today_stats = UserVisit.objects.filter(
+        visit_time__date=now.date()
+    ).aggregate(
+        total_visits=Count('id'),
+        total_page_views=Sum('page_views'),
+        avg_duration=Avg('duration_seconds')
+    )
+    
+    return JsonResponse({
+        "active_visitors": active_visitors,
+        "today_visits": today_stats['total_visits'] or 0,
+        "today_page_views": today_stats['total_page_views'] or 0,
+        "avg_duration_minutes": round((today_stats['avg_duration'] or 0) / 60, 2),
+    })
+
 
 def online_users_api(request):
+    """API endpoint for real-time online users"""
     now = timezone.now()
     users = NewUser.objects.filter(last_activity__gte=now - timedelta(minutes=5))
-    return JsonResponse({"users": list(users.values("username", "email"))})
-
-
+    return JsonResponse({
+        "users": list(users.values("username", "email"))
+    })
 
 
 def SchoolStudentView(request):
