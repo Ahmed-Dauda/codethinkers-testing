@@ -72,7 +72,7 @@ jobs:
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "✅ Codethinkers Deploy Successful"
-          to: addatainsight@gmail.com
+          to: codethinkersa@gmail.com
           from: ${{ secrets.EMAIL_USER }}
           body: |
             Codethinkers deployed successfully!
@@ -94,7 +94,7 @@ jobs:
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "❌ Codethinkers Deploy FAILED - Action Required"
-          to: addatainsight@gmail.com
+          to: codethinkersa@gmail.com
           from: ${{ secrets.EMAIL_USER }}
           body: |
             Codethinkers deploy encountered issues!
