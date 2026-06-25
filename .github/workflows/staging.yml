@@ -28,15 +28,8 @@ jobs:
             systemctl restart codethinkers-staging
             sleep 10
 
-            ERRORS=""
-
             if ! systemctl is-active --quiet codethinkers-staging; then
-              ERRORS="$ERRORS\n❌ Staging web app is DOWN"
-            fi
-
-            if [ -n "$ERRORS" ]; then
-              echo -e "$ERRORS"
               exit 1
             fi
 
-            echo "Staging deploy successful - test at https://staging.codethinkers.com"
+            echo "Staging deploy successful"
