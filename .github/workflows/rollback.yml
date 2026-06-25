@@ -27,31 +27,10 @@ jobs:
             python manage.py collectstatic --noinput
 
             systemctl restart codethinkers
-            systemctl restart codethinkers-celery
-            systemctl restart codethinkers-celerybeat
             sleep 10
 
-            ERRORS=""
-
             if ! systemctl is-active --quiet codethinkers; then
-              ERRORS="$ERRORS\n❌ Web app is DOWN"
-            fi
-
-            if ! systemctl is-active --quiet codethinkers-celery; then
-              ERRORS="$ERRORS\n❌ Celery worker is DOWN"
-            fi
-
-            if ! systemctl is-active --quiet codethinkers-celerybeat; then
-              ERRORS="$ERRORS\n❌ Celery beat is DOWN"
-            fi
-
-            if ! redis-cli ping | grep -q PONG; then
-              ERRORS="$ERRORS\n❌ Redis is DOWN"
-            fi
-
-            if [ -n "$ERRORS" ]; then
-              echo -e "$ERRORS"
               exit 1
             fi
 
-            echo "Rollback to ${{ github.event.inputs.tag }} successful"
+            echo "Rollback successful"

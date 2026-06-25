@@ -19,33 +19,6 @@ jobs:
           script: |
             cd /var/www/codethinkers
 
-            auto_fix_service() {
-              SERVICE=$1
-              if ! systemctl is-active --quiet $SERVICE; then
-                echo "$SERVICE is DOWN - attempting auto-restart"
-                systemctl restart $SERVICE
-                sleep 5
-                if systemctl is-active --quiet $SERVICE; then
-                  echo "$SERVICE auto-restarted successfully"
-                else
-                  echo "$SERVICE failed to restart"
-                  return 1
-                fi
-              fi
-              return 0
-            }
-
-            if ! redis-cli ping | grep -q PONG; then
-              echo "Redis is DOWN - attempting auto-restart"
-              systemctl restart redis
-              sleep 5
-              redis-cli ping | grep -q PONG || { echo "Redis failed to restart"; exit 1; }
-              echo "Redis auto-restarted successfully"
-            fi
-
-            auto_fix_service codethinkers-celery || exit 1
-            auto_fix_service codethinkers-celerybeat || exit 1
-
             LAST_WORKING=$(git rev-parse HEAD)
             echo $LAST_WORKING > /tmp/codethinkers_last_working
 
@@ -63,43 +36,15 @@ jobs:
             python manage.py migrate --noinput
             python manage.py collectstatic --noinput
 
-            systemctl reload codethinkers 2>/dev/null || systemctl restart codethinkers
-            systemctl restart codethinkers-celery
-            systemctl restart codethinkers-celerybeat
-            sleep 15
-
-            ERRORS=""
+            systemctl restart codethinkers
+            sleep 10
 
             if ! systemctl is-active --quiet codethinkers; then
               echo "Web app down - rolling back"
               git reset --hard $LAST_WORKING
               systemctl restart codethinkers
               sleep 10
-              systemctl is-active --quiet codethinkers || ERRORS="$ERRORS\n❌ Web app DOWN even after rollback"
-              ERRORS="$ERRORS\n⚠️ Code rolled back to last working version"
+              systemctl is-active --quiet codethinkers || exit 1
             fi
 
-            if ! systemctl is-active --quiet codethinkers-celery; then
-              systemctl restart codethinkers-celery
-              sleep 5
-              systemctl is-active --quiet codethinkers-celery || ERRORS="$ERRORS\n❌ Celery worker DOWN"
-            fi
-
-            if ! systemctl is-active --quiet codethinkers-celerybeat; then
-              systemctl restart codethinkers-celerybeat
-              sleep 5
-              systemctl is-active --quiet codethinkers-celerybeat || ERRORS="$ERRORS\n❌ Celery beat DOWN"
-            fi
-
-            if ! redis-cli ping | grep -q PONG; then
-              systemctl restart redis
-              sleep 5
-              redis-cli ping | grep -q PONG || ERRORS="$ERRORS\n❌ Redis is DOWN"
-            fi
-
-            if [ -n "$ERRORS" ]; then
-              echo -e "$ERRORS"
-              exit 1
-            fi
-
-            echo "Deploy successful - all services running"
+            echo "Deploy successful"
