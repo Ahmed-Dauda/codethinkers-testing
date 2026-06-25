@@ -404,30 +404,24 @@ BADGE_FONT = {
 # ADDITIONAL SITEs SECURITY
 # HTTPS and secure headers
 
-<<<<<<< HEAD
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
-=======
+
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# SECURE_SSL_REDIRECT = True
-# SECURE_BROWSER_XSS_FILTER = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
+# SECURE_SSL_REDIRECT = False
+# SECURE_BROWSER_XSS_FILTER = False
+# SECURE_CONTENT_TYPE_NOSNIFF = False
+# X_FRAME_OPTIONS = 'DENY'
 
->>>>>>> restore-working-version
 
-# HSTS (HTTP Strict Transport Security)
-SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+# # HSTS (HTTP Strict Transport Security)
+# SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
 
-# Cookies and sessions
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# # Cookies and sessions
+# CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
+# SESSION_COOKIE_HTTPONLY = True
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # # Optional - block embedding your site in iframes entirely
 # SECURE_FRAME_DENY = True  # Already handled by X_FRAME_OPTIONS = 'DENY'
@@ -471,21 +465,13 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 #production settings for herokus
 
 import dj_database_url
-<<<<<<< HEAD
+
 import os
 
 DATABASES = {
     'default': dj_database_url.config(
         conn_max_age=0,
-        ssl_require=False,
-=======
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=0,
-        ssl_require=False
->>>>>>> restore-working-version
-    )
+        ssl_require=False,)
 }
 
 
@@ -494,7 +480,7 @@ DATABASES = {
 # db_from_env = dj_database_url.config(conn_max_age=0)
 # DATABASES['default'].update(db_from_env)
 
-<<<<<<< HEAD
+
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',
@@ -504,7 +490,8 @@ DATABASES = {
 
 # DATABASES = {
 #     'default': {
-=======
+
+
 # import dj_database_url
 
 # DATABASES = {
@@ -516,7 +503,7 @@ DATABASES = {
 
 # DATABASES = {
 #     'default': {
->>>>>>> restore-working-version
+
 #         'ENGINE': 'django.db.backends.postgresql',
 #         'NAME': 'fastapidb',
 #         'USER': 'fastapiuser',
