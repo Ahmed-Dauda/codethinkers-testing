@@ -26,13 +26,11 @@ jobs:
             python manage.py migrate --noinput
             python manage.py collectstatic --noinput
 
-            # ── Restart all services ──────────────────────────────────────
             systemctl restart codethinkers
             systemctl restart codethinkers-celery
             systemctl restart codethinkers-celerybeat
             sleep 10
 
-            # ── Verify all services ───────────────────────────────────────
             ERRORS=""
 
             if ! systemctl is-active --quiet codethinkers; then
@@ -57,46 +55,3 @@ jobs:
             fi
 
             echo "Rollback to ${{ github.event.inputs.tag }} successful"
-
-      - name: Send success email
-        if: success()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.EMAIL_USER }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "✅ CodeThinkers Academy Rollback Successful"
-          to: codethinkersa@gmail.com
-          from: ${{ secrets.EMAIL_USER }}
-          body: |
-            CodeThinkers Academy rolled back successfully to ${{ github.event.inputs.tag }}!
-
-            Triggered by: ${{ github.actor }}
-            Time: ${{ github.event.head_commit.timestamp }}
-
-            Services Status:
-            ✅ Web app: Running
-            ✅ Celery worker: Running
-            ✅ Celery beat: Running
-            ✅ Redis: Running
-
-      - name: Send failure email
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.EMAIL_USER }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "❌ CodeThinkers Academy Rollback FAILED - Action Required"
-          to: codethinkersa@gmail.com
-          from: ${{ secrets.EMAIL_USER }}
-          body: |
-            CodeThinkers Academy rollback to ${{ github.event.inputs.tag }} failed!
-
-            Triggered by: ${{ github.actor }}
-            Manual intervention required.
-
-            Check full logs:
-            https://github.com/Ahmed-Dauda/codethinkers/actions
