@@ -5,6 +5,76 @@ from quiz.models import QuestionAssessment, TopicsAssessment
 from sms.models import Topics
 
 
+# forms.py
+
+from django import forms
+from sms.models import Topics, Categories
+
+
+class TopicForm(forms.ModelForm):
+    class Meta:
+        model = Topics
+        fields = [
+            'categories',
+            'title',
+            'desc',
+            'transcript',
+            'img_topic',
+            'video',
+            'topics_url',
+        ]
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter topic title',
+            }),
+            'categories': forms.Select(attrs={
+                'class': 'form-select',
+            }),
+            'desc': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 5,
+                'placeholder': 'Enter topic description (supports HTML)',
+            }),
+            'transcript': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 8,
+                'placeholder': 'Enter video transcript (optional)',
+            }),
+            'video': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter video URL (YouTube, Vimeo, etc.)',
+            }),
+            'topics_url': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter external resource URL (optional)',
+            }),
+            'img_topic': forms.FileInput(attrs={
+                'class': 'form-control',
+            }),
+        }
+        labels = {
+            'categories': 'Category',
+            'title': 'Topic Title',
+            'desc': 'Description',
+            'transcript': 'Video Transcript',
+            'img_topic': 'Topic Image',
+            'video': 'Video URL',
+            'topics_url': 'External Resource URL',
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make some fields optional
+        self.fields['categories'].required = False
+        self.fields['desc'].required = False
+        self.fields['transcript'].required = False
+        self.fields['img_topic'].required = False
+        self.fields['video'].required = False
+        self.fields['topics_url'].required = False
+
+
+
 class TopicsAssessmentForm(forms.ModelForm):
     class Meta:
         model = TopicsAssessment

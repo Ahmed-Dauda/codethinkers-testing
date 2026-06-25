@@ -53,117 +53,11 @@ from datetime import timedelta
 #         user.save()
 #         return user
 
-
-# class SimpleSignupForm(SignupForm):
-#     first_name = forms.CharField(max_length=12, label='First-name')
-#     last_name = forms.CharField(max_length=225, label='Last-name')
-#     phone_number = forms.CharField(max_length=225, widget=forms.HiddenInput(), required=False)
-#     countries = forms.ChoiceField(choices=country_choice, label='Country')
-
-#     honeypot = forms.CharField(required=False, widget=forms.HiddenInput())  # Fake field
-
-#     def clean(self):
-#         cleaned_data = super().clean()
-
-#         # 🐝 Honeypot
-#         if cleaned_data.get('honeypot'):
-#             raise ValidationError("Bot detected.")
-
-#         # 🕒 Time-based detection
-#         request = self.request
-#         form_created_at = request.session.get('form_created_at')
-#         if form_created_at:
-#             try:
-#                 elapsed = timezone.now() - timezone.datetime.fromisoformat(form_created_at)
-#                 if elapsed < timedelta(seconds=5):
-#                     raise ValidationError("Network issue detected")
-#             except Exception:
-#                 pass  # fallback to ignoring error silently
-
-#         return cleaned_data
-
-#     def save(self, request):
-#         user = super().save(request)
-#         user.phone_number = self.cleaned_data.get('phone_number', '')
-#         user.first_name = self.cleaned_data['first_name']
-#         user.last_name = self.cleaned_data['last_name']
-#         user.countries = self.cleaned_data['countries']
-#         user.save()
-#         return user
 from allauth.account.forms import SignupForm
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta, datetime
-
-class SimpleSignupForm(SignupForm):
-    first_name = forms.CharField(max_length=12, label='First-name')
-    last_name  = forms.CharField(max_length=225, label='Last-name')
-    phone_number = forms.CharField(
-        max_length=225,
-        widget=forms.HiddenInput(),
-        required=False,
-    )
-    countries = forms.ChoiceField(
-        choices=country_choice,
-        required=True,
-        label='Country',
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        error_messages={'required': 'Please select your country.'}
-    )
-
-    # 🐝 Honeypot fields
-    honeypot    = forms.CharField(required=False, widget=forms.HiddenInput())
-    js_honeypot = forms.CharField(required=False, widget=forms.HiddenInput())
-
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-        if self.request and self.request.GET.get('debug') == '1':
-            self.fields['honeypot'].widget = forms.TextInput(
-                attrs={'placeholder': 'Leave blank (honeypot)'}
-            )
-            self.fields['js_honeypot'].widget = forms.TextInput(
-                attrs={'placeholder': 'Should read human'}
-            )
-
-    def clean(self):
-        cleaned = super().clean()
-
-        # 1) HTML honeypot: must be empty
-        if cleaned.get('honeypot'):
-            raise ValidationError("Something went wrong. Please try again.")
-
-        # 2) JS honeypot: should equal 'human'
-        if cleaned.get('js_honeypot') != 'human':
-            raise ValidationError("Something went wrong. Please try again.")
-
-        # 3) Time-based speed trap (>=3 seconds)
-        if self.request:
-            ts = self.request.session.get('form_created_at')
-            if ts:
-                try:
-                    elapsed = timezone.now() - datetime.fromisoformat(ts)
-                    if elapsed < timedelta(seconds=3):
-                        raise ValidationError("Something went wrong. Please try again.")
-                except Exception:
-                    pass  # ignore parsing errors
-
-        # 4) Bot check for phone_number field
-        if cleaned.get('phone_number') and cleaned.get('phone_number').strip() != '':
-            raise ValidationError("Something went wrong. Please try again.")
-
-        return cleaned
-
-    def save(self, request):
-        user = super().save(request)
-        user.phone_number = self.cleaned_data.get('phone_number', '')
-        user.first_name   = self.cleaned_data['first_name']
-        user.last_name    = self.cleaned_data['last_name']
-        user.countries    = self.cleaned_data['countries']
-        user.save()
-        return user
 
 
 # class SimpleSignupForm(SignupForm):
@@ -174,21 +68,22 @@ class SimpleSignupForm(SignupForm):
 #         widget=forms.HiddenInput(),
 #         required=False,
 #     )
-#     countries = forms.ChoiceField(choices=country_choice,
-#                                   required=True ,
-#                                   label='Country', widget=forms.Select(attrs={'class': 'form-control'}),
-#                                   error_messages={'required': 'Please select your country.'})
+#     countries = forms.ChoiceField(
+#         choices=country_choice,
+#         required=True,
+#         label='Country',
+#         widget=forms.Select(attrs={'class': 'form-control'}),
+#         error_messages={'required': 'Please select your country.'}
+#     )
 
 #     # 🐝 Honeypot fields
 #     honeypot    = forms.CharField(required=False, widget=forms.HiddenInput())
 #     js_honeypot = forms.CharField(required=False, widget=forms.HiddenInput())
 
 #     def __init__(self, *args, **kwargs):
-#         # Capture request for optional time-based checks and debug
 #         self.request = kwargs.pop('request', None)
 #         super().__init__(*args, **kwargs)
 
-#         # If debug flag in URL, render honeypots as visible text inputs
 #         if self.request and self.request.GET.get('debug') == '1':
 #             self.fields['honeypot'].widget = forms.TextInput(
 #                 attrs={'placeholder': 'Leave blank (honeypot)'}
@@ -219,6 +114,10 @@ class SimpleSignupForm(SignupForm):
 #                 except Exception:
 #                     pass  # ignore parsing errors
 
+#         # 4) Bot check for phone_number field
+#         if cleaned.get('phone_number') and cleaned.get('phone_number').strip() != '':
+#             raise ValidationError("Something went wrong. Please try again.")
+
 #         return cleaned
 
 #     def save(self, request):
@@ -230,27 +129,83 @@ class SimpleSignupForm(SignupForm):
 #         user.save()
 #         return user
 
+class SimpleSignupForm(SignupForm):
+    first_name = forms.CharField(max_length=12, label='First-name')
+    last_name  = forms.CharField(max_length=225, label='Last-name')
+    email      = forms.EmailField(
+        label='E-mail',
+        required=True,
+        widget=forms.EmailInput(attrs={'placeholder': 'you@example.com'})
+    )
+    phone_number = forms.CharField(
+        max_length=225,
+        widget=forms.HiddenInput(),
+        required=False,
+    )
+    countries = forms.ChoiceField(
+        choices=country_choice,
+        required=True,
+        label='Country',
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        error_messages={'required': 'Please select your country.'}
+    )
 
-# original form without honeypot
-# class SimpleSignupForm(SignupForm):
-#     first_name = forms.CharField(max_length=12, label='First-name')
-#     last_name = forms.CharField(max_length=225, label='Last-name')
-#     # referral_code = forms.CharField(max_length=20, required=False, label='Referral Code')
-#     phone_number = forms.CharField(max_length=225, widget=forms.HiddenInput(), required=False)
-#     # phone_number = forms.CharField(max_length=225, label='Referral Code', widget=forms.TextInput(attrs={'placeholder': 'if available'}),required=False)
-#     countries = forms.ChoiceField(choices=country_choice, label='Country')
-    
-#     def save(self, request):
-#         user = super(SimpleSignupForm, self).save(request)
-#         user.phone_number = self.cleaned_data.get('phone_number', '')  # Use get() to handle the case when phone_number is not provided.
-#         user.first_name = self.cleaned_data['first_name']
-#         user.last_name = self.cleaned_data['last_name']
-#         user.countries = self.cleaned_data['countries']
-#         # user.referral_code  = self.cleaned_data['referral_code']
-        
-#         user.save()
-        
-#         return user
+    # 🐝 Honeypot fields
+    honeypot    = forms.CharField(required=False, widget=forms.HiddenInput())
+    js_honeypot = forms.CharField(required=False, widget=forms.HiddenInput())
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+        # Force email to be required — removes allauth's "(optional)" label
+        self.fields['email'].required = True
+        self.fields['email'].label = 'E-mail'
+
+        if self.request and self.request.GET.get('debug') == '1':
+            self.fields['honeypot'].widget = forms.TextInput(
+                attrs={'placeholder': 'Leave blank (honeypot)'}
+            )
+            self.fields['js_honeypot'].widget = forms.TextInput(
+                attrs={'placeholder': 'Should read human'}
+            )
+
+    def clean(self):
+        cleaned = super().clean()
+
+        # 1) HTML honeypot: must be empty
+        if cleaned.get('honeypot'):
+            raise ValidationError("Something went wrong. Please try again.")
+
+        # 2) JS honeypot: should equal 'human'
+        if cleaned.get('js_honeypot') != 'human':
+            raise ValidationError("Something went wrong. Please try again.")
+
+        # 3) Time-based speed trap (>= 3 seconds)
+        if self.request:
+            ts = self.request.session.get('form_created_at')
+            if ts:
+                try:
+                    elapsed = timezone.now() - datetime.fromisoformat(ts)
+                    if elapsed < timedelta(seconds=3):
+                        raise ValidationError("Something went wrong. Please try again.")
+                except Exception:
+                    pass  # ignore parsing errors
+
+        # 4) Bot check for phone_number field
+        if cleaned.get('phone_number') and cleaned.get('phone_number').strip() != '':
+            raise ValidationError("Something went wrong. Please try again.")
+
+        return cleaned
+
+    def save(self, request):
+        user = super().save(request)
+        user.phone_number = self.cleaned_data.get('phone_number', '')
+        user.first_name   = self.cleaned_data['first_name']
+        user.last_name    = self.cleaned_data['last_name']
+        user.countries    = self.cleaned_data['countries']
+        user.save()
+        return user
 
 
 

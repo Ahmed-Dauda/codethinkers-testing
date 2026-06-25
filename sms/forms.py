@@ -19,7 +19,21 @@ from .models import Topics
 
 from django import forms
 
+from django import forms
+from .models import NewUser
 
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = NewUser
+        fields = [
+            'first_name',
+            'last_name',
+            'username',
+            'phone_number',
+            'student_class',
+            'countries',
+            'school',
+        ]
 
 class PaymentForm(ModelForm):
     class Meta:

@@ -289,21 +289,70 @@ table-layout: fixed; // ***********add this
                     <!-- Add the video player -->
                     
                     {% if topic.video %}
-                      
-                    <!-- <div class="video-container">
-                        <div id="myVideo" class="video-wrapper"  sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style=" background:#000000; bottom: 61px; position: relative;">
-                            {% video topic.video|safe class="ratio ratio-16x9" %}
-                        </div>
-                       
-                    </div> -->
-
 
 
                    <div class="video-container app-container">
                         <div  id="myVideo" class="video-wrapper app-container" sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation" style="background: #000000; bottom: 61px; position: relative;">
          
+    
+
                           <br> <br>
-                          <iframe
+                          <!-- <a href="{{ topic.video }}" target="_blank">
+    <img src="https://img.youtube.com/vi/u8ABLLK3-z0/maxresdefault.jpg" 
+         style="width:300px; border-radius:10px;">
+
+    </a> -->
+
+
+
+<div class="video-container app-container"> 
+  <div class="video-wrapper app-container" style="background: #000000; position: relative;">
+
+    <iframe
+        id="player-{{ topic.id }}"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        allowfullscreen
+        referrerpolicy="strict-origin-when-cross-origin"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock"
+    ></iframe>
+
+    <div class="banner-overlay"></div>
+    <div class="watch-overlay"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const iframeId = "player-{{ topic.id }}";
+  const iframe = document.getElementById(iframeId);
+
+  // ✅ Use the clean short URL from the model
+  const shortUrl = "{{ topic.get_youtube_short_url }}";
+
+  // Extract video ID from the short URL (youtu.be/VIDEO_ID)
+  let videoId = shortUrl.split("/").pop().split("?")[0];
+
+  // Build the embed URL with restrictions
+  const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&rel=0&modestbranding=1&playsinline=1&autoplay=0&controls=0&loop=1&playlist=${videoId}&mute=1`;
+
+  // Set the iframe src
+  iframe.src = embedUrl;
+
+  // Overlay to prevent YouTube clicks
+  const overlay = iframe.parentElement.querySelector(".watch-overlay");
+  overlay.style.position = "absolute";
+  overlay.style.top = 0;
+  overlay.style.left = 0;
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.cursor = "default";
+  overlay.style.zIndex = 10;
+})();
+</script>
+
+
+                          <!-- <iframe
                             src="{{ topic.video }}"
                             frameborder="0"
                             modestbranding="1"
@@ -312,7 +361,7 @@ table-layout: fixed; // ***********add this
                             controls="0"
                             disablekb="1"
                             >
-                          </iframe>
+                          </iframe>  -->
 
                           <div class="banner-overlay">
                         </div>
@@ -321,7 +370,7 @@ table-layout: fixed; // ***********add this
                         </div>
 
                         </div>
-                      </div>
+                    </div>
                     
   
                     <!-- List Menu -->
@@ -454,8 +503,9 @@ table-layout: fixed; // ***********add this
                     </h4>
                     <br>
 
-                    <h3 class="card text-center text-danger"><a href="{% url 'student:take-exam' %}">Take Exam</a></h3>
-                    
+                   <h3 class="card text-center text-danger">
+    <a href="javascript:void(0)" onclick="goToExam('{{ course.id }}')">Take Exam</a>
+</h3>
                 {% else %}
                     <p data-label="my-label-button" class="line-numbers copy-to-clipboard-button" style="font-size: 20px;"></p>
                 {% endif %}
@@ -549,9 +599,29 @@ table-layout: fixed; // ***********add this
 
     </script>    
 
+<script>
+async function goToExam(courseId) {
+    if (!courseId) {
+        window.location.href = "{% url 'student:take-exam' %}";
+        return;
+    }
 
+    try {
+        const res  = await fetch(`/webprojects/get-course-exam/${courseId}/`);
+        const data = await res.json();
+
+        if (data.status === 'success') {
+            window.location.href = "{% url 'student:take-exam' %}?course_id=" + data.exam_course_id;
+        } else {
+            window.location.href = "{% url 'student:take-exam' %}";
+        }
+    } catch (e) {
+        window.location.href = "{% url 'student:take-exam' %}";
+    }
+}
+</script>
 <!-- iframe videos -->
-
+<!-- 
 <script>
     "use strict";
     if (document.readyState !== 'loading') init();
@@ -664,7 +734,7 @@ table-layout: fixed; // ***********add this
 
     // transcript viddo
 
-    </script>
+    </script> -->
     
 <!-- horizontal navbar under videos -->
 <script>
@@ -695,7 +765,8 @@ function createEditorProject(courseId, courseTitle) {
             "X-CSRFToken": '{{ csrf_token }}'
         },
         body: JSON.stringify({
-            name: courseTitle  // ✅ Use course title here
+            name: courseTitle,
+            course_id: courseId    // ✅ ADD THIS LINE
         })
     })
     .then(res => res.json())

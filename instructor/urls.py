@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import add_exam, add_question_assessment, add_topic, add_topics_assessment, course_exams, delete_exam, delete_topics_assessment, edit_exam, instructor_dashboard, add_course, edit_course, delete_course
+from .views import add_exam, add_question_assessment, add_topic, add_topics_assessment, course_exams, delete_exam, delete_topic, delete_topics_assessment, edit_exam, edit_topic, instructor_course_topics, instructor_dashboard, add_course, edit_course, delete_course
 
 app_name = 'instructor'
 
@@ -19,6 +19,23 @@ path('exam/<int:exam_id>/delete/', delete_exam, name='delete_exam'),
 
     path('course/<int:course_id>/exams/add/', add_exam, name='add_exam'),
     path('course/<int:course_id>/exams/', course_exams, name='course_exams'),
+    path('instructor/course/<int:course_id>/topics/', 
+         instructor_course_topics, 
+         name='course_topics'),
+
+    # Topic management
+    path('course/<int:course_id>/topic/add/', 
+         add_topic, 
+         name='add_topic'),
+    
+    path('topic/<int:topic_id>/edit/', 
+         edit_topic, 
+         name='edit_topic'),
+    
+    path('topic/<int:topic_id>/delete/', 
+         delete_topic, 
+         name='delete_topic'),
+
     path("dashboard/", instructor_dashboard, name="dashboard"),
 path('courses/add/', add_course, name='add_course'),
     path("edit-course/<int:course_id>/", edit_course, name="edit_course"),

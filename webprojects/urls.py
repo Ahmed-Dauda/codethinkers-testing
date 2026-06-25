@@ -1,15 +1,37 @@
 from django.urls import path
-from webprojects.views import (ai_python_completion,ai_suggest_code, auto_save_view, create_file, create_folder, 
-create_project, explain_code_view, 
-file_delete, file_preview, project_detail,
-file_detail, project_files_json, public_folder_view, 
-run_python_code, share_preview_view, file_chat,
-upload_file_ajax, view_rendered_file)
+from webprojects.views import (ai_python_completion,ai_suggest_code, file_autosave, create_file, create_folder, 
+create_project, 
+file_delete, file_preview, get_code_examples, get_contextual_hint, get_course_exam, get_file_content, get_student_courses, get_student_progress, get_xp_stats, mark_topic_complete, project_detail,
+file_detail, project_files_json, public_folder_view, recommend_next_course, 
+run_python_code, set_current_topic, share_preview_view, file_chat, topic_info,
+upload_file_ajax, validate_topic_completion, view_rendered_file, voice_chat_tutor)
+
+
 
 app_name = 'webprojects'
 
 urlpatterns = [
-    
+    # In urls.py
+    path('get-course-exam/<int:course_id>/', get_course_exam, name='get_course_exam'),
+    path('student-courses/', get_student_courses, name='student_courses'),
+    path('voice-chat-tutor/', voice_chat_tutor, name='voice_chat_tutor'),
+    path('recommend-next-course/', recommend_next_course, name='recommend_next_course'),
+    path('topic-info/<int:topic_id>/', topic_info, name='topic_info'),
+   path('validate-topic/', validate_topic_completion, name='validate_topic_completion'),
+     path('xp-stats/', get_xp_stats, name='xp_stats'),
+   
+    path('progress/', get_student_progress, name='get_student_progress'),
+    path('mark-topic-complete/', mark_topic_complete,  name='mark_topic_complete'),
+     path('project/<int:project_id>/set-topic/<int:topic_id>/', 
+         set_current_topic, 
+         name='set_current_topic'),
+    path('get-contextual-hint/', get_contextual_hint, name='get_contextual_hint'),
+    path('project/<int:project_id>/file/<int:file_id>/content/', 
+         get_file_content, 
+         name='get_file_content'),
+    path('get-code-examples/',get_code_examples, name='get_code_examples'),
+    path("run-python/", run_python_code, name="run_python_code"),
+
     path('project/<int:project_id>/file/<int:file_id>/chat/', file_chat, name='file_chat'),
     path('<int:project_id>/files-json/', project_files_json, name='project_files_json'),
 
@@ -22,7 +44,7 @@ urlpatterns = [
     path('projects/<int:project_id>/create-folder/', create_folder, name='create_folder'),
     path('projects/<int:project_id>/', project_detail, name='project_detail'),
 
-    path("autosave/", auto_save_view, name="file_autosave"),
+    path('file-autosave/', file_autosave, name='file_autosave'),
     path('preview/share/<int:project_id>/<int:file_id>/', share_preview_view, name='share_preview'),
     path('create-project/', create_project, name='create_project'),
 
@@ -31,7 +53,7 @@ urlpatterns = [
 
     path("ai-python-completion/", ai_python_completion, name="ai_python_completion"),
     path("run-python/", run_python_code, name="run_python_code"),
-    path('explain-code/', explain_code_view, name='explain_code'),
+    # path('explain-code/', explain_code_view, name='explain_code'),
     path('ai-suggest/', ai_suggest_code, name='ai_suggest_code'),
 ]
 

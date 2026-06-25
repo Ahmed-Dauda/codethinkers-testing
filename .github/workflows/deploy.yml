@@ -1,0 +1,162 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Hetzner
+        id: deploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /var/www/codethinkers
+
+            # ── Auto-fix function ─────────────────────────────────────────
+            auto_fix_service() {
+              SERVICE=$1
+              if ! systemctl is-active --quiet $SERVICE; then
+                echo "$SERVICE is DOWN - attempting auto-restart"
+                systemctl restart $SERVICE
+                sleep 5
+                if systemctl is-active --quiet $SERVICE; then
+                  echo "$SERVICE auto-restarted successfully"
+                else
+                  echo "$SERVICE failed to restart"
+                  return 1
+                fi
+              fi
+              return 0
+            }
+
+            # ── Check and auto-fix Redis ──────────────────────────────────
+            if ! redis-cli ping | grep -q PONG; then
+              echo "Redis is DOWN - attempting auto-restart"
+              systemctl restart redis
+              sleep 5
+              redis-cli ping | grep -q PONG || { echo "Redis failed to restart"; exit 1; }
+              echo "Redis auto-restarted successfully"
+            fi
+
+            # ── Check and auto-fix Celery ─────────────────────────────────
+            auto_fix_service codethinkers-celery || exit 1
+            auto_fix_service codethinkers-celerybeat || exit 1
+
+            # ── Save last working commit ──────────────────────────────────
+            LAST_WORKING=$(git rev-parse HEAD)
+            echo $LAST_WORKING > /tmp/codethinkers_last_working
+
+            # ── Pull new code ─────────────────────────────────────────────
+            git fetch origin
+            git reset --hard origin/main
+            source venv/bin/activate
+            pip install -r requirements.txt
+
+            # ── Database backup before migrate ────────────────────────────
+            mkdir -p /var/backups/codethinkers
+            BACKUP_FILE=/var/backups/codethinkers/backup_$(date +%Y%m%d_%H%M%S).sql
+            pg_dump -U codethinkersuser -h localhost -p 5432 codethinkersdb > $BACKUP_FILE
+            echo "Backup saved: $BACKUP_FILE ($(du -sh $BACKUP_FILE | cut -f1))"
+            ls -t /var/backups/codethinkers/*.sql | tail -n +8 | xargs rm -f 2>/dev/null
+
+            python manage.py migrate --noinput
+            python manage.py collectstatic --noinput
+
+            # ── Restart all services ──────────────────────────────────────
+            systemctl reload codethinkers 2>/dev/null || systemctl restart codethinkers
+            systemctl restart codethinkers-celery
+            systemctl restart codethinkers-celerybeat
+            sleep 15
+
+            # ── Verify all services ───────────────────────────────────────
+            ERRORS=""
+
+            if ! systemctl is-active --quiet codethinkers; then
+              echo "Web app down - rolling back"
+              git reset --hard $LAST_WORKING
+              systemctl restart codethinkers
+              sleep 10
+              systemctl is-active --quiet codethinkers || ERRORS="$ERRORS\n❌ Web app DOWN even after rollback"
+              ERRORS="$ERRORS\n⚠️ Code rolled back to last working version"
+            fi
+
+            if ! systemctl is-active --quiet codethinkers-celery; then
+              systemctl restart codethinkers-celery
+              sleep 5
+              systemctl is-active --quiet codethinkers-celery || ERRORS="$ERRORS\n❌ Celery worker DOWN"
+            fi
+
+            if ! systemctl is-active --quiet codethinkers-celerybeat; then
+              systemctl restart codethinkers-celerybeat
+              sleep 5
+              systemctl is-active --quiet codethinkers-celerybeat || ERRORS="$ERRORS\n❌ Celery beat DOWN"
+            fi
+
+            if ! redis-cli ping | grep -q PONG; then
+              systemctl restart redis
+              sleep 5
+              redis-cli ping | grep -q PONG || ERRORS="$ERRORS\n❌ Redis is DOWN"
+            fi
+
+            if [ -n "$ERRORS" ]; then
+              echo -e "$ERRORS"
+              exit 1
+            fi
+
+            echo "Deploy successful - all services running"
+
+      - name: Send success email
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "✅ CodeThinkers Academy Deploy Successful"
+          to: codethinkersa@gmail.com
+          from: ${{ secrets.EMAIL_USER }}
+          body: |
+            CodeThinkers Academy deployed successfully!
+
+            Commit: ${{ github.sha }}
+            Time: ${{ github.event.head_commit.timestamp }}
+            Message: ${{ github.event.head_commit.message }}
+
+            Services Status:
+            ✅ Web app: Running
+            ✅ Celery worker: Running
+            ✅ Celery beat: Running
+            ✅ Redis: Running
+
+      - name: Send failure email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "❌ CodeThinkers Academy Deploy FAILED - Action Required"
+          to: codethinkersa@gmail.com
+          from: ${{ secrets.EMAIL_USER }}
+          body: |
+            CodeThinkers Academy deploy encountered issues!
+
+            Commit: ${{ github.sha }}
+            Time: ${{ github.event.head_commit.timestamp }}
+            Message: ${{ github.event.head_commit.message }}
+
+            Auto-fix was attempted but could not resolve all issues.
+            Manual intervention may be required.
+
+            Check full logs:
+            https://github.com/Ahmed-Dauda/codethinkers/actions

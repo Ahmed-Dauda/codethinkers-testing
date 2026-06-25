@@ -190,114 +190,197 @@ class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
 
     
 from student.models import AdvertisementImage
-
 class Homepage1(ListView):
-    models = Courses
+    model = Courses
     template_name = 'sms/dashboard/homepage1.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
-   
+
     def get_queryset(self):
-       
-        # return  Courses.objects.all().select_related('categories').distinct()
-         return Courses.objects.annotate(topic_count=Count('topics')) 
-    
-    def get_context_data(self, **kwargs): 
-        context = super(Homepage1, self).get_context_data(**kwargs)
-        
+        qs = Courses.objects.annotate(topic_count=Count('topics'))
+        print("🔹 Homepage1 queryset:", qs)  # Debug: all courses
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # General stats
         context['students'] = NewUser.objects.all().count() + 1000
         context['category'] = Categories.objects.count()
         context['coursecategory'] = Categories.objects.all()
         context['courses'] = Courses.objects.all().count()
         context['gallery'] = Gallery.objects.all()
-        # latest_blogs = Blog.objects.all().order_by('-created')[:3]
-        context['blogs'] =Blog.objects.all().order_by('-created')[:3]
-        context['blogs_count'] =Blog.objects.all().count() 
+        context['blogs'] = Blog.objects.all().order_by('-created')[:3]
+        context['blogs_count'] = Blog.objects.all().count()
         context['faqs'] = FrequentlyAskQuestions.objects.all()
         context['partners'] = Partners.objects.all()
-        context['coursess'] = Courses.objects.all().order_by('created')[:10] 
+
+        # Courses and categories
+        context['coursess'] = Courses.objects.all().order_by('created')
         context['category_sta'] = Categories.objects.annotate(num_courses=Count('categories'))
-        # course = Courses.objects.get(pk=self.kwargs["pk"])
-        # context['topics_count'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id').count()
 
-        context['beginner'] = Courses.objects.filter(categories__name = "BEGINNER")
-        context['beginner_count'] = Courses.objects.filter(categories__name = "BEGINNER").count()
-        beginner_courses = Courses.objects.filter(categories__name="BEGINNER")
-        for course in beginner_courses:
-            course.beginner_topic_count = Topics.objects.filter(courses=course).count()
-        context['beginner'] = beginner_courses[:4]
+        # Group courses by difficulty category
+        for level in ['BEGINNER', 'INTERMEDIATE', 'ADVANCED']:
+            courses_level = Courses.objects.filter(categories__name=level)
+            for course in courses_level:
+                course.topic_count = Topics.objects.filter(courses=course).count()
+            context[level.lower()] = courses_level
+            context[f"{level.lower()}_count"] = courses_level.count()
 
-     
-        context['intermediate'] = Courses.objects.filter(categories__name = "INTERMEDIATE")
-        context['intermediate_count'] = Courses.objects.filter(categories__name = "INTERMEDIATE").count()
-        intermediate_courses = Courses.objects.filter(categories__name="INTERMEDIATE")
-        for course in intermediate_courses:
-            course.intermediate_topic_count = Topics.objects.filter(courses=course).count()
-        context['intermediate'] = intermediate_courses[:4]
-
-
-        context['advanced'] = Courses.objects.filter(categories__name = "ADVANCED")
-        context['advanced_count'] = Courses.objects.filter(categories__name = "ADVANCED").count()
-        advanced_courses = Courses.objects.filter(categories__name="ADVANCED")
-        for course in advanced_courses:
-            course.advanced_topic_count = Topics.objects.filter(courses=course).count()
-        context['advanced'] = advanced_courses[:4]
-
-
-        context['Free_courses'] = Courses.objects.filter(status_type = 'Free')
-        context['Free_courses_count'] = Courses.objects.filter(status_type = 'Free').count()
-        Free_courses_courses = Courses.objects.filter(status_type = 'Free')
-        for course in Free_courses_courses:
+        # Free courses
+        free_courses = Courses.objects.filter(status_type='Free')
+        for course in free_courses:
             course.Free_courses_topic_count = Topics.objects.filter(courses=course).count()
-        context['Free_courses'] = Free_courses_courses
+        context['Free_courses'] = free_courses
+        context['Free_courses_count'] = free_courses.count()
 
-      
-        context['latest_course'] =   Courses.objects.all().order_by('-created')[:4] 
-        context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:4].count()
-        latest_course_courses =  Courses.objects.all().order_by('-created')[:4]
-        for course in latest_course_courses:
+        # Latest courses
+        latest_courses = Courses.objects.all().order_by('-created')
+        for course in latest_courses:
             course.latest_course_topic_count = Topics.objects.filter(courses=course).count()
-        context['latest_course'] = latest_course_courses
+        context['latest_course'] = latest_courses
+        context['latest_course_count'] = latest_courses.count()
 
-
-        context['popular_course'] =   Courses.objects.all().order_by('-hit_count_generic__hits')[:4] 
-        popular_course_courses =  Courses.objects.all().order_by('-hit_count_generic__hits')[:4]
-        for course in popular_course_courses:
+        # Popular courses
+        popular_courses = Courses.objects.all().order_by('-hit_count_generic__hits')
+        for course in popular_courses:
             course.popular_course_topic_count = Topics.objects.filter(courses=course).count()
-        context['popular_course'] = popular_course_courses
-    
-   
-        context['alert_homes']  = PDFDocument.objects.order_by('-created')[:4] 
-        context['alerts']  = PDFDocument.objects.order_by('-created')
-        context['alert_count_homes'] = PDFDocument.objects.order_by('-created')[:4].count() 
+        context['popular_course'] = popular_courses
+
+        # PDF Alerts
+        context['alert_homes'] = PDFDocument.objects.order_by('-created')[:4]
+        context['alerts'] = PDFDocument.objects.order_by('-created')
+        context['alert_count_homes'] = PDFDocument.objects.order_by('-created')[:4].count()
         context['alert_count'] = PDFDocument.objects.all().count()
-        
+
+        # Users
         context['user'] = NewUser.objects.get_queryset().order_by('id')
-        context['users']  = self.request.user
+        context['users'] = self.request.user
+
         messages.success(self.request, 'You have successfully logged in.')
 
-        # user_newuser = get_object_or_404(NewUser, email=self.request.user)
-        # if user_newuser.school:
-        #     context['school_name'] = user_newuser.school.school_name
-        # if self.request.user.is_authenticated:
-        #     user_newuser = get_object_or_404(NewUser, email=self.request.user)
-        #     # rest of your code
-        # else:
-        #     pass
-        #     # handle the case when the user is not authenticated
         if self.request.user.is_authenticated:
             user_newuser = get_object_or_404(NewUser, email=self.request.user.email)
             if user_newuser.school:
                 context['school_name'] = user_newuser.school.school_name
-            # Rest of your code goes here
-        else:
-            # Handle the case when the user is not authenticated
-            pass
-        # advert
-        context['advertisement_images']  = self.request.user= AdvertisementImage.objects.all()
-        context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
-        
+
+        # Advertisement
+        context['advertisement_images'] = AdvertisementImage.objects.all()
+        context['paystack_public_key'] = settings.PAYSTACK_PUBLIC_KEY
+
+        # Sidebar categories with prefetch
+        sidebar_categories = Categories.objects.prefetch_related("categories").all()
+        context['sidebar_categories'] = sidebar_categories
+
+        # Debug: show categories and linked courses
+        print("📂 Sidebar categories and courses:")
+        for cat in sidebar_categories:
+            print(f"Category: {cat.name} — Courses count: {cat.categories.count()}")
+            for course in cat.categories.all():
+                print(f"   - Course: {course.title}")
+
         return context
+    
+#working 
+# class Homepage1(ListView):
+#     models = Courses
+#     template_name = 'sms/dashboard/homepage1.html'
+#     success_message = 'TestModel successfully updated!'
+#     count_hit = True
+   
+#     def get_queryset(self):
+       
+#         # return  Courses.objects.all().select_related('categories').distinct()
+#          return Courses.objects.annotate(topic_count=Count('topics')) 
+    
+#     def get_context_data(self, **kwargs): 
+#         context = super(Homepage1, self).get_context_data(**kwargs)
+        
+#         context['students'] = NewUser.objects.all().count() + 1000
+#         context['category'] = Categories.objects.count()
+#         context['coursecategory'] = Categories.objects.all()
+#         context['courses'] = Courses.objects.all().count()
+#         context['gallery'] = Gallery.objects.all()
+#         # latest_blogs = Blog.objects.all().order_by('-created')[:3]
+#         context['blogs'] =Blog.objects.all().order_by('-created')[:3]
+#         context['blogs_count'] =Blog.objects.all().count() 
+#         context['faqs'] = FrequentlyAskQuestions.objects.all()
+#         context['partners'] = Partners.objects.all()
+#         context['coursess'] = Courses.objects.all().order_by('created')[:10] 
+#         context['category_sta'] = Categories.objects.annotate(num_courses=Count('categories'))
+#         # course = Courses.objects.get(pk=self.kwargs["pk"])
+#         # context['topics_count'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id').count()
+
+#         context['beginner'] = Courses.objects.filter(categories__name = "BEGINNER")
+#         context['beginner_count'] = Courses.objects.filter(categories__name = "BEGINNER").count()
+#         beginner_courses = Courses.objects.filter(categories__name="BEGINNER")
+#         for course in beginner_courses:
+#             course.beginner_topic_count = Topics.objects.filter(courses=course).count()
+#         context['beginner'] = beginner_courses[:4]
+
+     
+#         context['intermediate'] = Courses.objects.filter(categories__name = "INTERMEDIATE")
+#         context['intermediate_count'] = Courses.objects.filter(categories__name = "INTERMEDIATE").count()
+#         intermediate_courses = Courses.objects.filter(categories__name="INTERMEDIATE")
+#         for course in intermediate_courses:
+#             course.intermediate_topic_count = Topics.objects.filter(courses=course).count()
+#         context['intermediate'] = intermediate_courses[:4]
+
+
+#         context['advanced'] = Courses.objects.filter(categories__name = "ADVANCED")
+#         context['advanced_count'] = Courses.objects.filter(categories__name = "ADVANCED").count()
+#         advanced_courses = Courses.objects.filter(categories__name="ADVANCED")
+#         for course in advanced_courses:
+#             course.advanced_topic_count = Topics.objects.filter(courses=course).count()
+#         context['advanced'] = advanced_courses[:4]
+
+
+#         context['Free_courses'] = Courses.objects.filter(status_type = 'Free')
+#         context['Free_courses_count'] = Courses.objects.filter(status_type = 'Free').count()
+#         Free_courses_courses = Courses.objects.filter(status_type = 'Free')
+#         for course in Free_courses_courses:
+#             course.Free_courses_topic_count = Topics.objects.filter(courses=course).count()
+#         context['Free_courses'] = Free_courses_courses
+
+      
+#         context['latest_course'] =   Courses.objects.all().order_by('-created')[:4] 
+#         context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:4].count()
+#         latest_course_courses =  Courses.objects.all().order_by('-created')[:4]
+#         for course in latest_course_courses:
+#             course.latest_course_topic_count = Topics.objects.filter(courses=course).count()
+#         context['latest_course'] = latest_course_courses
+
+
+#         context['popular_course'] =   Courses.objects.all().order_by('-hit_count_generic__hits')[:4] 
+#         popular_course_courses =  Courses.objects.all().order_by('-hit_count_generic__hits')[:4]
+#         for course in popular_course_courses:
+#             course.popular_course_topic_count = Topics.objects.filter(courses=course).count()
+#         context['popular_course'] = popular_course_courses
+    
+   
+#         context['alert_homes']  = PDFDocument.objects.order_by('-created')[:4] 
+#         context['alerts']  = PDFDocument.objects.order_by('-created')
+#         context['alert_count_homes'] = PDFDocument.objects.order_by('-created')[:4].count() 
+#         context['alert_count'] = PDFDocument.objects.all().count()
+        
+#         context['user'] = NewUser.objects.get_queryset().order_by('id')
+#         context['users']  = self.request.user
+#         messages.success(self.request, 'You have successfully logged in.')
+
+
+#         if self.request.user.is_authenticated:
+#             user_newuser = get_object_or_404(NewUser, email=self.request.user.email)
+#             if user_newuser.school:
+#                 context['school_name'] = user_newuser.school.school_name
+#             # Rest of your code goes here
+#         else:
+#             # Handle the case when the user is not authenticated
+#             pass
+#         # advert
+#         context['advertisement_images']  = self.request.user= AdvertisementImage.objects.all()
+#         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
+        
+#         return context
 
 
 
@@ -533,11 +616,6 @@ class Certdetaillistview(HitCountDetailView, LoginRequiredMixin,DetailView):
         context['qcourse'] = course
 
         user = self.request.user.email
-        # content_type
-        # Query the Payment model to get all payments related to the user and course
-        # user_newuser = get_object_or_404(NewUser, email=self.request.user)
-        # if user_newuser.school:
-        #     context['school_name'] = user_newuser.school.school_name
            
         if self.request.user.is_authenticated:
             user_newuser = get_object_or_404(NewUser, email=self.request.user.email)
@@ -1346,16 +1424,38 @@ class UserProfileForm(LoginRequiredMixin, CreateView):
     def get_queryset(self):
         return Profile.objects.all()
 
-class UserProfileUpdateForm(LoginRequiredMixin, UpdateView):
-    models = Profile
-    fields = ['first_name', 'last_name', 'gender', 'phone_number', 'countries', 'pro_img', 'bio']
-    template_name = 'sms/userprofileupdateform.html'
-    success_message = 'TestModel successfully updated!'
-    success_url= reverse_lazy('sms:myprofile')
-    count_hit = True
 
-    def get_queryset(self):
-        return Profile.objects.all()
+class UserProfileUpdateView(LoginRequiredMixin, UpdateView):
+    model = Profile
+    template_name = 'sms/userprofileupdateform.html'
+    fields = [
+        'first_name',
+        'last_name',
+        'username',
+        'phone_number',
+        'countries',
+        'gender',
+        'bio',
+        'pro_img',
+    ]
+    success_url = reverse_lazy('sms:myprofile')
+
+    def get_object(self, queryset=None):
+        # Automatically create profile if missing
+        profile, created = Profile.objects.get_or_create(user=self.request.user)
+        return profile
+
+    def form_valid(self, form):
+        # Also update the related NewUser fields
+        user = self.request.user
+        user.first_name = form.cleaned_data.get('first_name', user.first_name)
+        user.last_name = form.cleaned_data.get('last_name', user.last_name)
+        user.username = form.cleaned_data.get('username', user.username)
+        user.save()
+        return super().form_valid(form)
+    
+    
+    
 
 from django.db.models import OuterRef, Subquery
 from django.shortcuts import render, get_object_or_404
@@ -1790,17 +1890,31 @@ class AlertView(ListView):
 class DashboardCourses(LoginRequiredMixin, HitCountDetailView, DetailView):
     model = Courses
     template_name = 'sms/dashboard/based.html'
-   
-    def get_queryset(self):
-        return Courses.objects.all()
-   
-    def get_context_data(self, **kwargs):
 
+    def get_queryset(self):
+        # Print all courses being fetched
+        qs = Courses.objects.all()
+        print("🔹 All Courses in get_queryset():", qs)
+        return qs
+
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        course = self.get_object()  # Retrieve the course
-        
+        course = self.get_object()  # The current course
         context['coursess'] = Courses.objects.all().order_by('created')
-   
-     
+        
+        # Print all courses assigned to 'coursess'
+        print("🔹 Courses for context 'coursess':", context['coursess'])
+
+        # Fetch categories with prefetch
+        sidebar_categories = Categories.objects.prefetch_related("categories").all()
+        context['sidebar_categories'] = sidebar_categories
+
+        # Debug print for categories
+        for cat in sidebar_categories:
+            print(f"📂 Category: {cat.name}, Courses count: {cat.categories.count()}")
+            for c in cat.categories.all():
+                print(f"   - Course: {c.title}")
+
         return context
+    
     

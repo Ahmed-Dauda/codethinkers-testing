@@ -1,4 +1,5 @@
 
+import re
 from typing import cast
 from django.contrib.contenttypes.fields import GenericRelation
 from django.forms import Widget
@@ -23,7 +24,6 @@ from django.utils.text import slugify
 
 class Categories(models.Model, HitCountMixin):
    
-    
     name = models.CharField(max_length=225, blank=True, null= True, unique=True)
     desc = models.TextField( blank=True, null= True)
     created = models.DateTimeField(auto_now_add=True, blank=True, null= True)
@@ -190,35 +190,217 @@ class CustomTinyMCEWidget(TinyMCE):
         super().__init__(*args, **kwargs)
 
 
+from django.utils.text import slugify
+from urllib.parse import urlparse, parse_qs
+
+
+# class Topics(models.Model):
+#     categories = models.ForeignKey(Categories, on_delete=models.CASCADE, blank=True, null=True)
+#     courses = models.ForeignKey(Courses, on_delete=models.CASCADE, blank=True, null=True) 
+#     title = models.CharField(max_length=500, blank=True, null=True)  # Displays: "Introduction"
+#     slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)  # URL: "introduction-1"
+#     is_completed = models.BooleanField(default=False)
+#     completed_by = models.ManyToManyField('users.Profile', through='CompletedTopics')
+#     desc = HTMLField(null=True)
+#     transcript = models.TextField(blank=True, null=True)
+#     img_topic = CloudinaryField('topic image', blank=True, null=True)
+#     # video = EmbedVideoField(blank=True, null=True)
+#     video = models.CharField(max_length=500, blank=True, null=True)
+#     topics_url = models.CharField(max_length=500, blank=True, null=True)
+#     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+#     updated = models.DateTimeField(auto_now=True, blank=True, null=True) 
+#     id = models.BigAutoField(primary_key=True)
+#     hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
+
+
 class Topics(models.Model):
-    categories = models.ForeignKey(Categories, on_delete=models.CASCADE,blank=True, null=True)
-    courses = models.ForeignKey(Courses, on_delete=models.CASCADE,blank=True, null=True) 
-    title = models.CharField(max_length=500, blank=True, null=True)
-    slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)  # Increased max_length
+    categories = models.ForeignKey(Categories, on_delete=models.CASCADE, blank=True, null=True)
+    courses = models.ForeignKey(Courses, on_delete=models.CASCADE, blank=True, null=True) 
+    title = models.CharField(max_length=500, blank=True, null=True)  # Displays: "Introduction"
+    slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)  # URL: "introduction-1"
     is_completed = models.BooleanField(default=False)
     completed_by = models.ManyToManyField('users.Profile', through='CompletedTopics')
     desc = HTMLField(null=True)
-    transcript = models.TextField(blank=True, null=True)  # New field for transcript
+    transcript = models.TextField(blank=True, null=True)
     img_topic = CloudinaryField('topic image', blank=True, null=True)
-    video = EmbedVideoField(blank=True, null=True)
+    video = models.CharField(max_length=500, blank=True, null=True)
     topics_url = models.CharField(max_length=500, blank=True, null=True)
+    
+    # ✅ NEW: AI Validation Fields
+    validation_type = models.CharField(
+    max_length=20,
+    choices=[
+        ('code', 'Code Output Validation'),
+        ('quiz', 'Quiz Question'),
+        ('manual', 'Manual Completion')
+    ],
+        default='code',  # ✅ Changed from 'manual'
+        help_text="How should this topic be validated?"
+        )
+    
+    # For code validation
+    expected_output = models.TextField(
+        blank=True, 
+        null=True,
+        help_text="Expected output or requirements for code validation (AI will check intelligently)"
+    )
+    
+    # For quiz validation
+    quiz_question = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Quiz question for non-programming topics"
+    )
+    
+    quiz_correct_answer = models.TextField(
+        blank=True,
+        null=True,
+        help_text="The correct answer (AI will accept variations)"
+    )
+    
+    # Optional: Multiple choice options (if you want structured quizzes)
+    quiz_options = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Optional: Multiple choice options as JSON array ["Option A", "Option B", "Option C"]'
+    )
+    
+    # Optional: Hints for students
+    validation_hints = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Hints to show students if they struggle (optional)"
+    )
+    test_cases = models.JSONField(
+    default=list,
+    help_text='Test cases: [{"input": "5", "expected_output": "25"}]'
+)
+    
     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True) 
     id = models.BigAutoField(primary_key=True)
     hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
 
     class Meta:
-        ordering = ['title']
+        verbose_name = "Topic"
+        verbose_name_plural = "Topics"
+        ordering = ['created']
+
+    def __str__(self):
+        return self.title or f"Topic {self.id}"
+    
+    def save(self, *args, **kwargs):
+        # Auto-generate slug if not provided
+        if not self.slug and self.title:
+            from django.utils.text import slugify
+            base_slug = slugify(self.title)
+            slug = base_slug
+            counter = 1
+            while Topics.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
 
     def save(self, *args, **kwargs):
-        if not self.slug and self.title:
-            # slugify and trim to fit in max_length
-            self.slug = slugify(self.title)[:250]  
+        if not self.slug and self.title and self.courses:
+            base_slug = slugify(self.title)[:200]
+            self.slug = f"{base_slug}-{self.courses.id}"
+            
+            counter = 1
+            temp_slug = self.slug
+            while Topics.objects.filter(slug=temp_slug).exclude(pk=self.pk).exists():
+                temp_slug = f"{base_slug}-{self.courses.id}-{counter}"
+                counter += 1
+            
+            self.slug = temp_slug
 
         super().save(*args, **kwargs)
 
+    def get_youtube_id(self):
+        """
+        Extracts the video ID from different YouTube URL formats.
+        Returns None if no valid ID is found.
+        """
+        if not self.video:
+            return None
+
+        url = self.video.strip()
+
+        # 1. youtu.be short links
+        match = re.search(r'youtu\.be/([^\?&/]+)', url)
+        if match:
+            return match.group(1)
+
+        # 2. embed links
+        match = re.search(r'/embed/([^\?&/]+)', url)
+        if match:
+            return match.group(1)
+
+        # 3. shorts links
+        match = re.search(r'/shorts/([^\?&/]+)', url)
+        if match:
+            return match.group(1)
+
+        # 4. standard watch?v= links
+        try:
+            parsed = urlparse(url)
+            q = parse_qs(parsed.query)
+            if 'v' in q:
+                return q['v'][0]
+        except Exception:
+            pass
+
+        return None
+
+    def get_youtube_short_url(self):
+        """
+        Returns a clean https://youtu.be/VIDEO_ID URL.
+        """
+        video_id = self.get_youtube_id()
+        if video_id:
+            return f"https://youtu.be/{video_id}"
+        return None
+    
+    def print_debug(self):
+        print("Original URL:", self.video)
+        print("Extracted ID:", self.get_youtube_id())
+        print("Short URL:", self.get_youtube_short_url())  
+
     def __str__(self):
         return f'{self.title} - {self.courses}'
+    
+#working fine
+# class Topics(models.Model):
+#     categories = models.ForeignKey(Categories, on_delete=models.CASCADE,blank=True, null=True)
+#     courses = models.ForeignKey(Courses, on_delete=models.CASCADE,blank=True, null=True) 
+#     title = models.CharField(max_length=500, blank=True, null=True)
+#     slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)  # Increased max_length
+#     is_completed = models.BooleanField(default=False)
+#     completed_by = models.ManyToManyField('users.Profile', through='CompletedTopics')
+#     desc = HTMLField(null=True)
+#     transcript = models.TextField(blank=True, null=True)  # New field for transcript
+#     img_topic = CloudinaryField('topic image', blank=True, null=True)
+#     video = EmbedVideoField(blank=True, null=True)
+#     topics_url = models.CharField(max_length=500, blank=True, null=True)
+#     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+#     updated = models.DateTimeField(auto_now=True, blank=True, null=True) 
+#     id = models.BigAutoField(primary_key=True)
+#     hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
+
+#     class Meta:
+#         ordering = ['title']
+
+#     def save(self, *args, **kwargs):
+#         if not self.slug and self.title:
+#             # slugify and trim to fit in max_length
+#             self.slug = slugify(self.title)[:250]  
+
+#         super().save(*args, **kwargs)
+
+#     def __str__(self):
+#         return f'{self.title} - {self.courses}'
     
 # class Topics(models.Model):
     
@@ -259,9 +441,47 @@ class CompletedTopics(models.Model):
     def __str__(self):
         return f'{self.user.username} - {self.topic.title}'
 
+
+# Add this to your sms/models.py
+# It keeps StudentProgress.completed_topics in sync whenever
+# a CompletedTopics record is deleted from Django Admin
+
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=CompletedTopics)
+def sync_progress_on_save(sender, instance, created, **kwargs):
+    """When CompletedTopics is created, add to StudentProgress too."""
+    if not created:
+        return
+    try:
+        from webprojects.models import StudentProgress  # adjust app name
+        progress, _ = StudentProgress.objects.get_or_create(
+            student=instance.user.user,  # Profile → NewUser
+            defaults={'current_topic': instance.topic}
+        )
+        progress.completed_topics.add(instance.topic)
+    except Exception as e:
+        print(f'[signal] sync_progress_on_save failed: {e}')
+
+
+@receiver(post_delete, sender=CompletedTopics)
+def sync_progress_on_delete(sender, instance, **kwargs):
+    """When CompletedTopics is deleted, remove from StudentProgress too."""
+    try:
+        from webprojects.models import StudentProgress  # adjust app name
+        progress = StudentProgress.objects.filter(
+            student=instance.user.user  # Profile → NewUser
+        ).first()
+        if progress:
+            progress.completed_topics.remove(instance.topic)
+            print(f'[signal] Removed topic {instance.topic.id} from StudentProgress')
+    except Exception as e:
+        print(f'[signal] sync_progress_on_delete failed: {e}')
+
+
 class FrequentlyAskQuestions(models.Model):
     
-
     title = models.CharField(max_length=225,  null=True, blank =True )
     desc = models.TextField(blank=True, null= True)
     course_type = models.CharField(max_length=500, blank=True, null= True)

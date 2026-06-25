@@ -77,7 +77,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites', # make sure sites is included
+    'django.contrib.sites', # make sure sites is include
     'users',
     'sms',
     'student',
@@ -102,6 +102,7 @@ INSTALLED_APPS = [
     'certificate_stats',
      "django_fastapi",
      'instructor',
+
     
     
     
@@ -156,7 +157,7 @@ SITE_ID = 2
 # ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 from django.urls import reverse_lazy
 
-ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
 ACCOUNT_LOGIN_ON_PASSWORD_RESET = False
@@ -307,6 +308,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'users.middleware.BotSignupProtectionMiddleware',  # Your custom middleware
+    'users.middleware.VisitTrackingMiddleware',  # Adjust path to your app
 
 ]
 
@@ -402,11 +404,19 @@ BADGE_FONT = {
 # ADDITIONAL SITEs SECURITY
 # HTTPS and secure headers
 
+<<<<<<< HEAD
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
+=======
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SECURE_SSL_REDIRECT = True
+# SECURE_BROWSER_XSS_FILTER = True
+# SECURE_CONTENT_TYPE_NOSNIFF = True
+
+>>>>>>> restore-working-version
 
 # HSTS (HTTP Strict Transport Security)
 SECURE_HSTS_SECONDS = 3600  # You can increase to 31536000 (1 year) in production
@@ -431,6 +441,8 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # HITCOUNT_KEEP_HIT_ACTIVE = {'seconds': 2}
 
 
+# Allow YouTube iframes
+
 
 HITCOUNT_HITS_PER_IP_LIMIT = 0
 
@@ -440,32 +452,39 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # ✅ Dev-only static folder
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')    # ✅ For `collectstatic`
 
-
 # settings.py
 
-X_FRAME_OPTIONS = 'ALLOW-FROM http://127.0.0.1:8000'
-# settings.py
-
-X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 # DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Use cached database sessions instead
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
+# Or use cache-only sessions (loses sessions on restart)
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
 # # Update database configuration from $DATABASE_URL
 
-#production settings for heroku
+#production settings for herokus
 
 import dj_database_url
+<<<<<<< HEAD
 import os
 
 DATABASES = {
     'default': dj_database_url.config(
         conn_max_age=0,
         ssl_require=False,
+=======
+DATABASES = {
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=0,
+        ssl_require=False
+>>>>>>> restore-working-version
     )
 }
 
@@ -474,6 +493,19 @@ DATABASES = {
 # import dj_database_url
 # db_from_env = dj_database_url.config(conn_max_age=0)
 # DATABASES['default'].update(db_from_env)
+
+<<<<<<< HEAD
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+# DATABASES = {
+#     'default': {
+=======
+# import dj_database_url
 
 # DATABASES = {
 #     'default': {
@@ -484,6 +516,7 @@ DATABASES = {
 
 # DATABASES = {
 #     'default': {
+>>>>>>> restore-working-version
 #         'ENGINE': 'django.db.backends.postgresql',
 #         'NAME': 'fastapidb',
 #         'USER': 'fastapiuser',
@@ -525,7 +558,9 @@ TINYMCE_DEFAULT_CONFIG = {
     'theme': 'silver',
 
     # ✅ Allow pre/code fully
-    'extended_valid_elements': 'pre[class|style],code[class|style]',
+    'extended_valid_elements': 'pre[class|style],code[class|style],iframe[src|frameborder|style|scrolling|class|width|height|name|align|allow|allowfullscreen]',
+
+    # 'extended_valid_elements': 'pre[class|style],code[class|style]',
     'valid_elements': '*[*]',
 
     # ✅ Protect code blocks so TinyMCE does NOT "parse" inside them
@@ -555,96 +590,6 @@ TINYMCE_DEFAULT_CONFIG = {
     'forced_root_block': False,
     'br_in_pre': True,
 }
-
-# TINYMCE_DEFAULT_CONFIG = {
-#     'height': 360,
-#     'width': 700,
-#     'entity_encoding': "raw",            # Preserve <, >, & etc.
-#     'cleanup_on_startup': True,
-#     'custom_undo_redo_levels': 20,
-#     'selector': 'textarea',
-#     'plugins': 'link image preview codesample contextmenu table code mathjax',
-#     'toolbar': (
-#         'undo redo | styleselect | bold italic | link image | '
-#         'alignleft aligncenter alignright alignjustify | '
-#         'bullist numlist outdent indent | table | codesample | mathjax'
-#     ),
-#     'theme': 'silver',
-
-#     # MathML support
-#     'extended_valid_elements': 'math[*],mrow[*],mfrac[*],mi[*],mn[*],mo[*]',
-#     'custom_elements': 'math,mrow,mfrac,mi,mn,mo',
-#     'content_style': "math, mrow, mfrac, mi, mn, mo",
-#     'mathjax': {
-#         'lib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML',
-#         'symbols': {'mathml': True}
-#     },
-#     'init_instance_callback': '''
-#         function (editor) {
-#             console.log('Editor is initialized.');
-#             editor.on('click', function(e) {
-#                 if (e.target.nodeName === 'MATH' || e.target.closest('math')) {
-#                     editor.focus();
-#                 }
-#             });
-#         }
-#     ''',
-
-#     # Preserve AI-generated paragraphs and lists exactly
-#     'forced_root_block': False,          # Disable automatic <p> wrapping
-#     'forced_root_block_attrs': {},       
-#     'br_in_pre': True,                   # Preserve line breaks in <pre>
-
-#     # Allow all elements and attributes
-#     'valid_elements': '*[*]',
-#     'valid_children': (
-#         '+body[style|link|script|iframe|section],'
-#         '+section[div|p],'
-#         '+div[math|mrow|mfrac|mi|mn|mo]'
-#     ),
-# }
-
-# TINYMCE_DEFAULT_CONFIG = {
-#     'height': 360,
-#     'width': 700,
-#     'entity_encoding': "raw",
-#     'cleanup_on_startup': True,
-#     'custom_undo_redo_levels': 20,
-#     'selector': 'textarea',
-#     'plugins': 'link image preview codesample contextmenu table code mathjax',
-#     'toolbar': 'undo redo | styleselect | bold italic | link image | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | codesample | mathjax',
-#     'theme': 'silver',
-
-#     # Additional configuration for MathML
-#     'extended_valid_elements': 'math[*],mrow[*],mfrac[*],mi[*],mn[*],mo[*]',
-#     'custom_elements': 'math,mrow,mfrac,mi,mn,mo',
-#     'content_style': "math, mrow, mfrac, mi, mn, mo",
-#     'mathjax': {
-#         'lib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML',
-#         'symbols': {'mathml': True}
-#     },
-#     'init_instance_callback': '''
-#         function (editor) {
-#             console.log('Editor is initialized.');
-
-#             // Add event listener for MathML elements
-#             editor.on('click', function(e) {
-#                 if (e.target.nodeName === 'MATH' || e.target.closest('math')) {
-#                     editor.focus();
-#                 }
-#             });
-#         }
-#     ''',
-
-#     # Prevent wrapping text in <p> tags
-#     'forced_root_block': ' ',  # Use <div> instead of <p>
-#     'forced_root_block_attrs': {},  # Clears any forced attributes
-#     'br_in_pre': True,  # Insert <br> tags instead of wrapping in <p> tags
-
-#     # Allow all elements and attributes
-#     'valid_elements': '*[*]',  # Allow all elements
-#     'valid_children': '+body[style|link|script|iframe|section],+section[div|p],+div[math|mrow|mfrac|mi|mn|mo]',
-# }
 
 
 TINYMCE_JS_URL = 'https://cdn.tiny.cloud/1/r5ebxl5femg5gy8yvid6alg59ohekm45qlmxptc20qeu5jgw/tinymce/6/tinymce.min.js'
