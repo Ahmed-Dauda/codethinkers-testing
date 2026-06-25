@@ -28,10 +28,11 @@ jobs:
             pip install -r requirements.txt
 
             mkdir -p /var/backups/codethinkers
-            BACKUP_FILE=/var/backups/codethinkers/backup_$(date +%Y%m%d_%H%M%S).sql
-            pg_dump -U codethinkersuser -h localhost -p 5432 codethinkersdb > $BACKUP_FILE
-            echo "Backup saved: $BACKUP_FILE ($(du -sh $BACKUP_FILE | cut -f1))"
-            ls -t /var/backups/codethinkers/*.sql | tail -n +8 | xargs rm -f 2>/dev/null
+            BACKUP_FILE=/var/backups/codethinkers/backup_$(date +%Y%m%d_%H%M%S).sqlite3
+            cp /var/www/codethinkers/db.sqlite3 $BACKUP_FILE 2>/dev/null || echo "No SQLite DB found, skipping backup"
+            echo "Backup saved: $BACKUP_FILE"
+            ls -t /var/backups/codethinkers/*.sqlite3 | tail -n +8 | xargs rm -f 2>/dev/null
+
 
             python manage.py migrate --noinput
             python manage.py collectstatic --noinput
