@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Staging
-        id: deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -26,20 +25,13 @@ jobs:
             python manage.py migrate --noinput
             python manage.py collectstatic --noinput
 
-            # ── Restart staging services ──────────────────────────────────
             systemctl restart codethinkers-staging
-            systemctl restart celery-codethinkers-staging
             sleep 10
 
-            # ── Verify staging is up ──────────────────────────────────────
             ERRORS=""
 
             if ! systemctl is-active --quiet codethinkers-staging; then
               ERRORS="$ERRORS\n❌ Staging web app is DOWN"
-            fi
-
-            if ! systemctl is-active --quiet celery-codethinkers-staging; then
-              ERRORS="$ERRORS\n❌ Staging Celery worker is DOWN"
             fi
 
             if [ -n "$ERRORS" ]; then
@@ -48,47 +40,3 @@ jobs:
             fi
 
             echo "Staging deploy successful - test at https://staging.codethinkers.com"
-
-      - name: Send success email
-        if: success()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.EMAIL_USER }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "✅ CodeThinkers Academy Staging Deploy Successful"
-          to: codethinkersa@gmail.com
-          from: ${{ secrets.EMAIL_USER }}
-          body: |
-            CodeThinkers Academy staging deployed successfully!
-
-            Commit: ${{ github.sha }}
-            Time: ${{ github.event.head_commit.timestamp }}
-            Message: ${{ github.event.head_commit.message }}
-
-            ✅ Test it at: https://staging.codethinkers.com
-
-            When satisfied, merge staging → main to deploy to production.
-
-      - name: Send failure email
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.EMAIL_USER }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "❌ CodeThinkers Academy Staging Deploy FAILED"
-          to: codethinkersa@gmail.com
-          from: ${{ secrets.EMAIL_USER }}
-          body: |
-            CodeThinkers Academy staging deploy failed!
-
-            Commit: ${{ github.sha }}
-            Time: ${{ github.event.head_commit.timestamp }}
-            Message: ${{ github.event.head_commit.message }}
-
-            Fix the issue before merging to main/production.
-
-            Check logs: https://github.com/Ahmed-Dauda/codethinkers/actions
