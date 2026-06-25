@@ -1,4 +1,6 @@
-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
+# DEPLOYMENT QUICK REFERENCE — EXAMSPOWER
+# ===========================
+
 ssh root@204.168.237.20
 MyServer2026!Coolify
 cd /var/www/codethinkers
