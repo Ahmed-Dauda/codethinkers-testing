@@ -1,12 +1,13 @@
 from . import views
 from django.urls import path
-from .views import ReferralSignupView, SchoolStudentView, SchoolSignupView
+from .views import ReferralSignupView, SchoolStudentView, SchoolSignupView, visit_stats_api
 from .views import become_referrer
 
        
 app_name = 'users'
 
 urlpatterns = [
+    path('visit-stats/', visit_stats_api, name='visit_stats_api'),
     path('api/online-users/', views.online_users_api, name='online_users_api'),
 
     path('dashboard/', views.dashboard_view, name='quick_dashboard'),

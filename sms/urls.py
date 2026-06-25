@@ -24,11 +24,12 @@ from sms.views import(
       Feedbackformview,
       Commentlistview,
       Commentlistviewsuccess,
+    UserProfileUpdateView,
       UserProfilelistview,
       UserProfileForm,
       Certificates,
       Certdetaillistview,
-      UserProfileUpdateForm,
+    #   UserProfileUpdateForm,
       Admin_result,
       Admin_detail_view,
       Bloglistview,
@@ -97,7 +98,7 @@ urlpatterns = [
     # path('topic', views.Topic_list, name="topic"),
 
    
-    path('userprofileupdateform/<pk>/', UserProfileUpdateForm.as_view(), name ='userprofileupdateform'),
+   path('profile/edit/', UserProfileUpdateView.as_view(), name='userprofileupdateform'),
     
     path('baseview/<pk>/',  Baseblogview.as_view(), name='baseview'),
     path('blog/<slug:slug>/blogcommentform/', BlogcommentCreateView.as_view(), name ='blogcommentform'),

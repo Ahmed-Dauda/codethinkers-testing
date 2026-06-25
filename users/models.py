@@ -7,6 +7,95 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 
+# In your models.py (in the appropriate app, e.g., users/models.py)
+
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+
+class UserVisit(models.Model):
+    """Track every visit/session by users"""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE,
+        related_name='visits',
+        null=True,
+        blank=True  # Allow anonymous visits
+    )
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    
+    # Session tracking
+    session_key = models.CharField(max_length=40, blank=True)
+    
+    # Timestamps
+    visit_time = models.DateTimeField(default=timezone.now, db_index=True)
+    last_activity = models.DateTimeField(default=timezone.now)
+    
+    # Visit details
+    entry_page = models.URLField(max_length=500, blank=True)
+    referrer = models.URLField(max_length=500, blank=True)
+    
+    # Device info
+    device_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('desktop', 'Desktop'),
+            ('mobile', 'Mobile'),
+            ('tablet', 'Tablet'),
+            ('unknown', 'Unknown')
+        ],
+        default='unknown'
+    )
+    browser = models.CharField(max_length=50, blank=True)
+    os = models.CharField(max_length=50, blank=True)
+    
+    # Location (optional - requires GeoIP)
+    country = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    
+    # Duration
+    duration_seconds = models.IntegerField(default=0)  # Session duration
+    page_views = models.IntegerField(default=1)
+    
+    # Session ended
+    session_ended = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-visit_time']
+        indexes = [
+            models.Index(fields=['user', '-visit_time']),
+            models.Index(fields=['-visit_time']),
+            models.Index(fields=['session_key']),
+        ]
+    
+    def __str__(self):
+        user_str = self.user.username if self.user else f"Anonymous ({self.ip_address})"
+        return f"{user_str} - {self.visit_time.strftime('%Y-%m-%d %H:%M')}"
+    
+    def update_activity(self):
+        """Update last activity and calculate duration"""
+        now = timezone.now()
+        self.duration_seconds = (now - self.visit_time).total_seconds()
+        self.last_activity = now
+        self.page_views += 1
+        self.save(update_fields=['last_activity', 'duration_seconds', 'page_views'])
+
+
+class PageView(models.Model):
+    """Track individual page views within a visit"""
+    visit = models.ForeignKey(UserVisit, on_delete=models.CASCADE, related_name='pages')
+    url = models.URLField(max_length=500)
+    title = models.CharField(max_length=200, blank=True)
+    timestamp = models.DateTimeField(default=timezone.now, db_index=True)
+    time_on_page = models.IntegerField(default=0)  # seconds
+    
+    class Meta:
+        ordering = ['timestamp']
+    
+    def __str__(self):
+        return f"{self.url} - {self.timestamp.strftime('%H:%M:%S')}"
+
 
 class CustomUserManager(BaseUserManager):
 
@@ -42,37 +131,46 @@ class CustomUserManager(BaseUserManager):
 
 class NewUser(AbstractBaseUser, PermissionsMixin):
 
-    last_activity = models.DateTimeField(null=True, blank=True)  # add this field
+    last_activity = models.DateTimeField(null=True, blank=True)
     email = models.EmailField(max_length=254, unique=True)
-    username = models.CharField(max_length=35,  blank=True)
+    username = models.CharField(max_length=35, blank=True)
     school = models.ForeignKey('quiz.School', on_delete=models.SET_NULL, blank=True, null=True)
     student_class = models.CharField(max_length=254, null=True, blank=True)
-    # referral_code = models.CharField(max_length=225, blank=True, null=True)
-    phone_number = models.CharField(max_length=254, blank= True)
+    phone_number = models.CharField(max_length=254, blank=True)
     first_name = models.CharField(max_length=254, null=True, blank=True)
     last_name = models.CharField(max_length=254, null=True, blank=True)
-    countries = models.CharField(max_length=254,  blank=True, null=True)
+    countries = models.CharField(max_length=254, blank=True, null=True)
+
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     last_login = models.DateTimeField(null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
-    
 
     USERNAME_FIELD = 'email'
-    # USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'username'
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
 
-    def __str__(self):
-        return f'{self.email}'
     class Meta:
-        #  pass
-      db_table = 'auth_user'
+        db_table = 'auth_user'
 
+    def save(self, *args, **kwargs):
+        # Strip spaces + Proper case formatting
+        if self.first_name:
+            self.first_name = self.first_name.strip().title()
 
+        if self.last_name:
+            self.last_name = self.last_name.strip().title()
+
+        if self.username:
+            self.username = self.username.strip()
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.email
 
 
 gender_choice = [
@@ -119,8 +217,8 @@ class Profile(models.Model):
     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
-    def get_absolute_url(self):
-        return reverse('sms:userprofileupdateform', kwargs={'pk': self.pk})
+    # def get_absolute_url(self):
+    #     return reverse('sms:userprofileupdateform', kwargs={'pk': self.pk})
     def __str__(self):
       return f'{self.first_name} {self.last_name}'
 

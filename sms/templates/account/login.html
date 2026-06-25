@@ -5,44 +5,118 @@
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
 
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --slate-900: #0d1117;
+    --slate-200: #e6edf3;
+    --slate-100: #f0f6fc;
+    --gold: #c9a96e;
+    --gold-light: #e8cc99;
+    --gold-dim: rgba(201,169,110,0.15);
+    --muted: #6c757d;
+    --white: #ffffff;
+    --radius: 10px;
+  }
+
   body {
-    font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
+    font-family: 'Outfit', sans-serif;
+    background: var(--slate-100);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image:
+      radial-gradient(ellipse 70% 50% at 15% 15%, rgba(201,169,110,0.07) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 70% at 85% 85%, rgba(201,169,110,0.05) 0%, transparent 65%);
   }
 
-  .container {
-    max-width: 400px;
-    margin: 30px auto;
-    padding: 25px;
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  /* ── Card ── */
+  .auth-card {
+    width: 460px;
+    max-width: 95vw;
+    background: var(--white);
+    border-radius: 20px;
+    padding: 52px 48px 44px;
+    box-shadow:
+      0 0 0 1px rgba(13,17,23,0.06),
+      0 24px 64px rgba(13,17,23,0.10),
+      0 4px 12px rgba(13,17,23,0.05);
+    animation: rise 0.55s cubic-bezier(0.22,1,0.36,1) both;
   }
 
-  .notification-success {
-    background-color: #4CAF50;
-    color: white;
-    padding: 12px 20px;
-    margin-bottom: 20px;
-    border-radius: 6px;
-    font-size: 14px;
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(20px) scale(0.99); }
+    to   { opacity: 1; transform: translateY(0)   scale(1);    }
   }
 
-  h5 {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 22px;
-    color: #333;
+  /* ── Header ── */
+  .form-header { margin-bottom: 28px; }
+
+  .form-header .kicker {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 7px;
   }
 
-  form.login {
+  .form-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--slate-900);
+    line-height: 1.2;
+  }
+
+  /* ── Social Providers ── */
+  .socialaccount_ballot { margin-bottom: 20px; }
+
+  .socialaccount_providers {
+    list-style: none;
     display: flex;
     flex-direction: column;
+    gap: 9px;
   }
 
+  .login-or {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0 18px;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #adb5bd;
+  }
+
+  .login-or::before, .login-or::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--slate-200);
+  }
+
+  /* ── Form Fields ── */
+  form.login { display: flex; flex-direction: column; }
+
   form.login p {
-    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 14px;
+  }
+
+  form.login label {
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
   }
 
   input[type="text"],
@@ -50,110 +124,272 @@
   input[type="email"],
   select {
     width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    padding: 11px 13px;
+    border: 1.5px solid var(--slate-200);
+    border-radius: var(--radius);
+    font-family: 'Outfit', sans-serif;
     font-size: 14px;
+    color: var(--slate-900);
+    background: var(--slate-100);
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    -webkit-appearance: none;
   }
 
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(201,169,110,0.13);
+  }
+
+  /* ── Forgot Password ── */
+  .secondaryAction {
+    align-self: flex-end;
+    font-size: 12.5px;
+    color: var(--muted);
+    text-decoration: none;
+    font-weight: 400;
+    margin-bottom: 16px;
+    margin-top: 2px;
+    transition: color 0.15s;
+  }
+
+  .secondaryAction:hover { color: var(--gold); }
+
+  /* ── Submit Button ── */
   .btn {
-    padding: 10px;
-    background-color: #007BFF;
-    color: white;
-    font-weight: bold;
+    width: 100%;
+    padding: 13px;
+    background: var(--slate-900);
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius);
     cursor: pointer;
-    font-size: 15px;
+    transition: background 0.2s, transform 0.12s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, var(--gold-dim) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.2s;
   }
 
   .btn:hover {
-    background-color: #0056b3;
+    background: #1e2530;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(13,17,23,0.15);
   }
 
-  .secondaryAction {
-    margin-top: 10px;
-    display: inline-block;
-    color: #007BFF;
-    text-decoration: none;
-    font-size: 14px;
-  }
+  .btn:hover::before { opacity: 1; }
+  .btn:active { transform: translateY(0); box-shadow: none; }
 
-  .secondaryAction:hover {
-    text-decoration: underline;
-  }
-
-  .socialaccount_ballot {
-    margin-bottom: 20px;
-  }
-
-  .login-or {
-    text-align: center;
-    margin: 15px 0;
-    font-weight: bold;
-    color: #666;
-  }
-
+  /* ── Footer Links ── */
   .link-container {
-    text-align: center;
-    margin-top: 15px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--slate-200);
+  }
+
+  .link-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13.5px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .link-row:last-child { margin-bottom: 0; }
+
+  .link-row span { font-weight: 400; }
+
+  .link-row a.signup-link {
     font-size: 14px;
-  }
-
-  .link-container a {
-    color: #007BFF;
+    font-weight: 700;
+    color: var(--slate-900);
     text-decoration: none;
+    background: linear-gradient(135deg, #c9a96e, #e8cc99);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.01em;
+    transition: opacity 0.15s;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 1px;
   }
 
-  .link-container a:hover {
-    text-decoration: underline;
+  .link-row a.signup-link:hover { opacity: 0.8; }
+
+  .link-row a.email-link {
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .link-row a.email-link:hover { color: var(--gold); }
+
+  /* ── Signup note (no social) ── */
+  .signup-note {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin-bottom: 18px;
+    line-height: 1.65;
+  }
+
+  .signup-note a { color: var(--gold); text-decoration: none; font-weight: 600; }
+  .signup-note a:hover { text-decoration: underline; }
+
+  /* ── Notification ── */
+  .notification-success {
+    background: #f0fdf4;
+    color: #166534;
+    border-left: 3px solid #4ade80;
+    padding: 11px 14px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    font-size: 13px;
+  }
+
+  /* ── Top Register Banner ── */
+  .register-banner {
+    width: 460px;
+    max-width: 95vw;
+    background: linear-gradient(135deg, var(--slate-900) 0%, #1a2030 100%);
+    border-radius: 14px;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 16px rgba(13,17,23,0.12);
+    animation: rise 0.45s cubic-bezier(0.22,1,0.36,1) both;
+    border: 1px solid rgba(201,169,110,0.2);
+  }
+
+  .register-banner p {
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.75);
+    font-weight: 300;
+  }
+
+  .register-banner p strong {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .btn-register-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 20px;
+    background: linear-gradient(135deg, #c9a96e, #e8cc99);
+    color: var(--slate-900);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    border-radius: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    box-shadow: 0 2px 10px rgba(201,169,110,0.35);
+    flex-shrink: 0;
+    margin-left: 16px;
+  }
+
+  .btn-register-top:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(201,169,110,0.45);
+    opacity: 0.92;
+  }
+
+  .btn-register-top:active { transform: translateY(0); }
+
+  /* ── Bottom signup link (bigger & bolder) ── */
+  .link-row a.signup-link {
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    padding: 6px 14px !important;
+    background: linear-gradient(135deg, #c9a96e, #e8cc99) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    border-bottom: 2.5px solid var(--gold) !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  @media (max-width: 520px) {
+    .auth-card { padding: 36px 24px 32px; }
+    .register-banner { padding: 14px 18px; flex-wrap: wrap; gap: 10px; }
+    .btn-register-top { margin-left: 0; width: 100%; justify-content: center; }
   }
 </style>
 
-<div class="container">
+<!-- Top Register Banner -->
+<div class="register-banner">
+  <p><strong>New here?</strong> Create a free account in seconds.</p>
+  <a class="btn-register-top" href="{{ signup_url }}">Register Here &rarr;</a>
+</div>
 
-  <div class="notification-success">
-    <!-- Optional notice message -->
-    <!-- <p><strong>Heads up!</strong> You may need to re-register due to system upgrades.</p> -->
+<div class="auth-card">
+
+  <div class="form-header">
+    <div class="kicker">Welcome Back</div>
+    <h1>{% trans "Sign In" %}</h1>
   </div>
 
-  <h5>{% trans "Sign In" %}</h5>
+  {% comment %}
+  <div class="notification-success">
+    <strong>Heads up!</strong> You may need to re-register due to system upgrades.
+  </div>
+  {% endcomment %}
 
   {% get_providers as socialaccount_providers %}
-
   {% if socialaccount_providers %}
     <div class="socialaccount_ballot">
-      <ul class="socialaccount_providers" style="list-style: none; padding-left: 0;">
+      <ul class="socialaccount_providers">
         {% include "socialaccount/snippets/provider_list.html" with process="login" %}
       </ul>
-      <div class="login-or">{% trans 'Or' %}</div>
+      <div class="login-or">{% trans "or sign in with email" %}</div>
     </div>
     {% include "socialaccount/snippets/login_extra.html" %}
   {% else %}
-    <p>
-      {% blocktrans %}If you have not created an account yet, then please
-      <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}
+    <p class="signup-note">
+      {% blocktrans %}Don't have an account yet?
+      <a href="{{ signup_url }}">Create one here</a>.{% endblocktrans %}
     </p>
   {% endif %}
 
   <form class="login" method="POST" action="{% url 'account_login' %}">
     {% csrf_token %}
     {{ form.as_p }}
-
     {% if redirect_field_value %}
       <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
     {% endif %}
-
-    <a class="secondaryAction" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
-    <button class="btn" type="submit">{% trans "Sign In" %}</button>
+    <a class="secondaryAction" href="{% url 'account_reset_password' %}">{% trans "Forgot password?" %}</a>
+    <button class="btn" type="submit">{% trans "Sign In" %} &rarr;</button>
   </form>
 
   <div class="link-container">
-    <p>Don't have an account? <a href="{{ signup_url }}">Register Here</a></p>
-    <p><a href="mailto:codethinkersa@gmail.com">Send Us Email</a></p>
+    <div class="link-row">
+      <span>Don't have an account?</span>
+      <a class="signup-link" href="{{ signup_url }}">Register Here &rarr;</a>
+    </div>
+    <div class="link-row">
+      <span>Need help?</span>
+      <a class="email-link" href="mailto:codethinkersa@gmail.com">Send us an email</a>
+    </div>
   </div>
+
 </div>
-
 {% endblock %}
-

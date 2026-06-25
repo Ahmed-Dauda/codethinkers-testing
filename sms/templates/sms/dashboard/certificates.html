@@ -68,7 +68,7 @@
 
                             {% if related_payments.exists or course_payments.exists or school_name %}
                               <a href="{% url 'student:pdf_id_view' course.id %}" class="btn btn-outline-primary shadow-sm mt-2">
-                                📄 Print Certificate
+                               2 📄 Print Certificate
                               </a>
                             {% elif qcourse.course_name.cert_price == None and qcourse.course_name.price == None or school_name %}
                               <a href="{% url 'student:pdf_id_view' course.id %}" class="btn btn-outline-primary shadow-sm mt-2">
