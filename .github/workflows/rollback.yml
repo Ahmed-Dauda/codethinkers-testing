@@ -1,0 +1,102 @@
+name: Rollback Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to rollback to (e.g. v1.1-stable)'
+        required: true
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rollback to stable tag
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /var/www/codethinkers
+            git fetch origin --tags
+            git reset --hard ${{ github.event.inputs.tag }}
+            source venv/bin/activate
+            pip install -r requirements.txt
+            python manage.py migrate --noinput
+            python manage.py collectstatic --noinput
+
+            # ── Restart all services ──────────────────────────────────────
+            systemctl restart codethinkers
+            systemctl restart codethinkers-celery
+            systemctl restart codethinkers-celerybeat
+            sleep 10
+
+            # ── Verify all services ───────────────────────────────────────
+            ERRORS=""
+
+            if ! systemctl is-active --quiet codethinkers; then
+              ERRORS="$ERRORS\n❌ Web app is DOWN"
+            fi
+
+            if ! systemctl is-active --quiet codethinkers-celery; then
+              ERRORS="$ERRORS\n❌ Celery worker is DOWN"
+            fi
+
+            if ! systemctl is-active --quiet codethinkers-celerybeat; then
+              ERRORS="$ERRORS\n❌ Celery beat is DOWN"
+            fi
+
+            if ! redis-cli ping | grep -q PONG; then
+              ERRORS="$ERRORS\n❌ Redis is DOWN"
+            fi
+
+            if [ -n "$ERRORS" ]; then
+              echo -e "$ERRORS"
+              exit 1
+            fi
+
+            echo "Rollback to ${{ github.event.inputs.tag }} successful"
+
+      - name: Send success email
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "✅ CodeThinkers Academy Rollback Successful"
+          to: codethinkersa@gmail.com
+          from: ${{ secrets.EMAIL_USER }}
+          body: |
+            CodeThinkers Academy rolled back successfully to ${{ github.event.inputs.tag }}!
+
+            Triggered by: ${{ github.actor }}
+            Time: ${{ github.event.head_commit.timestamp }}
+
+            Services Status:
+            ✅ Web app: Running
+            ✅ Celery worker: Running
+            ✅ Celery beat: Running
+            ✅ Redis: Running
+
+      - name: Send failure email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "❌ CodeThinkers Academy Rollback FAILED - Action Required"
+          to: codethinkersa@gmail.com
+          from: ${{ secrets.EMAIL_USER }}
+          body: |
+            CodeThinkers Academy rollback to ${{ github.event.inputs.tag }} failed!
+
+            Triggered by: ${{ github.actor }}
+            Manual intervention required.
+
+            Check full logs:
+            https://github.com/Ahmed-Dauda/codethinkers/actions
