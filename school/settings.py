@@ -476,9 +476,13 @@ import os
 
 
 #local development settings
+# DATABASES = {
+#     'default': env.db('DATABASE_URL', default='sqlite:///db.sqlite3')
+# }
 
 
-# import dj_database_url
+
+import dj_database_url
 
 DATABASES = {
     'default': {
