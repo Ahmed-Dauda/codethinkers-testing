@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # DEPLOYMENT QUICK REFERENCE — EXAMSPOWER
 # ===========================
 
