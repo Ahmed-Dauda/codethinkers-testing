@@ -19,6 +19,10 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /var/www/codethinkers
+            # Ensure .env exists and has correct DATABASE_URL
+            test -f .env || { echo ".env file missing - aborting deploy"; exit 1; }
+            grep -q "postgres" .env || { echo "DATABASE_URL not set to postgres - aborting"; exit 1; }
+
 
             # ── Check and auto-fix Redis ──────────────────────────────────
             if ! redis-cli ping | grep -q PONG; then
