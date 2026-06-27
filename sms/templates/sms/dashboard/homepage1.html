@@ -714,75 +714,86 @@ p {
   </div>
 </div>
 
+<div style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:16px;padding:35px 15px;background:#ffffff;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
 
-<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 30px 10px; background-color: #f5f5f5;">
-  {% if not users.is_authenticated %}
-  <a href="{% url 'account_login' %}" 
-     style="display: block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 16px; text-align: center; transition: background-color 0.3s ease; display: flex; align-items: center; gap: 10px;"
-     onmouseover="this.style.backgroundColor='#0056b3'" 
-     onmouseout="this.style.backgroundColor='#007bff'">
-    <span>🆓</span> Join us for Free
-  </a>
-  {% endif %}
+    {% if not users.is_authenticated %}
+    <a href="{% url 'account_login' %}"
+       style="display:inline-flex;align-items:center;gap:8px;padding:13px 24px;background:#0d6efd;color:#ffffff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;border:1px solid #0d6efd;transition:.3s;"
+       onmouseover="this.style.background='#0b5ed7';this.style.borderColor='#0b5ed7'"
+       onmouseout="this.style.background='#0d6efd';this.style.borderColor='#0d6efd'">
+        ➕ Join Free
+    </a>
+    {% endif %}
 
-  <a href="mailto:codethinkersa@gmail.com" 
-     style="padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 16px; transition: background-color 0.3s ease;"
-     onmouseover="this.style.backgroundColor='#0056b3'"
-     onmouseout="this.style.backgroundColor='#007bff'">
-    📧 codethinkersa@gmail.com
-  </a>
+    <a href="mailto:codethinkersa@gmail.com"
+       style="display:inline-flex;align-items:center;gap:8px;padding:13px 24px;background:#ffffff;color:#212529;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;border:1px solid #dcdcdc;transition:.3s;"
+       onmouseover="this.style.borderColor='#0d6efd';this.style.color='#0d6efd'"
+       onmouseout="this.style.borderColor='#dcdcdc';this.style.color='#212529'">
+        ✉ codethinkersa@gmail.com
+    </a>
 
-  <a href="https://wa.me/23408128014921" 
-     style="padding: 12px 24px; background-color: #28a745; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 16px; transition: background-color 0.3s ease;"
-     onmouseover="this.style.backgroundColor='#1e7e34'"
-     onmouseout="this.style.backgroundColor='#28a745'">
-    💬 Customer Support
-  </a>
+    <a href="https://wa.me/2348128014921"
+       style="display:inline-flex;align-items:center;gap:8px;padding:13px 24px;background:#ffffff;color:#212529;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;border:1px solid #dcdcdc;transition:.3s;"
+       onmouseover="this.style.background='#25D366';this.style.color='#ffffff';this.style.borderColor='#25D366'"
+       onmouseout="this.style.background='#ffffff';this.style.color='#212529';this.style.borderColor='#dcdcdc'">
+        💬 Customer Support
+    </a>
+
 </div>
 
 
+<div style="padding:60px 20px;background:#f8f9fa;overflow:hidden;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
 
-  <!-- partners section  -->
-  
-  <div class="card-bod" style="padding: 40px 20px; background-color: #f6f6f6; overflow: hidden;">
-    <h2 style="text-align: center; font-size: 28px; font-weight: 600; margin-bottom: 30px; color: #333;">
-      Trusted by Our Global Partners
+    <h2 style="text-align:center;font-size:30px;font-weight:700;color:#212529;margin-bottom:45px;">
+        Trusted by Our Global Partners
     </h2>
-  
-    <section class="partners" style="display: flex; align-items: center; gap: 50px; animation: scrollPartners 30s linear infinite; width: max-content;">
-      {% for partner in partners %}
-        <img 
-          src="{{ partner.img_partner.url }}" 
-          width="100px" 
-          height="100px" 
-          class="img-fluid" 
-          alt="Partner Logo"
-          style="filter: grayscale(100%); transition: filter 0.4s ease, transform 0.4s ease; border-radius: 8px;"
-          onmouseover="this.style.filter='grayscale(0%)'; this.style.transform='scale(1.05)'"
-          onmouseout="this.style.filter='grayscale(100%)'; this.style.transform='scale(1)'"
-        />
-      {% empty %}
-        <h4 class="text-center text-danger" style="width: 100%;">No Partners available yet. Please check back later.</h4>
-      {% endfor %}
+
+    <section style="display:flex;align-items:center;gap:60px;width:max-content;animation:scrollPartners 30s linear infinite;">
+
+        {% for partner in partners %}
+
+        <img src="{{ partner.img_partner.url }}"
+             loading="lazy"
+             width="100"
+             height="100"
+             alt="Partner Logo"
+             style="width:100px;height:100px;object-fit:contain;background:#fff;padding:8px;border:1px solid #ececec;border-radius:10px;filter:grayscale(100%);transition:.35s;"
+             onmouseover="this.style.filter='grayscale(0%)';this.style.transform='scale(1.08)'"
+             onmouseout="this.style.filter='grayscale(100%)';this.style.transform='scale(1)'">
+
+        {% empty %}
+
+        <h4 style="text-align:center;color:#dc3545;width:100%;">
+            No Partners Available Yet.
+        </h4>
+
+        {% endfor %}
+
     </section>
 
-    <div class="" style="text-align: center; margin-top: 40px;">
-     <h2>Empower Schools and Organizations with our New Program!</h2> <br>
-     <a href="https://codethinkers.netlify.app" class="cta-button">Check This Out</a>
+    <div style="text-align:center;margin-top:60px;">
+
+        <h2 style="font-size:30px;font-weight:700;color:#212529;margin-bottom:25px;">
+            Empower Schools and Organizations with Our New Program
+        </h2>
+
+        <a href="https://codethinkers.netlify.app"
+           style="display:inline-block;padding:14px 30px;background:#0d6efd;color:#ffffff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;border:1px solid #0d6efd;transition:.3s;"
+           onmouseover="this.style.background='#0b5ed7';this.style.borderColor='#0b5ed7'"
+           onmouseout="this.style.background='#0d6efd';this.style.borderColor='#0d6efd'">
+            Learn More
+        </a>
+
     </div>
- 
+
     <style>
-      @keyframes scrollPartners {
-        0% {
-          transform: translateX(100%);
+        @keyframes scrollPartners{
+            from{transform:translateX(100%);}
+            to{transform:translateX(-100%);}
         }
-        100% {
-          transform: translateX(-100%);
-        }
-      }
     </style>
-  </div>
-    
+
+</div>    
  <!-- partners section endign -->
  
 <!-- page Statistics -->

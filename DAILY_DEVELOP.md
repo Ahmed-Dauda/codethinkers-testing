@@ -58,7 +58,7 @@ After deployment:
 * Wait for the deployment notification.
 * Open `https://staging.codethinkers.org`.
 * Test the new feature thoroughly.
-* Verify existing functionality still works.
+* Verify existing functionality still works
 
 Only proceed to production if staging passes all tests.
 
