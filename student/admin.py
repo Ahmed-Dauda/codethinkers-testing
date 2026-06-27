@@ -1,4 +1,5 @@
-import imp
+import importlib
+
 from django.contrib import admin
 from student.models import (Logo, Signature, Designcert,Certificate, 
                             PartLogo, Payment,PDFDocument, 

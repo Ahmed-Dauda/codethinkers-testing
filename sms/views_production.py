@@ -233,7 +233,7 @@ class Homepage1(ListView):
             course.Free_courses_topic_count = Topics.objects.filter(courses=course).count()
         context['Free_courses'] = free_courses
         context['Free_courses_count'] = free_courses.count()
-        
+
         # Latest courses
         latest_courses = Courses.objects.all().order_by('-created')
         for course in latest_courses:
@@ -273,9 +273,9 @@ class Homepage1(ListView):
         context['sidebar_categories'] = sidebar_categories
 
         # Debug: show categories and linked courses
-        # print("📂 Sidebar categories and courses:")
+        print("📂 Sidebar categories and courses:")
         for cat in sidebar_categories:
-            # print(f"Category: {cat.name} — Courses count: {cat.categories.count()}")
+            print(f"Category: {cat.name} — Courses count: {cat.categories.count()}")
             for course in cat.categories.all():
                 print(f"   - Course: {course.title}")
 
@@ -1903,7 +1903,7 @@ class DashboardCourses(LoginRequiredMixin, HitCountDetailView, DetailView):
         context['coursess'] = Courses.objects.all().order_by('created')
         
         # Print all courses assigned to 'coursess'
-        # print("🔹 Courses for context 'coursess':", context['coursess'])
+        print("🔹 Courses for context 'coursess':", context['coursess'])
 
         # Fetch categories with prefetch
         sidebar_categories = Categories.objects.prefetch_related("categories").all()
@@ -1911,7 +1911,7 @@ class DashboardCourses(LoginRequiredMixin, HitCountDetailView, DetailView):
 
         # Debug print for categories
         for cat in sidebar_categories:
-            # print(f"📂 Category: {cat.name}, Courses count: {cat.categories.count()}")
+            print(f"📂 Category: {cat.name}, Courses count: {cat.categories.count()}")
             for c in cat.categories.all():
                 print(f"   - Course: {c.title}")
 
