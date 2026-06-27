@@ -42,20 +42,23 @@ LOGGING = {
 
 
 import environ
+import os
 
-
+# settings.py
+# settings.py
 env = environ.Env(DEBUG=(bool, False))
+environ.Env.read_env()
 
-# This line should only be used locally
-if os.path.exists(os.path.join(BASE_DIR, '.env')):
-    environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+OPENAI_API_KEY = env("OPENAI_API_KEY")
+# Initialize environ
 
-DEBUG = env("DEBUG")
+# Read .env file from BASE_DIR
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-
+# Use environment variables
 SECRET_KEY = env("SECRET_KEY")
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
-
+DEBUG = env("DEBUG")
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # PAYSTACK MODE: 'test' or 'live'
 PAYSTACK_MODE = env('PAYSTACK_MODE', default='test')
@@ -66,7 +69,6 @@ if PAYSTACK_MODE == 'live':
 else:
     PAYSTACK_SECRET_KEY = env('PAYSTACK_TEST_SECRET_KEY')
     PAYSTACK_PUBLIC_KEY = env('PAYSTACK_TEST_PUBLIC_KEY')
-
 
 # wyswyg = ['grappelli', 'filebrowser']
 INSTALLED_APPS = [
@@ -375,7 +377,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 
 

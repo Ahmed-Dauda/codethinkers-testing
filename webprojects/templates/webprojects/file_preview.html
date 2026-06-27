@@ -4,6 +4,6 @@
 <div>
     {{ df_html|safe }}
 </div>
-<a href="{% url 'file_detail' file.project.id file.id %}">Back to Editor</a>
+<a href="{% url 'webprojects:file_detail' file.project.id file.id %}">Back to Editor</a>
 
 {% endblock %}
