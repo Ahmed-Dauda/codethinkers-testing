@@ -18,10 +18,10 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /var/www/codethinkers-staging
+
             # Ensure .env exists and has correct DATABASE_URL
             test -f .env || { echo ".env file missing - aborting deploy"; exit 1; }
             grep -q "postgres" .env || { echo "DATABASE_URL not set to postgres - aborting"; exit 1; }
-
 
             # Save last working commit
             LAST_WORKING=$(git rev-parse HEAD)
@@ -30,6 +30,11 @@ jobs:
             # Pull new code
             git fetch origin
             git reset --hard origin/staging
+
+            # Restore .env from GitHub secret
+            echo "${{ secrets.CODETHINKERS_STAGING_ENV }}" > .env
+            echo ".env restored from secret"
+
             source env/bin/activate
             pip install -r requirements.txt
             python manage.py migrate --noinput
