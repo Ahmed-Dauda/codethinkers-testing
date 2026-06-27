@@ -68,7 +68,9 @@
     {% for category in object_list %}
     <div class="left-column-cat ">
         <p class="card-body text-center category">
-            <a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a><hr>
+            {% if category.pk %}
+<a class="category-head" href="{% url 'sms:courseslist' category.pk %}">{{category}}</a><hr>
+{% endif %}
            <div>{% get_hit_count for category %} <i class="fas fa-eye"></i> </div> 
             <div>{{category.created}}</div> <hr>
             <div class="text-left container">{{category.desc}}</div>
