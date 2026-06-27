@@ -78,12 +78,7 @@ git push origin v1.x-stable
 Increment the version each time (`v1.1-stable`, `v1.2-stable`, etc.) so you can always identify and return to a specific past release.
 
 **Example:**
-```bash
-git tag -a v1.1-stable -m "Added project preview links, fixed ALLOWED_HOSTS config"
-git push origin v1.1-stable
-```
 
----
 
 ## Step 6 — Deploy to Production
 

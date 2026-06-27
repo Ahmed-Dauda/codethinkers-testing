@@ -3,9 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-<<<<<<< HEAD
   <title>{{ file.name }} – Live Preview</title>
-
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
@@ -46,11 +44,18 @@
       height: var(--toolbar-height-desktop);
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 16px;
       padding: 0 20px;
       background: var(--panel);
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
+    }
+
+    .toolbar .left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
 
     .toolbar a {
@@ -64,7 +69,7 @@
       color: var(--text);
     }
 
-    .toolbar h1 {
+    .toolbar h2 {
       font-size: 14px;
       font-weight: 600;
       margin: 0;
@@ -73,12 +78,53 @@
       white-space: nowrap;
     }
 
+    .toolbar .right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .device-toggle {
+      display: flex;
+      gap: 4px;
+    }
+
+    .device-toggle button {
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .device-toggle button:hover {
+      background: #e5e7eb;
+    }
+
+    .device-toggle button.active {
+      background: #007BFF;
+      color: white;
+      border-color: #007BFF;
+    }
+
     /* ───────── Preview ───────── */
     .preview-wrapper {
       flex: 1;
       width: 100%;
       height: calc(100dvh - var(--toolbar-height-desktop));
       background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      transition: all 0.3s ease;
+    }
+
+    .preview-wrapper.mobile {
+      background: #1a1a2e;
+      padding: 20px;
     }
 
     iframe {
@@ -87,6 +133,14 @@
       border: none;
       display: block;
       background: #ffffff;
+      transition: all 0.3s ease;
+    }
+
+    .preview-wrapper.mobile iframe {
+      max-width: 375px;
+      height: 100%;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
 
     /* ───────── Mobile Optimization ───────── */
@@ -94,14 +148,40 @@
       .toolbar {
         height: var(--toolbar-height-mobile);
         padding: 0 12px;
+        flex-wrap: wrap;
+        gap: 8px;
       }
 
-      .toolbar h1 {
+      .toolbar h2 {
         font-size: 13px;
       }
 
       .preview-wrapper {
         height: calc(100dvh - var(--toolbar-height-mobile));
+      }
+
+      .device-toggle button {
+        padding: 4px 10px;
+        font-size: 12px;
+      }
+
+      .preview-wrapper.mobile iframe {
+        max-width: 320px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .toolbar .left {
+        gap: 8px;
+      }
+
+      .toolbar h2 {
+        font-size: 11px;
+        max-width: 120px;
+      }
+
+      .preview-wrapper.mobile iframe {
+        max-width: 280px;
       }
     }
   </style>
@@ -111,109 +191,92 @@
 
   <!-- Toolbar -->
   <header class="toolbar">
-    <a href="{% url 'webprojects:file_detail' project.id file.id %}">
-      ← Back to Editor
-    </a>
+    <div class="left">
+      <a href="{% url 'webprojects:file_detail' project.id file.id %}">
+        ← Back to Editor
+      </a>
+      <h2>🔍 {{ file.name }}</h2>
+    </div>
 
-  </header>
-
-  <!-- Live Preview -->
-  <main class="preview-wrapper">
-    <iframe
-      src="data:text/html;charset=utf-8,{{ rendered_html|urlencode }}"
-      sandbox="allow-scripts allow-same-origin allow-forms allow-modals"
-    ></iframe>
-  </main>
-=======
-  <title>{{ file.name }} - Preview</title>
-  <style>
-    body {
-      background: #f8f9fa;
-      font-family: Arial, sans-serif;
-      padding: 1rem;
-    }
-
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
-    .toolbar .right {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .device-toggle button {
-      padding: 6px 12px;
-      border: 1px solid #ccc;
-      background: white;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .device-toggle button.active {
-      background: #007BFF;
-      color: white;
-    }
-
-    .iframe-container {
-      display: flex;
-      justify-content: center;
-      width: 100%;
-    }
-
-    iframe.preview {
-      width: 100%;
-      height: 600px;
-      border: 1px solid #ccc;
-      max-width: 100%;
-      transition: width 0.3s ease;
-    }
-
-    .mobile iframe.preview {
-      width: 375px;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="toolbar">
-    <h2>🔍 Live Preview: {{ file.name }}</h2>
     <div class="right">
-      <a href="{% url 'file_detail' project.id file.id %}">↩️ Back to Editor</a>
       <div class="device-toggle">
         <button id="desktopBtn" class="active">💻 Desktop</button>
         <button id="mobileBtn">📱 Mobile</button>
       </div>
     </div>
-  </div>
+  </header>
 
-  <div class="iframe-container" id="previewContainer">
-    <iframe class="preview" src="data:text/html;charset=utf-8,{{ rendered_html|urlencode }}"></iframe>
-  </div>
+  <!-- Live Preview -->
+  <main class="preview-wrapper" id="previewContainer">
+    <iframe
+      src="data:text/html;charset=utf-8,{{ rendered_html|urlencode }}"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-modals"
+      loading="lazy"
+    ></iframe>
+  </main>
 
   <script>
-    const desktopBtn = document.getElementById("desktopBtn");
-    const mobileBtn = document.getElementById("mobileBtn");
-    const previewContainer = document.getElementById("previewContainer");
+    (function() {
+      const desktopBtn = document.getElementById("desktopBtn");
+      const mobileBtn = document.getElementById("mobileBtn");
+      const previewContainer = document.getElementById("previewContainer");
+      const iframe = previewContainer.querySelector('iframe');
 
-    desktopBtn.addEventListener("click", () => {
-      previewContainer.classList.remove("mobile");
-      desktopBtn.classList.add("active");
-      mobileBtn.classList.remove("active");
-    });
+      // Load saved preference
+      const savedView = localStorage.getItem('previewView') || 'desktop';
+      if (savedView === 'mobile') {
+        previewContainer.classList.add('mobile');
+        mobileBtn.classList.add('active');
+        desktopBtn.classList.remove('active');
+      }
 
-    mobileBtn.addEventListener("click", () => {
-      previewContainer.classList.add("mobile");
-      mobileBtn.classList.add("active");
-      desktopBtn.classList.remove("active");
-    });
+      function setView(view) {
+        if (view === 'mobile') {
+          previewContainer.classList.add('mobile');
+          mobileBtn.classList.add('active');
+          desktopBtn.classList.remove('active');
+          localStorage.setItem('previewView', 'mobile');
+        } else {
+          previewContainer.classList.remove('mobile');
+          desktopBtn.classList.add('active');
+          mobileBtn.classList.remove('active');
+          localStorage.setItem('previewView', 'desktop');
+        }
+
+        // Trigger iframe reload to ensure proper rendering
+        const src = iframe.src;
+        iframe.src = '';
+        setTimeout(() => {
+          iframe.src = src;
+        }, 50);
+      }
+
+      desktopBtn.addEventListener("click", () => setView('desktop'));
+      mobileBtn.addEventListener("click", () => setView('mobile'));
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'd' && !e.ctrlKey && !e.metaKey) {
+          setView('desktop');
+        } else if (e.key === 'm' && !e.ctrlKey && !e.metaKey) {
+          setView('mobile');
+        }
+      });
+
+      // Handle window resize for better mobile experience
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          if (window.innerWidth <= 480 && previewContainer.classList.contains('mobile')) {
+            // Adjust for small screens
+          }
+        }, 200);
+      });
+
+      console.log('🔍 Preview loaded. Use D (desktop) or M (mobile) keys to toggle.');
+    })();
   </script>
->>>>>>> heroku/main
 
 </body>
 </html>

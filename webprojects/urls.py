@@ -4,7 +4,7 @@ create_project,
 file_delete, file_preview, get_code_examples, get_contextual_hint, get_course_exam, get_file_content, get_student_courses, get_student_progress, get_xp_stats, mark_topic_complete, project_detail,
 file_detail, project_files_json, public_folder_view, recommend_next_course, 
 run_python_code, set_current_topic, share_preview_view, file_chat, topic_info,
-upload_file_ajax, validate_topic_completion, view_rendered_file, voice_chat_tutor)
+upload_file_ajax,explain_code_view,load_project_files ,validate_topic_completion, view_rendered_file, voice_chat_tutor)
 
 
 
@@ -12,6 +12,7 @@ app_name = 'webprojects'
 
 urlpatterns = [
     # In urls.py
+    path('<int:project_id>/load-files/', load_project_files, name='load_project_files'),
     path('get-course-exam/<int:course_id>/', get_course_exam, name='get_course_exam'),
     path('student-courses/', get_student_courses, name='student_courses'),
     path('voice-chat-tutor/', voice_chat_tutor, name='voice_chat_tutor'),
@@ -53,7 +54,7 @@ urlpatterns = [
 
     path("ai-python-completion/", ai_python_completion, name="ai_python_completion"),
     path("run-python/", run_python_code, name="run_python_code"),
-    # path('explain-code/', explain_code_view, name='explain_code'),
+    path('explain-code/', explain_code_view, name='explain_code'),
     path('ai-suggest/', ai_suggest_code, name='ai_suggest_code'),
 ]
 

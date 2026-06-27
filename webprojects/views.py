@@ -82,7 +82,7 @@ from openai import OpenAI
 from openai import OpenAI
 import os
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 @csrf_exempt  
 def voice_chat_tutor(request):
@@ -94,8 +94,7 @@ def voice_chat_tutor(request):
         messages = data.get('messages', [])
         system_prompt = data.get('system_prompt', '')
 
-        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-        
+
         response = client.chat.completions.create(
             model='gpt-4o-mini',
             messages=[{'role': 'system', 'content': system_prompt}] + messages,
@@ -428,13 +427,70 @@ import json
 from django.views.decorators.http import require_http_methods
 
 
+
+# @csrf_exempt
+# @require_http_methods(["POST"])
+# def file_autosave(request):
+#     try:
+#         print("=== AUTOSAVE BACKEND DEBUG ===")
+#         print("Request method:", request.method)
+#         print("Request body:", request.body[:200])  # First 200 chars
+        
+#         data = json.loads(request.body)
+#         file_id = data.get("file_id")
+#         content = data.get("content", "")
+        
+#         print(f"File ID: {file_id}")
+#         print(f"Content length: {len(content)}")
+        
+#         # Get the file
+#         file_obj = File.objects.get(id=file_id)
+#         print(f"Found file: {file_obj.name}")
+        
+#         # Save the content
+#         file_obj.content = content
+#         file_obj.save()
+        
+#         print("✅ File saved successfully")
+        
+#         return JsonResponse({
+#             "status": "success",
+#             "message": "File saved successfully",
+#             "file_id": file_id,
+#             "content_length": len(content)
+#         })
+        
+#     except File.DoesNotExist:
+#         print(f"❌ File not found: {file_id}")
+#         return JsonResponse({
+#             "status": "error",
+#             "message": f"File with ID {file_id} not found"
+#         }, status=404)
+        
+#     except json.JSONDecodeError as e:
+#         print(f"❌ JSON decode error: {e}")
+#         return JsonResponse({
+#             "status": "error",
+#             "message": "Invalid JSON data"
+#         }, status=400)
+        
+#     except Exception as e:
+#         import traceback
+#         print(f"❌ Error: {e}")
+#         print(traceback.format_exc())
+#         return JsonResponse({
+#             "status": "error",
+#             "message": str(e),
+#             "traceback": traceback.format_exc()
+#         }, status=500)
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def file_autosave(request):
     try:
         print("=== AUTOSAVE BACKEND DEBUG ===")
         print("Request method:", request.method)
-        print("Request body:", request.body[:200])  # First 200 chars
+        print("Request body:", request.body[:200])
         
         data = json.loads(request.body)
         file_id = data.get("file_id")
@@ -443,22 +499,24 @@ def file_autosave(request):
         print(f"File ID: {file_id}")
         print(f"Content length: {len(content)}")
         
-        # Get the file
-        file_obj = File.objects.get(id=file_id)
-        print(f"Found file: {file_obj.name}")
-        
-        # Save the content
-        file_obj.content = content
-        file_obj.save()
-        
-        print("✅ File saved successfully")
-        
-        return JsonResponse({
-            "status": "success",
-            "message": "File saved successfully",
-            "file_id": file_id,
-            "content_length": len(content)
-        })
+        # Use select_for_update with timeout
+        from django.db import transaction
+        with transaction.atomic():
+            file_obj = File.objects.select_for_update(nowait=True).get(id=file_id)
+            print(f"Found file: {file_obj.name}")
+            
+            # Save the content
+            file_obj.content = content
+            file_obj.save(update_fields=["content"])
+            
+            print("✅ File saved successfully")
+            
+            return JsonResponse({
+                "status": "success",
+                "message": "File saved successfully",
+                "file_id": file_id,
+                "content_length": len(content)
+            })
         
     except File.DoesNotExist:
         print(f"❌ File not found: {file_id}")
@@ -482,8 +540,7 @@ def file_autosave(request):
             "status": "error",
             "message": str(e),
             "traceback": traceback.format_exc()
-        }, status=500)
-        
+        }, status=500)        
 
 @require_http_methods(["GET"])
 def get_file_content(request, project_id, file_id):
@@ -611,6 +668,187 @@ import re
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
+
+# @csrf_protect
+# @require_http_methods(["POST"])
+# def file_chat(request, project_id, file_id):
+#     """
+#     AI-powered file editor endpoint (ASK / APPLY)
+#     GUARANTEED JSON RESPONSES ONLY
+#     """
+
+#     # ================= SAFE JSON PARSING =================
+#     try:
+#         if request.content_type != "application/json":
+#             return JsonResponse({
+#                 "status": "error",
+#                 "message": "Content-Type must be application/json"
+#             }, status=400)
+
+#         data = json.loads(request.body.decode("utf-8"))
+#         prompt = data.get("prompt", "").strip()
+#         apply_changes = bool(data.get("apply", False))
+
+#     except json.JSONDecodeError:
+#         return JsonResponse({
+#             "status": "error",
+#             "message": "Invalid JSON payload"
+#         }, status=400)
+
+#     except Exception as e:
+#         return JsonResponse({
+#             "status": "error",
+#             "message": "Failed to parse request",
+#             "detail": str(e)
+#         }, status=400)
+
+#     # ================= VALIDATION =================
+#     if not prompt:
+#         return JsonResponse({
+#             "status": "error",
+#             "message": "Prompt cannot be empty"
+#         }, status=400)
+
+#     if len(prompt) > 5000:
+#         return JsonResponse({
+#             "status": "error",
+#             "message": "Prompt too long (max 5000 chars)"
+#         }, status=400)
+
+#     # ================= LOAD FILE =================
+#     try:
+#         file = get_object_or_404(File, id=file_id, project_id=project_id)
+#         file_ext = file.extension()
+
+#     except Exception:
+#         return JsonResponse({
+#             "status": "error",
+#             "message": "File not found"
+#         }, status=404)
+
+#     LANGUAGE_MAP = {
+#         '.html': 'HTML',
+#         '.css': 'CSS',
+#         '.js': 'JavaScript',
+#         '.py': 'Python',
+#         '.json': 'JSON',
+#         '.md': 'Markdown',
+#         '.txt': 'Text',
+#     }
+
+#     language = LANGUAGE_MAP.get(
+#         file_ext.lower(),
+#         file_ext.upper().replace('.', '') + " file"
+#     )
+
+#     # ================= BUILD PROMPTS =================
+#     if apply_changes:
+#         system_prompt = f"""
+# You are an expert {language} code editor.
+
+# RULES:
+# - Return ONLY the complete updated file content
+# - NO markdown
+# - NO explanations
+# - NO code fences
+# - Output MUST start with code
+# """
+
+#         user_prompt = f"""
+# CURRENT FILE:
+# {file.content or f"// Empty {language} file"}
+
+# USER REQUEST:
+# {prompt}
+# """
+
+#     else:
+#         system_prompt = f"""
+# You are an expert {language} code reviewer.
+
+# Explain what would change.
+# Do NOT return code.
+# """
+
+#         user_prompt = f"""
+# FILE:
+# {file.content or f"// Empty {language} file"}
+
+# REQUEST:
+# {prompt}
+# """
+
+#     # ================= OPENAI CALL =================
+#     try:
+#         response = client.chat.completions.create(
+#             model="gpt-4-turbo-preview",
+#             messages=[
+#                 {"role": "system", "content": system_prompt},
+#                 {"role": "user", "content": user_prompt},
+#             ],
+#             temperature=0.2,
+#             max_tokens=4000,
+#         )
+
+#         ai_output = response.choices[0].message.content.strip()
+
+#         if not ai_output:
+#             raise ValueError("Empty AI response")
+
+#     except Exception as e:
+#         return JsonResponse({
+#             "status": "error",
+#             "message": "AI service failed",
+#             "detail": str(e)
+#         }, status=500)
+
+#     # ================= APPLY MODE =================
+#     if apply_changes:
+#         try:
+#             cleaned = ai_output.strip()
+
+#             # Strip accidental markdown
+#             if cleaned.startswith("```"):
+#                 cleaned = "\n".join(
+#                     line for line in cleaned.splitlines()
+#                     if not line.strip().startswith("```")
+#                 ).strip()
+
+#             if not cleaned:
+#                 return JsonResponse({
+#                     "status": "error",
+#                     "message": "AI returned empty code"
+#                 }, status=500)
+
+#             file.content = cleaned
+#             file.save(update_fields=["content"])
+
+#             return JsonResponse({
+#                 "status": "success",
+#                 "saved": True,
+#                 "code": cleaned,
+#                 "file_id": file.id,
+#                 "file_name": file.name,
+#                 "language": language
+#             })
+
+#         except Exception as e:
+#             return JsonResponse({
+#                 "status": "error",
+#                 "message": "Failed to save file",
+#                 "detail": str(e)
+#             }, status=500)
+
+#     # ================= ASK MODE =================
+#     return JsonResponse({
+#         "status": "success",
+#         "saved": False,
+#         "explanation": ai_output,
+#         "file_name": file.name,
+#         "language": language
+#     })
+
+
 @csrf_protect
 @require_http_methods(["POST"])
 def file_chat(request, project_id, file_id):
@@ -723,7 +961,7 @@ REQUEST:
     # ================= OPENAI CALL =================
     try:
         response = client.chat.completions.create(
-            model="gpt-4-turbo-preview",
+            model="gpt-4o-mini",  # ✅ CHANGED: Use gpt-4o-mini instead
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
@@ -3189,30 +3427,31 @@ def ai_suggest_code(request):
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
-# @csrf_exempt
-# def explain_code_view(request):
-#     if request.method == "POST":
-#         try:
-#             data = json.loads(request.body)
-#             code = data.get("code", "").strip()
-#             if not code:
-#                 return JsonResponse({"error": "Code is empty"}, status=400)
 
-#             response = client.chat.completions.create(
-#                 model="gpt-3.5-turbo",
-#                 messages=[
-#                     {"role": "system", "content": "You are an expert coding teacher. Explain code clearly."},
-#                     {"role": "user", "content": f"Explain this code:\n{code}"}
-#                 ],
-#                 max_tokens=2000,
-#                 temperature=0
-#             )
-#             explanation = response.choices[0].message.content.strip()
-#             return JsonResponse({"explanation": explanation})
-#         except Exception as e:
-#             print("OpenAI error:", e)
-#             return JsonResponse({"error": str(e)}, status=500)
-#     return JsonResponse({"error": "Invalid method"}, status=405)
+@csrf_exempt
+def explain_code_view(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            code = data.get("code", "").strip()
+            if not code:
+                return JsonResponse({"error": "Code is empty"}, status=400)
+
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are an expert coding teacher. Explain code clearly."},
+                    {"role": "user", "content": f"Explain this code:\n{code}"}
+                ],
+                max_tokens=2000,
+                temperature=0
+            )
+            explanation = response.choices[0].message.content.strip()
+            return JsonResponse({"explanation": explanation})
+        except Exception as e:
+            print("OpenAI error:", e)
+            return JsonResponse({"error": str(e)}, status=500)
+    return JsonResponse({"error": "Invalid method"}, status=405)
 
 
 @csrf_exempt
