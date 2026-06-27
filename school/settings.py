@@ -468,11 +468,11 @@ import dj_database_url
 
 import os
 
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         conn_max_age=0,
-#         ssl_require=False,)
-# }
+DATABASES = {
+    'default': dj_database_url.config(
+        conn_max_age=0,
+        ssl_require=False,)
+}
 
 
 #local development settings
@@ -482,26 +482,26 @@ import os
 
 
 
-import dj_database_url
+# import dj_database_url
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
-DATABASES = {
-    'default': {
+# DATABASES = {
+#     'default': {
 
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'fastapidb',
-        'USER': 'fastapiuser',
-        'PASSWORD': 'fastapi37811',  
-        'HOST': 'localhost',   # or your DB server host
-        'PORT': '5432',        # default postgres port
-    }
-}
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'fastapidb',
+#         'USER': 'fastapiuser',
+#         'PASSWORD': 'fastapi37811',  
+#         'HOST': 'localhost',   # or your DB server host
+#         'PORT': '5432',        # default postgres port
+#     }
+# }
 
 
 # CREATE DATABASE fastapidb;
