@@ -1,28 +1,32 @@
-name: Deploy to Production
+name: Deploy to Staging
 
 on:
   push:
     branches:
-      - main
+      - staging
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to Hetzner
+      - name: Deploy to Hetzner Staging
         id: deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          envs: CODETHINKERS_STAGING_ENV
           script: |
-            cd /var/www/codethinkers
-            # Ensure .env exists and has correct DATABASE_URL
-            test -f .env || { echo ".env file missing - aborting deploy"; exit 1; }
-            grep -q "postgres" .env || { echo "DATABASE_URL not set to postgres - aborting"; exit 1; }
+            cd /var/www/codethinkers-staging
 
+            # ── Write .env from GitHub Secret ─────────────────────────────
+            echo "$CODETHINKERS_STAGING_ENV" > .env
+            chmod 600 .env
+
+            # Validate .env
+            grep -q "postgres" .env || { echo "DATABASE_URL not set to postgres - aborting"; exit 1; }
 
             # ── Check and auto-fix Redis ──────────────────────────────────
             if ! redis-cli ping | grep -q PONG; then
@@ -35,39 +39,39 @@ jobs:
 
             # ── Save last working commit ──────────────────────────────────
             LAST_WORKING=$(git rev-parse HEAD)
-            echo $LAST_WORKING > /tmp/codethinkers_last_working
+            echo $LAST_WORKING > /tmp/codethinkers_staging_last_working
 
             # ── Pull new code ─────────────────────────────────────────────
             git fetch origin
-            git reset --hard origin/main
+            git reset --hard origin/staging
             source venv/bin/activate
             pip install -r requirements.txt
 
-            # ── SQLite backup ─────────────────────────────────────────────
-           
-            mkdir -p /var/backups/codethinkers
-            BACKUP_FILE=/var/backups/codethinkers/backup_$(date +%Y%m%d_%H%M%S).dump
-            sudo -u postgres /usr/lib/postgresql/17/bin/pg_dump -Fc codethinkers > $BACKUP_FILE
+            # ── Database backup ───────────────────────────────────────────
+            mkdir -p /var/backups/codethinkers-staging
+            BACKUP_FILE=/var/backups/codethinkers-staging/backup_$(date +%Y%m%d_%H%M%S).dump
+            sudo -u postgres /usr/lib/postgresql/17/bin/pg_dump -Fc codethinkers_staging > $BACKUP_FILE
             echo "Backup saved: $BACKUP_FILE"
-            ls -t /var/backups/codethinkers/*.dump | tail -n +8 | xargs rm -f 2>/dev/null
-
+            ls -t /var/backups/codethinkers-staging/*.dump | tail -n +8 | xargs rm -f 2>/dev/null
 
             python manage.py migrate --noinput
             python manage.py collectstatic --noinput
 
             # ── Restart and verify ────────────────────────────────────────
-            systemctl restart codethinkers
+            systemctl restart codethinkers-staging
             sleep 10
 
-            if ! systemctl is-active --quiet codethinkers; then
+            if ! systemctl is-active --quiet codethinkers-staging; then
               echo "Web app down - rolling back"
               git reset --hard $LAST_WORKING
-              systemctl restart codethinkers
+              systemctl restart codethinkers-staging
               sleep 10
-              systemctl is-active --quiet codethinkers || exit 1
+              systemctl is-active --quiet codethinkers-staging || exit 1
             fi
 
-            echo "Deploy successful"
+            echo "Staging deploy successful"
+        env:
+          CODETHINKERS_STAGING_ENV: ${{ secrets.CODETHINKERS_STAGING_ENV }}
 
       - name: Send success email
         if: success()
@@ -77,11 +81,11 @@ jobs:
           server_port: 587
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "✅ Codethinkers Deploy Successful"
+          subject: "✅ Codethinkers Staging Deploy Successful"
           to: codethinkersa@gmail.com
           from: ${{ secrets.EMAIL_USER }}
           body: |
-            Codethinkers deployed successfully!
+            Codethinkers Staging deployed successfully!
 
             Commit: ${{ github.sha }}
             Time: ${{ github.event.head_commit.timestamp }}
@@ -99,11 +103,11 @@ jobs:
           server_port: 587
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "❌ Codethinkers Deploy FAILED - Action Required"
+          subject: "❌ Codethinkers Staging Deploy FAILED - Action Required"
           to: codethinkersa@gmail.com
           from: ${{ secrets.EMAIL_USER }}
           body: |
-            Codethinkers deploy encountered issues!
+            Codethinkers Staging deploy encountered issues!
 
             Commit: ${{ github.sha }}
             Time: ${{ github.event.head_commit.timestamp }}
