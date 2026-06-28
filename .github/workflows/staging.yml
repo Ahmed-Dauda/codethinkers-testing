@@ -18,18 +18,84 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /var/www/codethinkers-staging
+
+            # ── Save last working commit for rollback ──────────────────
+            LAST_WORKING=$(git rev-parse HEAD)
+            echo $LAST_WORKING > /tmp/codethinkers_staging_last_working
+
+            # ── Pull new code ─────────────────────────────────────────────
             git fetch origin
             git reset --hard origin/staging
+
+            # ── Restore .env from GitHub secret ──────────────────────────
+            echo "${{ secrets.CODETHINKERS_STAGING_ENV }}" > .env
+            echo "✅ .env restored from secret"
+
+            # ── Activate virtual environment ─────────────────────────────
             source venv/bin/activate
+
+            # ── Install dependencies ──────────────────────────────────────
             pip install -r requirements.txt
+
+            # ── Run migrations ────────────────────────────────────────────
             python manage.py migrate --noinput
+
+            # ── Collect static files ──────────────────────────────────────
             python manage.py collectstatic --noinput
 
+            # ── Restart and verify ────────────────────────────────────────
             systemctl restart codethinkers-staging
             sleep 10
 
             if ! systemctl is-active --quiet codethinkers-staging; then
-              exit 1
+              echo "Staging app down - rolling back"
+              git reset --hard $LAST_WORKING
+              # Restore .env for rollback
+              echo "${{ secrets.CODETHINKERS_STAGING_ENV }}" > .env
+              systemctl restart codethinkers-staging
+              sleep 10
+              systemctl is-active --quiet codethinkers-staging || exit 1
             fi
 
             echo "Staging deploy successful"
+
+      - name: Send success email
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "✅ Codethinkers Staging Deploy Successful"
+          to: codethinkersa@gmail.com
+          from: ${{ secrets.EMAIL_USER }}
+          body: |
+            Codethinkers staging deployed successfully!
+
+            Commit: ${{ github.sha }}
+            Time: ${{ github.event.head_commit.timestamp }}
+            Message: ${{ github.event.head_commit.message }}
+
+            Preview at: https://staging.codethinkers.org
+
+      - name: Send failure email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "❌ Codethinkers Staging Deploy FAILED"
+          to: codethinkersa@gmail.com
+          from: ${{ secrets.EMAIL_USER }}
+          body: |
+            Codethinkers staging deploy FAILED!
+
+            Commit: ${{ github.sha }}
+            Time: ${{ github.event.head_commit.timestamp }}
+            Message: ${{ github.event.head_commit.message }}
+
+            Check logs:
+            https://github.com/Ahmed-Dauda/codethinkers-testing/actions
