@@ -1,5 +1,28 @@
-# Daily Development Workflow — CodeThinkers
+# Update `.env` in Production
 
+### 1. SSH into the server
+
+```bash
+ssh root@204.168.237.20
+MyServer2026!Coolify
+cd /var/www/codethinkers
+source env/bin/activate
+cat .env
+```
+### 4. Update the GitHub secret
+
+- Go to **GitHub** → **Settings** → **Secrets and variables**
+- Select the secret/variable to update
+- Save the changes
+
+### 5. Trigger deployment
+Run on your local machine:
+```bash
+git commit --allow-empty -m "Update OpenAI API key"
+git push origin main
+```
+
+# Daily Development Workflow — CodeThinkers
 ## Branch Strategy
 
 Maintain these branches at all times:
