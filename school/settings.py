@@ -41,24 +41,23 @@ LOGGING = {
 # SECURITY WARNING: don't run with debug turned on in production!
 
 
+
+
+
 import environ
 import os
 
-# settings.py
-# settings.py
 env = environ.Env(DEBUG=(bool, False))
-environ.Env.read_env()
-
-OPENAI_API_KEY = env("OPENAI_API_KEY")
-# Initialize environ
-
-# Read .env file from BASE_DIR
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+OPENAI_API_KEY = env("OPENAI_API_KEY")
 
 # Use environment variables
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+
+
+# Read .env file from BASE_DIR
 
 # PAYSTACK MODE: 'test' or 'live'
 PAYSTACK_MODE = env('PAYSTACK_MODE', default='test')
@@ -214,22 +213,6 @@ SOCIALACCOUNT_PROVIDERS = {
 # secure = True
 
 
-import cloudinary
-import os
-import environ
-
-env = environ.Env()
-environ.Env.read_env()
-
-cloudinary.config(
-    cloud_name = env("CLOUDINARY_CLOUD_NAME"),
-    api_key    = env("CLOUDINARY_API_KEY"),
-    api_secret = env("CLOUDINARY_API_SECRET"),
-    secure     = True
-)
-
-
-CLOUDINARY_URL = env('CLOUDINARY_URL')
 DEFAULT_FILE_STORAGE = env('DEFAULT_FILE_STORAGE')
 
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
