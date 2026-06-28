@@ -69,6 +69,8 @@ else:
     PAYSTACK_SECRET_KEY = env('PAYSTACK_TEST_SECRET_KEY')
     PAYSTACK_PUBLIC_KEY = env('PAYSTACK_TEST_PUBLIC_KEY')
 
+gg
+
 # wyswyg = ['grappelli', 'filebrowser']
 INSTALLED_APPS = [
   
