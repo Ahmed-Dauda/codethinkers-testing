@@ -16,40 +16,44 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          envs: EXAMSPOWER_STAGING_ENV
           script: |
-            cd /var/www/codethinkers-staging
+            cd /var/www/examspower-staging
 
             # Save last working commit
             LAST_WORKING=$(git rev-parse HEAD)
-            echo $LAST_WORKING > /tmp/codethinkers_staging_last_working
+            echo $LAST_WORKING > /tmp/examspower_staging_last_working
 
             # Pull new code
             git fetch origin
             git reset --hard origin/staging
 
             # Restore .env from GitHub secret
-            echo "${{ secrets.CODETHINKERS_STAGING_ENV }}" > .env
+            echo "$EXAMSPOWER_STAGING_ENV" > .env
+            chmod 600 .env
             echo ".env restored from secret"
 
-            source env/bin/activate
+            source venv/bin/activate
             pip install -r requirements.txt
             python manage.py migrate --noinput
             python manage.py collectstatic --noinput
 
             # Restart and verify
-            systemctl restart codethinkers-staging
+            systemctl restart examspower-staging
             sleep 10
 
-            if ! systemctl is-active --quiet codethinkers-staging; then
+            if ! systemctl is-active --quiet examspower-staging; then
               echo "Staging app down - rolling back"
               git reset --hard $LAST_WORKING
-              echo "${{ secrets.CODETHINKERS_STAGING_ENV }}" > .env
-              systemctl restart codethinkers-staging
+              echo "$EXAMSPOWER_STAGING_ENV" > .env
+              systemctl restart examspower-staging
               sleep 10
-              systemctl is-active --quiet codethinkers-staging || exit 1
+              systemctl is-active --quiet examspower-staging || exit 1
             fi
 
             echo "Staging deploy successful"
+        env:
+          EXAMSPOWER_STAGING_ENV: ${{ secrets.EXAMSPOWER_STAGING_ENV }}
 
       - name: Send success email
         if: success()
@@ -59,17 +63,17 @@ jobs:
           server_port: 587
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "✅ Codethinkers Staging Deploy Successful"
+          subject: "✅ ExamsPower Staging Deploy Successful"
           to: codethinkersa@gmail.com
           from: ${{ secrets.EMAIL_USER }}
           body: |
-            Codethinkers staging deployed successfully!
+            ExamsPower staging deployed successfully!
 
             Commit: ${{ github.sha }}
             Time: ${{ github.event.head_commit.timestamp }}
             Message: ${{ github.event.head_commit.message }}
 
-            Preview at: https://staging.codethinkers.org
+            Preview at: https://staging.examspower.com
 
       - name: Send failure email
         if: failure()
@@ -79,15 +83,15 @@ jobs:
           server_port: 587
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "❌ Codethinkers Staging Deploy FAILED"
+          subject: "❌ ExamsPower Staging Deploy FAILED"
           to: codethinkersa@gmail.com
           from: ${{ secrets.EMAIL_USER }}
           body: |
-            Codethinkers staging deploy FAILED!
+            ExamsPower staging deploy FAILED!
 
             Commit: ${{ github.sha }}
             Time: ${{ github.event.head_commit.timestamp }}
             Message: ${{ github.event.head_commit.message }}
 
             Check logs:
-            https://github.com/Ahmed-Dauda/codethinkers-testing/actions
+            https://github.com/Ahmed-Dauda/examspower/actions
