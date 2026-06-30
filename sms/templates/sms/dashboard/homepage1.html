@@ -7,20 +7,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CodeThinkers Academy</title>
 <link rel="icon" type="image/png" href="/static/sms/images/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
 <style>
     :root {
         --color-primary: #1A56DB;
         --color-primary-dark: #1543A8;
-        --color-ink: #000000;
-        --color-body: #333333;
-        --color-muted: #666666;
-        --color-border: #DCE3EC;
-        --color-surface: #F2F6FC;
+        --color-primary-light: #E8EEFC;
+        --color-ink: #0B1A33;
+        --color-body: #1E293B;
+        --color-muted: #64748B;
+        --color-border: #E2E8F0;
+        --color-surface: #F8FAFC;
+        --color-white: #FFFFFF;
         --radius-md: 8px;
         --radius-lg: 12px;
-        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
         --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
+        --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.08);
         --max-width: 1240px;
+        --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -28,15 +35,16 @@
     html { scroll-behavior: smooth; }
 
     body {
-        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-        background: #ffffff;
+        font-family: var(--font-family);
+        background: var(--color-white);
         color: var(--color-ink);
         line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     img { max-width: 100%; display: block; }
-
-    a { color: inherit; }
+    a { color: inherit; text-decoration: none; }
 
     .wrap {
         max-width: var(--max-width);
@@ -44,18 +52,18 @@
         padding: 0 24px;
     }
 
-    .section { padding: 88px 0; }
-    .section--tight { padding: 64px 0; }
+    .section { padding: 80px 0; }
+    .section--tight { padding: 56px 0; }
     .section--surface { background: var(--color-surface); }
 
     .eyebrow {
         display: inline-block;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         color: var(--color-primary);
-        background: rgba(21, 94, 239, 0.08);
+        background: var(--color-primary-light);
         padding: 6px 14px;
         border-radius: 999px;
         margin-bottom: 16px;
@@ -68,8 +76,8 @@
         line-height: 1.2;
     }
 
-    h2 { font-size: 34px; margin-bottom: 14px; }
-    h3 { font-size: 22px; }
+    h2 { font-size: 32px; margin-bottom: 14px; }
+    h3 { font-size: 20px; }
     p { color: var(--color-body); font-size: 16px; }
 
     .section-head { max-width: 620px; margin: 0 auto 48px; text-align: center; }
@@ -80,7 +88,9 @@
         position: sticky;
         top: 0;
         z-index: 50;
-        background: #ffffff;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border-bottom: 1px solid var(--color-border);
     }
 
@@ -89,6 +99,7 @@
         align-items: center;
         justify-content: space-between;
         height: 72px;
+        gap: 16px;
     }
 
     .nav-logo {
@@ -96,47 +107,69 @@
         align-items: center;
         gap: 10px;
         font-weight: 800;
-        font-size: 19px;
+        font-size: 18px;
         text-decoration: none;
         color: var(--color-ink);
+        flex-shrink: 0;
     }
 
     .nav-logo img { height: 32px; width: auto; }
 
-    .nav-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-
     /* ===== Nav Search ===== */
     .nav-search {
         flex: 1;
-        max-width: 400px;
-        min-width: 180px;
+        max-width: 420px;
+        min-width: 160px;
         display: flex;
         align-items: center;
         background: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-md);
-        padding: 0 4px 0 12px;
-        transition: border-color 0.2s, box-shadow 0.2s;
+        border: 1.5px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: 0 4px 0 16px;
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
     }
     .nav-search:focus-within {
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(26,86,219,0.12);
-        background: #fff;
+        box-shadow: 0 0 0 4px rgba(26,86,219,0.1);
+        background: var(--color-white);
     }
     .nav-search input {
-        flex: 1; border: none; background: transparent;
-        padding: 9px 0; font-size: 14px; color: var(--color-ink);
-        outline: none; min-width: 0; font-family: inherit;
+        flex: 1;
+        border: none;
+        background: transparent;
+        padding: 10px 0;
+        font-size: 14px;
+        color: var(--color-ink);
+        outline: none;
+        min-width: 0;
+        font-family: var(--font-family);
+        font-weight: 400;
     }
     .nav-search input::placeholder { color: var(--color-muted); }
-    .nav-search button { flex-shrink: 0; padding: 7px 12px; font-size: 13px; border-radius: 6px; }
+    .nav-search button {
+        flex-shrink: 0;
+        padding: 8px 16px;
+        font-size: 13px;
+        border-radius: var(--radius-md);
+        background: var(--color-primary);
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+        font-family: var(--font-family);
+    }
+    .nav-search button:hover { background: var(--color-primary-dark); }
 
     .nav-search-clear {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 22px;
-        height: 22px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         background: var(--color-border);
         color: var(--color-muted);
@@ -145,44 +178,49 @@
         text-decoration: none;
         transition: background 0.15s, color 0.15s;
     }
-    .nav-search-clear:hover { background: #cbd5e1; color: var(--color-ink); text-decoration: none; }
+    .nav-search-clear:hover { background: #CBD5E1; color: var(--color-ink); }
 
-    /* ===== Search results ===== */
+    .nav-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+    .user-menu { position: relative; }
     .user-menu-trigger {
         background: none;
-        border: 1px solid var(--color-border);
+        border: 1.5px solid var(--color-border);
         border-radius: 50%;
-        width: 38px;
-        height: 38px;
+        width: 40px;
+        height: 40px;
         padding: 0;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
+        transition: border-color 0.2s;
     }
+    .user-menu-trigger:hover { border-color: var(--color-primary); }
     .user-menu-trigger img { width: 100%; height: 100%; object-fit: cover; }
     .user-menu-panel {
         display: none;
         position: absolute;
         right: 0;
-        top: calc(100% + 8px);
-        min-width: 200px;
-        background: #ffffff;
+        top: calc(100% + 10px);
+        min-width: 220px;
+        background: var(--color-white);
         border: 1px solid var(--color-border);
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-md);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
         padding: 6px;
         z-index: 60;
     }
     .user-menu-panel.open { display: block; }
     .user-menu-panel a {
         display: block;
-        padding: 10px 12px;
+        padding: 10px 14px;
         font-size: 14px;
-        color: var(--color-ink);
+        color: var(--color-body);
         text-decoration: none;
-        border-radius: 6px;
+        border-radius: var(--radius-md);
+        transition: background 0.15s, color 0.15s;
     }
     .user-menu-panel a:hover { background: var(--color-surface); color: var(--color-primary); }
     .user-menu-divider { height: 1px; background: var(--color-border); margin: 6px 4px; }
@@ -193,15 +231,16 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
-        padding: 13px 26px;
+        padding: 12px 24px;
         border-radius: var(--radius-md);
         font-weight: 600;
-        font-size: 15px;
+        font-size: 14px;
         text-decoration: none;
         border: 1.5px solid transparent;
         cursor: pointer;
-        transition: all 0.18s ease;
+        transition: all 0.2s ease;
         white-space: nowrap;
+        font-family: var(--font-family);
     }
 
     .btn--primary {
@@ -209,22 +248,23 @@
         color: #ffffff;
         box-shadow: 0 1px 2px rgba(15,23,42,0.08);
     }
-    .btn--primary:hover { background: var(--color-primary-dark); transform: translateY(-1px); text-decoration: none; color: #fff; }
+    .btn--primary:hover { background: var(--color-primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); color: #fff; }
 
     .btn--outline {
         background: transparent;
         color: var(--color-ink);
         border-color: var(--color-border);
     }
-    .btn--outline:hover { border-color: var(--color-primary); color: var(--color-primary); text-decoration: none; }
+    .btn--outline:hover { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-primary-light); }
 
-    .btn--sm { padding: 9px 18px; font-size: 14px; }
+    .btn--sm { padding: 8px 16px; font-size: 13px; }
+    .btn--xs { padding: 7px 12px; font-size: 12px; }
     .btn--full { width: 100%; }
 
     /* ===== Hero ===== */
     .hero {
-        padding: 72px 0 64px;
-        background: linear-gradient(180deg, #F5F8FF 0%, #ffffff 100%);
+        padding: 80px 0 72px;
+        background: linear-gradient(180deg, #F0F5FF 0%, #ffffff 100%);
         border-bottom: 1px solid var(--color-border);
     }
 
@@ -237,7 +277,7 @@
 
     .hero h1 { font-size: 44px; margin-bottom: 18px; }
     .hero h1 span { color: var(--color-primary); }
-    .hero p { font-size: 17px; max-width: 480px; margin-bottom: 28px; }
+    .hero p { font-size: 17px; max-width: 480px; margin-bottom: 28px; color: var(--color-body); }
 
     .hero-cta { display: flex; flex-wrap: wrap; gap: 14px; }
 
@@ -257,7 +297,7 @@
         border-left: 4px solid var(--color-primary);
         padding: 13px 18px;
         border-radius: 8px;
-        font-size: 14.5px;
+        font-size: 14px;
         margin-bottom: 10px;
     }
 
@@ -275,9 +315,9 @@
         padding: 12px 24px;
         font-size: 13.5px;
     }
-    .contact-bar a { text-decoration: none; color: #ffffff; display: inline-flex; align-items: center; gap: 7px; }
-    .contact-bar a:hover { text-decoration: underline; }
-    .contact-divider { color: rgba(255,255,255,0.5); }
+    .contact-bar a { color: #ffffff; display: inline-flex; align-items: center; gap: 7px; opacity: 0.9; transition: opacity 0.2s; }
+    .contact-bar a:hover { opacity: 1; text-decoration: none; }
+    .contact-divider { color: rgba(255,255,255,0.4); }
 
     /* ===== Partners ===== */
     .partners-track {
@@ -299,7 +339,7 @@
         object-fit: contain;
         padding: 10px;
         filter: grayscale(100%);
-        opacity: 0.65;
+        opacity: 0.6;
         transition: 0.25s ease;
     }
     .partners-scroll img:hover { filter: grayscale(0%); opacity: 1; transform: scale(1.05); }
@@ -316,15 +356,17 @@
         gap: 24px;
     }
     .stat-card {
-        background: #ffffff;
+        background: var(--color-white);
         border: 1px solid var(--color-border);
         border-radius: var(--radius-lg);
         padding: 32px 20px;
         text-align: center;
         box-shadow: var(--shadow-sm);
+        transition: box-shadow 0.2s;
     }
+    .stat-card:hover { box-shadow: var(--shadow-md); }
     .stat-number { font-size: 38px; font-weight: 800; color: var(--color-ink); }
-    .stat-label { font-size: 14.5px; color: var(--color-muted); font-weight: 500; margin-top: 4px; }
+    .stat-label { font-size: 14px; color: var(--color-muted); font-weight: 500; margin-top: 4px; }
 
     /* ===== Horizontal scroll rows ===== */
     .scroll-row {
@@ -333,6 +375,7 @@
         gap: 20px;
         padding: 8px 4px 16px;
         scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
     }
     .scroll-row::-webkit-scrollbar { height: 6px; }
     .scroll-row::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 999px; }
@@ -345,29 +388,28 @@
         gap: 12px;
         margin-bottom: 22px;
     }
-    .row-head a { font-weight: 600; font-size: 14.5px; color: var(--color-primary); text-decoration: none; }
+    .row-head a { font-weight: 600; font-size: 14px; color: var(--color-primary); }
     .row-head a:hover { text-decoration: underline; }
 
     /* ===== Cards ===== */
     .card {
         flex: 0 0 270px;
         scroll-snap-align: start;
-        background: #ffffff;
+        background: var(--color-white);
         border: 1px solid var(--color-border);
         border-radius: var(--radius-lg);
         overflow: hidden;
         text-decoration: none;
         color: inherit;
-        transition: all 0.2s ease;
+        transition: all 0.25s ease;
         box-shadow: var(--shadow-sm);
         display: flex;
         flex-direction: column;
     }
     .card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-md);
-        border-color: rgba(21, 94, 239, 0.35);
-        text-decoration: none;
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--color-primary);
     }
     .card-img {
         width: 100%;
@@ -385,8 +427,9 @@
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        line-height: 1.3;
     }
-    .card-desc { font-size: 13.5px; color: var(--color-muted); margin-bottom: 10px; flex: 1; }
+    .card-desc { font-size: 13px; color: var(--color-muted); margin-bottom: 10px; flex: 1; }
     .card-meta {
         display: flex;
         justify-content: space-between;
@@ -396,7 +439,7 @@
         border-top: 1px solid var(--color-border);
     }
     .card-price { font-weight: 700; color: var(--color-ink); }
-    .card-views { color: var(--color-muted); }
+    .card-views { color: var(--color-muted); font-size: 13px; }
     .card-tag { color: var(--color-primary); font-size: 12.5px; font-weight: 600; }
 
     .card-footer-row {
@@ -410,7 +453,6 @@
     }
     .card-cat { color: var(--color-primary); font-weight: 600; }
     .card-modules { color: var(--color-muted); }
-    .free-tag { color: #065F46; font-weight: 700; }
 
     .cat-card .card-img { height: 150px; }
 
@@ -422,22 +464,22 @@
     }
     .benefit {
         text-align: center;
-        padding: 26px 14px;
-        background: var(--color-surface);
+        padding: 24px 14px;
+        background: var(--color-white);
         border-radius: var(--radius-md);
-        border: 1px solid transparent;
+        border: 1px solid var(--color-border);
         transition: 0.2s ease;
     }
-    .benefit:hover { border-color: var(--color-border); background: #fff; box-shadow: var(--shadow-sm); }
+    .benefit:hover { border-color: var(--color-primary); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
     .benefit-icon {
         width: 44px; height: 44px;
         display: flex; align-items: center; justify-content: center;
         margin: 0 auto 12px;
         border-radius: 10px;
-        background: rgba(21,94,239,0.1);
+        background: var(--color-primary-light);
         font-size: 20px;
     }
-    .benefit-label { font-size: 13.5px; font-weight: 600; color: var(--color-ink); }
+    .benefit-label { font-size: 13px; font-weight: 600; color: var(--color-ink); }
 
     /* ===== Testimonials ===== */
     .testimonial-grid {
@@ -446,23 +488,25 @@
         gap: 24px;
     }
     .testimonial-card {
-        background: #fff;
+        background: var(--color-white);
         border: 1px solid var(--color-border);
         border-radius: var(--radius-lg);
         padding: 36px 24px 26px;
         text-align: center;
         position: relative;
         box-shadow: var(--shadow-sm);
+        transition: box-shadow 0.2s;
     }
+    .testimonial-card:hover { box-shadow: var(--shadow-md); }
     .testimonial-avatar {
         width: 64px; height: 64px;
         border-radius: 50%;
         margin: -58px auto 14px;
-        border: 3px solid #fff;
+        border: 3px solid var(--color-white);
         box-shadow: var(--shadow-sm);
         object-fit: cover;
     }
-    .stars { color: var(--color-primary); letter-spacing: 2px; margin-bottom: 12px; font-size: 14px; }
+    .stars { color: #F59E0B; letter-spacing: 2px; margin-bottom: 12px; font-size: 14px; }
     .testimonial-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
     .testimonial-text { font-size: 14px; color: var(--color-body); }
 
@@ -476,18 +520,22 @@
         width: 100%; height: 200px; object-fit: cover;
         border-radius: var(--radius-md);
         box-shadow: var(--shadow-sm);
+        transition: transform 0.3s;
     }
-    .gallery-caption { text-align: center; margin-top: 8px; font-size: 13.5px; font-weight: 500; color: var(--color-body); }
+    .gallery-item img:hover { transform: scale(1.02); }
+    .gallery-caption { text-align: center; margin-top: 8px; font-size: 13px; font-weight: 500; color: var(--color-body); }
 
     /* ===== FAQ ===== */
     .faq-list { max-width: 760px; margin: 0 auto; }
     .faq-item {
-        background: #fff;
+        background: var(--color-white);
         border: 1px solid var(--color-border);
         border-radius: var(--radius-md);
         margin-bottom: 10px;
         overflow: hidden;
+        transition: border-color 0.2s;
     }
+    .faq-item:hover { border-color: var(--color-primary); }
     .faq-trigger {
         width: 100%;
         text-align: left;
@@ -501,52 +549,25 @@
         justify-content: space-between;
         align-items: center;
         cursor: pointer;
+        font-family: var(--font-family);
+        transition: color 0.2s;
     }
     .faq-trigger:hover { color: var(--color-primary); }
-    .faq-icon { font-size: 16px; color: var(--color-muted); transition: transform 0.2s ease; }
-    .faq-panel { padding: 0 20px; max-height: 0; overflow: hidden; transition: all 0.25s ease; }
-    .faq-panel-inner { padding: 0 0 18px; font-size: 14.5px; color: var(--color-body); }
+    .faq-icon { font-size: 16px; color: var(--color-muted); transition: transform 0.25s ease; }
+    .faq-panel { padding: 0 20px; max-height: 0; overflow: hidden; transition: all 0.3s ease; }
+    .faq-panel-inner { padding: 0 0 18px; font-size: 14px; color: var(--color-body); }
     .faq-item.open .faq-panel { max-height: 600px; }
     .faq-item.open .faq-icon { transform: rotate(180deg); }
-
-    /* ===== Footer / Social ===== */
-    .footer-cta { text-align: center; padding-top: 30px; border-top: 1px solid var(--color-border); }
-    .footer-cta p { margin-bottom: 16px; font-weight: 500; }
-    .social-row { display: flex; justify-content: center; gap: 12px; }
-    .social-btn {
-        width: 42px; height: 42px;
-        display: inline-flex; align-items: center; justify-content: center;
-        border: 1px solid var(--color-border);
-        border-radius: 50%;
-        text-decoration: none;
-        color: var(--color-ink);
-        transition: 0.2s ease;
-    }
-    .social-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); text-decoration: none; }
-    .social-btn.youtube:hover { color: #ff0000; border-color: #ff0000; }
-    .social-btn.facebook:hover { color: #1877f2; border-color: #1877f2; }
-
-    site-footer, .site-footer {
-        background: #ffffff;
-        color: var(--color-body);
-        border-top: 1px solid var(--color-border);
-        padding: 48px 0 24px;
-        margin-top: 64px;
-        font-size: 14px;
-    }
-    .site-footer .wrap { text-align: center; }
-    .site-footer p { color: var(--color-muted); }
 
     /* ===== Level Badges ===== */
     .level-badge {
         display: inline-block;
         font-size: 11px;
         font-weight: 700;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
-        padding: 4px 10px;
+        padding: 4px 12px;
         border-radius: 4px;
-        margin-bottom: 2px;
     }
     .level-beginner  { background: #DBEAFE; color: #1E40AF; }
     .level-intermediate { background: #FEF3C7; color: #92400E; }
@@ -558,21 +579,125 @@
     .view-all-link {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
         font-size: 14px;
         font-weight: 600;
         color: var(--color-primary);
         text-decoration: none;
         border: 1.5px solid var(--color-primary);
-        padding: 8px 16px;
+        padding: 8px 18px;
         border-radius: var(--radius-md);
         white-space: nowrap;
-        transition: 0.18s ease;
+        transition: 0.2s ease;
         align-self: flex-end;
     }
-    .view-all-link:hover { background: var(--color-primary); color: #fff; text-decoration: none; }
+    .view-all-link:hover { background: var(--color-primary); color: #fff; }
 
     .empty-row { color: var(--color-muted); font-size: 14px; padding: 20px 0; }
+
+    /* ===== PROFESSIONAL FOOTER ===== */
+    .site-footer {
+        background: var(--color-ink);
+        color: #94A3B8;
+        padding: 64px 0 0;
+        margin-top: 64px;
+        border-top: none;
+        font-size: 14px;
+    }
+    .site-footer a { color: #CBD5E1; transition: color 0.2s; }
+    .site-footer a:hover { color: #ffffff; text-decoration: none; }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 48px;
+        padding-bottom: 48px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .footer-brand p {
+        color: #94A3B8;
+        font-size: 14px;
+        max-width: 320px;
+        margin-top: 12px;
+        line-height: 1.7;
+    }
+
+    .footer-brand .social-row {
+        justify-content: flex-start;
+        margin-top: 16px;
+        gap: 10px;
+    }
+
+    .footer-brand .social-btn {
+        width: 38px;
+        height: 38px;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #94A3B8;
+        transition: all 0.2s;
+    }
+    .footer-brand .social-btn:hover {
+        border-color: var(--color-primary);
+        color: #fff;
+        background: var(--color-primary);
+        transform: translateY(-2px);
+    }
+
+    .footer-col h4 {
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        letter-spacing: 0;
+    }
+
+    .footer-col ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .footer-col ul li { margin-bottom: 10px; }
+    .footer-col ul li a {
+        color: #94A3B8;
+        font-size: 14px;
+        transition: color 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .footer-col ul li a:hover { color: #ffffff; }
+
+    .footer-col .contact-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 12px;
+        color: #94A3B8;
+        font-size: 14px;
+    }
+    .footer-col .contact-item svg {
+        flex-shrink: 0;
+        margin-top: 2px;
+        color: var(--color-primary);
+    }
+
+    .footer-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 0;
+        flex-wrap: wrap;
+        gap: 12px;
+        font-size: 13px;
+        color: #64748B;
+    }
+    .footer-bottom-links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .footer-bottom-links a { color: #64748B; font-size: 13px; }
+    .footer-bottom-links a:hover { color: #fff; }
 
     /* ===== Responsive ===== */
     @media (max-width: 960px) {
@@ -581,6 +706,18 @@
         .stats-grid { grid-template-columns: repeat(3, 1fr); }
         .testimonial-grid { grid-template-columns: 1fr; }
         .benefits-grid { grid-template-columns: repeat(3, 1fr); }
+        .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+    }
+    @media (max-width: 768px) {
+        .nav { flex-wrap: wrap; height: auto; padding: 12px 0; gap: 12px; }
+        .nav-search { max-width: 100%; min-width: 100%; order: 3; }
+        .nav-logo { font-size: 16px; }
+        .nav-logo img { height: 28px; }
+        .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+        .footer-bottom { flex-direction: column; text-align: center; }
+        .footer-bottom-links { justify-content: center; }
+        .footer-brand p { max-width: 100%; }
+        .footer-brand .social-row { justify-content: center; }
     }
     @media (max-width: 600px) {
         h2 { font-size: 26px; }
@@ -588,6 +725,7 @@
         .stats-grid { grid-template-columns: 1fr; }
         .benefits-grid { grid-template-columns: repeat(2, 1fr); }
         .section { padding: 56px 0; }
+        .hero { padding: 48px 0 40px; }
     }
 </style>
 </head>
@@ -598,7 +736,7 @@
     <div class="wrap nav">
         <a href="/" class="nav-logo">
             <img src="/static/sms/images/logo.png" alt="CodeThinkers Academy" onerror="this.style.display='none'">
-            CodeThinkers Academy666
+            CodeThinkers Academy
         </a>
 
         <!-- Nav Search -->
@@ -617,10 +755,12 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </a>
             {% endif %}
-            <button class="btn btn--primary btn--xs" type="submit" aria-label="Search">
+            <button class="btn btn--primary" type="submit" aria-label="Search">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                Search
             </button>
         </form>
+
         <div class="nav-actions">
             {% if user.is_authenticated %}
             <div class="user-menu" id="userMenu">
@@ -628,11 +768,11 @@
                     <img src="/static/sms/dashboard/img/undraw_profile.svg" alt="Profile">
                 </button>
                 <div class="user-menu-panel" id="userMenuPanel">
-                    <a href="{% url 'sms:myprofile' %}">Profile</a>
-                    <a href="{% url 'account_change_password' %}">Change Password</a>
-                    <a href="{% url 'account_reset_password' %}">Password Reset</a>
+                    <a href="{% url 'sms:myprofile' %}">👤 Profile</a>
+                    <a href="{% url 'account_change_password' %}">🔑 Change Password</a>
+                    <a href="{% url 'account_reset_password' %}">🔄 Password Reset</a>
                     <div class="user-menu-divider"></div>
-                    <a href="#" data-toggle="modal" data-target="#logoutModal">Logout</a>
+                    <a href="#" data-toggle="modal" data-target="#logoutModal">🚪 Logout</a>
                 </div>
             </div>
             {% else %}
@@ -642,6 +782,7 @@
     </div>
 </header>
 
+<!-- ===== Search Results ===== -->
 {% if query %}
 <section class="section">
     <div class="wrap">
@@ -671,7 +812,7 @@
                                 {{ obj.status_type }}
                             {% endif %}
                         </span>
-                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                        <span class="card-views">👁 {% get_hit_count for obj %}</span>
                     </div>
                     <div class="card-footer-row">
                         <span class="card-cat">{{ obj.categories.name|title }}</span>
@@ -708,7 +849,6 @@
 </section>
 {% endif %}
 
-
 <!-- ===== Hero ===== -->
 <section class="hero">
     <div class="wrap hero-grid">
@@ -724,7 +864,7 @@
             </div>
         </div>
         <div class="hero-media">
-            <img src="/static/sms/images/kids.webp" alt="CodeThinkers Academy students">
+            <img src="/static/sms/images/kids.webp" alt="CodeThinkers Academy students" loading="lazy">
         </div>
     </div>
 
@@ -745,7 +885,6 @@
         <a href="https://wa.me/2348128014921">💬 Customer Support</a>
     </div>
 </div>
-
 
 <!-- ===== Partners ===== -->
 {% if partners %}
@@ -796,7 +935,7 @@
             {% for category in coursecategory %}
             <a href="{% url 'sms:courseslist' category.pk %}" class="card cat-card">
                 {% if category.img_cat %}
-                <img class="card-img" src="{{ category.img_cat.url }}" alt="{{ category.name }}">
+                <img class="card-img" src="{{ category.img_cat.url }}" alt="{{ category.name }}" loading="lazy">
                 {% endif %}
                 <div class="card-body">
                     <div class="card-title">{{ category|safe }}</div>
@@ -847,8 +986,6 @@
 </section>
 
 <!-- ===== Course Level Sections ===== -->
-
-{# ---- Beginner ---- #}
 {% if beginner %}
 <section class="section">
     <div class="wrap">
@@ -858,7 +995,7 @@
                 <h2 style="font-size:24px;margin:8px 0 0;">{{ beginner_count }} Beginner Course{{ beginner_count|pluralize }} Available</h2>
             </div>
             {% if beginner.first.categories %}
-            <a href="{% url 'sms:courseslist' beginner.first.categories.pk %}" class="view-all-link">View All <span>→</span></a>
+            <a href="{% url 'sms:courseslist' beginner.first.categories.pk %}" class="view-all-link">View All →</a>
             {% endif %}
         </div>
         <div class="scroll-row">
@@ -869,7 +1006,7 @@
                     <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
                     <div class="card-meta">
                         <span class="card-price">{% if obj.status_type == 'Premium' and not school_name %}₦{{ obj.price|floatformat:"0g" }}{% else %}{{ obj.status_type }}{% endif %}</span>
-                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                        <span class="card-views">👁 {% get_hit_count for obj %}</span>
                     </div>
                     <div class="card-footer-row">
                         <span class="card-cat">{{ obj.categories.name|title }}</span>
@@ -884,7 +1021,6 @@
 </section>
 {% endif %}
 
-{# ---- Intermediate ---- #}
 {% if intermediate %}
 <section class="section section--surface">
     <div class="wrap">
@@ -894,7 +1030,7 @@
                 <h2 style="font-size:24px;margin:8px 0 0;">{{ intermediate_count }} Intermediate Course{{ intermediate_count|pluralize }} Available</h2>
             </div>
             {% if intermediate.first.categories %}
-            <a href="{% url 'sms:courseslist' intermediate.first.categories.pk %}" class="view-all-link">View All <span>→</span></a>
+            <a href="{% url 'sms:courseslist' intermediate.first.categories.pk %}" class="view-all-link">View All →</a>
             {% endif %}
         </div>
         <div class="scroll-row">
@@ -905,7 +1041,7 @@
                     <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
                     <div class="card-meta">
                         <span class="card-price">{% if obj.status_type == 'Premium' and not school_name %}₦{{ obj.price|floatformat:"0g" }}{% else %}{{ obj.status_type }}{% endif %}</span>
-                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                        <span class="card-views">👁 {% get_hit_count for obj %}</span>
                     </div>
                     <div class="card-footer-row">
                         <span class="card-cat">{{ obj.categories.name|title }}</span>
@@ -920,7 +1056,6 @@
 </section>
 {% endif %}
 
-{# ---- Advanced ---- #}
 {% if advanced %}
 <section class="section">
     <div class="wrap">
@@ -930,7 +1065,7 @@
                 <h2 style="font-size:24px;margin:8px 0 0;">{{ advanced_count }} Advanced Course{{ advanced_count|pluralize }} Available</h2>
             </div>
             {% if advanced.first.categories %}
-            <a href="{% url 'sms:courseslist' advanced.first.categories.pk %}" class="view-all-link">View All <span>→</span></a>
+            <a href="{% url 'sms:courseslist' advanced.first.categories.pk %}" class="view-all-link">View All →</a>
             {% endif %}
         </div>
         <div class="scroll-row">
@@ -941,7 +1076,7 @@
                     <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
                     <div class="card-meta">
                         <span class="card-price">{% if obj.status_type == 'Premium' and not school_name %}₦{{ obj.price|floatformat:"0g" }}{% else %}{{ obj.status_type }}{% endif %}</span>
-                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                        <span class="card-views">👁 {% get_hit_count for obj %}</span>
                     </div>
                     <div class="card-footer-row">
                         <span class="card-cat">{{ obj.categories.name|title }}</span>
@@ -956,17 +1091,16 @@
 </section>
 {% endif %}
 
-{# ---- Latest Courses ---- #}
 {% if latest_courses %}
 <section class="section section--surface">
     <div class="wrap">
         <div class="row-head">
             <div>
-                <span class="level-badge level-latest">&#10003; New</span>
+                <span class="level-badge level-latest">✓ New</span>
                 <h2 style="font-size:24px;margin:8px 0 0;">{{ latest_count }} Latest Course{{ latest_count|pluralize }} on CodeThinkers Academy</h2>
-                <p style="font-size:13.5px;color:var(--color-muted);margin-top:4px;">Explore our newest programs, focused on delivering in-demand skills.</p>
+                <p style="font-size:13px;color:var(--color-muted);margin-top:4px;">Explore our newest programs, focused on delivering in-demand skills.</p>
             </div>
-            <a href="{% url 'sms:homepage' %}" class="view-all-link">Browse All <span>→</span></a>
+            <a href="{% url 'sms:homepage' %}" class="view-all-link">Browse All →</a>
         </div>
         <div class="scroll-row">
             {% for obj in latest_courses %}
@@ -976,7 +1110,7 @@
                     <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
                     <div class="card-meta">
                         <span class="card-price">{% if obj.status_type == 'Premium' and not school_name %}₦{{ obj.price|floatformat:"0g" }}{% else %}{{ obj.status_type }}{% endif %}</span>
-                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                        <span class="card-views">👁 {% get_hit_count for obj %}</span>
                     </div>
                     <div class="card-footer-row">
                         <span class="card-cat">{{ obj.categories.name|title }}</span>
@@ -990,7 +1124,6 @@
 </section>
 {% endif %}
 
-{# ---- Free Courses ---- #}
 {% if free_courses %}
 <section class="section">
     <div class="wrap">
@@ -999,7 +1132,7 @@
                 <span class="level-badge level-free">Free</span>
                 <h2 style="font-size:24px;margin:8px 0 0;">Enjoy Our {{ free_count }} Free Course{{ free_count|pluralize }}</h2>
             </div>
-            <a href="{% url 'sms:homepage' %}" class="view-all-link">View All Free <span>→</span></a>
+            <a href="{% url 'sms:homepage' %}" class="view-all-link">View All Free →</a>
         </div>
         <div class="scroll-row">
             {% for obj in free_courses %}
@@ -1009,7 +1142,7 @@
                     <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
                     <div class="card-meta">
                         <span class="card-price free-tag">Free</span>
-                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                        <span class="card-views">👁 {% get_hit_count for obj %}</span>
                     </div>
                     <div class="card-footer-row">
                         <span class="card-cat">{{ obj.categories.name|title }}</span>
@@ -1023,16 +1156,15 @@
 </section>
 {% endif %}
 
-{# ---- Popular Courses ---- #}
 {% if popular_courses %}
 <section class="section section--surface">
     <div class="wrap">
         <div class="row-head">
             <div>
-                <span class="level-badge level-popular">&#9733; Popular</span>
+                <span class="level-badge level-popular">★ Popular</span>
                 <h2 style="font-size:24px;margin:8px 0 0;">Popular Courses</h2>
             </div>
-            <a href="{% url 'sms:homepage' %}" class="view-all-link">See All <span>→</span></a>
+            <a href="{% url 'sms:homepage' %}" class="view-all-link">See All →</a>
         </div>
         <div class="scroll-row">
             {% for obj in popular_courses %}
@@ -1042,7 +1174,7 @@
                     <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
                     <div class="card-meta">
                         <span class="card-price">{% if obj.status_type == 'Premium' and not school_name %}₦{{ obj.price|floatformat:"0g" }}{% else %}{{ obj.status_type }}{% endif %}</span>
-                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                        <span class="card-views">👁 {% get_hit_count for obj %}</span>
                     </div>
                     <div class="card-footer-row">
                         <span class="card-cat">{{ obj.categories.name|title }}</span>
@@ -1066,19 +1198,19 @@
         </div>
         <div class="testimonial-grid">
             <div class="testimonial-card">
-                <img src="/static/sms/images/girlavater.webp" class="testimonial-avatar" alt="Student">
+                <img src="/static/sms/images/girlavater.webp" class="testimonial-avatar" alt="Student" loading="lazy">
                 <div class="stars">★★★★★</div>
                 <div class="testimonial-name">Maria Smantha</div>
                 <p class="testimonial-text">CodeThinkers Academy offers top-notch programming education with knowledgeable instructors and practical projects.</p>
             </div>
             <div class="testimonial-card">
-                <img src="/static/sms/images/avater11.png" class="testimonial-avatar" alt="Student">
+                <img src="/static/sms/images/avater11.png" class="testimonial-avatar" alt="Student" loading="lazy">
                 <div class="stars">★★★★★</div>
                 <div class="testimonial-name">Andrew Cudrow</div>
                 <p class="testimonial-text">The academy creates a supportive learning environment with readily available instructors and mentors.</p>
             </div>
             <div class="testimonial-card">
-                <img src="/static/sms/images/avater2.webp" class="testimonial-avatar" alt="Student">
+                <img src="/static/sms/images/avater2.webp" class="testimonial-avatar" alt="Student" loading="lazy">
                 <div class="stars">★★★★★</div>
                 <div class="testimonial-name">Muhammad Abubakar</div>
                 <p class="testimonial-text">CodeThinkers Academy equips students with practical skills and offers valuable resources for career success.</p>
@@ -1098,7 +1230,7 @@
             {% for item in gallery %}
             <div class="gallery-item">
                 {% if item.gallery %}
-                <img src="{{ item.gallery.url }}" alt="{{ item.title }}">
+                <img src="{{ item.gallery.url }}" alt="{{ item.title }}" loading="lazy">
                 {% endif %}
                 {% if item.title %}
                 <div class="gallery-caption">{{ item.title }}</div>
@@ -1122,7 +1254,7 @@
             {% for obj in blogs|slice:":4" %}
             <a href="{% url 'sms:blogdetaillistview' obj.slug %}" class="card">
                 {% if obj.img_blog %}
-                <img class="card-img" src="{{ obj.img_blog.url }}" alt="{{ obj.title }}">
+                <img class="card-img" src="{{ obj.img_blog.url }}" alt="{{ obj.title }}" loading="lazy">
                 {% endif %}
                 <div class="card-body">
                     <span class="card-views" style="margin-bottom:6px;">{{ obj.created|timesince }} ago</span>
@@ -1162,38 +1294,89 @@
 </section>
 {% endif %}
 
-<!-- ===== Footer ===== -->
+<!-- ===== PROFESSIONAL FOOTER ===== -->
 <footer class="site-footer">
     <div class="wrap">
-        <div class="footer-cta">
-            <p>Connect with us</p>
-            <div class="social-row">
-                <a href="https://youtube.com/channel/UCZLdq1lpQOZAO7fDc6n8GtQ" class="social-btn youtube" target="_blank" rel="noopener" aria-label="YouTube">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.007 2.007 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.007 2.007 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31.4 31.4 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.007 2.007 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.171-.007.086-.004.171-.007.171-.007c1.34-.046 2.618-.052 2.927-.052z"/>
-                        <path d="M6.5 4.5v7l5-3.5-5-3.5z"/>
-                    </svg>
+        <div class="footer-grid">
+            <!-- Brand -->
+            <div class="footer-brand">
+                <a href="/" style="display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;color:#fff;text-decoration:none;">
+                    <img src="/static/sms/images/logo.png" alt="CodeThinkers Academy" style="height:36px;width:auto;" loading="lazy">
+                    CodeThinkers Academy
                 </a>
-                <a href="https://web.facebook.com/addatainsight" class="social-btn facebook" target="_blank" rel="noopener" aria-label="Facebook">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/>
-                    </svg>
-                </a>
+                <p>Empowering the next generation of tech innovators through quality education, mentorship, and real-world projects.</p>
+                <div class="social-row">
+                    <a href="https://youtube.com/channel/UCZLdq1lpQOZAO7fDc6n8GtQ" class="social-btn" target="_blank" rel="noopener" aria-label="YouTube">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.007 2.007 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.007 2.007 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31.4 31.4 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.007 2.007 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.171-.007.086-.004.171-.007.171-.007c1.34-.046 2.618-.052 2.927-.052z"/>
+                            <path d="M6.5 4.5v7l5-3.5-5-3.5z"/>
+                        </svg>
+                    </a>
+                    <a href="https://web.facebook.com/addatainsight" class="social-btn" target="_blank" rel="noopener" aria-label="Facebook">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="{% url 'sms:courseslist' 1 %}">Courses</a></li>
+                    <li><a href="{% url 'sms:bloglistview' %}">Blog</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                </ul>
+            </div>
+
+            <!-- Resources -->
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact -->
+            <div class="footer-col">
+                <h4>Get in Touch</h4>
+                <div class="contact-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555zM0 4.697v7.104l5.803-3.558L0 4.697zM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586l-1.239-.757zm3.436-.586L16 11.801V4.697l-5.803 3.546z"/></svg>
+                    <span>codethinkersa@gmail.com</span>
+                </div>
+                <div class="contact-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h6zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H5z"/><path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg>
+                    <span>+234 812 801 4921</span>
+                </div>
+                <div class="contact-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 1a7 7 0 0 0-7 7 7 7 0 0 0 7 7 7 7 0 0 0 7-7 7 7 0 0 0-7-7zm0 1a6 6 0 0 1 6 6 6 6 0 0 1-6 6 6 6 0 0 1-6-6 6 6 0 0 1 6-6z"/><path d="M8 3a1 1 0 0 1 1 1v3l2.5 1.5a1 1 0 0 1-1 1.732L7 7.5V4a1 1 0 0 1 1-1z"/></svg>
+                    <span>Online 24/7</span>
+                </div>
             </div>
         </div>
-        <p style="margin-top:24px;">© {% now "Y" %} CodeThinkers Academy. All rights reserved.</p>
+
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+            <span>© {% now "Y" %} CodeThinkers Academy. All rights reserved.</span>
+            <div class="footer-bottom-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Cookie Policy</a>
+            </div>
+        </div>
     </div>
 </footer>
 
 <script>
-    // Hide flash messages automatically
     document.addEventListener('DOMContentLoaded', function () {
         const alerts = document.querySelectorAll('.alert');
-        setTimeout(() => {
-            alerts.forEach(a => a.style.display = 'none');
-        }, 6000);
+        setTimeout(() => { alerts.forEach(a => a.style.display = 'none'); }, 6000);
 
-        // User menu dropdown (no Bootstrap JS dependency)
         const trigger = document.getElementById('userMenuTrigger');
         const panel = document.getElementById('userMenuPanel');
         if (trigger && panel) {
