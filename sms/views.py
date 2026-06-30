@@ -207,254 +207,329 @@ from .models import (
     Comment, Alert, Blogcomment, Partners, Gallery
 )
 from hitcount.models import HitCount
+ 
 
 class Homepage1(ListView):
     model = Courses
     template_name = 'sms/dashboard/homepage1.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
-
+ 
+    # ------------------------------------------------------------------ #
+    # Base queryset — annotate topic count once, reuse everywhere          #
+    # ------------------------------------------------------------------ #
     def get_queryset(self):
-        qs = Courses.objects.annotate(topic_count=Count('topics'))
-        print("🔹 Homepage1 queryset:", qs)  # Debug: all courses
-        return qs
-
+        return Courses.objects.annotate(topic_count=Count('topics'))
+ 
+    # ------------------------------------------------------------------ #
+    # Helpers                                                              #
+    # ------------------------------------------------------------------ #
+    def _courses_by_level(self, level: str):
+        """
+        Return a queryset of courses whose category name matches `level`
+        (e.g. 'BEGINNER'), with topic_count already annotated so the
+        template can read obj.topic_count without extra DB hits.
+        """
+        return (
+            Courses.objects
+            .filter(categories__name__iexact=level)
+            .select_related('categories')
+            .annotate(topic_count=Count('topics'))
+        )
+ 
+    # ------------------------------------------------------------------ #
+    # Context                                                              #
+    # ------------------------------------------------------------------ #
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
-        # Get search query from GET parameters
-        query = self.request.GET.get('q', '').strip()
-        search_results = []
-        category_results = []
-        course_count = 0
-        
-        # Perform search if query exists
-        if query:
-            # Search in courses
-            search_results = Courses.objects.filter(
-                Q(title__icontains=query) |
-                Q(desc__icontains=query) |
-                Q(categories__name__icontains=query) |
-                Q(course_owner__icontains=query) |
-                Q(course_type__icontains=query) |
-                Q(status_type__icontains=query)
-            ).select_related('categories').distinct()[:50]
-            
-            # Annotate topic count for search results
-            for course in search_results:
-                course.topic_count = Topics.objects.filter(courses=course).count()
-                course.Free_courses_topic_count = Topics.objects.filter(courses=course).count()
-            
-            # Search in categories
-            category_results = Categories.objects.filter(
-                Q(name__icontains=query) |
-                Q(desc__icontains=query)
-            )[:10]
-            
-            # Search in blog posts
-            blog_results = Blog.objects.filter(
-                Q(title__icontains=query) |
-                Q(desc__icontains=query) |
-                Q(poster__icontains=query)
-            )[:5]
-            
-            # Search in FAQs
-            faq_results = FrequentlyAskQuestions.objects.filter(
-                Q(title__icontains=query) |
-                Q(desc__icontains=query)
-            )[:5]
-            
-            # Search in topics
-            topic_results = Topics.objects.filter(
-                Q(title__icontains=query) |
-                Q(desc__icontains=query)
-            )[:10]
-            
-            course_count = search_results.count()
-            
-            # Add additional search results to context
-            context['blog_results'] = blog_results
-            context['faq_results'] = faq_results
-            context['topic_results'] = topic_results
-        
-        # Add search data to context
+        request = self.request
+ 
+        # ── Search ──────────────────────────────────────────────────────
+        query = request.GET.get('q', '').strip()
         context['query'] = query
-        context['search_results'] = search_results
-        context['category_results'] = category_results
-        context['course_count'] = course_count
-
-        # General stats
-        context['students'] = NewUser.objects.all().count() + 1000
-        context['category'] = Categories.objects.count()
+        context['search_results'] = []
+        context['category_results'] = []
+        context['course_count'] = 0
+        context['blog_results'] = []
+        context['faq_results'] = []
+        context['topic_results'] = []
+ 
+        if query:
+            search_results = (
+                Courses.objects
+                .filter(
+                    Q(title__icontains=query) |
+                    Q(desc__icontains=query) |
+                    Q(categories__name__icontains=query) |
+                    Q(course_owner__icontains=query) |
+                    Q(course_type__icontains=query) |
+                    Q(status_type__icontains=query)
+                )
+                .select_related('categories')
+                .annotate(topic_count=Count('topics'))
+                .distinct()[:50]
+            )
+            context['search_results']   = search_results
+            context['course_count']     = search_results.count()
+            context['category_results'] = (
+                Categories.objects
+                .filter(Q(name__icontains=query) | Q(desc__icontains=query))[:10]
+            )
+            context['blog_results'] = (
+                Blog.objects
+                .filter(Q(title__icontains=query) | Q(desc__icontains=query) | Q(poster__icontains=query))[:5]
+            )
+            context['faq_results'] = (
+                FrequentlyAskQuestions.objects
+                .filter(Q(title__icontains=query) | Q(desc__icontains=query))[:5]
+            )
+            context['topic_results'] = (
+                Topics.objects
+                .filter(Q(title__icontains=query) | Q(desc__icontains=query))[:10]
+            )
+ 
+        # ── General stats ────────────────────────────────────────────────
+        context['students']      = NewUser.objects.count() + 1000
+        context['category']      = Categories.objects.count()
+        context['courses']       = Courses.objects.count()
         context['coursecategory'] = Categories.objects.all()
-        context['courses'] = Courses.objects.all().count()
-        context['gallery'] = Gallery.objects.all()
-        context['blogs'] = Blog.objects.all().order_by('-created')[:3]
-        context['blogs_count'] = Blog.objects.all().count()
-        context['faqs'] = FrequentlyAskQuestions.objects.all()
-        context['partners'] = Partners.objects.all()
-
-        # Courses and categories
-        context['coursess'] = Courses.objects.all().order_by('created')
-        context['category_sta'] = Categories.objects.annotate(num_courses=Count('categories'))
-
-        # Group courses by difficulty category
-        for level in ['BEGINNER', 'INTERMEDIATE', 'ADVANCED']:
-            courses_level = Courses.objects.filter(categories__name=level)
-            for course in courses_level:
-                course.topic_count = Topics.objects.filter(courses=course).count()
-            context[level.lower()] = courses_level
-            context[f"{level.lower()}_count"] = courses_level.count()
-
-        # Free courses
-        free_courses = Courses.objects.filter(status_type='Free')
-        for course in free_courses:
-            course.Free_courses_topic_count = Topics.objects.filter(courses=course).count()
-        context['Free_courses'] = free_courses
-        context['Free_courses_count'] = free_courses.count()
-        
-        # Latest courses
-        latest_courses = Courses.objects.all().order_by('-created')
-        for course in latest_courses:
-            course.latest_course_topic_count = Topics.objects.filter(courses=course).count()
-        context['latest_course'] = latest_courses
-        context['latest_course_count'] = latest_courses.count()
-
-        # Popular courses
-        popular_courses = Courses.objects.all().order_by('-hit_count_generic__hits')
-        for course in popular_courses:
-            course.popular_course_topic_count = Topics.objects.filter(courses=course).count()
-        context['popular_course'] = popular_courses
-
-        # PDF Alerts
-        context['alert_homes'] = PDFDocument.objects.order_by('-created')[:4]
-        context['alerts'] = PDFDocument.objects.order_by('-created')
+        context['gallery']       = Gallery.objects.all()
+        context['blogs']         = Blog.objects.order_by('-created')[:3]
+        context['blogs_count']   = Blog.objects.count()
+        context['faqs']          = FrequentlyAskQuestions.objects.all()
+        context['partners']      = Partners.objects.all()
+ 
+        # ── Sidebar / misc ───────────────────────────────────────────────
+        context['coursess']      = Courses.objects.order_by('created').annotate(topic_count=Count('topics'))
+        context['category_sta']  = Categories.objects.annotate(num_courses=Count('categories'))
+        context['advertisement_images'] = AdvertisementImage.objects.all()
+        context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
+ 
+        sidebar_categories = Categories.objects.prefetch_related('categories').all()
+        context['sidebar_categories'] = sidebar_categories
+ 
+        # ── PDF Alerts ───────────────────────────────────────────────────
+        context['alert_homes']       = PDFDocument.objects.order_by('-created')[:4]
+        context['alerts']            = PDFDocument.objects.order_by('-created')
         context['alert_count_homes'] = PDFDocument.objects.order_by('-created')[:4].count()
-        context['alert_count'] = PDFDocument.objects.all().count()
-
-        # Users
-        context['user'] = NewUser.objects.get_queryset().order_by('id')
-        context['users'] = self.request.user
-
-        messages.success(self.request, 'You have successfully logged in.')
-
-        if self.request.user.is_authenticated:
-            user_newuser = get_object_or_404(NewUser, email=self.request.user.email)
+        context['alert_count']       = PDFDocument.objects.count()
+ 
+        # ── Auth / school context ─────────────────────────────────────────
+        context['users'] = request.user
+        context['user']  = NewUser.objects.order_by('id')
+ 
+        messages.success(request, 'You have successfully logged in.')
+ 
+        if request.user.is_authenticated:
+            user_newuser = get_object_or_404(NewUser, email=request.user.email)
             if user_newuser.school:
                 context['school_name'] = user_newuser.school.school_name
-
-        # Advertisement
-        context['advertisement_images'] = AdvertisementImage.objects.all()
-        context['paystack_public_key'] = settings.PAYSTACK_PUBLIC_KEY
-
-        # Sidebar categories with prefetch
-        sidebar_categories = Categories.objects.prefetch_related("categories").all()
-        context['sidebar_categories'] = sidebar_categories
-
-        for cat in sidebar_categories:
-            # print(f"Category: {cat.name} — Courses count: {cat.categories.count()}")
-            for course in cat.categories.all():
-                print(f"   - Course: {course.title}")
-
+ 
+        # ── Courses by difficulty level ───────────────────────────────────
+        # Template variable names:  beginner / beginner_count
+        #                           intermediate / intermediate_count
+        #                           advanced / advanced_count
+        for level in ['beginner', 'intermediate', 'advanced']:
+            qs = self._courses_by_level(level)
+            context[level]                  = qs
+            context[f'{level}_count']       = qs.count()
+ 
+        # ── Latest courses ────────────────────────────────────────────────
+        # Template variable: latest_courses / latest_count
+        latest_courses = (
+            Courses.objects
+            .select_related('categories')
+            .annotate(topic_count=Count('topics'))
+            .order_by('-created')
+        )
+        context['latest_courses'] = latest_courses
+        context['latest_count']   = latest_courses.count()
+ 
+        # ── Free courses ──────────────────────────────────────────────────
+        # Template variable: free_courses / free_count
+        free_courses = (
+            Courses.objects
+            .filter(status_type='Free')
+            .select_related('categories')
+            .annotate(topic_count=Count('topics'))
+        )
+        context['free_courses'] = free_courses
+        context['free_count']   = free_courses.count()
+ 
+        # ── Popular courses ───────────────────────────────────────────────
+        # Template variable: popular_courses
+        context['popular_courses'] = (
+            Courses.objects
+            .select_related('categories')
+            .annotate(topic_count=Count('topics'))
+            .order_by('-hit_count_generic__hits')
+        )
+ 
         return context
-
+        
 
 from django.db.models import Q
 from django.shortcuts import render
 from django.core.paginator import Paginator
+from django.shortcuts import render
 
+from django.db.models import Q, Count, Case, When, IntegerField, Value
 
 def course_search(request):
     query = request.GET.get('q', '').strip()
-    search_results = []
-    category_results = []
-    topic_results = []
-    blog_results = []
-    faq_results = []
-    course_count = 0
-    
-    if query:
-        # Split query into individual words for better search
-        search_terms = query.split()
-        
-        # Build Q objects for each search term
-        course_q = Q()
-        category_q = Q()
-        topic_q = Q()
-        blog_q = Q()
-        faq_q = Q()
-        
-        # Add each term to the query
-        for term in search_terms:
-            # Course search - using icontains (case-insensitive partial match)
-            course_q |= Q(title__icontains=term)
-            course_q |= Q(desc__icontains=term)
-            course_q |= Q(categories__name__icontains=term)
-            course_q |= Q(course_owner__icontains=term)
-            
-            # Category search
-            category_q |= Q(name__icontains=term)
-            category_q |= Q(desc__icontains=term)
-            
-            # Topic search
-            topic_q |= Q(title__icontains=term)
-            topic_q |= Q(desc__icontains=term)
-            
-            # Blog search
-            blog_q |= Q(title__icontains=term)
-            blog_q |= Q(desc__icontains=term)
-            blog_q |= Q(poster__icontains=term)
-            
-            # FAQ search
-            faq_q |= Q(title__icontains=term)
-            faq_q |= Q(desc__icontains=term)
-        
-        # Search in courses
-        search_results = Courses.objects.filter(course_q).select_related('categories').distinct()[:50]
-        
-        # Annotate topic count for search results
-        for course in search_results:
-            course.topic_count = Topics.objects.filter(courses=course).count()
-        
-        # Search in categories
-        category_results = Categories.objects.filter(category_q)[:10]
-        
-        # Search in topics
-        topic_results = Topics.objects.filter(topic_q)[:10]
-        
-        # Search in blog posts
-        blog_results = Blog.objects.filter(blog_q)[:5]
-        
-        # Search in FAQs
-        faq_results = FrequentlyAskQuestions.objects.filter(faq_q)[:5]
-        
-        course_count = search_results.count()
-    
-    # Get other data for the page
+ 
     context = {
         'query': query,
-        'search_results': search_results,
-        'category_results': category_results,
-        'topic_results': topic_results,
-        'blog_results': blog_results,
-        'faq_results': faq_results,
-        'course_count': course_count,
-        
-        # Other context data
-        'students': NewUser.objects.all().count() + 1000,
+        'search_results': [],
+        'category_results': [],
+        'topic_results': [],
+        'blog_results': [],
+        'faq_results': [],
+        'course_count': 0,
+        # Standard page context
+        'students': NewUser.objects.count() + 1000,
         'category': Categories.objects.count(),
-        'courses': Courses.objects.all().count(),
+        'courses': Courses.objects.count(),
         'coursecategory': Categories.objects.all(),
         'gallery': Gallery.objects.all(),
-        'blogs': Blog.objects.all().order_by('-created')[:3],
+        'blogs': Blog.objects.order_by('-created')[:3],
         'faqs': FrequentlyAskQuestions.objects.all(),
         'partners': Partners.objects.all(),
         'alert_homes': PDFDocument.objects.order_by('-created')[:4],
         'advertisement_images': AdvertisementImage.objects.all(),
     }
-    
+ 
+    if not query:
+        return render(request, 'sms/dashboard/homepage1.html', context)
+ 
+    # ------------------------------------------------------------------ #
+    # Build per-word AND full-phrase Q objects                             #
+    # ------------------------------------------------------------------ #
+    words = query.split()          # e.g. "python foundation" → ["python", "foundation"]
+ 
+    # Full phrase match (highest relevance)
+    phrase_course_q = (
+        Q(title__icontains=query) |
+        Q(desc__icontains=query) |
+        Q(categories__name__icontains=query) |
+        Q(course_owner__icontains=query)
+    )
+ 
+    # Individual word match (catches "fundamentals of python" when query is "python")
+    word_course_q = Q()
+    word_category_q = Q()
+    word_topic_q = Q()
+    word_blog_q = Q()
+    word_faq_q = Q()
+ 
+    for word in words:
+        word_course_q |= (
+            Q(title__icontains=word) |
+            Q(desc__icontains=word) |
+            Q(categories__name__icontains=word) |
+            Q(course_owner__icontains=word)
+        )
+        word_category_q |= Q(name__icontains=word) | Q(desc__icontains=word)
+        word_topic_q    |= Q(title__icontains=word) | Q(desc__icontains=word)
+        word_blog_q     |= Q(title__icontains=word) | Q(desc__icontains=word) | Q(poster__icontains=word)
+        word_faq_q      |= Q(title__icontains=word) | Q(desc__icontains=word)
+ 
+    # Combined: phrase OR any individual word
+    combined_course_q = phrase_course_q | word_course_q
+ 
+    # ------------------------------------------------------------------ #
+    # Course search — annotate relevance score for ordering               #
+    # Score: 4 = title phrase match, 3 = title word match,               #
+    #        2 = category/owner match, 1 = desc match                     #
+    # ------------------------------------------------------------------ #
+    title_phrase_q   = Q(title__icontains=query)
+    title_word_q     = Q()
+    for word in words:
+        title_word_q |= Q(title__icontains=word)
+ 
+    search_results = (
+        Courses.objects
+        .filter(combined_course_q)
+        .select_related('categories')
+        .annotate(
+            topic_count=Count('topics', distinct=True),
+            relevance=Case(
+                # Exact phrase in title — highest priority
+                When(title_phrase_q, then=Value(4)),
+                # Any word from query in title — second priority
+                When(title_word_q, then=Value(3)),
+                # Match in category name or owner
+                When(
+                    Q(categories__name__icontains=query) | Q(course_owner__icontains=query),
+                    then=Value(2)
+                ),
+                # Match only in description — lowest priority
+                default=Value(1),
+                output_field=IntegerField()
+            )
+        )
+        .distinct()
+        .order_by('-relevance', 'title')   # best match first, then alphabetical
+        [:50]
+    )
+ 
+    # ------------------------------------------------------------------ #
+    # Category search                                                      #
+    # ------------------------------------------------------------------ #
+    category_results = (
+        Categories.objects
+        .filter(word_category_q)
+        .annotate(num_courses=Count('categories'))
+        [:10]
+    )
+ 
+    # ------------------------------------------------------------------ #
+    # Topic search                                                         #
+    # ------------------------------------------------------------------ #
+    topic_results = (
+        Topics.objects
+        .filter(word_topic_q)
+        .select_related('courses', 'courses__categories')
+        [:10]
+    )
+ 
+    # ------------------------------------------------------------------ #
+    # Blog search                                                          #
+    # ------------------------------------------------------------------ #
+    blog_results = (
+        Blog.objects
+        .filter(word_blog_q)
+        .order_by('-created')
+        [:5]
+    )
+ 
+    # ------------------------------------------------------------------ #
+    # FAQ search                                                           #
+    # ------------------------------------------------------------------ #
+    faq_results = (
+        FrequentlyAskQuestions.objects
+        .filter(word_faq_q)
+        [:5]
+    )
+ 
+    # course_count before slicing
+    course_count = (
+        Courses.objects
+        .filter(combined_course_q)
+        .distinct()
+        .count()
+    )
+ 
+    context.update({
+        'search_results':   search_results,
+        'category_results': category_results,
+        'topic_results':    topic_results,
+        'blog_results':     blog_results,
+        'faq_results':      faq_results,
+        'course_count':     course_count,
+    })
+ 
     return render(request, 'sms/dashboard/homepage1.html', context)
-
 
 
 class Homepage2(SuccessMessageMixin, LoginRequiredMixin,ListView):
