@@ -1,1820 +1,860 @@
-{% extends 'sms/dashboard/base.html' %}
 {% load hitcount_tags %}
 {% load static %}
-
-
-{% block title %} Codethinkers  Academy  {% endblock %}
-
-
-
-  {% block content %} 
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeThinkers Academy</title>
+<link rel="icon" type="image/png" href="/static/sms/images/favicon.png">
 <style>
+    :root {
+        --color-primary: #1A56DB;
+        --color-primary-dark: #1543A8;
+        --color-ink: #000000;
+        --color-body: #333333;
+        --color-muted: #666666;
+        --color-border: #DCE3EC;
+        --color-surface: #F2F6FC;
+        --radius-md: 8px;
+        --radius-lg: 12px;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
+        --max-width: 1240px;
+    }
 
-body {
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  align-items: center;
-  height: 100vh;
- 
+    html { scroll-behavior: smooth; }
 
-}
+    body {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        background: #ffffff;
+        color: var(--color-ink);
+        line-height: 1.6;
+    }
 
-.container1 {
-    display: flex;
-    overflow-x: auto;
-    height: 450px;
-    overflow-y: hidden;     
-}
-/* .container1 >*{
-    margin: 5px;   
-} */
-/* end card hover effect */
-.gallery {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
+    img { max-width: 100%; display: block; }
 
-.left-column-cat {
-  width: 100%;
-  margin: 10px;
-  padding: 10px;
-  border: 1px solid blue;
-  transition: all 0.3s;
-}
+    a { color: inherit; }
 
-.left-column-cat:hover {
-  transform: scale(1.01);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-}
+    .wrap {
+        max-width: var(--max-width);
+        margin: 0 auto;
+        padding: 0 24px;
+    }
 
-.text-center.category {
-  margin-top: 0;
-}
+    .section { padding: 88px 0; }
+    .section--tight { padding: 64px 0; }
+    .section--surface { background: var(--color-surface); }
 
-.text-left.container {
-  margin-top: 10px;
-  font-weight: bold;
-}
+    .eyebrow {
+        display: inline-block;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--color-primary);
+        background: rgba(21, 94, 239, 0.08);
+        padding: 6px 14px;
+        border-radius: 999px;
+        margin-bottom: 16px;
+    }
 
-.images {
-  border-radius: 4px;
-}
+    h1, h2, h3, h4, h5 {
+        color: var(--color-ink);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+    }
 
-.card.text-center.text-danger {
-  margin-top: 20px;
-}
+    h2 { font-size: 34px; margin-bottom: 14px; }
+    h3 { font-size: 22px; }
+    p { color: var(--color-body); font-size: 16px; }
 
-/* end card hover effect */
+    .section-head { max-width: 620px; margin: 0 auto 48px; text-align: center; }
+    .section-head p { margin-top: 10px; }
 
-.beginner {
-    display: flex;
-    overflow-x: auto;
-    height: 520px;
-    width: 100%;
-    overflow-y: hidden;     
-}
+    /* ===== Header / Nav ===== */
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: #ffffff;
+        border-bottom: 1px solid var(--color-border);
+    }
 
-.container {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: center;
-}
-.left-column {
-    flex: 1;
-    margin: 2px;
-    background-color: #4158D0;
-    color: white;
-    background-image: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+    .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 72px;
+    }
 
-}
+    .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        font-size: 19px;
+        text-decoration: none;
+        color: var(--color-ink);
+    }
 
-.left-column-cat {
-    flex: 1;
-    margin: 5px;
-    background-color: #4158D0;
-    color: black;
-    
-    background-image: linear-gradient(#ffff 100%, #ffff 46%, white 100%);
+    .nav-logo img { height: 32px; width: auto; }
 
-}
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
 
-
-.container2 {
-    height: 100vh;
-    width: 100%;
-    background-position: center;
-    
-    /* background-size: cover; */
-    /* padding-right: 3%;
-    padding-left: 5%; */
-    /* box-sizing: border-box;
-    position: relative; */
-}
-
-.images {
-  max-height: 100%;
-  min-width: 100%;
-  object-fit: cover;
-  vertical-align: bottom;
-}
-
-
-#btn1 {
-    text-transform: uppercase;
-    background: linear-gradient(to bottom, #378de5 3%, #48789b 100%);
-    border-radius: 30px;
-    border: 1px solid #5e97d1;
-    cursor: pointer;
-    color: #fff;
-    font-family: 'Poppins', sans-serif;
-    font-size: 17px;
-    font-weight: 700;
-    padding: 12px 20px;
-    margin: 10px;
-    text-decoration: none;
-    box-shadow: 1px 4px 12px rgba(94,28,68,.15);
-    text-shadow: 0px 1px 0px #528ecc;
-}
-#btn2 {
-    text-transform: uppercase;
-    background: linear-gradient(to bottom, #cbcbcb 2%, #fff 100%);
-    border-radius: 30px;
-    border: 1px solid #cbcbcb;
-    cursor: pointer;
-    color: #5e97d1;
-    font-family: 'Poppins', sans-serif;
-    font-size: 17px;
-    font-weight: 700;
-    padding: 12px 20px;
-    margin: 10px;
-    text-decoration: none;
-    box-shadow: 1px 4px 12px rgba(94,28,68,.15);
-    text-shadow: 0px 1px 0px #cbcbcb;
-}
-.btn:hover {
-    box-shadow: 3px 8px 22px rgba(94,28,68,.15);
-    transform: scale(1.1);
-    transition: .2s ease-in-out;
-}
-
-
-.content2 .text p {
-    font-size: 17px;
-    font-weight: 600;
-    letter-spacing: .1em;
-    /* margin-top: 40px; */
-    height: 230px;
-    width: 100%;
-    margin-top: 30px;
-    
-
- }
-.btn3 {
-    /* background: linear-gradient(to bottom, #cbcbcb 2%, #fff 100%); */
-    /* margin-top: 60px;
-    margin-left: 140px; */
-    padding: 15px 30px;
-    text-align: center;
-    transition: .5s;
-    border: none;
-    outline: none;
-    text-transform: uppercase;
-    /* color: #1b1b1b; */
-    font-size: 20px;
-    font-weight: 700;
-    border-radius: 30px;
-    box-shadow: 1px 4px 12px white;
-}
-.pepsi {
-    display: flex;
-    height: 100%;
-    position: absolute;
-    width: 600px;
-    margin-top: 80px;
-    padding-left: 440px;
-    justify-content: flex-end;
-}
-
-.content2{
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
-
-
-}
-
-.content2 >{
-  flex: 0 0 auto;
-  width: 5px;
-}
-
-.flex-internal{
-  
-  display: flex;
-  flex-wrap: wrap;
-  justify-items: space-between;
-}
-.flex-internal > *{
-  flex: auto;
-  margin: 2px;
-
-}
-
-
-.sta{
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.sta >*{
-  flex: 1 1 auto;
-  margin: 5px;
-  width: 10px;
-}
-
-.owner{
-  display: flex;
-}
-.owner > small{
-  flex: 1 1 auto;
-  margin: 10px;
-}
-
-h3{
-  font-weight: bold;
-}
-
-/* multi items carousel-control-next */
-
-/* bootsrap carousel setting */
-
-.carousel-indicators li {
-        width: 0.5rem;
-        height: 0.5rem;
-        border: 1px solid;
+    .user-menu { position: relative; }
+    .user-menu-trigger {
+        background: none;
+        border: 1px solid var(--color-border);
         border-radius: 50%;
-        background-color: #E0E0E0;
-}
-    
-.carousel-indicators .active {
-        background-color: #000000;
-}
- 
-.carousel-indicators button {
-    height: 0px !important;
-    width: 10px !important;
-    margin: 0 20px !important;
-    border-radius: 100%;
-    background-color: #1963ac !important;
-   
-} 
-
-.carousel-inner .carousel-item {
-  transition: -webkit-transform 0.2s ease;
-  transition: transform 0.2s ease;
-  transition: transform 0.2s ease, -webkit-transform 0.2s ease;
-}
-
-
- .carousel-control-prev,
-.carousel-control-next{
-    align-items: flex-start;
-} 
-
-.carousel-control-prev-icon {
-    position: absolute;
-    bottom: 250px;
-    left: 10px;
-    color: #000000;
-}
-
-.carousel-control-next-icon {
-    position: absolute;
-    bottom: 250px;
-    right: 10px;
-    color: #000000;
- 
-} 
-
-
-@media (max-width: 767px) {
-    .carousel-inner .carousel-item > div {
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .user-menu-trigger img { width: 100%; height: 100%; object-fit: cover; }
+    .user-menu-panel {
         display: none;
-      
+        position: absolute;
+        right: 0;
+        top: calc(100% + 8px);
+        min-width: 200px;
+        background: #ffffff;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        padding: 6px;
+        z-index: 60;
     }
-
-    .carousel-inner .carousel-item > div:first-child {
+    .user-menu-panel.open { display: block; }
+    .user-menu-panel a {
         display: block;
-       
+        padding: 10px 12px;
+        font-size: 14px;
+        color: var(--color-ink);
+        text-decoration: none;
+        border-radius: 6px;
     }
-}
+    .user-menu-panel a:hover { background: var(--color-surface); color: var(--color-primary); }
+    .user-menu-divider { height: 1px; background: var(--color-border); margin: 6px 4px; }
 
-.carousel-inner .carousel-item.active,
-.carousel-inner .carousel-item-next,
-.carousel-inner .carousel-item-prev {
-    display: flex;
-}
-
-/* medium and up screens */
-@media (min-width: 768px) {
-    
-    .carousel-inner .carousel-item-end.active,
-    .carousel-inner .carousel-item-next {
-      transform: translateX(25%);
-      
+    /* ===== Buttons ===== */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 13px 26px;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 15px;
+        text-decoration: none;
+        border: 1.5px solid transparent;
+        cursor: pointer;
+        transition: all 0.18s ease;
+        white-space: nowrap;
     }
-    
-    .carousel-inner .carousel-item-start.active, 
-    .carousel-inner .carousel-item-prev {
-      transform: translateX(-25%);
+
+    .btn--primary {
+        background: var(--color-primary);
+        color: #ffffff;
+        box-shadow: 0 1px 2px rgba(15,23,42,0.08);
     }
-}
+    .btn--primary:hover { background: var(--color-primary-dark); transform: translateY(-1px); text-decoration: none; color: #fff; }
 
-.carousel-inner .carousel-item-end,
-.carousel-inner .carousel-item-start { 
-  transform: translateX(0);
-}
+    .btn--outline {
+        background: transparent;
+        color: var(--color-ink);
+        border-color: var(--color-border);
+    }
+    .btn--outline:hover { border-color: var(--color-primary); color: var(--color-primary); text-decoration: none; }
 
+    .btn--sm { padding: 9px 18px; font-size: 14px; }
+    .btn--full { width: 100%; }
 
-/* end bootsrap carousel setting */
+    /* ===== Hero ===== */
+    .hero {
+        padding: 72px 0 64px;
+        background: linear-gradient(180deg, #F5F8FF 0%, #ffffff 100%);
+        border-bottom: 1px solid var(--color-border);
+    }
 
+    .hero-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 56px;
+        align-items: center;
+    }
 
-.w-100 {
-  width: 100% !important;
-  height: 35vh;
-}
+    .hero h1 { font-size: 44px; margin-bottom: 18px; }
+    .hero h1 span { color: var(--color-primary); }
+    .hero p { font-size: 17px; max-width: 480px; margin-bottom: 28px; }
 
-/* partners css  */
-.partners{
-  display: flex;
-  flex-wrap: wrap;
- justify-content: center;
-}
+    .hero-cta { display: flex; flex-wrap: wrap; gap: 14px; }
 
-.partners >*{
- /* flex: 1 1 auto; */
- margin: 30px;
+    .hero-media {
+        position: relative;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+    .hero-media img { width: 100%; height: 100%; object-fit: cover; }
 
-}
+    /* ===== Alerts ===== */
+    .alert-stack { padding-top: 16px; }
+    .alert {
+        background: #EFF6FF;
+        color: #1D4ED8;
+        border-left: 4px solid var(--color-primary);
+        padding: 13px 18px;
+        border-radius: 8px;
+        font-size: 14.5px;
+        margin-bottom: 10px;
+    }
 
-/* partners css ending  */
+    /* ===== Quick contact bar ===== */
+    .contact-bar {
+        background: var(--color-primary);
+        color: #ffffff;
+    }
+    .contact-bar .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        justify-content: center;
+        align-items: center;
+        padding: 12px 24px;
+        font-size: 13.5px;
+    }
+    .contact-bar a { text-decoration: none; color: #ffffff; display: inline-flex; align-items: center; gap: 7px; }
+    .contact-bar a:hover { text-decoration: underline; }
+    .contact-divider { color: rgba(255,255,255,0.5); }
 
+    /* ===== Partners ===== */
+    .partners-track {
+        overflow: hidden;
+        position: relative;
+        mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    }
+    .partners-scroll {
+        display: flex;
+        align-items: center;
+        gap: 64px;
+        width: max-content;
+        animation: scrollPartners 32s linear infinite;
+    }
+    .partners-scroll img {
+        width: 96px;
+        height: 96px;
+        object-fit: contain;
+        padding: 10px;
+        filter: grayscale(100%);
+        opacity: 0.65;
+        transition: 0.25s ease;
+    }
+    .partners-scroll img:hover { filter: grayscale(0%); opacity: 1; transform: scale(1.05); }
 
-/* Testmony css  */
-.testimonial-card:hover {
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
-  }
-/* Testmony css ending  */
+    @keyframes scrollPartners {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
 
-/* 
-FREQUENTLY ASKED QUESTIONS */
-.card {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
-    margin: 10px;
-  
-  }
-  
-  .card:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-  }
+    /* ===== Stats ===== */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+    .stat-card {
+        background: #ffffff;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: 32px 20px;
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+    }
+    .stat-number { font-size: 38px; font-weight: 800; color: var(--color-ink); }
+    .stat-label { font-size: 14.5px; color: var(--color-muted); font-weight: 500; margin-top: 4px; }
 
-/* END OF FREQUENTLY ASKED QUESTIONS  */
+    /* ===== Horizontal scroll rows ===== */
+    .scroll-row {
+        display: flex;
+        overflow-x: auto;
+        gap: 20px;
+        padding: 8px 4px 16px;
+        scroll-snap-type: x proximity;
+    }
+    .scroll-row::-webkit-scrollbar { height: 6px; }
+    .scroll-row::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 999px; }
 
-/* articles css  */
+    .row-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+    .row-head a { font-weight: 600; font-size: 14.5px; color: var(--color-primary); text-decoration: none; }
+    .row-head a:hover { text-decoration: underline; }
 
-.action-news {
-  display: inline-flex;
-  margin-top: 1rem;
-  color: #ffffff;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  font-weight: 500;
-  align-items: center;
-  gap: 0.25rem;
-  background-color: #2563EB;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
+    /* ===== Cards ===== */
+    .card {
+        flex: 0 0 270px;
+        scroll-snap-align: start;
+        background: #ffffff;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s ease;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+    }
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(21, 94, 239, 0.35);
+        text-decoration: none;
+    }
+    .card-img {
+        width: 100%;
+        height: 168px;
+        object-fit: cover;
+        background: var(--color-surface);
+    }
+    .card-body { padding: 16px 16px 18px; flex: 1; display: flex; flex-direction: column; }
+    .card-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--color-ink);
+        margin-bottom: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .card-desc { font-size: 13.5px; color: var(--color-muted); margin-bottom: 10px; flex: 1; }
+    .card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        padding-top: 10px;
+        border-top: 1px solid var(--color-border);
+    }
+    .card-price { font-weight: 700; color: var(--color-ink); }
+    .card-views { color: var(--color-muted); }
+    .card-tag { color: var(--color-primary); font-size: 12.5px; font-weight: 600; }
 
-.action-news span {
-  transition: .3s ease;
-}
+    .cat-card .card-img { height: 150px; }
 
-.action-news:hover span {
-  transform: translateX(9px);
-  background-color: red;
-}
+    /* ===== Benefits ===== */
+    .benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 16px;
+    }
+    .benefit {
+        text-align: center;
+        padding: 26px 14px;
+        background: var(--color-surface);
+        border-radius: var(--radius-md);
+        border: 1px solid transparent;
+        transition: 0.2s ease;
+    }
+    .benefit:hover { border-color: var(--color-border); background: #fff; box-shadow: var(--shadow-sm); }
+    .benefit-icon {
+        width: 44px; height: 44px;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 12px;
+        border-radius: 10px;
+        background: rgba(21,94,239,0.1);
+        font-size: 20px;
+    }
+    .benefit-label { font-size: 13.5px; font-weight: 600; color: var(--color-ink); }
 
-/* earticles css endign */
+    /* ===== Testimonials ===== */
+    .testimonial-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+    .testimonial-card {
+        background: #fff;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: 36px 24px 26px;
+        text-align: center;
+        position: relative;
+        box-shadow: var(--shadow-sm);
+    }
+    .testimonial-avatar {
+        width: 64px; height: 64px;
+        border-radius: 50%;
+        margin: -58px auto 14px;
+        border: 3px solid #fff;
+        box-shadow: var(--shadow-sm);
+        object-fit: cover;
+    }
+    .stars { color: var(--color-primary); letter-spacing: 2px; margin-bottom: 12px; font-size: 14px; }
+    .testimonial-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+    .testimonial-text { font-size: 14px; color: var(--color-body); }
 
- /* course categories */
-.child-ele{
-  display: flex;
-  margin-top: -25px;
-}
+    /* ===== Gallery ===== */
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 18px;
+    }
+    .gallery-item img {
+        width: 100%; height: 200px; object-fit: cover;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+    }
+    .gallery-caption { text-align: center; margin-top: 8px; font-size: 13.5px; font-weight: 500; color: var(--color-body); }
 
-.child-ele >*{
-  margin: 10px;
-}
-/* ebook section  */
+    /* ===== FAQ ===== */
+    .faq-list { max-width: 760px; margin: 0 auto; }
+    .faq-item {
+        background: #fff;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+    .faq-trigger {
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        padding: 17px 20px;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--color-ink);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+    }
+    .faq-trigger:hover { color: var(--color-primary); }
+    .faq-icon { font-size: 16px; color: var(--color-muted); transition: transform 0.2s ease; }
+    .faq-panel { padding: 0 20px; max-height: 0; overflow: hidden; transition: all 0.25s ease; }
+    .faq-panel-inner { padding: 0 0 18px; font-size: 14.5px; color: var(--color-body); }
+    .faq-item.open .faq-panel { max-height: 600px; }
+    .faq-item.open .faq-icon { transform: rotate(180deg); }
 
-.flex-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
+    /* ===== Footer / Social ===== */
+    .footer-cta { text-align: center; padding-top: 30px; border-top: 1px solid var(--color-border); }
+    .footer-cta p { margin-bottom: 16px; font-weight: 500; }
+    .social-row { display: flex; justify-content: center; gap: 12px; }
+    .social-btn {
+        width: 42px; height: 42px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border: 1px solid var(--color-border);
+        border-radius: 50%;
+        text-decoration: none;
+        color: var(--color-ink);
+        transition: 0.2s ease;
+    }
+    .social-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); text-decoration: none; }
+    .social-btn.youtube:hover { color: #ff0000; border-color: #ff0000; }
+    .social-btn.facebook:hover { color: #1877f2; border-color: #1877f2; }
 
-.card-ebooks {
-  width: 300px;
-  margin: 10px;
-}
+    site-footer, .site-footer {
+        background: #ffffff;
+        color: var(--color-body);
+        border-top: 1px solid var(--color-border);
+        padding: 48px 0 24px;
+        margin-top: 64px;
+        font-size: 14px;
+    }
+    .site-footer .wrap { text-align: center; }
+    .site-footer p { color: var(--color-muted); }
 
-.card-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.image-container img {
-  width: 250px;
-  height: 250px;
-}
-
-.text-container {
-  padding: 10px;
-}
-
-.text-container h6 {
-  margin-bottom: 5px;
-}
-
-.text-container small {
-  display: block;
-  margin-bottom: 5px;
-}
-
- /* end of ebooks */
-
-/* latest feed */
-/* Add your custom styles here */
-/* Add your custom styles here */
-.container {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.image-desktop {
-  max-width: 100%;
-  height: auto;
-  border-radius: 50%; /* Make the image rounded */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
-}
-
-/* Hide the image on mobile view */
-@media (max-width: 767px) {
-  .image-desktop {
-    display: none;
-  }
-}
-
-h2 {
-  font-size: 28px;
-  margin-bottom: 10px;
-}
-
-p {
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.btn-front {
-  display: block; /* To make the button occupy full width */
-  width: 100%;
-  max-width: 250px; /* Increase the maximum width for the buttons */
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 5px;
-  transition: background-color 0.2s ease;
-}
-
-.btn:hover {
-  background-color: #0056b3;
-}
-
-/* front page statistics  */
-/* Add your custom styles here */
-.statistics-section {
-  background-color: #f7f7f7;
-  padding: 40px 0;
-}
-
-.stat-item {
-  text-align: center;
-  padding: 20px;
-}
-
-.stat-icon {
-  font-size: 36px;
-  margin-bottom: 10px;
-}
-
-.stat-number {
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.stat-label {
-  font-size: 16px;
-  color: #777;
-}
-
-/* end of the front page statisitc */
-
-/* flip card  */
-
+    /* ===== Responsive ===== */
+    @media (max-width: 960px) {
+        .hero-grid { grid-template-columns: 1fr; }
+        .hero-media { order: -1; }
+        .stats-grid { grid-template-columns: repeat(3, 1fr); }
+        .testimonial-grid { grid-template-columns: 1fr; }
+        .benefits-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 600px) {
+        h2 { font-size: 26px; }
+        .hero h1 { font-size: 32px; }
+        .stats-grid { grid-template-columns: 1fr; }
+        .benefits-grid { grid-template-columns: repeat(2, 1fr); }
+        .section { padding: 56px 0; }
+    }
 </style>
+</head>
+<body>
 
-<!-- school campaign css -->
-<style>
-
-  .cta-button {
-      display: inline-block;
-      padding: 10px 20px;
-      font-size: 1.2em;
-      color: #fff;
-      background-color: #007bff;
-      text-decoration: none;
-      border-radius: 5px;
-  }
-
-  .cta-button:hover {
-      background-color: #0056b3;
-  }
-
-  .benefits {
-      margin-top: 30px;
-  }
-
-  .benefits h2 {
-      color: #007bff;
-  }
-
-</style>
-
-<!--end of  school campaign css -->
-
-<!-- popup  -->
-
-<style>
-  /* Add your styles here */
-  #popup-container {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      padding: 20px;
-      background-color: white;
-      border: 2px solid red;
-      z-index: 9999;
-      text-align: center;
-  }
-
-  .popup-image {
-      width: 100%; /* Set your preferred width */
-      height: 200px; /* Set your preferred height */
-      object-fit: cover; /* Maintain aspect ratio while filling the container */
-      display: none;
-  }
-
-  .popup-image.active {
-      display: block;
-  }
-
-  .popup-controls {
-      margin-top: 10px;
-  }
-</style>
-
-<!-- end of popup -->
-
-
-<!-- <div class="hover-container" style="padding-left: 20px;">
-  <div class="flip-card">
-    <div class="flip-card-inner">
-      <div class="flip-card-front">
-        <span style="width: 200px;" class="text bg-primary text-white">All Courses</span>
-      </div>
-      <div class="flip-card-back">
-
-        <div  class="card">
-        {% for obj in object_list %}
-        
-          <a class="text text-dark" href="{% url 'sms:courseslistdesc' obj.pk %}"> {{obj.title|safe|title}} </a> <hr>
-      
-        {% endfor %}
-      </div>
-       
-      </div>
-    </div>
-  </div>
-</div> -->
-
-
-<div  class="container">
-  <div class="row">
-
-    <div class="col-md-6 flex-container">
-      <div class="text-container">
-<br>
-
-<!-- Popup container -->
-<div id="popup-container">
-  <!-- Image carousel -->
-  {% for image in advertisement_images %}
-      <img class="popup-image {% if forloop.first %}active{% endif %}" src="{{ image.image.url }}" alt="Advertisement Image {{ forloop.counter }}">
-      <div class="desc">
-        <p> {{ image.desc }}</p>
-          {% if image.link %}
-              <a href="{{ image.link }}">View Details</a>
-          {% else %}
-             
-          {% endif %}
-      </div>
-  {% endfor %}
-
- 
-   <!-- Navigation controls -->
-<div class="popup-controls" style="display: flex; justify-content: center; gap: 12px; margin-top: 15px;">
-  <button onclick="prevImage()" 
-          style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: background-color 0.3s;">
-    ⬅ Prev
-  </button>
-  
-  <button onclick="nextImage()" 
-          style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: background-color 0.3s;">
-    Next ➡
-  </button>
-  
-  <button onclick="closePopup()" 
-          style="padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: background-color 0.3s;">
-    ❌ Close
-  </button>
-</div>
-
-  <!-- <div class="popup-control">
-      <button onclick="prevImage()">Previous</button>
-      <button onclick="nextImage()">Next</button>
-      <button onclick="closePopup()">Close</button>
-  </div>
-   -->
-</div>
-
-
-
-
-        <!-- <a style="font-size: 20px;color: red;" href="{% url 'users:become_referrer' %}">Become a Referrer, Click Here</a> -->
-        <h3 style="background-color: rgb(238, 238, 244);color: rgb(40, 99, 236);">Welcome to CodeThinkers Academy!</h3>
-        <p>
-          Join us at CodeThinkers Academy to unlock your coding potential. 
-          Our diverse range of courses covers web development, app creation, data science, 
-          and more. Learn from expert instructors and stay ahead in this dynamic industry. 
-          Embrace a future of possibilities and 
-          begin your coding journey with us today. Let's code, innovate, and inspire together!
-        </p>
-        
-      </div>
-      
-      
-    
-    </div>
-  
-    <div id="flash-message-container">
-      {% if messages %}
-        {% for message in messages %}
-          <div class="alert alert-success">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    </div>
-
-    <div class="col-md-6">
-      <img src="/static/sms/images/kids.webp" alt="front-image" class="image-desktop">
-    </div>
-
-  </div>
-</div>
-
-<div style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:16px;padding:35px 15px;background:#ffffff;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
-
-    {% if not users.is_authenticated %}
-    <a href="{% url 'account_login' %}"
-       style="display:inline-flex;align-items:center;gap:8px;padding:13px 24px;background:#0d6efd;color:#ffffff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;border:1px solid #0d6efd;transition:.3s;"
-       onmouseover="this.style.background='#0b5ed7';this.style.borderColor='#0b5ed7'"
-       onmouseout="this.style.background='#0d6efd';this.style.borderColor='#0d6efd'">
-        ➕ Join Free now! 111
-    </a>
-    {% endif %}
-
-    <a href="mailto:codethinkersa@gmail.com"
-       style="display:inline-flex;align-items:center;gap:8px;padding:13px 24px;background:#ffffff;color:#212529;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;border:1px solid #dcdcdc;transition:.3s;"
-       onmouseover="this.style.borderColor='#0d6efd';this.style.color='#0d6efd'"
-       onmouseout="this.style.borderColor='#dcdcdc';this.style.color='#212529'">
-        ✉ codethinkersa@gmail.com
-    </a>
-
-    <a href="https://wa.me/2348128014921"
-       style="display:inline-flex;align-items:center;gap:8px;padding:13px 24px;background:#ffffff;color:#212529;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;border:1px solid #dcdcdc;transition:.3s;"
-       onmouseover="this.style.background='#25D366';this.style.color='#ffffff';this.style.borderColor='#25D366'"
-       onmouseout="this.style.background='#ffffff';this.style.color='#212529';this.style.borderColor='#dcdcdc'">
-        💬 Customer Support
-    </a>
-
-</div>
-
-
-<div style="padding:60px 20px;background:#f8f9fa;overflow:hidden;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
-
-    <h2 style="text-align:center;font-size:30px;font-weight:700;color:#212529;margin-bottom:45px;">
-        Trusted by Our Global Partners
-    </h2>
-
-    <section style="display:flex;align-items:center;gap:60px;width:max-content;animation:scrollPartners 30s linear infinite;">
-
-        {% for partner in partners %}
-
-        <img src="{{ partner.img_partner.url }}"
-             loading="lazy"
-             width="100"
-             height="100"
-             alt="Partner Logo"
-             style="width:100px;height:100px;object-fit:contain;background:#fff;padding:8px;border:1px solid #ececec;border-radius:10px;filter:grayscale(100%);transition:.35s;"
-             onmouseover="this.style.filter='grayscale(0%)';this.style.transform='scale(1.08)'"
-             onmouseout="this.style.filter='grayscale(100%)';this.style.transform='scale(1)'">
-
-        {% empty %}
-
-        <h4 style="text-align:center;color:#dc3545;width:100%;">
-            No Partners Available Yet.
-        </h4>
-
-        {% endfor %}
-
-    </section>
-
-    <div style="text-align:center;margin-top:60px;">
-
-        <h2 style="font-size:30px;font-weight:700;color:#212529;margin-bottom:25px;">
-            Empower Schools and Organizations with Our New Program
-        </h2>
-
-        <a href="https://codethinkers.netlify.app"
-           style="display:inline-block;padding:14px 30px;background:#0d6efd;color:#ffffff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;border:1px solid #0d6efd;transition:.3s;"
-           onmouseover="this.style.background='#0b5ed7';this.style.borderColor='#0b5ed7'"
-           onmouseout="this.style.background='#0d6efd';this.style.borderColor='#0d6efd'">
-            Learn More
+<!-- ===== Header ===== -->
+<header class="site-header">
+    <div class="wrap nav">
+        <a href="/" class="nav-logo">
+            <img src="/static/sms/images/logo.png" alt="CodeThinkers Academy" onerror="this.style.display='none'">
+            CodeThinkers Academy
         </a>
-
-    </div>
-
-    <style>
-        @keyframes scrollPartners{
-            from{transform:translateX(100%);}
-            to{transform:translateX(-100%);}
-        }
-    </style>
-
-</div>    
- <!-- partners section endign -->
- 
-<!-- page Statistics -->
-<div class="statistics-section" style="background: #f9f9f9; padding: 60px 0;">
-  <div class="container" style="max-width: 1200px; margin: 0 auto;">
-    <div class="row" style="display: flex; flex-wrap: wrap; justify-content: center; text-align: center; gap: 40px;">
-
-      <div class="col-md-4" style="flex: 1; min-width: 250px;">
-        <div class="stat-icon" style="font-size: 50px; color: #3498db; margin-bottom: 15px;">
-          <i class="fas fa-graduation-cap"></i>
-        </div>
-        <div class="stat-number" style="font-size: 38px; font-weight: 700; color: #2c3e50;">{{students}}+</div>
-        <div class="stat-label" style="font-size: 18px; color: #555;">Students Enrolled</div>
-      </div>
-
-      <div class="col-md-4" style="flex: 1; min-width: 250px;">
-        <div class="stat-icon" style="font-size: 50px; color: #e67e22; margin-bottom: 15px;">
-          <i class="fas fa-layer-group"></i>
-        </div>
-        <div class="stat-number" style="font-size: 38px; font-weight: 700; color: #2c3e50;">{{category}}+</div>
-        <div class="stat-label" style="font-size: 18px; color: #555;">Categories</div>
-      </div>
-
-      <div class="col-md-4" style="flex: 1; min-width: 250px;">
-        <div class="stat-icon" style="font-size: 50px; color: #2ecc71; margin-bottom: 15px;">
-          <i class="fas fa-book-open"></i>
-        </div>
-        <div class="stat-number" style="font-size: 38px; font-weight: 700; color: #2c3e50;">{{courses}}+</div>
-        <div class="stat-label" style="font-size: 18px; color: #555;">Courses Offered</div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-
-<br> <br> <br>
-   <div class="card-body">
-    <h3 style="color: black;  font-weight: bold;" >We Offer {{category}} Course Categories to Suit Your needs</h3>  
-   </div>
-    
-  <div  class="container1">
-  
-    {% for category in coursecategory %}
-    <a style="height: 10px;" class="" href="{% url 'sms:courseslist' category.pk %}">
-    <div  class="left-column-cat border ">
-        <!-- <p class=" card rounded-4 category"> -->
-        
-            {% if category.img_cat %}
-            <img class="rounded images" src="{{category.img_cat.url}}" width="300px" height="250px" alt="cetagory image">
-            <br>
-            
-            {% endif %}
-            <br>
-            <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' category.pk %}">{{category|safe}}</a>
-            <p class="pl-3">{% get_hit_count for category %} <i class="fas fa-eye"></i> </p>
-
-            <p class="pl-3">{{category.desc}}</p>
-        
-            <div class="text-left container">{{courses_count}}</div> 
-
-     
-    </div>
-  </a>
-    {% empty %}
-      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-    {% endfor %}
-  </div>
-<!-- END CATEGORIES OF COURSES-->
-
-
-
-<br> <br> 
-<!-- benefits -->
-<div style="background: #f9f9f9; padding: 60px 0;">
-    <!-- Heading only (standalone) -->
-    <div style="width: 100%; text-align: center; margin-bottom: 60px;">
-      <h2 style="font-size: 36px; color: #2c3e50; font-weight: bold;">
-        Benefits Associated with the Courses
-      </h2>
-    </div>
-
-  <div class="container" style="max-width: 1200px; margin: 0 auto;">
-
-
-    <!-- Benefits section -->
-    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 30px;">
-
-      <div style="flex: 1; min-width: 220px; max-width: 250px; text-align: center; font-size: 18px; color: #34495e;">
-        <div style="font-size: 40px; color: #3498db; margin-bottom: 10px;">
-          <i class="fas fa-globe"></i>
-        </div>
-        100% Online
-      </div>
-
-      <div style="flex: 1; min-width: 220px; max-width: 250px; text-align: center; font-size: 18px; color: #34495e;">
-        <div style="font-size: 40px; color: #3498db; margin-bottom: 10px;">
-          <i class="fas fa-clock"></i>
-        </div>
-        Flexible Deadlines
-      </div>
-
-      <div style="flex: 1; min-width: 220px; max-width: 250px; text-align: center; font-size: 18px; color: #34495e;">
-        <div style="font-size: 40px; color: #3498db; margin-bottom: 10px;">
-          <i class="fas fa-users"></i>
-        </div>
-        Collaborators
-      </div>
-
-      <div style="flex: 1; min-width: 220px; max-width: 250px; text-align: center; font-size: 18px; color: #34495e;">
-        <div style="font-size: 40px; color: #3498db; margin-bottom: 10px;">
-          <i class="fas fa-briefcase"></i>
-        </div>
-        Job Opportunities
-      </div>
-
-      <div style="flex: 1; min-width: 220px; max-width: 250px; text-align: center; font-size: 18px; color: #34495e;">
-        <div style="font-size: 40px; color: #3498db; margin-bottom: 10px;">
-          <i class="fas fa-certificate"></i>
-        </div>
-        Certificate of Completion
-      </div>
-
-      <div style="flex: 1; min-width: 220px; max-width: 250px; text-align: center; font-size: 18px; color: #34495e;">
-        <div style="font-size: 40px; color: #3498db; margin-bottom: 10px;">
-          <i class="fas fa-language"></i>
-        </div>
-        Language: English
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-
-<!-- end benefits -->
-
-
-
-<br> <br> <br>
- <!--DIFFERENT  COURSES-->
-{% for obj in beginner %}
-{% if forloop.last %}
-<div class="card-body">
-  <div class="">
-<h3 style="color: black; font-weight: bold;" >{{beginner_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
-<a style="height: 10px; color: red;font-size: 20px;" class="" href="{% url 'sms:courseslist' obj.categories.pk %}">View All Courses</a>
-<br>
-
-
-</div>
-</div>
-{% endif %}
-{% endfor %}
-  
-
-<div  class="beginner">
- 
-
-  {% for obj in beginner %}
-  
- 
-
-  <a style="height: 10px;" class=""  href="{% url 'sms:courseslistdesc' obj.pk %}">
-  <div  class="left-column-cat border ">
-      <!-- <p class=" card rounded-4 category"> -->
-      
-          {% if obj.img_course %}
-          <img class="rounded images" src="{{obj.img_course.url}}" width="300px" height="300px" alt="cetagory image">
-          <br>
-          
-          {% endif %}
-          <div class="pl-2">
-          <div class="d-flex rounded owner">
-            <div class="d-flex rounded owner">
-              {% if obj.course_logo.url %}
-              <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-              {% else %}
-              <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-            {% endif %}
-    
-            {% if obj.course_owner %}
-            <small class="text-dark">{{obj.course_owner|safe}}</small>
+        <div class="nav-actions">
+            {% if user.is_authenticated %}
+            <!-- <div class="user-menu" id="userMenu">
+                <button type="button" id="userMenuTrigger" aria-haspopup="true" aria-expanded="false" class="user-menu-trigger">
+                    <img src="/static/sms/dashboard/img/undraw_profile.svg" alt="Profile">
+                </button>
+                <div class="user-menu-panel" id="userMenuPanel">
+                    <a href="{% url 'sms:myprofile' %}">Profile</a>
+                    <a href="{% url 'account_change_password' %}">Change Password</a>
+                    <a href="{% url 'account_reset_password' %}">Password Reset</a>
+                    <div class="user-menu-divider"></div>
+                    <a href="#" data-toggle="modal" data-target="#logoutModal">Logout</a>
+                </div>
+            </div> -->
             {% else %}
-            <small class="text-dark">Codethinkers Academy </small>
-            
+            <a href="{% url 'account_login' %}" class="btn btn--primary btn--sm">Join Free Now</a>
             {% endif %}
-            <!-- {% if school_name %}
-            <h4>Premium</h4>
-            {% endif %} -->
-            </div>
-          </div>
-        <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
-        {% if obj.status_type == 'Premium' and not school_name %}
-        <div class="d-flex">
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe|floatformat:"0g"}}</p> 
-        <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i></p>
-      </div>
-        {% else %}
-        <div class="d-flex">
-        <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-        <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i></p>
-      </div>
-        {% endif %}
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}}  {{ obj.beginner_topic_count }} Modules</small> <br>
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-        <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
-      </div>
-     
-      
-   
-  </div>
-
-
-
-</a>
-
-
-  {% empty %}
-    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-  {% endfor %}
-
-
-
-</div>
-<!-- END BEGINNER OF COURSES-->
-
-<br> <br> <br>
-
- <!--INTERMEDIATE DIFFERENT  COURSES-->
-
- {% for obj in intermediate %}
- {% if forloop.last %}
- <div class="card-body">
-   <div class="">
- <h3 style="color: black; font-weight: bold;" >{{intermediate_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
- <a style="height: 10px;color: red class;font-size: 20px;" href="{% url 'sms:courseslist' obj.categories.pk %}">View All Courses</a>
- </div>
- </div>
- {% endif %}
-{% endfor %}
-   
- <div  class="beginner">
- 
-  {% for obj in intermediate %}
-
-
-   <a style="height: 10px;" class="" href="{% url 'sms:courseslistdesc' obj.pk %}">
-   <div  class="left-column-cat border ">
-       <!-- <p class=" card rounded-4 category"> -->
-       
-           {% if obj.img_course %}
-           <img class="rounded images" src="{{obj.img_course.url}}" width="300px" height="300px" alt="cetagory image">
-           <br>
-           
-           {% endif %}
-           <div class="pl-2">
-           <div class="d-flex rounded owner">
-             <div class="d-flex rounded owner">
-               {% if obj.course_logo.url %}
-               <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-               {% else %}
-               <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-             {% endif %}
-     
-             {% if obj.course_owner %}
-             <small class="text-dark">{{obj.course_owner|safe}}</small>
-             {% else %}
-             <small class="text-dark">Codethinkers Academy  </small>
-             {% endif %}
- 
-             </div>
-           </div>
-         <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
-         {% if obj.status_type == 'Premium' and not school_name %}
-         <div class="d-flex">
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe|floatformat:"0g"}}</p> 
-         <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i></p>
         </div>
-         {% else %}
-         <div class="d-flex">
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-         <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i></p>
-        </div>
-         {% endif %}
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}} {{ obj.intermediate_topic_count }} Modules</small> <br>
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
-       </div>
-           <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>-->
-           <!-- <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i>TTTTTTT </p> -->
-      
-          
-     
-    
-   </div>
-
- </a>
- 
-
-   {% empty %}
-     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-   {% endfor %}
- </div>
- <!-- END INTERMEDIATE OF COURSES-->
- 
- <br> <br> <br>
-
- <!-- ADVANCED DIFFERENT  COURSES-->
-
- {% for obj in advanced %}
- {% if forloop.last %}
-
- <div class="card-body">
-    <div class="">
- <h3 style="color: black;  font-weight: bold;" >{{advanced_count}} Courses for {{obj.categories.name|title}}'s  Available for You</h3>
- <a style="height: 10px;color: red; font-size: 20px;" class="" href="{% url 'sms:courseslist' obj.categories.pk %}">View All Courses</a>
     </div>
- </div>
+</header>
 
- {% endif %}
- {% endfor %}
-   
-
- <div  class="beginner ">
- 
-  {% for obj in advanced %}
-
-
-   <a style="height: 10px;" class="" href="{% url 'sms:courseslistdesc' obj.pk %}">
-   <div  class="left-column-cat border ">
-       <!-- <p class=" card rounded-4 category"> -->
-       
-           {% if obj.img_course %}
-           <img class="rounded images" src="{{obj.img_course.url}}" width="300px" height="300px" alt="cetagory image">
-           <br>
-           
-           {% endif %}
-           <div class="pl-2">
-           <div class="d-flex rounded owner">
-             <div class="d-flex rounded owner">
-               {% if obj.course_logo.url %}
-               <img  class="rounded" src="{{ obj.course_logo.url }}" width="300px"  height="33px" alt=""> <br>
-               {% else %}
-               <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-             {% endif %}
-     
-             {% if obj.course_owner %}
-             <small class="text-dark">{{obj.course_owner|safe}}</small>
-             {% else %}
-             <small class="text-dark">Codethinkers Academy </small>
-             {% endif %}
- 
-             </div>
-           </div>
-         <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
-         {% if obj.status_type == 'Premium' and not school_name %}
-         <div class="d-flex">
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe|floatformat:"0g"}}</p> 
-         <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i></p>
-        </div>
-         {% else %}
-         <div class="d-flex">
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-         <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i></p>
-        </div>
-         {% endif %}
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}} {{ obj.advanced_topic_count }} Modules</small> <br>
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
-       </div>
-           <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
-           <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p> -->
-       
-   </div>
- </a>
- 
-
-   {% empty %}
-     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-   {% endfor %}
- </div>
- <!-- END ADVANCED OF COURSES-->
- 
-
- <br> <br> <br>
-
- <!-- LATEST DIFFERENT  COURSES-->
-
-  <div style="margin-bottom: -50px;" class="card-body">
-    <h3 style="color: black;  font-weight: bold;" >{{latest_course_count}} Latest Courses on Codethinkers Academy </h3>
-
-    <p class="" >Explore our newest programs, focused on delivering in-demand skills.</p> 
-  </div>
-
-
-<br> 
-
-
- <div  class="beginner ">
- 
-   {% for obj in latest_course %}
-
-
-   <a style="height: 10px;" class=""  href="{% url 'sms:courseslistdesc' obj.pk %}">
-   <div  class="left-column-cat border ">
-       <!-- <p class=" card rounded-4 category"> -->
-       
-           {% if obj.img_course %}
-           <img class="rounded images" src="{{obj.img_course.url}}" width="300px" height="300px" alt="cetagory image">
-           <br>
-           
-           {% endif %}
-           <div class="pl-2">
-           <div class="d-flex rounded owner">
-             <div class="d-flex rounded owner">
-               {% if obj.course_logo.url %}
-               <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-               {% else %}
-               <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-             {% endif %}
-     
-             {% if obj.course_owner %}
-             <small class="text-dark">{{obj.course_owner|safe}}</small>
-             {% else %}
-             <small class="text-dark">Codethinkers Academy </small>
-             {% endif %}
- 
-             </div>
-           </div>
-         <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
-      
-         
-         {% if obj.status_type == 'Premium' and not school_name %}
-         <div class="d-flex">
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe|floatformat:"0g"}}</p> 
-         <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i></p>
-        </div>
-         {% else %}
-         <div class="d-flex">
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-         <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i></p>
-        </div>
-         {% endif %}
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}} {{ obj.latest_course_topic_count }} Modules</small> <br>
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
-       </div>
-           <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
-           <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p> -->
-       
-
-   </div>
- </a>
-
-
-   {% empty %}
-     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-   {% endfor %}
- </div>
-
-  <!--END LATEST  COURSES-->
-
-
- <!-- POPULAR DIFFERENT  COURSES-->
- <br> <br> <br>
-
- <div class="card-body">
-   <div class="">
- <h3 style="color: black; font-weight: bold;" >Popular Courses</h3>
- </div>
- </div>
-
- <div  class="beginner ">
- 
-   {% for obj in popular_course %}
-
-
-   <a style="height: 10px;" class=""  href="{% url 'sms:courseslistdesc' obj.pk %}">
-   <div  class="left-column-cat border ">
-       <!-- <p class=" card rounded-4 category"> -->
-       
-           {% if obj.img_course %}
-           <img class="rounded images" src="{{obj.img_course.url}}" width="300px" height="300px" alt="cetagory image">
-           <br>
-           
-           {% endif %}
-           <div class="pl-2">
-           <div class="d-flex rounded owner">
-             <div class="d-flex rounded owner">
-               {% if obj.course_logo.url %}
-               <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-               {% else %}
-               <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-             {% endif %}
-     
-             {% if obj.course_owner %}
-             <small class="text-dark">{{obj.course_owner|safe}}</small>
-             {% else %}
-             <small class="text-dark">Codethinkers Academy </small>
-             {% endif %}
- 
-             </div>
-           </div>
-         <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
-         {% if obj.status_type == 'Premium' and not school_name %}
-         <div class="d-flex">
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe|floatformat:"0g"}}</p> 
-         <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i></p>
-        </div>
-         {% else %}
-         <div class="d-flex">
-         <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-         <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i></p>
-        </div>
-         {% endif %}
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}} {{ obj.popular_course_topic_count }} Modules</small> <br>
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-         <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
-       </div>
-           <!-- <a style="font-size: 12px;" class="pl-3" href="{% url 'sms:courseslist' obj.pk %}">{{obj|safe}}</a>
-           <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i> </p> -->
-       
-
-   </div>
- </a>
-
-
-   {% empty %}
-     <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-   {% endfor %}
- </div>
- <!-- END POPULAR OF COURSES-->
-
-
- 
-  <!--FREE DIFFERENT  COURSES-->
-  <br> <br> <br>
- 
-  <div class="card-body">
-    <div class="">
-
-  <h3 style="color: black;  font-weight: bold;" >Enjoy Our {{Free_courses_count}} Free Courses Available for You</h3>
-
-  </div>
-  </div>
- 
-  
-  <div  class="beginner ">
-  
-    {% for obj in Free_courses %}
-
-
-    <a style="height: 10px;" class="" href="{% url 'sms:courseslistdesc' obj.pk %}">
-    <div  class="left-column-cat border ">
-        <!-- <p class=" card rounded-4 category"> -->
-        
-            {% if obj.img_course %}
-            <img class="rounded images" src="{{obj.img_course.url}}" width="300px" height="300px" alt="cetagory image">
-            <br>
-            
-            {% endif %}
-            <div class="pl-2">
-            <div class="d-flex rounded owner">
-              <div class="d-flex rounded owner">
-                {% if obj.course_logo.url %}
-                <img  class="rounded" src="{{ obj.course_logo.url }}" width="30px"  height="33px" alt=""> <br>
-                {% else %}
-                <img  class="rounded" src=" /static/sms/images/newlogo3.jpg" width="30px"  height="33px" alt="{{obj.desc}}"> <br>
-              {% endif %}
-      
-              {% if obj.course_owner %}
-              <small class="text-dark">{{obj.course_owner|safe}}</small>
-              {% else %}
-              <small class="text-dark">Codethinkers Academy </small>
-              {% endif %}
-  
-              </div>
-            </div>
-          <a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">{{obj}} </a>
-          {% if obj.status_type == 'Premium' and not school_name %}
-          <div class="d-flex">
-          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}} |  &#8358;{{obj.price|safe|floatformat:"0g"}}</p> 
-          <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i></p>
-        </div>
-          {% else %}
-          <div class="d-flex">
-          <p style="color: black; font-size: 18px; font-weight: bold;" class="">{{obj.status_type|safe}}</p> 
-          <p class="pl-3">{% get_hit_count for obj %} <i class="fas fa-eye"></i></p>
-        </div>
-          {% endif %}
-          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.categories.name|safe|title}} {{ obj.Free_courses_topic_count }} Modules</small> <br>
-          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " >{{obj.course_type|safe}}</small>
-          <small data-label="my-label-button" class="line-numbers copy-to-clipboard-button " ><a style="font-size: 12px;"  href="{% url 'sms:courseslistdesc' obj.pk %}">View Course</a></small>
-        </div>
-
-
-       
-    </div>
-  </a>
-
-       
-  
-  </a>
-
-    {% empty %}
-      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-    {% endfor %}
-  </div>
-
-
-  <!-- END CATEGORIES OF COURSES-->
-  
-
-  <br> <br> <br>
-  <!-- ebooks section  -->
-
-  <div class="card shadow-sm border-0 mb-4">
-    <div class="card-body text-center">
-      <h3 class="text-danger fw-bold">
-        <i class="fas fa-book-reader me-2"></i>{{ alert_count_homes }} E-books Available for You
-      </h3>
-    </div>
-  </div>
-  
-  <!-- E-books Grid -->
-  
-  <div class="d-flex flex-wrap justify-content-center gap-4">
-    {% for alert in alert_homes %}
-    <div class="card shadow-sm border-0 d-flex flex-column" style="width: 16rem;">
-      <img src="{{ alert.img_ebook.url }}" class="card-img-top" alt="{{ alert.title }}" style="height: 180px; object-fit: cover;">
-      <div class="card-body d-flex flex-column justify-content-between">
+<!-- ===== Hero ===== -->
+<section class="hero">
+    <div class="wrap hero-grid">
         <div>
-          <h6 class="card-title text-dark fw-semibold mb-2">{{ alert.title|safe }}</h6>
-          <p class="mb-2 small">
-            <i class="fas fa-tag text-success me-1"></i> Price: <strong>&#8358;{{ alert.price }}</strong>
-          </p>
+            <span class="eyebrow">Learn. Build. Launch.</span>
+            <h1>Unlock your coding potential at <span>CodeThinkers Academy</span></h1>
+            <p>Our diverse range of courses covers web development, app creation, data science, and more. Learn from expert instructors and stay ahead in this dynamic industry.</p>
+            <div class="hero-cta">
+                {% if not user.is_authenticated %}
+                <a href="{% url 'account_login' %}" class="btn btn--primary">Join Free Now</a>
+                {% endif %}
+                <a href="mailto:codethinkersa@gmail.com" class="btn btn--outline">Contact Us</a>
+            </div>
         </div>
-        <a href="{% url 'sms:ebooks' alert.id %}" class="btn btn-outline-primary btn-sm mt-auto">
-          <i class="fas fa-eye me-1"></i> View Details
-        </a>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  
-
-  <!-- ebooks section endign -->
-
-<br> <br> <br>
-<div class="text-center mb-5">
-  <h3 class="fw-bold text-primary">What Our Students Say</h3>
-  <p class="text-muted">Real feedback from learners at CodeThinkers Academy</p>
-</div>
-
-<section class="container py-5">
-
-
-  <div class="row g-4 justify-content-center">
-    
-    <div class="col-md-4 d-flex align-items-stretch">
-      <div class="card shadow-lg border-0 rounded-4">
-        <div class="card-up rounded-top" style="background-color: #9d789b;"></div>
-        <div class="avatar mx-auto bg-white p-2 rounded-circle shadow" style="margin-top: -40px;">
-          <img src="/static/sms/images/girlavater.webp" width="90" height="90" class="rounded-circle img-fluid" />
+        <div class="hero-media">
+            <img src="/static/sms/images/kids.webp" alt="CodeThinkers Academy students">
         </div>
-        <div class="card-body text-center px-4">
-          <h5 class="fw-semibold mt-3">Maria Smantha</h5>
-          <div class="mb-2">
-            <i class="fas fa-star text-warning"></i>
-            <i class="fas fa-star text-warning"></i>
-            <i class="fas fa-star text-warning"></i>
-            <i class="fas fa-star text-warning"></i>
-            <i class="fas fa-star text-warning"></i>
-          </div>
-          <hr>
-          <p class="text-muted small">
-            <i class="fas fa-quote-left me-2 text-secondary"></i>
-            "Codethinkers Academy offers a top-notch programming education with knowledgeable instructors, comprehensive curriculum, and practical projects that prepare students for real-world challenges."
-          </p>
-        </div>
-      </div>
     </div>
 
-    <div class="col-md-4 d-flex align-items-stretch">
-      <div class="card shadow-lg border-0 rounded-4">
-        <div class="card-up rounded-top" style="background-color: #7a81a8;"></div>
-        <div class="avatar mx-auto bg-white p-2 rounded-circle shadow" style="margin-top: -40px;">
-          <img src="/static/sms/images/avater11.png" width="90" height="90" class="rounded-circle img-fluid" />
-        </div>
-        <div class="card-body text-center px-4">
-          <h5 class="fw-semibold mt-3">Andrew Cudrow</h5>
-          <div class="mb-2">
-            <i class="fas fa-star text-warning"></i>
-            <i class="fas fa-star text-warning"></i>
-            <i class="fas fa-star text-warning"></i>
-            <i class="fas fa-star text-warning"></i>
-            <i class="fas fa-star text-warning"></i>
-          </div>
-          <hr>
-          <p class="text-muted small">
-            <i class="fas fa-quote-left me-2 text-secondary"></i>
-            "The academy creates a supportive learning environment, where instructors and mentors are readily available, fostering collaboration and individual attention."
-          </p>
-        </div>
-      </div>
+    {% if messages %}
+    <div class="wrap alert-stack">
+        {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+        {% endfor %}
     </div>
-
-    <div class="col-md-4 d-flex align-items-stretch">
-      <div class="card shadow-lg border-0 rounded-4">
-        <div class="card-up rounded-top" style="background-color: #6d5b98;"></div>
-        <div class="avatar mx-auto bg-white p-2 rounded-circle shadow" style="margin-top: -40px;">
-          <img src="/static/sms/images/avater2.webp" width="90" height="90" class="rounded-circle img-fluid" />
-        </div>
-        <div class="card-body text-center px-4">
-          <h5 class="fw-semibold mt-3">Muhammad Abubakar</h5>
-          <div class="mb-2">
-            <i class="fas fa-star text-warning"></i>
-            <i class="fas fa-star text-warning"></i>
-            <i class="fas fa-star text-warning"></i>
-            <i class="fas fa-star text-warning"></i>
-            <i class="fas fa-star text-warning"></i>
-          </div>
-          <hr>
-          <p class="text-muted small">
-            <i class="fas fa-quote-left me-2 text-secondary"></i>
-            "With a focus on real-world projects and career preparation, Codethinkers Academy equips students with practical skills and offers valuable resources for successful entry into the programming industry."
-          </p>
-        </div>
-      </div>
-    </div>
-
-  </div>
+    {% endif %}
 </section>
 
-
- 
-
-  
-  <!--GALLERY-->
-  <br> <br> <br>
-
-  <div style="color: black; font-size: 18px; font-weight: bold;"   class="card-body">
-    <h3 >Our Gallery </h3>
-  </div>
-  
-  <div class="gallery rounded-4 text-center">
-    {% for category in gallery %}
-    <div class="left-column-cat">
-      <p class="text-center category">
-        {% if category.gallery %}
-        <img class="rounded-4 images" 
-        src="{{ category.gallery.url }}" 
-        style="width: 100%; height: 400px; object-fit: contain; border-radius: 10px;">
-   
-
-        {% endif %}
-        {% if category.title %}
-        <div class="text-left container">{{category.title}}</div>
-        {% endif %}
-      </p>
+<!-- ===== Quick Contact Bar ===== -->
+<div class="contact-bar">
+    <div class="wrap">
+        <a href="mailto:codethinkersa@gmail.com">✉ codethinkersa@gmail.com</a>
+        <span class="contact-divider">|</span>
+        <a href="https://wa.me/2348128014921">💬 Customer Support</a>
     </div>
-    {% empty %}
-    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-    {% endfor %}
-  </div>
-<!-- END GALLERY-->
+</div>
 
-  <!--DIFFERENT  COURSES-->
-  <br> <br> <br>
-
-  <div class="card-body">
-    <div class="">
-  <h3 style="color: red;  font-weight: bold;" >Latest News Feed</h3>
-  <a href="{% url 'sms:bloglistview' %}" class="btn btn-primary">read more articles....</a>
-  </div>
-  </div>
- 
-  <div style="height: 500px;"  class="beginner ">
-  
-    {% for obj in blogs %}
-   
-    <a style="height: 10px;" class="" href="{% url 'sms:blogdetaillistview' obj.slug %}">
-    <div  class="left-column-cat border ">
-        <!-- <p class=" card rounded-4 category"> -->
-        
-            {% if obj.img_blog %}
-            <img class="rounded images" src="{{obj.img_blog.url}}" width="300px" height="280px" alt="cetagory image">
-          
-            
-            {% endif %}
-          <div class="pl-2">
-           
-            <!-- <p style="color: black;">Image source: {{obj.img_source}}</p> -->
-            <div class="d-flex view-latest">
-			      <p style="color: black;">{{obj.created|timesince}}</p>
-            <p  class="text-center" style="color: black;"> {% get_hit_count for obj %}<i class="fas fa-eye"></i> </p>
-          </div>
-            {% if obj.author %}
-           
-              <p style="color: black; font-weight: bold;" class="card-text">By {{obj.author}}</p>
-             
-        
-              {% else %}
-              <small style="color: black; font-weight: bold;" class="card-text">By {{obj.poster}}</small>
-              {% endif %}	
-              <h6  style="color: black; font-weight: bold;">{{obj.title|safe}}</h6>
-              <p  style="color: black; ">{{obj.desc|safe|striptags|truncatewords:5}}</p>
-
-              <a href="{% url 'sms:blogdetaillistview' obj.slug %}" class="action-news">
-                Find out more
-                <span aria-hidden="true">
-                  →
-                </span>
-              </a>
-
-            
+<!-- ===== Partners ===== -->
+{% if partners %}
+<section class="section--tight">
+    <div class="wrap">
+        <div class="section-head" style="margin-bottom:36px;">
+            <h2 style="font-size:24px;">Trusted by Our Global Partners</h2>
         </div>
-  
-    </div>
-  </a>
-
-    {% empty %}
-      <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-    {% endfor %}
-  </div>
-  <!-- END CATEGORIES OF COURSES-->
-  
-
-<!-- Categories and Courses -->
-<br><br><br>
-<h3 class="text-center text-primary mt-4 mb-4">
-  <i class="fas fa-layer-group"></i> Categories and Courses
-</h3>
-
-<div class="d-flex flex-wrap justify-content-center gap-4">
-  {% for category in category_sta %}
-  <div class="card shadow-sm border-0" style="width: 16rem;">
-    <div class="card-body text-center">
-      <!-- <img src="/static/sms/images/newlogo3.jpg" class="mb-2 rounded" width="100" height="50" alt="{{ category.name }}"> -->
-      <h5 class="card-title fw-bold mt-2">
-        <i class="fas fa-book-open text-info me-1"></i> {{ category.name|title }}
-      </h5>
-      <p class="card-text text-muted">
-        <i class="fas fa-graduation-cap text-secondary me-1"></i> {{ category.num_courses }} Courses
-      </p>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-<!--end Categories and Courses -->
-
-<br> <br> <br>
-
-<!-- FAQ-->
-<div class="container">
-  <h3 id="faqs" style="text-align: center;" class="text-danger ">Frequently Asked Questions</h3>
-</div>
-
-<br>
-<div class="container4 bg-primary" style="width: 90%; margin: 0 auto;">
-  <div class="accordion" id="faqAccordion">
-    {% for faq in faqs %}
-    <div class="card">
-
-      <div class="card-header" id="faqHeading{{ faq.id }}">
-        <p class="mb-0">
-          <button style="font-size: 12px;" class="btn btn-link" type="button" data-toggle="collapse" data-target="#faqCollapse{{ faq.id }}" aria-expanded="true" aria-controls="faqCollapse{{ faq.id }}">
-            {{ faq.title|safe|lower }}
-            <i class="fas fa-chevron-down"></i>
-          </button>
-        </p>
-      </div>
-
-      <div id="faqCollapse{{ faq.id }}" class="collapse" aria-labelledby="faqHeading{{ faq.id }}" data-parent="#faqAccordion">
-        <div class="card-body">
-          {{ faq.desc|safe }}
+        <div class="partners-track">
+            <div class="partners-scroll">
+                {% for partner in partners %}
+                <img src="{{ partner.img_partner.url }}" loading="lazy" alt="Partner">
+                {% endfor %}
+            </div>
         </div>
-      </div>
-   
     </div>
-    
-    {% empty %}
-    <h1 class="card text-center text-danger">No Courses Categories Yet. CHECK LATER</h1>
-    {% endfor %}
-  </div>
-</div>
-<br>
+</section>
+{% endif %}
 
-<hr>
+<!-- ===== Statistics ===== -->
+<section class="section--surface section--tight">
+    <div class="wrap">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ students }}+</div>
+                <div class="stat-label">Students Enrolled</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ category }}+</div>
+                <div class="stat-label">Categories</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ courses }}+</div>
+                <div class="stat-label">Courses Offered</div>
+            </div>
+        </div>
+    </div>
+</section>
 
-<div style="padding: 0px 20px 0px 20px;" class="card-bod">
-  <!-- <h2>Empower Schools and Organizations with our New Program!</h2> -->
-<div class="te">
-  <!-- <h4>Unlock a World of Learning Opportunities for Your School or Organization</h4>
-  <p>Experience the next level of education with our cutting-edge courses in the New Program, tailored for schools and organizations. From in-depth content to practical skills, we have it all.</p>
-  <p>Don't miss out on this opportunity to enhance the knowledge and skills of your students or members.</p> -->
+<!-- ===== Categories ===== -->
+{% if coursecategory %}
+<section class="section">
+    <div class="wrap">
+        <div class="row-head">
+            <h2 style="font-size:26px;margin-bottom:0;">We offer {{ category }} course categories</h2>
+        </div>
+        <div class="scroll-row">
+            {% for category in coursecategory %}
+            <a href="{% url 'sms:courseslist' category.pk %}" class="card cat-card">
+                {% if category.img_cat %}
+                <img class="card-img" src="{{ category.img_cat.url }}" alt="{{ category.name }}">
+                {% endif %}
+                <div class="card-body">
+                    <div class="card-title">{{ category|safe }}</div>
+                    <div class="card-desc">{{ category.desc|truncatewords:15 }}</div>
+                    <span class="card-tag">View Courses →</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
 
-  <!-- <a href="{% url 'program_pages_list' %}" class="cta-button">See what we have for you</a> -->
+<!-- ===== Benefits ===== -->
+<section class="section--surface">
+    <div class="wrap">
+        <div class="section-head">
+            <span class="eyebrow">Why CodeThinkers</span>
+            <h2>Benefits of our courses</h2>
+        </div>
+        <div class="benefits-grid">
+            <div class="benefit">
+                <div class="benefit-icon">🌐</div>
+                <div class="benefit-label">100% Online</div>
+            </div>
+            <div class="benefit">
+                <div class="benefit-icon">⏰</div>
+                <div class="benefit-label">Flexible Deadlines</div>
+            </div>
+            <div class="benefit">
+                <div class="benefit-icon">👥</div>
+                <div class="benefit-label">Collaborators</div>
+            </div>
+            <div class="benefit">
+                <div class="benefit-icon">💼</div>
+                <div class="benefit-label">Job Opportunities</div>
+            </div>
+            <div class="benefit">
+                <div class="benefit-icon">📜</div>
+                <div class="benefit-label">Certificate</div>
+            </div>
+            <div class="benefit">
+                <div class="benefit-icon">🇬🇧</div>
+                <div class="benefit-label">Language: English</div>
+            </div>
+        </div>
+    </div>
+</section>
 
-  <!-- <div class="benefits">
-      <h2>Benefits for Schools and Organizations</h2>
-      <ul class="">
-          <li>Customized Certificates of Completion with your School or Organization Logo</li>
-          <li>Inclusion of Head's Signature and Name on Certificates</li>
-          <li>Option to Add Portfolio Information on Certificates</li>
-          <li>Effortless Management – We Handle It All!</li>
-      </ul>
-  </div> -->
-</div>
+<!-- ===== Beginner Courses ===== -->
+{% if beginner %}
+<section class="section">
+    <div class="wrap">
+        <div class="row-head">
+            <h2 style="font-size:26px;margin-bottom:0;">{{ beginner_count }} Beginner Courses Available</h2>
+            <a href="{% url 'sms:courseslist' beginner.first.categories.pk %}">View All →</a>
+        </div>
+        <div class="scroll-row">
+            {% for obj in beginner %}
+            <a href="{% url 'sms:courseslistdesc' obj.pk %}" class="card">
+                {% if obj.img_course %}
+                <img class="card-img" src="{{ obj.img_course.url }}" alt="{{ obj.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <div class="card-title">{{ obj|safe|truncatewords:8 }}</div>
+                    <div class="card-meta">
+                        <span class="card-price">
+                            {% if obj.status_type == 'Premium' and not school_name %}
+                            {{ obj.status_type }} | ₦{{ obj.price|floatformat:"0g" }}
+                            {% else %}
+                            {{ obj.status_type }}
+                            {% endif %}
+                        </span>
+                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                    </div>
+                    <div class="card-desc" style="margin-top:8px;">{{ obj.categories.name|title }} • {{ obj.beginner_topic_count }} Modules</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
 
+<!-- ===== Testimonials ===== -->
+<section class="section--surface">
+    <div class="wrap">
+        <div class="section-head">
+            <span class="eyebrow">Testimonials</span>
+            <h2>What our students say</h2>
+            <p>Real feedback from learners</p>
+        </div>
+        <div class="testimonial-grid">
+            <div class="testimonial-card">
+                <img src="/static/sms/images/girlavater.webp" class="testimonial-avatar" alt="Student">
+                <div class="stars">★★★★★</div>
+                <div class="testimonial-name">Maria Smantha</div>
+                <p class="testimonial-text">CodeThinkers Academy offers top-notch programming education with knowledgeable instructors and practical projects.</p>
+            </div>
+            <div class="testimonial-card">
+                <img src="/static/sms/images/avater11.png" class="testimonial-avatar" alt="Student">
+                <div class="stars">★★★★★</div>
+                <div class="testimonial-name">Andrew Cudrow</div>
+                <p class="testimonial-text">The academy creates a supportive learning environment with readily available instructors and mentors.</p>
+            </div>
+            <div class="testimonial-card">
+                <img src="/static/sms/images/avater2.webp" class="testimonial-avatar" alt="Student">
+                <div class="stars">★★★★★</div>
+                <div class="testimonial-name">Muhammad Abubakar</div>
+                <p class="testimonial-text">CodeThinkers Academy equips students with practical skills and offers valuable resources for career success.</p>
+            </div>
+        </div>
+    </div>
+</section>
 
-</div>
-<hr>
+<!-- ===== Gallery ===== -->
+{% if gallery %}
+<section class="section">
+    <div class="wrap">
+        <div class="section-head">
+            <h2>Our Gallery</h2>
+        </div>
+        <div class="gallery-grid">
+            {% for item in gallery %}
+            <div class="gallery-item">
+                {% if item.gallery %}
+                <img src="{{ item.gallery.url }}" alt="{{ item.title }}">
+                {% endif %}
+                {% if item.title %}
+                <div class="gallery-caption">{{ item.title }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ===== Blog / News ===== -->
+{% if blogs %}
+<section class="section--surface">
+    <div class="wrap">
+        <div class="row-head">
+            <h2 style="font-size:26px;margin-bottom:0;">Latest News Feed</h2>
+            <a href="{% url 'sms:bloglistview' %}" class="btn btn--outline btn--sm">Read More Articles</a>
+        </div>
+        <div class="scroll-row">
+            {% for obj in blogs|slice:":4" %}
+            <a href="{% url 'sms:blogdetaillistview' obj.slug %}" class="card">
+                {% if obj.img_blog %}
+                <img class="card-img" src="{{ obj.img_blog.url }}" alt="{{ obj.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <span class="card-views" style="margin-bottom:6px;">{{ obj.created|timesince }} ago</span>
+                    <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
+                    <div class="card-desc">{{ obj.desc|safe|striptags|truncatewords:12 }}</div>
+                    <span class="card-tag">Read More →</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ===== FAQ ===== -->
+{% if faqs %}
+<section class="section">
+    <div class="wrap">
+        <div class="section-head">
+            <span class="eyebrow">FAQ</span>
+            <h2>Frequently Asked Questions</h2>
+        </div>
+        <div class="faq-list">
+            {% for faq in faqs %}
+            <div class="faq-item">
+                <button class="faq-trigger" type="button" onclick="this.parentElement.classList.toggle('open')">
+                    {{ faq.title|safe }}
+                    <span class="faq-icon">▼</span>
+                </button>
+                <div class="faq-panel">
+                    <div class="faq-panel-inner">{{ faq.desc|safe }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ===== Footer ===== -->
+<footer class="site-footer">
+    <div class="wrap">
+        <div class="footer-cta">
+            <p>Connect with us</p>
+            <div class="social-row">
+                <a href="https://youtube.com/channel/UCZLdq1lpQOZAO7fDc6n8GtQ" class="social-btn youtube" target="_blank" rel="noopener" aria-label="YouTube">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.007 2.007 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.007 2.007 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31.4 31.4 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.007 2.007 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.171-.007.086-.004.171-.007.171-.007c1.34-.046 2.618-.052 2.927-.052z"/>
+                        <path d="M6.5 4.5v7l5-3.5-5-3.5z"/>
+                    </svg>
+                </a>
+                <a href="https://web.facebook.com/addatainsight" class="social-btn facebook" target="_blank" rel="noopener" aria-label="Facebook">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        <p style="margin-top:24px;">© {% now "Y" %} CodeThinkers Academy. All rights reserved.</p>
+    </div>
+</footer>
 
 <script>
+    // Hide flash messages automatically
+    document.addEventListener('DOMContentLoaded', function () {
+        const alerts = document.querySelectorAll('.alert');
+        setTimeout(() => {
+            alerts.forEach(a => a.style.display = 'none');
+        }, 6000);
 
-let items = document.querySelectorAll('.carousel .carousel-item')
-
-items.forEach((el) => {
-    // number of slides per carousel-item
-    const minPerSlide = 4
-    let next = el.nextElementSibling
-    for (var i=1; i<minPerSlide; i++) {
-        if (!next) {
-            // wrap carousel by using first child
-            next = items[0]
+        // User menu dropdown (no Bootstrap JS dependency)
+        const trigger = document.getElementById('userMenuTrigger');
+        const panel = document.getElementById('userMenuPanel');
+        if (trigger && panel) {
+            trigger.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const isOpen = panel.classList.toggle('open');
+                trigger.setAttribute('aria-expanded', isOpen);
+            });
+            document.addEventListener('click', function (e) {
+                if (!panel.contains(e.target) && e.target !== trigger) {
+                    panel.classList.remove('open');
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+            });
         }
-        let cloneChild = next.cloneNode(true)
-        el.appendChild(cloneChild.children[0])
-        next = next.nextElementSibling
-    }
-})
-
+    });
 </script>
 
-
-<!-- flesh javacsripts -->
-
-<!-- your_template.html -->
-
-<script>
-  // Get the flash message container element
-  const flashContainer = document.getElementById('flash-message-container');
-
-  // Hide the flash message after 5 seconds (5000 milliseconds)
-  setTimeout(() => {
-    flashContainer.style.display = 'none';
-  }, 5000);
-</script>
-
-
-
-<!-- JavaScript to control the popup carousel -->
-<script>
-  var currentImageIndex = 0;
-
-  // Display the popup
-  function openPopup() {
-      document.getElementById('popup-container').style.display = 'block';
-      updateDescription();
-  }
-
-  // Close the popup
-  function closePopup() {
-      document.getElementById('popup-container').style.display = 'none';
-  }
-
-  // Show the previous image in the carousel
-  function prevImage() {
-      var images = document.getElementsByClassName('popup-image');
-      if (currentImageIndex > 0) {
-          currentImageIndex--;
-      } else {
-          currentImageIndex = images.length - 1;
-      }
-      updateImage();
-      updateDescription();
-  }
-
-  // Show the next image in the carousel
-  function nextImage() {
-      var images = document.getElementsByClassName('popup-image');
-      if (currentImageIndex < images.length - 1) {
-          currentImageIndex++;
-      } else {
-          currentImageIndex = 0;
-      }
-      updateImage();
-      updateDescription();
-  }
-
-  // Update the displayed image
-  function updateImage() {
-      var images = document.getElementsByClassName('popup-image');
-      for (var i = 0; i < images.length; i++) {
-          if (i === currentImageIndex) {
-              images[i].classList.add('active');
-          } else {
-              images[i].classList.remove('active');
-          }
-      }
-  }
-
-  // Update the displayed description
-  function updateDescription() {
-      var descriptions = document.getElementsByClassName('desc');
-      for (var i = 0; i < descriptions.length; i++) {
-          if (i === currentImageIndex) {
-              descriptions[i].style.display = 'block';
-          } else {
-              descriptions[i].style.display = 'none';
-          }
-      }
-  }
-
-  // Open the popup when the page loads
-  setTimeout(openPopup, 1000); // Adjust the delay as needed
-</script>
-
-
-{% endblock %} 
- 
+</body>
+</html>

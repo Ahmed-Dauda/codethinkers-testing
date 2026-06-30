@@ -1,27 +1,3 @@
-# Codethinkers Staging — Environment & Deployment Reference
-
-## GitHub Secrets (Staging)
-Location: https://github.com/Ahmed-Dauda/codethinkers-testing/settings/secrets/actions
----
-update all your secrets
----
-## Update Environment Variables
-When any env variable changes (API keys, DB URL, etc.):
-1. Go to GitHub Secrets → CODETHINKERS_STAGING_ENV → Update secret
-
-## local machine
-```bash
-git commit --allow-empty -m "update env"
-git push origin staging
-```
-
-## Deploy to Staging
-```bash
-git checkout staging
-git add .
-git commit -m "feat: your change"
-git push origin staging
-```
 
 # Daily Development Workflow — CodeThinkers
 
@@ -210,6 +186,31 @@ Production and staging are **separate Postgres databases** on the same server, u
 
 
 #  UPDATING ENV IN GITHUB
+
+# Codethinkers Staging — Environment & Deployment Reference
+
+## GitHub Secrets (Staging)
+Location: https://github.com/Ahmed-Dauda/codethinkers-testing/settings/secrets/actions
+---
+update all your secrets
+---
+## Update Environment Variables
+When any env variable changes (API keys, DB URL, etc.):
+1. Go to GitHub Secrets → CODETHINKERS_STAGING_ENV → Update secret
+
+## local machine
+```bash
+git commit --allow-empty -m "update env"
+git push origin staging
+```
+
+## Deploy to Staging
+```bash
+git checkout staging
+git add .
+git commit -m "feat: your change"
+git push origin staging
+```
 
 # Codethinkers Staging — Environment & Deployment Reference
 
