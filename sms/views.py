@@ -374,41 +374,63 @@ def course_search(request):
     course_count = 0
     
     if query:
+        # Split query into individual words for better search
+        search_terms = query.split()
+        
+        # Build Q objects for each search term
+        course_q = Q()
+        category_q = Q()
+        topic_q = Q()
+        blog_q = Q()
+        faq_q = Q()
+        
+        # Add each term to the query
+        for term in search_terms:
+            # Course search - using icontains (case-insensitive partial match)
+            course_q |= Q(title__icontains=term)
+            course_q |= Q(desc__icontains=term)
+            course_q |= Q(categories__name__icontains=term)
+            course_q |= Q(course_owner__icontains=term)
+            
+            # Category search
+            category_q |= Q(name__icontains=term)
+            category_q |= Q(desc__icontains=term)
+            
+            # Topic search
+            topic_q |= Q(title__icontains=term)
+            topic_q |= Q(desc__icontains=term)
+            
+            # Blog search
+            blog_q |= Q(title__icontains=term)
+            blog_q |= Q(desc__icontains=term)
+            blog_q |= Q(poster__icontains=term)
+            
+            # FAQ search
+            faq_q |= Q(title__icontains=term)
+            faq_q |= Q(desc__icontains=term)
+        
         # Search in courses
-        search_results = Courses.objects.filter(
-            Q(title__icontains=query) |
-            Q(desc__icontains=query) |
-            Q(categories__name__icontains=query)
-        ).select_related('categories').distinct()[:50]
+        search_results = Courses.objects.filter(course_q).select_related('categories').distinct()[:50]
+        
+        # Annotate topic count for search results
+        for course in search_results:
+            course.topic_count = Topics.objects.filter(courses=course).count()
         
         # Search in categories
-        category_results = Categories.objects.filter(
-            Q(name__icontains=query) |
-            Q(desc__icontains=query)
-        )[:10]
+        category_results = Categories.objects.filter(category_q)[:10]
         
         # Search in topics
-        topic_results = Topics.objects.filter(
-            Q(title__icontains=query) |
-            Q(desc__icontains=query)
-        )[:10]
+        topic_results = Topics.objects.filter(topic_q)[:10]
         
         # Search in blog posts
-        blog_results = Blog.objects.filter(
-            Q(title__icontains=query) |
-            Q(desc__icontains=query)
-        )[:5]
+        blog_results = Blog.objects.filter(blog_q)[:5]
         
         # Search in FAQs
-        faq_results = FrequentlyAskQuestions.objects.filter(
-            Q(title__icontains=query) |
-            Q(desc__icontains=query)
-        )[:5]
+        faq_results = FrequentlyAskQuestions.objects.filter(faq_q)[:5]
         
         course_count = search_results.count()
     
     # Get other data for the page
-
     context = {
         'query': query,
         'search_results': search_results,
@@ -431,7 +453,7 @@ def course_search(request):
         'advertisement_images': AdvertisementImage.objects.all(),
     }
     
-    return render(request, 'sms/dashboard/homepage1.html', context)        
+    return render(request, 'sms/dashboard/homepage1.html', context)
 
 
 
