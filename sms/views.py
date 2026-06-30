@@ -378,16 +378,8 @@ def course_search(request):
         search_results = Courses.objects.filter(
             Q(title__icontains=query) |
             Q(desc__icontains=query) |
-            Q(categories__name__icontains=query) |
-            Q(course_owner__icontains=query) |
-            Q(course_type__icontains=query) |
-            Q(status_type__icontains=query)
+            Q(categories__name__icontains=query)
         ).select_related('categories').distinct()[:50]
-        
-        # Annotate topic count for search results
-        for course in search_results:
-            course.topic_count = Topics.objects.filter(courses=course).count()
-            course.Free_courses_topic_count = Topics.objects.filter(courses=course).count()
         
         # Search in categories
         category_results = Categories.objects.filter(
@@ -404,8 +396,7 @@ def course_search(request):
         # Search in blog posts
         blog_results = Blog.objects.filter(
             Q(title__icontains=query) |
-            Q(desc__icontains=query) |
-            Q(poster__icontains=query)
+            Q(desc__icontains=query)
         )[:5]
         
         # Search in FAQs
@@ -416,12 +407,8 @@ def course_search(request):
         
         course_count = search_results.count()
     
-    # Get beginner courses (without slicing to allow .first() in template)
-    beginner_courses = Courses.objects.filter(status_type='Free')
-    for course in beginner_courses:
-        course.beginner_topic_count = Topics.objects.filter(courses=course).count()
-    
-    # Get all the other data needed for the homepage
+    # Get other data for the page
+
     context = {
         'query': query,
         'search_results': search_results,
@@ -431,59 +418,20 @@ def course_search(request):
         'faq_results': faq_results,
         'course_count': course_count,
         
-        # Existing homepage data
+        # Other context data
         'students': NewUser.objects.all().count() + 1000,
         'category': Categories.objects.count(),
         'courses': Courses.objects.all().count(),
         'coursecategory': Categories.objects.all(),
         'gallery': Gallery.objects.all(),
         'blogs': Blog.objects.all().order_by('-created')[:3],
-        'blogs_count': Blog.objects.all().count(),
         'faqs': FrequentlyAskQuestions.objects.all(),
         'partners': Partners.objects.all(),
-        
-        # Beginner courses (unsliced - for template to use .first())
-        'beginner': beginner_courses[:10],  # Sliced for display
-        'beginner_all': beginner_courses,   # Unsliced for .first() access
-        'beginner_count': beginner_courses.count(),
-        
-        # Courses and categories
-        'coursess': Courses.objects.all().order_by('created'),
-        'category_sta': Categories.objects.annotate(num_courses=Count('categories')),
-        
-        # Free courses
-        'Free_courses': Courses.objects.filter(status_type='Free'),
-        'Free_courses_count': Courses.objects.filter(status_type='Free').count(),
-        
-        # Latest courses
-        'latest_course': Courses.objects.all().order_by('-created'),
-        'latest_course_count': Courses.objects.all().count(),
-        
-        # Popular courses
-        'popular_course': Courses.objects.all().order_by('-hit_count_generic__hits'),
-        
-        # PDF Alerts
         'alert_homes': PDFDocument.objects.order_by('-created')[:4],
-        'alerts': PDFDocument.objects.order_by('-created'),
-        'alert_count_homes': PDFDocument.objects.order_by('-created')[:4].count(),
-        'alert_count': PDFDocument.objects.all().count(),
-        
-        # Group courses by difficulty category
-        'intermediate': Courses.objects.filter(categories__name='INTERMEDIATE')[:10],
-        'intermediate_count': Courses.objects.filter(categories__name='INTERMEDIATE').count(),
-        'advanced': Courses.objects.filter(categories__name='ADVANCED')[:10],
-        'advanced_count': Courses.objects.filter(categories__name='ADVANCED').count(),
-        
-        # Advertisement
         'advertisement_images': AdvertisementImage.objects.all(),
-        'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY,
-        
-        # Sidebar categories
-        'sidebar_categories': Categories.objects.prefetch_related("categories").all(),
     }
     
-    return render(request, 'sms/dashboard/homepage1.html', context)
-        
+    return render(request, 'sms/dashboard/homepage1.html', context)        
 
 
 
