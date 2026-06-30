@@ -7,8 +7,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CodeThinkers Academy</title>
 <link rel="icon" type="image/png" href="/static/sms/images/favicon.png">
-<!-- Font Awesome for icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
     :root {
         --color-primary: #1A56DB;
@@ -91,14 +89,6 @@
         align-items: center;
         justify-content: space-between;
         height: 72px;
-        gap: 16px;
-    }
-
-    .nav-left {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        flex: 1;
     }
 
     .nav-logo {
@@ -109,69 +99,55 @@
         font-size: 19px;
         text-decoration: none;
         color: var(--color-ink);
-        white-space: nowrap;
     }
 
     .nav-logo img { height: 32px; width: auto; }
 
-    /* Header Search */
+    .nav-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+    /* ===== Nav Search ===== */
     .nav-search {
         flex: 1;
-        max-width: 420px;
+        max-width: 400px;
         min-width: 180px;
-    }
-
-    .nav-search form {
         display: flex;
         align-items: center;
         background: var(--color-surface);
-        border-radius: var(--radius-lg);
         border: 1px solid var(--color-border);
-        transition: all 0.2s ease;
-        padding: 0 4px 0 14px;
-    }
-
-    .nav-search form:focus-within {
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.15);
-        background: #ffffff;
-    }
-
-    .nav-search input {
-        flex: 1;
-        border: none;
-        padding: 8px 0;
-        font-size: 14px;
-        background: transparent;
-        outline: none;
-        color: var(--color-ink);
-        min-width: 0;
-    }
-
-    .nav-search input::placeholder {
-        color: var(--color-muted);
-        font-weight: 400;
-    }
-
-    .nav-search .btn {
-        padding: 8px 16px;
         border-radius: var(--radius-md);
-        font-size: 13px;
-        flex-shrink: 0;
+        padding: 0 4px 0 12px;
+        transition: border-color 0.2s, box-shadow 0.2s;
     }
-
-    .nav-search .btn i {
-        font-size: 13px;
+    .nav-search:focus-within {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(26,86,219,0.12);
+        background: #fff;
     }
+    .nav-search input {
+        flex: 1; border: none; background: transparent;
+        padding: 9px 0; font-size: 14px; color: var(--color-ink);
+        outline: none; min-width: 0; font-family: inherit;
+    }
+    .nav-search input::placeholder { color: var(--color-muted); }
+    .nav-search button { flex-shrink: 0; padding: 7px 12px; font-size: 13px; border-radius: 6px; }
 
-    .nav-actions {
-        display: flex;
+    .nav-search-clear {
+        display: inline-flex;
         align-items: center;
-        gap: 12px;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--color-border);
+        color: var(--color-muted);
         flex-shrink: 0;
+        margin-right: 4px;
+        text-decoration: none;
+        transition: background 0.15s, color 0.15s;
     }
+    .nav-search-clear:hover { background: #cbd5e1; color: var(--color-ink); text-decoration: none; }
 
-    .user-menu { position: relative; }
+    /* ===== Search results ===== */
     .user-menu-trigger {
         background: none;
         border: 1px solid var(--color-border);
@@ -244,7 +220,6 @@
 
     .btn--sm { padding: 9px 18px; font-size: 14px; }
     .btn--full { width: 100%; }
-    .btn--xs { padding: 6px 14px; font-size: 12px; }
 
     /* ===== Hero ===== */
     .hero {
@@ -289,7 +264,7 @@
     /* ===== Quick contact bar ===== */
     .contact-bar {
         background: var(--color-primary);
-        color: #ffffff;
+        color: #fff;
     }
     .contact-bar .wrap {
         display: flex;
@@ -303,59 +278,6 @@
     .contact-bar a { text-decoration: none; color: #ffffff; display: inline-flex; align-items: center; gap: 7px; }
     .contact-bar a:hover { text-decoration: underline; }
     .contact-divider { color: rgba(255,255,255,0.5); }
-
-    /* ===== Search Results ===== */
-    .search-results-section {
-        padding: 40px 0;
-        background: #ffffff;
-        border-bottom: 1px solid var(--color-border);
-    }
-
-    .search-results-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .search-results-header h2 {
-        font-size: 24px;
-        margin-bottom: 0;
-    }
-
-    .search-results-header .clear-search {
-        color: var(--color-muted);
-        text-decoration: none;
-        font-size: 14px;
-        padding: 8px 16px;
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-md);
-        transition: 0.2s ease;
-    }
-
-    .search-results-header .clear-search:hover {
-        border-color: var(--color-primary);
-        color: var(--color-primary);
-    }
-
-    .result-section-title {
-        font-size: 18px;
-        margin-bottom: 16px;
-        margin-top: 30px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .result-section-title i {
-        color: var(--color-primary);
-    }
-
-    .result-section-title:first-of-type {
-        margin-top: 0;
-    }
 
     /* ===== Partners ===== */
     .partners-track {
@@ -474,8 +396,21 @@
         border-top: 1px solid var(--color-border);
     }
     .card-price { font-weight: 700; color: var(--color-ink); }
-    .card-views { color: var(--color-muted); display: flex; align-items: center; gap: 4px; }
+    .card-views { color: var(--color-muted); }
     .card-tag { color: var(--color-primary); font-size: 12.5px; font-weight: 600; }
+
+    .card-footer-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--color-border);
+        font-size: 12.5px;
+    }
+    .card-cat { color: var(--color-primary); font-weight: 600; }
+    .card-modules { color: var(--color-muted); }
+    .free-tag { color: #065F46; font-weight: 700; }
 
     .cat-card .card-img { height: 150px; }
 
@@ -602,26 +537,42 @@
     .site-footer .wrap { text-align: center; }
     .site-footer p { color: var(--color-muted); }
 
-    .no-results {
-        text-align: center;
-        padding: 60px 20px;
+    /* ===== Level Badges ===== */
+    .level-badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 4px;
+        margin-bottom: 2px;
     }
+    .level-beginner  { background: #DBEAFE; color: #1E40AF; }
+    .level-intermediate { background: #FEF3C7; color: #92400E; }
+    .level-advanced  { background: #FCE7F3; color: #9D174D; }
+    .level-latest    { background: #D1FAE5; color: #065F46; }
+    .level-free      { background: #EDE9FE; color: #5B21B6; }
+    .level-popular   { background: #FEE2E2; color: #991B1B; }
 
-    .no-results i {
-        font-size: 48px;
-        color: var(--color-muted);
+    .view-all-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-primary);
+        text-decoration: none;
+        border: 1.5px solid var(--color-primary);
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        white-space: nowrap;
+        transition: 0.18s ease;
+        align-self: flex-end;
     }
+    .view-all-link:hover { background: var(--color-primary); color: #fff; text-decoration: none; }
 
-    .no-results h3 {
-        margin-top: 20px;
-        color: var(--color-ink);
-    }
-
-    .no-results p {
-        color: var(--color-muted);
-        max-width: 400px;
-        margin: 10px auto;
-    }
+    .empty-row { color: var(--color-muted); font-size: 14px; padding: 20px 0; }
 
     /* ===== Responsive ===== */
     @media (max-width: 960px) {
@@ -630,276 +581,79 @@
         .stats-grid { grid-template-columns: repeat(3, 1fr); }
         .testimonial-grid { grid-template-columns: 1fr; }
         .benefits-grid { grid-template-columns: repeat(3, 1fr); }
-        
-        .nav-search {
-            max-width: 280px;
-            min-width: 140px;
-        }
     }
-    
-    @media (max-width: 768px) {
-        .nav {
-            flex-wrap: wrap;
-            height: auto;
-            padding: 12px 0;
-            gap: 12px;
-        }
-        
-        .nav-left {
-            flex: 1 1 100%;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        
-        .nav-search {
-            flex: 1 1 100%;
-            max-width: 100%;
-            min-width: 100%;
-            order: 3;
-        }
-        
-        .nav-actions {
-            margin-left: auto;
-        }
-        
-        .nav-logo {
-            font-size: 16px;
-        }
-        
-        .nav-logo img { height: 28px; }
-    }
-
     @media (max-width: 600px) {
         h2 { font-size: 26px; }
         .hero h1 { font-size: 32px; }
         .stats-grid { grid-template-columns: 1fr; }
         .benefits-grid { grid-template-columns: repeat(2, 1fr); }
         .section { padding: 56px 0; }
-        
-        .search-results-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        
-        .nav-left {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        
-        .nav-actions {
-            margin-left: 0;
-            justify-content: flex-end;
-        }
     }
 </style>
 </head>
 <body>
 
-<!-- ===== Header with Search ===== -->
+<!-- ===== Header ===== -->
 <header class="site-header">
     <div class="wrap nav">
-        <div class="nav-left">
-            <a href="/" class="nav-logo">
-                <img src="/static/sms/images/logo.png" alt="CodeThinkers Academy" onerror="this.style.display='none'">
-                CodeThinkers Academy11155555
+        <a href="/" class="nav-logo">
+            <img src="/static/sms/images/logo.png" alt="CodeThinkers Academy" onerror="this.style.display='none'">
+            CodeThinkers Academy666
+        </a>
+
+        <!-- Nav Search -->
+        <form class="nav-search" action="{% url 'sms:course_search' %}" method="get" role="search" id="navSearchForm">
+            <input
+                type="search"
+                name="q"
+                id="navSearchInput"
+                placeholder="Search courses, topics, Python..."
+                aria-label="Search courses"
+                autocomplete="off"
+                value="{{ query|default:'' }}"
+            >
+            {% if query %}
+            <a href="/" class="nav-search-clear" title="Clear search" aria-label="Clear search">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </a>
-            
-            <!-- Search in Header -->
-            <div class="nav-search">
-                <form action="{% url 'sms:course_search' %}" method="get" role="search">
-                    <input
-                        type="search"
-                        name="q"
-                        placeholder="Search courses, topics..."
-                        aria-label="Search"
-                        autocomplete="off"
-                        value="{{ query|default:'' }}"
-                    >
-                    <button class="btn btn--primary btn--xs" type="submit">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
-        
+            {% endif %}
+            <button class="btn btn--primary btn--xs" type="submit" aria-label="Search">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            </button>
+        </form>
         <div class="nav-actions">
             {% if user.is_authenticated %}
+            <div class="user-menu" id="userMenu">
+                <button type="button" id="userMenuTrigger" aria-haspopup="true" aria-expanded="false" class="user-menu-trigger">
+                    <img src="/static/sms/dashboard/img/undraw_profile.svg" alt="Profile">
+                </button>
+                <div class="user-menu-panel" id="userMenuPanel">
+                    <a href="{% url 'sms:myprofile' %}">Profile</a>
+                    <a href="{% url 'account_change_password' %}">Change Password</a>
+                    <a href="{% url 'account_reset_password' %}">Password Reset</a>
+                    <div class="user-menu-divider"></div>
+                    <a href="#" data-toggle="modal" data-target="#logoutModal">Logout</a>
+                </div>
+            </div>
             {% else %}
-            <a href="{% url 'account_login' %}" class="btn btn--primary btn--sm"><i class="fas fa-user-plus"></i> Join Free Now</a>
+            <a href="{% url 'account_login' %}" class="btn btn--primary btn--sm">Join Free Now</a>
             {% endif %}
         </div>
     </div>
 </header>
 
-<!-- ===== SEARCH RESULTS (shown when there's a query) ===== -->
-{% if query %}
-<section class="search-results-section">
-    <div class="wrap">
-        <div class="search-results-header">
-            <h2>
-                <i class="fas fa-search" style="color: var(--color-primary);"></i> 
-                Results for "{{ query }}"
-                <span style="font-size: 16px; font-weight: 400; color: var(--color-muted);">
-                    ({{ course_count }} course{{ course_count|pluralize }} found)
-                </span>
-            </h2>
-            <a href="/" class="clear-search">
-        <i class="fas fa-times"></i> Clear Search
-    </a>
-        </div>
-        
-        <!-- Course Results -->
-        {% if search_results %}
-        <div>
-            <h3 class="result-section-title">
-                <i class="fas fa-graduation-cap"></i> Courses ({{ search_results|length }})
-            </h3>
-            <div class="scroll-row">
-                {% for course in search_results %}
-                <a href="{% url 'sms:courseslistdesc' course.pk %}" class="card">
-                    {% if course.img_course %}
-                    <img class="card-img" src="{{ course.img_course.url }}" alt="{{ course.title }}">
-                    {% endif %}
-                    <div class="card-body">
-                        <div class="card-title">{{ course.title|safe|truncatewords:8 }}</div>
-                        <div class="card-meta">
-                            <span class="card-price">
-                                {% if course.status_type == 'Premium' %}
-                                ₦{{ course.price|floatformat:"0g" }}
-                                {% else %}
-                                {{ course.status_type }}
-                                {% endif %}
-                            </span>
-                            <span class="card-views"><i class="fas fa-eye"></i> {% get_hit_count for course %}</span>
-                        </div>
-                        <div class="card-desc" style="margin-top:8px;">
-                            <i class="fas fa-folder-open"></i> {{ course.categories.name|title }}
-                            {% if course.topic_count %}
-                            • <i class="fas fa-layer-group"></i> {{ course.topic_count }} Topics
-                            {% endif %}
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- Category Results -->
-        {% if category_results %}
-        <div>
-            <h3 class="result-section-title">
-                <i class="fas fa-folder"></i> Categories ({{ category_results|length }})
-            </h3>
-            <div class="scroll-row">
-                {% for category in category_results %}
-                <a href="{% url 'sms:courseslist' category.pk %}" class="card cat-card">
-                    {% if category.img_cat %}
-                    <img class="card-img" src="{{ category.img_cat.url }}" alt="{{ category.name }}">
-                    {% endif %}
-                    <div class="card-body">
-                        <div class="card-title">{{ category.name|safe }}</div>
-                        <div class="card-desc">{{ category.desc|truncatewords:15 }}</div>
-                        <span class="card-tag"><i class="fas fa-arrow-right"></i> View Courses</span>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- Topic Results -->
-        {% if topic_results %}
-        <div>
-            <h3 class="result-section-title">
-                <i class="fas fa-list"></i> Topics ({{ topic_results|length }})
-            </h3>
-            <div class="scroll-row">
-                {% for topic in topic_results %}
-                <a href="{% url 'sms:topicdetail' topic.slug %}" class="card">
-                    {% if topic.img_topic %}
-                    <img class="card-img" src="{{ topic.img_topic.url }}" alt="{{ topic.title }}">
-                    {% endif %}
-                    <div class="card-body">
-                        <div class="card-title">{{ topic.title|safe|truncatewords:8 }}</div>
-                        <div class="card-desc">{{ topic.desc|safe|striptags|truncatewords:12 }}</div>
-                        <span class="card-tag"><i class="fas fa-arrow-right"></i> View Topic</span>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- Blog Results -->
-        {% if blog_results %}
-        <div>
-            <h3 class="result-section-title">
-                <i class="fas fa-newspaper"></i> Blog Posts ({{ blog_results|length }})
-            </h3>
-            <div class="scroll-row">
-                {% for blog in blog_results %}
-                <a href="{% url 'sms:blogdetaillistview' blog.slug %}" class="card">
-                    {% if blog.img_blog %}
-                    <img class="card-img" src="{{ blog.img_blog.url }}" alt="{{ blog.title }}">
-                    {% endif %}
-                    <div class="card-body">
-                        <div class="card-title">{{ blog.title|safe|truncatewords:8 }}</div>
-                        <div class="card-desc">{{ blog.desc|safe|striptags|truncatewords:12 }}</div>
-                        <span class="card-tag"><i class="fas fa-arrow-right"></i> Read More</span>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- FAQ Results -->
-        {% if faq_results %}
-        <div>
-            <h3 class="result-section-title">
-                <i class="fas fa-question-circle"></i> FAQs ({{ faq_results|length }})
-            </h3>
-            <div class="faq-list">
-                {% for faq in faq_results %}
-                <div class="faq-item">
-                    <button class="faq-trigger" type="button" onclick="this.parentElement.classList.toggle('open')">
-                        <i class="fas fa-question-circle" style="color: var(--color-primary);"></i> {{ faq.title|safe }}
-                        <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                    <div class="faq-panel">
-                        <div class="faq-panel-inner">{{ faq.desc|safe }}</div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- No Results -->
-        {% if not search_results and not category_results and not topic_results and not blog_results and not faq_results %}
-        <div class="no-results">
-            <i class="fas fa-search"></i>
-            <h3>No results found for "{{ query }}"</h3>
-            <p>Try different keywords, check for typos, or browse our categories below.</p>
-        </div>
-        {% endif %}
-    </div>
-</section>
-{% endif %}
-
 <!-- ===== Hero ===== -->
 <section class="hero">
     <div class="wrap hero-grid">
         <div>
-            <span class="eyebrow"><i class="fas fa-code"></i> Learn. Build. Launch.</span>
+            <span class="eyebrow">Learn. Build. Launch.</span>
             <h1>Unlock your coding potential at <span>CodeThinkers Academy</span></h1>
             <p>Our diverse range of courses covers web development, app creation, data science, and more. Learn from expert instructors and stay ahead in this dynamic industry.</p>
             <div class="hero-cta">
                 {% if not user.is_authenticated %}
-                <a href="{% url 'account_login' %}" class="btn btn--primary"><i class="fas fa-rocket"></i> Join Free Now</a>
+                <a href="{% url 'account_login' %}" class="btn btn--primary">Join Free Now</a>
                 {% endif %}
-                <a href="mailto:codethinkersa@gmail.com" class="btn btn--outline"><i class="fas fa-envelope"></i> Contact Us</a>
+                <a href="mailto:codethinkersa@gmail.com" class="btn btn--outline">Contact Us</a>
             </div>
         </div>
         <div class="hero-media">
@@ -910,7 +664,7 @@
     {% if messages %}
     <div class="wrap alert-stack">
         {% for message in messages %}
-        <div class="alert"><i class="fas fa-info-circle"></i> {{ message }}</div>
+        <div class="alert">{{ message }}</div>
         {% endfor %}
     </div>
     {% endif %}
@@ -919,18 +673,84 @@
 <!-- ===== Quick Contact Bar ===== -->
 <div class="contact-bar">
     <div class="wrap">
-        <a href="mailto:codethinkersa@gmail.com"><i class="fas fa-envelope"></i> codethinkersa@gmail.com</a>
+        <a href="mailto:codethinkersa@gmail.com">✉ codethinkersa@gmail.com</a>
         <span class="contact-divider">|</span>
-        <a href="https://wa.me/2348128014921"><i class="fab fa-whatsapp"></i> Customer Support</a>
+        <a href="https://wa.me/2348128014921">💬 Customer Support</a>
     </div>
 </div>
+
+{% if query %}
+<section class="section">
+    <div class="wrap">
+        <div class="row-head">
+            <div>
+                <h2 style="font-size:26px;margin-bottom:0;">
+                    Search results for "<span style="color:var(--color-primary);">{{ query }}</span>"
+                </h2>
+                <p style="margin-top:6px;color:var(--color-muted);">{{ course_count }} course{{ course_count|pluralize }} found</p>
+            </div>
+        </div>
+
+        {% if search_results %}
+        <div class="scroll-row">
+            {% for obj in search_results %}
+            <a href="{% url 'sms:courseslistdesc' obj.pk %}" class="card">
+                {% if obj.img_course %}
+                <img class="card-img" src="{{ obj.img_course.url }}" alt="{{ obj.title }}" loading="lazy">
+                {% endif %}
+                <div class="card-body">
+                    <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
+                    <div class="card-meta">
+                        <span class="card-price">
+                            {% if obj.status_type == 'Premium' and not school_name %}
+                                ₦{{ obj.price|floatformat:"0g" }}
+                            {% else %}
+                                {{ obj.status_type }}
+                            {% endif %}
+                        </span>
+                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                    </div>
+                    <div class="card-footer-row">
+                        <span class="card-cat">{{ obj.categories.name|title }}</span>
+                        <span class="card-modules">{{ obj.topic_count }} Modules</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color:var(--color-muted);padding:20px 0;">No courses found for "{{ query }}". Try a different keyword.</p>
+        {% endif %}
+
+        {% if category_results %}
+        <div style="margin-top:32px;">
+            <h3 style="font-size:20px;margin-bottom:16px;">Related Categories</h3>
+            <div class="scroll-row">
+                {% for cat in category_results %}
+                <a href="{% url 'sms:courseslist' cat.pk %}" class="card cat-card">
+                    {% if cat.img_cat %}
+                    <img class="card-img" src="{{ cat.img_cat.url }}" alt="{{ cat.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <div class="card-title">{{ cat.name }}</div>
+                        <span class="card-tag">View Courses →</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endif %}
 
 <!-- ===== Partners ===== -->
 {% if partners %}
 <section class="section--tight">
     <div class="wrap">
         <div class="section-head" style="margin-bottom:36px;">
-            <h2 style="font-size:24px;"><i class="fas fa-handshake"></i> Trusted by Our Global Partners</h2>
+            <h2 style="font-size:24px;">Trusted by Our Global Partners</h2>
         </div>
         <div class="partners-track">
             <div class="partners-scroll">
@@ -948,15 +768,15 @@
     <div class="wrap">
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-number"><i class="fas fa-users" style="color: var(--color-primary);"></i> {{ students }}+</div>
+                <div class="stat-number">{{ students }}+</div>
                 <div class="stat-label">Students Enrolled</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number"><i class="fas fa-folder" style="color: var(--color-primary);"></i> {{ category }}+</div>
+                <div class="stat-number">{{ category }}+</div>
                 <div class="stat-label">Categories</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number"><i class="fas fa-book" style="color: var(--color-primary);"></i> {{ courses }}+</div>
+                <div class="stat-number">{{ courses }}+</div>
                 <div class="stat-label">Courses Offered</div>
             </div>
         </div>
@@ -968,7 +788,7 @@
 <section class="section">
     <div class="wrap">
         <div class="row-head">
-            <h2 style="font-size:26px;margin-bottom:0;"><i class="fas fa-th-list"></i> We offer {{ category }} course categories</h2>
+            <h2 style="font-size:26px;margin-bottom:0;">We offer {{ category }} course categories</h2>
         </div>
         <div class="scroll-row">
             {% for category in coursecategory %}
@@ -979,7 +799,7 @@
                 <div class="card-body">
                     <div class="card-title">{{ category|safe }}</div>
                     <div class="card-desc">{{ category.desc|truncatewords:15 }}</div>
-                    <span class="card-tag"><i class="fas fa-arrow-right"></i> View Courses</span>
+                    <span class="card-tag">View Courses →</span>
                 </div>
             </a>
             {% endfor %}
@@ -992,71 +812,239 @@
 <section class="section--surface">
     <div class="wrap">
         <div class="section-head">
-            <span class="eyebrow"><i class="fas fa-star"></i> Why CodeThinkers</span>
+            <span class="eyebrow">Why CodeThinkers</span>
             <h2>Benefits of our courses</h2>
         </div>
         <div class="benefits-grid">
             <div class="benefit">
-                <div class="benefit-icon"><i class="fas fa-globe"></i></div>
+                <div class="benefit-icon">🌐</div>
                 <div class="benefit-label">100% Online</div>
             </div>
             <div class="benefit">
-                <div class="benefit-icon"><i class="fas fa-clock"></i></div>
+                <div class="benefit-icon">⏰</div>
                 <div class="benefit-label">Flexible Deadlines</div>
             </div>
             <div class="benefit">
-                <div class="benefit-icon"><i class="fas fa-users"></i></div>
+                <div class="benefit-icon">👥</div>
                 <div class="benefit-label">Collaborators</div>
             </div>
             <div class="benefit">
-                <div class="benefit-icon"><i class="fas fa-briefcase"></i></div>
+                <div class="benefit-icon">💼</div>
                 <div class="benefit-label">Job Opportunities</div>
             </div>
             <div class="benefit">
-                <div class="benefit-icon"><i class="fas fa-certificate"></i></div>
+                <div class="benefit-icon">📜</div>
                 <div class="benefit-label">Certificate</div>
             </div>
             <div class="benefit">
-                <div class="benefit-icon"><i class="fas fa-language"></i></div>
+                <div class="benefit-icon">🇬🇧</div>
                 <div class="benefit-label">Language: English</div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ===== Beginner Courses ===== -->
+<!-- ===== Course Level Sections ===== -->
+
+{# ---- Beginner ---- #}
 {% if beginner %}
 <section class="section">
     <div class="wrap">
         <div class="row-head">
-            <h2 style="font-size:26px;margin-bottom:0;"><i class="fas fa-graduation-cap"></i> {{ beginner_count }} Beginner Courses Available</h2>
-            {% if beginner_all %}
-            <a href="{% url 'sms:courseslist' beginner_all.first.categories.pk %}"><i class="fas fa-arrow-right"></i> View All</a>
+            <div>
+                <span class="level-badge level-beginner">Beginner</span>
+                <h2 style="font-size:24px;margin:8px 0 0;">{{ beginner_count }} Beginner Course{{ beginner_count|pluralize }} Available</h2>
+            </div>
+            {% if beginner.first.categories %}
+            <a href="{% url 'sms:courseslist' beginner.first.categories.pk %}" class="view-all-link">View All <span>→</span></a>
             {% endif %}
         </div>
         <div class="scroll-row">
             {% for obj in beginner %}
             <a href="{% url 'sms:courseslistdesc' obj.pk %}" class="card">
-                {% if obj.img_course %}
-                <img class="card-img" src="{{ obj.img_course.url }}" alt="{{ obj.title }}">
-                {% endif %}
+                {% if obj.img_course %}<img class="card-img" src="{{ obj.img_course.url }}" alt="{{ obj.title }}" loading="lazy">{% endif %}
                 <div class="card-body">
-                    <div class="card-title">{{ obj|safe|truncatewords:8 }}</div>
+                    <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
                     <div class="card-meta">
-                        <span class="card-price">
-                            {% if obj.status_type == 'Premium' and not school_name %}
-                            {{ obj.status_type }} | ₦{{ obj.price|floatformat:"0g" }}
-                            {% else %}
-                            {{ obj.status_type }}
-                            {% endif %}
-                        </span>
-                        <span class="card-views"><i class="fas fa-eye"></i> {% get_hit_count for obj %}</span>
+                        <span class="card-price">{% if obj.status_type == 'Premium' and not school_name %}₦{{ obj.price|floatformat:"0g" }}{% else %}{{ obj.status_type }}{% endif %}</span>
+                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
                     </div>
-                    <div class="card-desc" style="margin-top:8px;">
-                        <i class="fas fa-folder-open"></i> {{ obj.categories.name|title }} 
-                        {% if obj.beginner_topic_count %}
-                        • <i class="fas fa-layer-group"></i> {{ obj.beginner_topic_count }} Topics
-                        {% endif %}
+                    <div class="card-footer-row">
+                        <span class="card-cat">{{ obj.categories.name|title }}</span>
+                        <span class="card-modules">{{ obj.beginner_topic_count }} Modules</span>
+                    </div>
+                </div>
+            </a>
+            {% empty %}<p class="empty-row">No courses yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ---- Intermediate ---- #}
+{% if intermediate %}
+<section class="section section--surface">
+    <div class="wrap">
+        <div class="row-head">
+            <div>
+                <span class="level-badge level-intermediate">Intermediate</span>
+                <h2 style="font-size:24px;margin:8px 0 0;">{{ intermediate_count }} Intermediate Course{{ intermediate_count|pluralize }} Available</h2>
+            </div>
+            {% if intermediate.first.categories %}
+            <a href="{% url 'sms:courseslist' intermediate.first.categories.pk %}" class="view-all-link">View All <span>→</span></a>
+            {% endif %}
+        </div>
+        <div class="scroll-row">
+            {% for obj in intermediate %}
+            <a href="{% url 'sms:courseslistdesc' obj.pk %}" class="card">
+                {% if obj.img_course %}<img class="card-img" src="{{ obj.img_course.url }}" alt="{{ obj.title }}" loading="lazy">{% endif %}
+                <div class="card-body">
+                    <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
+                    <div class="card-meta">
+                        <span class="card-price">{% if obj.status_type == 'Premium' and not school_name %}₦{{ obj.price|floatformat:"0g" }}{% else %}{{ obj.status_type }}{% endif %}</span>
+                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                    </div>
+                    <div class="card-footer-row">
+                        <span class="card-cat">{{ obj.categories.name|title }}</span>
+                        <span class="card-modules">{{ obj.intermediate_topic_count }} Modules</span>
+                    </div>
+                </div>
+            </a>
+            {% empty %}<p class="empty-row">No courses yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ---- Advanced ---- #}
+{% if advanced %}
+<section class="section">
+    <div class="wrap">
+        <div class="row-head">
+            <div>
+                <span class="level-badge level-advanced">Advanced</span>
+                <h2 style="font-size:24px;margin:8px 0 0;">{{ advanced_count }} Advanced Course{{ advanced_count|pluralize }} Available</h2>
+            </div>
+            {% if advanced.first.categories %}
+            <a href="{% url 'sms:courseslist' advanced.first.categories.pk %}" class="view-all-link">View All <span>→</span></a>
+            {% endif %}
+        </div>
+        <div class="scroll-row">
+            {% for obj in advanced %}
+            <a href="{% url 'sms:courseslistdesc' obj.pk %}" class="card">
+                {% if obj.img_course %}<img class="card-img" src="{{ obj.img_course.url }}" alt="{{ obj.title }}" loading="lazy">{% endif %}
+                <div class="card-body">
+                    <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
+                    <div class="card-meta">
+                        <span class="card-price">{% if obj.status_type == 'Premium' and not school_name %}₦{{ obj.price|floatformat:"0g" }}{% else %}{{ obj.status_type }}{% endif %}</span>
+                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                    </div>
+                    <div class="card-footer-row">
+                        <span class="card-cat">{{ obj.categories.name|title }}</span>
+                        <span class="card-modules">{{ obj.advanced_topic_count }} Modules</span>
+                    </div>
+                </div>
+            </a>
+            {% empty %}<p class="empty-row">No courses yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ---- Latest Courses ---- #}
+{% if latest_courses %}
+<section class="section section--surface">
+    <div class="wrap">
+        <div class="row-head">
+            <div>
+                <span class="level-badge level-latest">&#10003; New</span>
+                <h2 style="font-size:24px;margin:8px 0 0;">{{ latest_count }} Latest Course{{ latest_count|pluralize }} on CodeThinkers Academy</h2>
+                <p style="font-size:13.5px;color:var(--color-muted);margin-top:4px;">Explore our newest programs, focused on delivering in-demand skills.</p>
+            </div>
+            <a href="{% url 'sms:homepage' %}" class="view-all-link">Browse All <span>→</span></a>
+        </div>
+        <div class="scroll-row">
+            {% for obj in latest_courses %}
+            <a href="{% url 'sms:courseslistdesc' obj.pk %}" class="card">
+                {% if obj.img_course %}<img class="card-img" src="{{ obj.img_course.url }}" alt="{{ obj.title }}" loading="lazy">{% endif %}
+                <div class="card-body">
+                    <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
+                    <div class="card-meta">
+                        <span class="card-price">{% if obj.status_type == 'Premium' and not school_name %}₦{{ obj.price|floatformat:"0g" }}{% else %}{{ obj.status_type }}{% endif %}</span>
+                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                    </div>
+                    <div class="card-footer-row">
+                        <span class="card-cat">{{ obj.categories.name|title }}</span>
+                        <span class="card-modules">{{ obj.topic_count }} Modules</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ---- Free Courses ---- #}
+{% if free_courses %}
+<section class="section">
+    <div class="wrap">
+        <div class="row-head">
+            <div>
+                <span class="level-badge level-free">Free</span>
+                <h2 style="font-size:24px;margin:8px 0 0;">Enjoy Our {{ free_count }} Free Course{{ free_count|pluralize }}</h2>
+            </div>
+            <a href="{% url 'sms:homepage' %}" class="view-all-link">View All Free <span>→</span></a>
+        </div>
+        <div class="scroll-row">
+            {% for obj in free_courses %}
+            <a href="{% url 'sms:courseslistdesc' obj.pk %}" class="card">
+                {% if obj.img_course %}<img class="card-img" src="{{ obj.img_course.url }}" alt="{{ obj.title }}" loading="lazy">{% endif %}
+                <div class="card-body">
+                    <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
+                    <div class="card-meta">
+                        <span class="card-price free-tag">Free</span>
+                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                    </div>
+                    <div class="card-footer-row">
+                        <span class="card-cat">{{ obj.categories.name|title }}</span>
+                        <span class="card-modules">{{ obj.topic_count }} Modules</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ---- Popular Courses ---- #}
+{% if popular_courses %}
+<section class="section section--surface">
+    <div class="wrap">
+        <div class="row-head">
+            <div>
+                <span class="level-badge level-popular">&#9733; Popular</span>
+                <h2 style="font-size:24px;margin:8px 0 0;">Popular Courses</h2>
+            </div>
+            <a href="{% url 'sms:homepage' %}" class="view-all-link">See All <span>→</span></a>
+        </div>
+        <div class="scroll-row">
+            {% for obj in popular_courses %}
+            <a href="{% url 'sms:courseslistdesc' obj.pk %}" class="card">
+                {% if obj.img_course %}<img class="card-img" src="{{ obj.img_course.url }}" alt="{{ obj.title }}" loading="lazy">{% endif %}
+                <div class="card-body">
+                    <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
+                    <div class="card-meta">
+                        <span class="card-price">{% if obj.status_type == 'Premium' and not school_name %}₦{{ obj.price|floatformat:"0g" }}{% else %}{{ obj.status_type }}{% endif %}</span>
+                        <span class="card-views">👁 {{ obj.hit_count.hits }}</span>
+                    </div>
+                    <div class="card-footer-row">
+                        <span class="card-cat">{{ obj.categories.name|title }}</span>
+                        <span class="card-modules">{{ obj.topic_count }} Modules</span>
                     </div>
                 </div>
             </a>
@@ -1070,26 +1058,26 @@
 <section class="section--surface">
     <div class="wrap">
         <div class="section-head">
-            <span class="eyebrow"><i class="fas fa-quote-left"></i> Testimonials</span>
+            <span class="eyebrow">Testimonials</span>
             <h2>What our students say</h2>
             <p>Real feedback from learners</p>
         </div>
         <div class="testimonial-grid">
             <div class="testimonial-card">
                 <img src="/static/sms/images/girlavater.webp" class="testimonial-avatar" alt="Student">
-                <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                <div class="stars">★★★★★</div>
                 <div class="testimonial-name">Maria Smantha</div>
                 <p class="testimonial-text">CodeThinkers Academy offers top-notch programming education with knowledgeable instructors and practical projects.</p>
             </div>
             <div class="testimonial-card">
                 <img src="/static/sms/images/avater11.png" class="testimonial-avatar" alt="Student">
-                <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                <div class="stars">★★★★★</div>
                 <div class="testimonial-name">Andrew Cudrow</div>
                 <p class="testimonial-text">The academy creates a supportive learning environment with readily available instructors and mentors.</p>
             </div>
             <div class="testimonial-card">
                 <img src="/static/sms/images/avater2.webp" class="testimonial-avatar" alt="Student">
-                <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                <div class="stars">★★★★★</div>
                 <div class="testimonial-name">Muhammad Abubakar</div>
                 <p class="testimonial-text">CodeThinkers Academy equips students with practical skills and offers valuable resources for career success.</p>
             </div>
@@ -1102,7 +1090,7 @@
 <section class="section">
     <div class="wrap">
         <div class="section-head">
-            <h2><i class="fas fa-images"></i> Our Gallery</h2>
+            <h2>Our Gallery</h2>
         </div>
         <div class="gallery-grid">
             {% for item in gallery %}
@@ -1111,7 +1099,7 @@
                 <img src="{{ item.gallery.url }}" alt="{{ item.title }}">
                 {% endif %}
                 {% if item.title %}
-                <div class="gallery-caption"><i class="fas fa-camera"></i> {{ item.title }}</div>
+                <div class="gallery-caption">{{ item.title }}</div>
                 {% endif %}
             </div>
             {% endfor %}
@@ -1125,8 +1113,8 @@
 <section class="section--surface">
     <div class="wrap">
         <div class="row-head">
-            <h2 style="font-size:26px;margin-bottom:0;"><i class="fas fa-newspaper"></i> Latest News Feed</h2>
-            <a href="{% url 'sms:bloglistview' %}" class="btn btn--outline btn--sm"><i class="fas fa-arrow-right"></i> Read More Articles</a>
+            <h2 style="font-size:26px;margin-bottom:0;">Latest News Feed</h2>
+            <a href="{% url 'sms:bloglistview' %}" class="btn btn--outline btn--sm">Read More Articles</a>
         </div>
         <div class="scroll-row">
             {% for obj in blogs|slice:":4" %}
@@ -1135,10 +1123,10 @@
                 <img class="card-img" src="{{ obj.img_blog.url }}" alt="{{ obj.title }}">
                 {% endif %}
                 <div class="card-body">
-                    <span class="card-views" style="margin-bottom:6px;"><i class="far fa-clock"></i> {{ obj.created|timesince }} ago</span>
+                    <span class="card-views" style="margin-bottom:6px;">{{ obj.created|timesince }} ago</span>
                     <div class="card-title">{{ obj.title|safe|truncatewords:8 }}</div>
                     <div class="card-desc">{{ obj.desc|safe|striptags|truncatewords:12 }}</div>
-                    <span class="card-tag"><i class="fas fa-arrow-right"></i> Read More</span>
+                    <span class="card-tag">Read More →</span>
                 </div>
             </a>
             {% endfor %}
@@ -1152,15 +1140,15 @@
 <section class="section">
     <div class="wrap">
         <div class="section-head">
-            <span class="eyebrow"><i class="fas fa-question-circle"></i> FAQ</span>
+            <span class="eyebrow">FAQ</span>
             <h2>Frequently Asked Questions</h2>
         </div>
         <div class="faq-list">
             {% for faq in faqs %}
             <div class="faq-item">
                 <button class="faq-trigger" type="button" onclick="this.parentElement.classList.toggle('open')">
-                    <i class="fas fa-question-circle" style="color: var(--color-primary);"></i> {{ faq.title|safe }}
-                    <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+                    {{ faq.title|safe }}
+                    <span class="faq-icon">▼</span>
                 </button>
                 <div class="faq-panel">
                     <div class="faq-panel-inner">{{ faq.desc|safe }}</div>
@@ -1176,17 +1164,22 @@
 <footer class="site-footer">
     <div class="wrap">
         <div class="footer-cta">
-            <p><i class="fas fa-heart" style="color: var(--color-primary);"></i> Connect with us</p>
+            <p>Connect with us</p>
             <div class="social-row">
                 <a href="https://youtube.com/channel/UCZLdq1lpQOZAO7fDc6n8GtQ" class="social-btn youtube" target="_blank" rel="noopener" aria-label="YouTube">
-                    <i class="fab fa-youtube"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.007 2.007 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.007 2.007 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31.4 31.4 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.007 2.007 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.171-.007.086-.004.171-.007.171-.007c1.34-.046 2.618-.052 2.927-.052z"/>
+                        <path d="M6.5 4.5v7l5-3.5-5-3.5z"/>
+                    </svg>
                 </a>
                 <a href="https://web.facebook.com/addatainsight" class="social-btn facebook" target="_blank" rel="noopener" aria-label="Facebook">
-                    <i class="fab fa-facebook-f"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/>
+                    </svg>
                 </a>
             </div>
         </div>
-        <p style="margin-top:24px;"><i class="far fa-copyright"></i> {% now "Y" %} CodeThinkers Academy. All rights reserved.</p>
+        <p style="margin-top:24px;">© {% now "Y" %} CodeThinkers Academy. All rights reserved.</p>
     </div>
 </footer>
 
