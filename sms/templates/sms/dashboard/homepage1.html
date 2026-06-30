@@ -642,43 +642,6 @@
     </div>
 </header>
 
-<!-- ===== Hero ===== -->
-<section class="hero">
-    <div class="wrap hero-grid">
-        <div>
-            <span class="eyebrow">Learn. Build. Launch.</span>
-            <h1>Unlock your coding potential at <span>CodeThinkers Academy</span></h1>
-            <p>Our diverse range of courses covers web development, app creation, data science, and more. Learn from expert instructors and stay ahead in this dynamic industry.</p>
-            <div class="hero-cta">
-                {% if not user.is_authenticated %}
-                <a href="{% url 'account_login' %}" class="btn btn--primary">Join Free Now</a>
-                {% endif %}
-                <a href="mailto:codethinkersa@gmail.com" class="btn btn--outline">Contact Us</a>
-            </div>
-        </div>
-        <div class="hero-media">
-            <img src="/static/sms/images/kids.webp" alt="CodeThinkers Academy students">
-        </div>
-    </div>
-
-    {% if messages %}
-    <div class="wrap alert-stack">
-        {% for message in messages %}
-        <div class="alert">{{ message }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
-</section>
-
-<!-- ===== Quick Contact Bar ===== -->
-<div class="contact-bar">
-    <div class="wrap">
-        <a href="mailto:codethinkersa@gmail.com">✉ codethinkersa@gmail.com</a>
-        <span class="contact-divider">|</span>
-        <a href="https://wa.me/2348128014921">💬 Customer Support</a>
-    </div>
-</div>
-
 {% if query %}
 <section class="section">
     <div class="wrap">
@@ -744,6 +707,45 @@
     </div>
 </section>
 {% endif %}
+
+
+<!-- ===== Hero ===== -->
+<section class="hero">
+    <div class="wrap hero-grid">
+        <div>
+            <span class="eyebrow">Learn. Build. Launch.</span>
+            <h1>Unlock your coding potential at <span>CodeThinkers Academy</span></h1>
+            <p>Our diverse range of courses covers web development, app creation, data science, and more. Learn from expert instructors and stay ahead in this dynamic industry.</p>
+            <div class="hero-cta">
+                {% if not user.is_authenticated %}
+                <a href="{% url 'account_login' %}" class="btn btn--primary">Join Free Now</a>
+                {% endif %}
+                <a href="mailto:codethinkersa@gmail.com" class="btn btn--outline">Contact Us</a>
+            </div>
+        </div>
+        <div class="hero-media">
+            <img src="/static/sms/images/kids.webp" alt="CodeThinkers Academy students">
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="wrap alert-stack">
+        {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+
+<!-- ===== Quick Contact Bar ===== -->
+<div class="contact-bar">
+    <div class="wrap">
+        <a href="mailto:codethinkersa@gmail.com">✉ codethinkersa@gmail.com</a>
+        <span class="contact-divider">|</span>
+        <a href="https://wa.me/2348128014921">💬 Customer Support</a>
+    </div>
+</div>
+
 
 <!-- ===== Partners ===== -->
 {% if partners %}
