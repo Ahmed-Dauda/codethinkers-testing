@@ -6,7 +6,6 @@
 {% block extra_head %}
 <meta name="csrf-token" content="{{ csrf_token }}">
 
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
 <style>
   html, body {
@@ -141,29 +140,24 @@
     background: #2c2c2c;
   }
 
-  /* Responsive adjustments */
   @media (max-width: 768px) {
     .editor-layout {
       flex-direction: column;
     }
-
-    /* .sidebar {
+    .sidebar {
       width: 100%;
       border-right: none;
       border-bottom: 1px solid #444;
       max-height: 200px;
       overflow-y: auto;
-    } */
-
+    }
     .toolbar {
       flex-direction: column;
       align-items: stretch;
     }
-
     .editor-panel {
       height: auto;
     }
-
     #outputPanel {
       height: 140px;
     }
@@ -175,17 +169,14 @@
       width: 100%;
       font-size: 0.9em;
     }
-
     .folder-toggle {
       font-size: 0.9em;
     }
-
     .file-item a {
       font-size: 0.85em;
     }
   }
 
-  /* Spinner animation */
   .spinner {
     display: inline-block;
     width: 18px;
@@ -203,7 +194,6 @@
     100% { transform: rotate(360deg); }
   }
 
-  /* Sidebar collapse toggle for mobile */
   .editor-layout.collapsed .sidebar {
     display: none;
   }
@@ -211,126 +201,104 @@
   .editor-layout.collapsed .editor-panel {
     width: 100% !important;
   }
-#toastMessage {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  max-width: 600px;
-  background: #333;
-  color: #fff;
-  padding: 12px 16px;
-  font-size: 0.95em;
-  display: none;
-  opacity: 0;
-  z-index: 9999;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  transition: opacity 0.3s ease;
-}
 
-</style>
-<style>
-/* Folder toggle header */
-.folder-toggle {
-    background-color: #2b2b2b;
+  #toastMessage {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 600px;
+    background: #333;
     color: #fff;
-    padding: 10px 15px;
-    margin-top: 10px;
-    cursor: pointer;
-    border-radius: 6px;
-    display: flex;
-    justify-content: space-between;
+    padding: 12px 16px;
+    font-size: 0.95em;
+    display: none;
+    opacity: 0;
+    z-index: 9999;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: opacity 0.3s ease;
+  }
+
+  /* Quiz Modal Styles */
+  #quizModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 10001;
     align-items: center;
-    font-weight: bold;
-    transition: background 0.3s;
-}
+    justify-content: center;
+  }
 
-.folder-toggle:hover {
-    background-color: #444;
-}
+  #quizModal .modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 520px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+  }
 
-/* File group container */
-.file-group {
-    padding-left: 20px;
-    margin-bottom: 10px;
-    display: none; /* Hidden by default, toggle with JS */
-}
+  #quizModal .close-btn {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #888;
+  }
 
-/* Individual file item */
-.file-item {
+  #quizModal h3 {
+    margin-top: 0;
+    color: #222;
+  }
+
+  .quiz-option {
+    display: block;
     padding: 6px 10px;
     margin-bottom: 4px;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background-color: #f5f5f5;
-    transition: background 0.3s;
-}
-
-.file-item a {
-    text-decoration: none;
-    color: #333;
-    flex-grow: 1;
-}
-
-.file-item a:hover {
-    text-decoration: underline;
-    color: #007bff;
-}
-
-/* Buttons */
-.btn {
-    padding: 2px 6px;
-    font-size: 0.8rem;
-    border-radius: 4px;
-    text-decoration: none;
-    border: none;
+    background: #f5f5f5;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background 0.3s;
-}
+    color: #333;
+  }
 
-.btn-sm {
-    font-size: 0.75rem;
-    padding: 2px 5px;
-}
+  .quiz-option:hover {
+    background: #e8e8e8;
+  }
 
-.btn-primary {
-    background-color: #007bff;
-    color: #fff;
-}
+  .quiz-option input[type="radio"] {
+    margin-right: 8px;
+  }
 
-.btn-primary:hover {
-    background-color: #0056b3;
-}
-
-.btn-danger {
-    background-color: #dc3545;
-    color: #fff;
-}
-
-.btn-danger:hover {
-    background-color: #b02a37;
-}
-
-/* Highlight selected file */
-.file-item a[style*="font-weight:bold"] {
-    background-color: #007bff;
-    color: #fff !important;
-    padding: 4px 8px;
+  .quiz-btn {
+    padding: 4px 10px;
+    font-size: 0.8em;
+    border: none;
     border-radius: 4px;
-}
+    background: #3498db;
+    color: #fff;
+    cursor: pointer;
+  }
 
-/* Image file color */
-.file-item a[onclick*="showImageModal"] {
-    color: #4fa;
+  .quiz-btn:hover {
+    background: #2980b9;
+  }
+
+  .quiz-passed-badge {
+    color: #28a745;
+    font-size: 0.8em;
     font-weight: bold;
-}
+  }
 
-/* side contents */
-.topic-item {
+  .topic-item {
     border: 1px solid #e0e0e0;
     border-radius: 6px;
     margin-bottom: 8px;
@@ -366,44 +334,50 @@
     max-height: 300px;
     font-size: 0.9rem;
   }
+
+  #quizProgressWrap {
+    margin: 10px 0 16px;
+  }
+
+  #quizProgressWrap .progress-bar {
+    background: #e0e0e0;
+    border-radius: 6px;
+    height: 10px;
+    overflow: hidden;
+  }
+
+  #quizProgressWrap .progress-fill {
+    background: #28a745;
+    height: 100%;
+    transition: width 0.4s ease;
+  }
+
   .resize-handle {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 5px;
-  cursor: col-resize;
-  background: transparent;
-  z-index: 10;
-  transition: background 0.2s;
-}
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    cursor: col-resize;
+    background: transparent;
+    z-index: 10;
+    transition: background 0.2s;
+  }
 
-.resize-handle:hover {
-  background: #4fa !important;
-}
+  .resize-handle:hover {
+    background: #4fa !important;
+  }
 
-.resize-handle::after {
-  content: '';
-  position: absolute;
-  right: -2px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1px;
-  height: 40px;
-  background: rgba(255,255,255,0.1);
-}
-</style>
-
-<!-- roller -->
- <style>
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* prompts css */
-
-
+  .resize-handle::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+  }
 </style>
 
 {% endblock %}
@@ -413,23 +387,16 @@
     <a style="color: white;" href="{% url 'webprojects:create_project' %}">
         📁 {{ file.project.name }} — 📝 {{ file.name }}
     </a>
-
-    <!-- <a style="color: white;" href="{% url 'quiz:take-exam' %}">
-        take exam
-    </a> -->
 </div>
-
-
-
 {% endblock %}
-
 
 {% block sidebar %}
 
-<div id="quizModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10001; align-items:center; justify-content:center;">
-  <div style="background:#fff; width:90%; max-width:520px; max-height:85vh; overflow-y:auto; border-radius:10px; padding:20px; position:relative;">
-    <span onclick="closeQuizModal()" style="position:absolute; top:12px; right:16px; font-size:24px; cursor:pointer; color:#888;">&times;</span>
-    <h3 id="quizModalTitle" style="margin-top:0; color:#222;">Quiz</h3>
+<!-- ===== QUIZ MODAL ===== -->
+<div id="quizModal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeQuizModal()">&times;</span>
+    <h3 id="quizModalTitle">Quiz</h3>
     <div id="quizModalBody"></div>
     <div id="quizModalFooter" style="margin-top:16px; text-align:right; display:none;">
       <button id="quizSubmitBtn" onclick="submitQuiz()" style="padding:8px 18px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer;">Submit Quiz</button>
@@ -437,6 +404,7 @@
   </div>
 </div>
 
+<!-- ===== DROP ZONE ===== -->
 <div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
   Drop File Here or 
   <label for="fileInput" style="color: #4fa; cursor:pointer;">Browse</label>
@@ -446,8 +414,7 @@
 </div>
 <small style="color: #888;">Images and Excel files will be added to your files</small>
 
-<!-- Global Upload Spinner -->
-<!-- 🔄 Upload Loader -->
+<!-- ===== UPLOAD LOADER ===== -->
 <div id="upload-loader" style="
   display:none;
   position:fixed;
@@ -467,52 +434,53 @@
   "></div>
 </div>
 
-
+<!-- ===== CREATE FILE ===== -->
 <div style="margin-bottom: 20px;">
-  <input type="text" id="newFileName" placeholder="📝 New file name (e.g., index.ht4ml)" style="width: 100%; padding: 5px; margin-bottom: 5px; font-size: 0.9em;">
+  <input type="text" id="newFileName" placeholder="📝 New file name (e.g., index.html)" style="width: 100%; padding: 5px; margin-bottom: 5px; font-size: 0.9em;">
   <button onclick="createNewFile()" style="width: 100%; background: #3498db; color: white; padding: 6px 10px; border: none; border-radius: 4px;">➕ Create File</button>
 </div>
 
 <hr>
 
+<!-- ===== EXAM SECTION ===== -->
 <h2 class="mb-3">Topics for {{ course.title }}</h2>
 
 {% if not exam_id %}
     <span style="color: #666;" title="No exam configured for this course">
         🎓 No Exam Available
     </span>
-    {% elif topics and completed_topic_ids|length == topics|length %}
+{% elif topics and completed_topic_ids|length == topics|length %}
     <a style="color: white;" href="{% url 'student:start-exam' pk=exam_id %}">
-        🎓 Take Exam
+       🎓 Take Exam
     </a>
- {% else %}
+{% else %}
     <a href="{% url 'student:start-exam' pk=exam_id %}?next={{ request.path|urlencode }}"
        style="color: #aaa;" title="Complete all module quizzes to unlock the exam">
         🔒 Take Exam ({{ completed_topic_ids|length }}/{{ topics|length }} modules)
     </a>
-    {% endif %}
+{% endif %}
 
-<div id="quizProgressWrap" style="margin: 10px 0 16px;">
+<!-- ===== PROGRESS BAR ===== -->
+<div id="quizProgressWrap">
   <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#555; margin-bottom:4px;">
     <span>Module Progress</span>
     <span id="quizProgressLabel">{% if topics %}{% widthratio completed_topic_ids|length topics|length 100 %}{% else %}0{% endif %}%</span>
   </div>
-  <div style="background:#e0e0e0; border-radius:6px; height:10px; overflow:hidden;">
-    <div id="quizProgressFill" style="background:#28a745; height:100%; width:{% if topics %}{% widthratio completed_topic_ids|length topics|length 100 %}{% else %}0{% endif %}%; transition:width 0.4s ease;"></div>
+  <div class="progress-bar">
+    <div id="quizProgressFill" class="progress-fill" style="width:{% if topics %}{% widthratio completed_topic_ids|length topics|length 100 %}{% else %}0{% endif %}%;"></div>
   </div>
 </div>
 
+<!-- ===== TOPICS ===== -->
 <div class="topics-container">
   {% for topic in topics %}
     <div class="topic-item" data-topic-id="{{ topic.id }}">
-      <!-- Topic title with toggle icon -->
       <a href="javascript:void(0);" class="topic-toggle d-flex justify-content-between align-items-center"
          onclick="toggleDesc('topic-{{ topic.id }}', this, '{{ topic.language|default:"python" }}')">
         <span>{{ topic.title }}</span>
         <span class="toggle-icon">➕</span>
       </a>
 
-      <!-- Topic description hidden by default -->
       <pre id="topic-{{ topic.id }}" class="topic-desc language-{{ topic.language|default:'python' }}" 
            style="display:none;">
 <code class="language-{{ topic.language|default:'python' }}">{{ topic.desc|safe|escape }}</code>
@@ -520,11 +488,10 @@
 
       <div class="quiz-action-row" style="margin-top:6px; display:flex; align-items:center; gap:8px;">
         <button class="quiz-btn" data-topic-id="{{ topic.id }}" data-topic-title="{{ topic.title|escapejs }}"
-                onclick="openQuizModal({{ topic.id }}, this)"
-                style="padding:4px 10px; font-size:0.8em; border:none; border-radius:4px; background:#3498db; color:#fff; cursor:pointer;">
+                onclick="openQuizModal({{ topic.id }}, this)">
           {% if topic.id in completed_topic_ids %}🔁 Retake Quiz{% else %}📝 Take Quiz{% endif %}
         </button>
-        <span class="quiz-passed-badge" data-topic-id="{{ topic.id }}" style="{% if topic.id in completed_topic_ids %}display:inline;{% else %}display:none;{% endif %} color:#28a745; font-size:0.8em; font-weight:bold;">✅ Passed</span>
+        <span class="quiz-passed-badge" data-topic-id="{{ topic.id }}" style="{% if topic.id in completed_topic_ids %}display:inline;{% else %}display:none;{% endif %}">✅ Passed</span>
       </div>
     </div>
   {% empty %}
@@ -532,51 +499,166 @@
   {% endfor %}
 </div>
 
-<!-- ===== Style ===== -->
+<!-- ===== PRISM STYLES & SCRIPTS ===== -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" rel="stylesheet"/>
-
-<!-- ===== Script ===== -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-python.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-javascript.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-css.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-html.min.js"></script>
 
-
+<!-- ===== FILE LIST ===== -->
+<div id="fileListContainer">
 {% for ext in exts %}
   {% with files|dictsort:"name" as sorted_files %}
-    <div class="folder-toggle" data-ext="{{ ext }}">
-      📁 {{ ext|upper }} Files <span>⮟</span>
+
+    <!-- Folder Header -->
+    <div class="folder-toggle" data-ext="{{ ext }}" style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #2a2d2e;
+        border: 1px solid #3c3c3c;
+        border-radius: 6px;
+        padding: 8px 12px;
+        margin-bottom: 4px;
+        cursor: pointer;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #cccccc;
+        letter-spacing: 0.03em;
+        user-select: none;
+        transition: background 0.15s ease;
+    " onmouseover="this.style.background='#333638'" onmouseout="this.style.background='#2a2d2e'">
+        <span>📁 {{ ext|upper }} Files</span>
+        <span style="font-size:11px; color:#666; transition: transform 0.2s;">⮟</span>
     </div>
-    <div class="file-group">
+
+    <!-- File Group -->
+    <div class="file-group" style="
+        margin: 0 0 8px 0;
+        border-left: 2px solid #3c3c3c;
+        margin-left: 6px;
+        padding-left: 8px;
+        display: none;
+    ">
       {% for f in sorted_files %}
         {% if f.name|has_ext:ext %}
           {% with f.name|lower as fname %}
-            <div class="file-item">
+
+            <!-- File Item -->
+            <div class="file-item" data-file-id="{{ f.id }}" style="
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 5px 8px;
+                margin-bottom: 3px;
+                border-radius: 5px;
+                background: {% if f.id == file.id %}#094771{% else %}#1e1e1e{% endif %};
+                border: 1px solid {% if f.id == file.id %}#1177bb{% else %}#2d2d2d{% endif %};
+                transition: background 0.15s ease;
+            "
+            onmouseover="if('{{ f.id }}' !== '{{ file.id }}') this.style.background='#2a2d2e'"
+            onmouseout="if('{{ f.id }}' !== '{{ file.id }}') this.style.background='#1e1e1e'">
 
               {% if fname|slice:"-4:" == ".png" or fname|slice:"-4:" == ".jpg" or fname|slice:"-5:" == ".jpeg" or fname|slice:"-4:" == ".gif" %}
-                <!-- 👇 Image File: Open Modal -->
-                <a href="javascript:void(0);" onclick="showImageModal('{{ f.image.url }}')" style="color:#4fa;">🖼️ {{ f.name }}</a>
+                <!-- Image File -->
+                <a href="javascript:void(0);"
+                   onclick="showImageModal('{{ f.image.url }}')"
+                   title="{{ f.name }}"
+                   style="
+                       flex: 1;
+                       color: #4ec9b0;
+                       text-decoration: none;
+                       font-size: 12px;
+                       white-space: nowrap;
+                       overflow: hidden;
+                       text-overflow: ellipsis;
+                   ">
+                    🖼️ {{ f.name }}
+                </a>
 
               {% else %}
-                <!-- 👇 Normal File: Go to Editor -->
-                <a class="ajax-link" href="{% url 'webprojects:file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
+                <!-- Code / Normal File -->
+                <a class="ajax-link"
+                   href="{% url 'webprojects:file_detail' f.project.id f.id %}"
+                   title="{{ f.name }}"
+                   style="
+                       flex: 1;
+                       color: {% if f.id == file.id %}#ffffff{% else %}#9cdcfe{% endif %};
+                       text-decoration: none;
+                       font-size: 12px;
+                       font-weight: {% if f.id == file.id %}600{% else %}400{% endif %};
+                       white-space: nowrap;
+                       overflow: hidden;
+                       text-overflow: ellipsis;
+                   ">
+                    📝 {{ f.name }}
+                </a>
 
                 {% if ".html" in f.name|lower %}
-                  <a href="{% url 'webprojects:share_preview' f.project.id f.id %}" target="_blank" style="color: green;">publish</a>
+                <a href="{% url 'webprojects:share_preview' f.project.id f.id %}"
+                   target="_blank"
+                   title="Publish"
+                   style="
+                       flex-shrink: 0;
+                       font-size: 10.5px;
+                       font-weight: 600;
+                       color: #4caf50;
+                       text-decoration: none;
+                       background: rgba(76,175,80,0.12);
+                       border: 1px solid rgba(76,175,80,0.3);
+                       border-radius: 3px;
+                       padding: 2px 6px;
+                       white-space: nowrap;
+                   ">
+                    ↗ Publish
+                </a>
                 {% endif %}
 
                 {% if f.is_excel %}
-                  <!-- 👇 Excel/CSV Preview Button -->
-                  <a href="{% url 'webprojects:file_preview' f.project.id f.id %}" class="btn btn-sm ">View</a>
+                <a href="{% url 'webprojects:file_preview' f.project.id f.id %}"
+                   title="Preview spreadsheet"
+                   style="
+                       flex-shrink: 0;
+                       font-size: 10.5px;
+                       font-weight: 600;
+                       color: #569cd6;
+                       text-decoration: none;
+                       background: rgba(86,156,214,0.1);
+                       border: 1px solid rgba(86,156,214,0.3);
+                       border-radius: 3px;
+                       padding: 2px 6px;
+                       white-space: nowrap;
+                   ">
+                    👁 View
+                </a>
                 {% endif %}
-
               {% endif %}
 
-              <!-- 👇 Delete Button for all files -->
-              <form method="POST" action="{% url 'webprojects:file_delete' f.project.id f.id %}" class="delete-file-form d-inline">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
+              <!-- Delete Button -->
+              <form method="POST"
+                    action="{% url 'webprojects:file_delete' f.project.id f.id %}"
+                    class="delete-file-form"
+                    style="flex-shrink: 0; margin: 0; padding: 0;">
+                {% csrf_token %}
+                <button type="submit"
+                        title="Delete {{ f.name }}"
+                        style="
+                            background: transparent;
+                            border: 1px solid transparent;
+                            border-radius: 4px;
+                            color: #666;
+                            font-size: 13px;
+                            padding: 2px 5px;
+                            cursor: pointer;
+                            line-height: 1;
+                            transition: all 0.15s ease;
+                        "
+                        onmouseover="this.style.background='rgba(220,53,69,0.15)'; this.style.borderColor='rgba(220,53,69,0.4)'; this.style.color='#f47983';"
+                        onmouseout="this.style.background='transparent'; this.style.borderColor='transparent'; this.style.color='#666';">
+                    🗑
+                </button>
               </form>
 
             </div>
@@ -584,11 +666,12 @@
         {% endif %}
       {% endfor %}
     </div>
+
   {% endwith %}
 {% endfor %}
+</div>
 
-
-<!-- 🖼️ Image Popup Modal -->
+<!-- ===== IMAGE POPUP ===== -->
 <div id="imagePopupModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000;">
   <span onclick="closeImageModal()" style="position:absolute; top:20px; right:30px; font-size:32px; color:white; cursor:pointer;">&times;</span>
   <div style="display:flex; align-items:center; justify-content:center; height:100%;">
@@ -598,25 +681,18 @@
 
 {% endblock %}
 
-
 {% block content %}
 
-<div style="display: none;" class="preview-section"> 
-  <h4>Preview</h4>
-  <iframe id="preview" style="width:100%; height:400px; border:1px solid #ccc;"></iframe>
-</div>
-
-<!-- end -->
-
+<!-- ===== TOOLBAR ===== -->
 <div style="padding: 8px 12px; background: #222; border-bottom: 1px solid #444; text-align: right;">
- <button id="runBtnCode" onclick="runCode()" style="background:#2ecc71; color:white;">▶ Run Code</button> 
+  <button id="runBtnCode" onclick="runCode()" style="background:#2ecc71; color:white;">▶ Run Code</button> 
   <button id="toggleAI" onclick="toggleAITools()" style="background: #444; color: #fff; padding: 6px 12px; border: none; border-radius: 4px;">
     🔧 Show AI Tools
   </button>
 </div>
 
+<!-- ===== AI TOOLBAR ===== -->
 <div id="aiToolbar" class="toolbar">
-  
   <span id="aiLoading" style="display:none;">⏳</span>
   <button id="aiBtn" onclick="getAISuggestion()">💡 AI Suggest</button>
   <button id="explainBtn" onclick="explainCode()">💬 Explain Code</button>
@@ -630,12 +706,161 @@
   <button id="runBtn" onclick="runAIAction()">🚀 Run AI Action</button>
 </div>
 
-<!-- delete js  -->
+<!-- ===== EDITOR PANEL ===== -->
+<div class="editor-panel" style="display: flex; flex-direction: column; height: 10%;">
+  <div id="container" style="flex-grow: 1; min-height: 10px;"></div>
+  <div id="resizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
+</div>
+
+<!-- ===== OUTPUT PANEL ===== -->
+<div id="outputPanel" style="height: 100px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
+  <strong>🔽 Output:</strong>
+  <pre id="outputText" style="white-space: pre-wrap;"></pre>
+  <div id="tablePreview" style="margin-top: 15px; display: none;"></div>
+  <div id="plotPreview" style="display: none;"></div>
+</div>
+
+<!-- ===== FLOATING AI PANEL ===== -->
+<div id="floatingAI" style="
+  position: fixed;
+  top: 100px;
+  right: 30px;
+  width: 400px;
+  height: 300px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 9999;
+">
+  <div id="dragHandle" style="cursor: grab; padding: 8px; background: #f1f1f1; border-bottom: 1px solid #ccc; display:flex; align-items:center; justify-content:space-between;">
+    <span>🖐️ Drag Me</span>
+    <button class="close-panel-btn" onclick="closeAIPanel()" title="Close" style="
+      background: none;
+      border: none;
+      font-size: 18px;
+      line-height: 1;
+      color: #555;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: background 0.2s, color 0.2s;
+    " onmouseover="this.style.background='#e74c3c'; this.style.color='#fff';" onmouseout="this.style.background='none'; this.style.color='#555';">&times;</button>
+  </div>
+
+  <div style="display:flex; border-bottom:2px solid #eee; background:#f9f9f9;">
+    <button id="appBuilderTab" class="ai-tab" style="flex:1; padding:12px 20px; border:none; background:none; cursor:pointer; border-bottom:3px solid #007bff; font-weight:bold; font-size:15px; color:#007bff; transition:all 0.2s;">
+      🏗️ Build Project
+    </button>
+    <button id="fileEditorTab" class="ai-tab" style="flex:1; padding:12px 20px; border:none; background:none; cursor:pointer; border-bottom:3px solid transparent; font-size:15px; color:#666; transition:all 0.2s;">
+      📝 Edit Current File
+    </button>
+  </div>
+
+  <div id="appBuilderPanel" style="padding:10px; flex:1; display:flex; flex-direction:column;">
+    <div style="display:flex; gap:10px; margin-bottom:6px;">
+      <input type="text" id="aiPrompt" placeholder="Ask AI to generate a project (e.g., 'Create a bouncing ball game')" style="flex:1; padding:10px 12px; font-size:15px; border:1px solid #ccc; border-radius:4px;" />
+      <button id="runAIPrompt" onclick="runAIBuild()" style="padding:10px 18px; background:#007bff; color:#fff; font-size:15px; border:none; border-radius:6px; cursor:pointer; transition:background 0.2s, transform 0.1s; white-space:nowrap;" onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'">Run AI</button>
+    </div>
+    <pre id="appBuilderOutput" style="background:#f5f5f5; padding:10px; border-radius:4px; margin-top:10px; height:200px; overflow-y:auto; white-space:pre-wrap; display:none;"></pre>
+  </div>
+
+  <div id="fileEditorPanel" style="padding:10px; flex:1; display:none; flex-direction:column;">
+    <div style="display:flex; gap:10px; margin-bottom:6px;">
+      <input id="fileChatPrompt" placeholder="Describe changes to apply to current file..." style="flex:1; padding:10px 12px; font-size:15px; border:1px solid #ccc; border-radius:4px;" />
+      <button id="applyBtn" onclick="applyChanges()" style="padding:10px 18px; background:#28a745; color:white; font-size:15px; border:none; border-radius:6px; cursor:pointer; transition:background 0.2s, transform 0.1s; white-space:nowrap;" onmouseover="this.style.background='#218838'" onmouseout="this.style.background='#28a745'" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'">Apply Changes</button>
+    </div>
+    <pre id="fileChatOutput" style="background:#f5f5f5; flex:1; overflow-y:auto; padding:10px; border-radius:4px; white-space:pre-wrap;"></pre>
+  </div>
+
+  <div id="resizeHandleAI" style="height:6px; cursor: row-resize; background:#ccc;"></div>
+</div>
+
+<!-- ===== AI SUGGESTION MODAL ===== -->
+<div id="aiModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#2d2d2d; color:#fff; padding:20px; border-radius:8px; z-index:1000; max-width:80%; box-shadow:0 0 10px #000;">
+  <h3>💡 AI Suggestion Preview</h3>
+  <pre id="aiModalContent" style="max-height:400px; overflow-y:auto; white-space:pre-wrap; background:#1e1e1e; padding:10px; border:1px solid #444;"></pre>
+  <div style="text-align:right; margin-top:10px;">
+    <button onclick="insertSuggestionFromModal()" style="background:#2ecc71; color:white; padding:6px 12px; border:none; border-radius:4px;">Insert</button>
+    <button onclick="closeAIModal()" style="background:#e74c3c; color:white; padding:6px 12px; border:none; border-radius:4px; margin-left:8px;">Cancel</button>
+  </div>
+</div>
+
+<!-- ===== TOAST MESSAGE ===== -->
+<div id="toastMessage"></div>
 
 <script>
+// ============================================
+// CSRF TOKEN HELPER
+// ============================================
+
+function getCsrfToken() {
+  return (
+    document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+    document.querySelector('meta[name="csrf-token"]')?.content ||
+    ''
+  );
+}
+
+// ============================================
+// TOAST FUNCTIONS
+// ============================================
+
+function showToast(message, type = 'info') {
+  const toast = document.getElementById("toastMessage");
+  if (!toast) return;
+  
+  const colors = {
+    success: '#28a745',
+    error: '#dc3545',
+    info: '#007bff',
+    warning: '#ffc107'
+  };
+  
+  toast.innerHTML = `
+    <span>${message}</span>
+    <button onclick="hideToast()" style="background: none; border: none; color: #fff; font-size: 22px; position: absolute; right: 12px; top: 8px; cursor: pointer;">&times;</button>
+  `;
+  toast.style.backgroundColor = colors[type] || '#222';
+  toast.style.display = "block";
+  toast.style.opacity = "1";
+  
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => {
+    toast.style.opacity = "0";
+    setTimeout(() => toast.style.display = "none", 500);
+  }, 3000);
+}
+
+function hideToast() {
+  const toast = document.getElementById("toastMessage");
+  if (toast) {
+    toast.style.opacity = "0";
+    setTimeout(() => toast.style.display = "none", 500);
+  }
+}
+
+// ============================================
+// ESCAPE HTML HELPER
+// ============================================
+
+function escapeHTML(str) {
+  return String(str).replace(/[&<>"']/g, tag => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[tag]));
+}
+
+// ============================================
+// FILE MANAGEMENT FUNCTIONS
+// ============================================
 
 const CREATE_FILE_URL = "{% url 'webprojects:create_file' project.id %}";
-
 
 async function createNewFile() {
   const input = document.getElementById('newFileName');
@@ -661,7 +886,9 @@ async function createNewFile() {
     if (data.status === 'success') {
       showToast(`Created ${data.file_name}`, 'success');
       input.value = '';
-      // Navigate straight into the new file's editor page
+      // Refresh the file list dynamically
+      await refreshFileList();
+      // Navigate to the new file
       window.location.href = `/webprojects/{{ project.id }}/file/${data.file_id}/`;
     } else {
       showToast(data.message || 'Failed to create file', 'error');
@@ -670,13 +897,28 @@ async function createNewFile() {
     console.error(err);
     showToast('Request failed while creating file', 'error');
   }
-}  
+}
 
+// ============================================
+// QUIZ FUNCTIONS
+// ============================================
 
 let currentQuizTopicId = null;
 let currentQuizQuestions = [];
 const COURSE_ID = {{ course_id|default:"null" }};
 
+async function loadQuizProgress() {
+  try {
+    const url = COURSE_ID ? `/webprojects/progress/?course_id=${COURSE_ID}` : '/webprojects/progress/';
+    const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    const data = await res.json();
+    if (data.status === 'success') {
+      updateProgressUI(data.overall_pct, data.completed_topic_ids || []);
+    }
+  } catch (err) {
+    console.error('Failed to load progress', err);
+  }
+}
 
 function updateProgressUI(pct, completedIds) {
   const fill = document.getElementById('quizProgressFill');
@@ -698,6 +940,12 @@ async function openQuizModal(topicId, btnEl) {
   currentQuizQuestions = [];
 
   const modal = document.getElementById('quizModal');
+  if (!modal) {
+    console.error('Quiz modal not found');
+    showToast('Quiz modal not found', 'error');
+    return;
+  }
+  
   document.getElementById('quizModalTitle').textContent = `Quiz: ${btnEl?.dataset.topicTitle || ''}`;
   document.getElementById('quizModalBody').innerHTML = '<div style="text-align:center; padding:30px;">⏳ Generating questions...</div>';
   document.getElementById('quizModalFooter').style.display = 'none';
@@ -722,12 +970,15 @@ async function openQuizModal(topicId, btnEl) {
 
   } catch (err) {
     console.error(err);
-    document.getElementById('quizModalBody').innerHTML = `<div style="color:#dc3545; padding:20px;">❌ Request failed</div>`;
+    document.getElementById('quizModalBody').innerHTML = `<div style="color:#dc3545; padding:20px;">❌ Request failed: ${err.message}</div>`;
   }
 }
 
 function renderQuizQuestions() {
-  document.getElementById('quizModalBody').innerHTML = currentQuizQuestions.map((q, qi) => `
+  const body = document.getElementById('quizModalBody');
+  if (!body) return;
+  
+  body.innerHTML = currentQuizQuestions.map((q, qi) => `
     <div style="margin-bottom:18px;">
       <p style="font-weight:600; margin-bottom:8px; color:#222;">${qi + 1}. ${escapeHTML(q.question)}</p>
       ${q.options.map((opt, oi) => `
@@ -741,13 +992,18 @@ async function submitQuiz() {
   const answers = [];
   for (let qi = 0; qi < currentQuizQuestions.length; qi++) {
     const selected = document.querySelector(`input[name="quiz-q-${qi}"]:checked`);
-    if (!selected) { showToast('Please answer all questions', 'warning'); return; }
+    if (!selected) { 
+      showToast('Please answer all questions', 'warning'); 
+      return; 
+    }
     answers.push(parseInt(selected.value));
   }
 
   const submitBtn = document.getElementById('quizSubmitBtn');
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Submitting...';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+  }
 
   try {
     const res = await fetch(`/webprojects/topic/${currentQuizTopicId}/quiz/submit/`, {
@@ -757,1002 +1013,914 @@ async function submitQuiz() {
     });
     const data = await res.json();
 
-    if (data.status !== 'success') { showToast(data.message || 'Submission failed', 'error'); return; }
+    if (data.status !== 'success') { 
+      showToast(data.message || 'Submission failed', 'error'); 
+      return; 
+    }
 
     const body = document.getElementById('quizModalBody');
-    document.getElementById('quizModalFooter').style.display = 'none';
+    const footer = document.getElementById('quizModalFooter');
+    if (footer) footer.style.display = 'none';
 
     if (data.passed) {
-      body.innerHTML = `<div style="text-align:center; padding:20px;">
-        <div style="font-size:40px;">🎉</div>
-        <p style="font-weight:bold; color:#28a745;">Passed! ${data.score}/${data.total} correct</p>
-      </div>`;
+      if (body) {
+        body.innerHTML = `<div style="text-align:center; padding:20px;">
+          <div style="font-size:40px;">🎉</div>
+          <p style="font-weight:bold; color:#28a745;">Passed! ${data.score}/${data.total} correct</p>
+        </div>`;
+      }
       showToast('Quiz passed! Module marked complete.', 'success');
       updateProgressUI(data.overall_pct, data.completed_topic_ids || []);
     } else {
-      body.innerHTML = `<div style="text-align:center; padding:20px;">
-        <div style="font-size:40px;">😕</div>
-        <p style="font-weight:bold; color:#dc3545;">${data.score}/${data.total} correct — try again</p>
-        <button onclick="openQuizModal(${currentQuizTopicId}, document.querySelector('.quiz-btn[data-topic-id=&quot;${currentQuizTopicId}&quot;]'))"
-                style="margin-top:10px; padding:8px 16px; background:#3498db; color:#fff; border:none; border-radius:6px; cursor:pointer;">🔁 Retry</button>
-      </div>`;
+      if (body) {
+        body.innerHTML = `<div style="text-align:center; padding:20px;">
+          <div style="font-size:40px;">😕</div>
+          <p style="font-weight:bold; color:#dc3545;">${data.score}/${data.total} correct — try again</p>
+          <button class="quiz-btn" onclick="openQuizModal(${currentQuizTopicId}, document.querySelector('.quiz-btn[data-topic-id=&quot;${currentQuizTopicId}&quot;]'))">🔁 Retry</button>
+        </div>`;
+      }
     }
   } catch (err) {
     console.error(err);
-    showToast('Request failed', 'error');
+    showToast('Request failed: ' + err.message, 'error');
   } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Submit Quiz';
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Quiz';
+    }
   }
 }
 
 function closeQuizModal() {
-  document.getElementById('quizModal').style.display = 'none';
+  const modal = document.getElementById('quizModal');
+  if (modal) modal.style.display = 'none';
 }
 
+// ============================================
+// TOGGLE FUNCTIONS
+// ============================================
 
-document.addEventListener('DOMContentLoaded', function() {
-    const deleteForms = document.querySelectorAll('.delete-file-form');
+function toggleDesc(id, el, lang) {
+  const desc = document.getElementById(id);
+  if(desc.style.display === "none") {
+    desc.style.display = "block";
+    el.querySelector(".toggle-icon").textContent = "➖";
+    const codeEl = desc.querySelector('code');
+    codeEl.className = 'language-' + lang;
+    Prism.highlightElement(codeEl);
+  } else {
+    desc.style.display = "none";
+    el.querySelector(".toggle-icon").textContent = "➕";
+  }
+}
 
-    deleteForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();  // prevent normal form submission
+function toggleAITools() {
+  const aiToolbar = document.getElementById("aiToolbar");
+  const toggleBtn = document.getElementById("toggleAI");
 
-            if (!confirm("Are you sure you want to delete this file?")) return;
+  if (aiToolbar.style.display === "none" || aiToolbar.style.display === "") {
+    aiToolbar.style.display = "flex";
+    toggleBtn.textContent = "❌ Hide AI Tools";
+  } else {
+    aiToolbar.style.display = "none";
+    toggleBtn.textContent = "🔧 Show AI Tools";
+  }
+}
 
-            const url = form.getAttribute('action');
-            const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+// ============================================
+// IMAGE MODAL FUNCTIONS
+// ============================================
 
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Remove file item from DOM
-                    form.closest('.file-item').remove();
-                } else {
-                    alert(data.message || 'Failed to delete file.');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert('Error deleting file.');
-            });
-        });
+function showImageModal(imgUrl) {
+  const modal = document.getElementById('imagePopupModal');
+  const img = document.getElementById('popupImage');
+  if (modal && img) {
+    img.src = imgUrl;
+    modal.style.display = 'block';
+  }
+}
+
+function closeImageModal() {
+  const modal = document.getElementById('imagePopupModal');
+  const img = document.getElementById('popupImage');
+  if (modal) {
+    modal.style.display = 'none';
+    if (img) img.src = "";
+  }
+}
+
+// ============================================
+// DYNAMIC FILE LIST REFRESH - BUILT IN
+// ============================================
+
+async function refreshFileList() {
+  try {
+    // Fetch the updated file list from the server using the existing endpoint
+    const res = await fetch("{% url 'webprojects:file_detail' project.id file.id %}", {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': getCsrfToken()
+      }
     });
-});
-</script>
-
-
-
-
-<script>
-  function toggleAITools() {
-    const aiToolbar = document.getElementById("aiToolbar");
-    const toggleBtn = document.getElementById("toggleAI");
-
-    if (aiToolbar.style.display === "none" || aiToolbar.style.display === "") {
-      aiToolbar.style.display = "flex";
-      toggleBtn.textContent = "❌ Hide AI Tools";
-    } else {
-      aiToolbar.style.display = "none";
-      toggleBtn.textContent = "🔧 Show AI Tools";
+    
+    if (!res.ok) {
+      throw new Error('Failed to fetch file list');
     }
+    
+    // Since the file_detail returns HTML, we need to extract the file list
+    const html = await res.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const newFileList = doc.querySelector('#fileListContainer');
+    
+    if (newFileList) {
+      const currentContainer = document.getElementById('fileListContainer');
+      if (currentContainer) {
+        currentContainer.innerHTML = newFileList.innerHTML;
+        // Re-attach folder toggle event listeners
+        attachFolderToggleListeners();
+        showToast('✅ Files updated!', 'success');
+      }
+    }
+  } catch (err) {
+    console.error('Error refreshing file list:', err);
+    // Fallback: reload the page
+    setTimeout(() => location.reload(), 1500);
+  }
+}
+
+function attachFolderToggleListeners() {
+  document.querySelectorAll('.folder-toggle').forEach(toggle => {
+    const ext = toggle.dataset.ext;
+    const storedState = localStorage.getItem('folder_' + ext);
+    
+    if (storedState === 'open') {
+      toggle.classList.add('open');
+      if (toggle.nextElementSibling) {
+        toggle.nextElementSibling.style.display = 'block';
+      }
+    }
+
+    toggle.addEventListener('click', function() {
+      const group = this.nextElementSibling;
+      const isOpen = this.classList.toggle('open');
+      if (group) {
+        group.style.display = isOpen ? 'block' : 'none';
+      }
+      localStorage.setItem('folder_' + ext, isOpen ? 'open' : 'closed');
+    });
+  });
+}
+
+// ============================================
+// AI BUILD PROJECT - WITH DYNAMIC FILE LIST UPDATE
+// ============================================
+
+window.runAIBuild = async function() {
+  const promptInput = document.getElementById('aiPrompt');
+  const outputEl = document.getElementById('appBuilderOutput');
+  const runBtn = document.getElementById('runAIPrompt');
+  const prompt = promptInput.value.trim();
+
+  if (!prompt) {
+    showToast('Please enter a prompt', 'warning');
+    return;
   }
 
-  // Auto-hide toolbar on small screens
-  document.addEventListener("DOMContentLoaded", function () {
-    if (window.innerWidth <= 768) {
-      document.getElementById("aiToolbar").style.display = "none";
-    }
-  });
-</script>
+  runBtn.disabled = true;
+  runBtn.textContent = '⏳ Generating...';
+  outputEl.style.display = 'block';
+  outputEl.textContent = '⏳ Generating project from AI...\n';
 
-
-<div class="editor-panel" style="display: flex; flex-direction: column; height: 100vh;">
-  
-  <!-- Code Editor -->
-  <div id="container" style="flex-grow: 1; min-height: 200px;"></div>
-
-  <!-- Resize handle for code editor -->
-  <div id="editorResizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
-
-<!-- Output panel -->
-<div id="outputPanel" style="height: 100px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
-    <strong>🔽 Output:</strong>
-    <pre id="outputText" style="white-space: pre-wrap;"></pre>
-    <div id="tablePreview" style="margin-top: 15px; display: none;"></div>
-    <div id="plotPreview" style="display: none;"></div>
-</div>
-</div>
-
-
-<!-- Floating AI Panel -->
-<div id="floatingAI" style="
-  position: fixed;
-  top: 100px;
-  right: 30px;
-  width: 400px;
-  height: 300px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  display: flex;
-  flex-direction: column;
-  z-index: 9999;
-">
-
-  <!-- Drag handle -->
-<!-- Drag handle -->
-<div id="dragHandle" style="cursor: grab; padding: 8px; background: #f1f1f1; border-bottom: 1px solid #ccc; display:flex; align-items:center; justify-content:space-between;">
-  <span>🖐️ Drag Me</span>
-  <button class="close-panel-btn" onclick="closeAIPanel()" title="Close" style="
-    background: none;
-    border: none;
-    font-size: 18px;
-    line-height: 1;
-    color: #555;
-    cursor: pointer;
-    padding: 2px 6px;
-    border-radius: 4px;
-    transition: background 0.2s, color 0.2s;
-  " onmouseover="this.style.background='#e74c3c'; this.style.color='#fff';" onmouseout="this.style.background='none'; this.style.color='#555';">&times;</button>
-</div>
-
-  <!-- Tab Headers -->
-  <div style="display:flex; border-bottom:2px solid #eee; background:#f9f9f9;">
-    <button 
-      id="appBuilderTab" 
-      class="ai-tab" 
-      style="flex:1; padding:12px 20px; border:none; background:none; cursor:pointer; border-bottom:3px solid #007bff; font-weight:bold; font-size:15px; color:#007bff; transition:all 0.2s;"
-    >
-      🏗️ Build Project
-    </button>
-    <button 
-      id="fileEditorTab" 
-      class="ai-tab" 
-      style="flex:1; padding:12px 20px; border:none; background:none; cursor:pointer; border-bottom:3px solid transparent; font-size:15px; color:#666; transition:all 0.2s;"
-    >
-      📝 Edit Current File
-    </button>
-  </div>
-
-  <!-- App Builder Panel -->
-  <div id="appBuilderPanel" style="padding:10px; flex:1; display:flex; flex-direction:column;">
-    <div style="display:flex; gap:10px; margin-bottom:6px;">
-      <input
-        type="text"
-        id="aiPrompt"
-        placeholder="Ask AI to generate a project (e.g., 'Create a bouncing ball game')"
-        style="flex:1; padding:10px 12px; font-size:15px; border:1px solid #ccc; border-radius:4px;"
-      />
-      <button
-        id="runAIPrompt"
-        style="padding:10px 18px; background:#007bff; color:#fff; font-size:15px; border:none; border-radius:6px; cursor:pointer; transition:background 0.2s, transform 0.1s; white-space:nowrap;"
-        onmouseover="this.style.background='#0056b3'"
-        onmouseout="this.style.background='#007bff'"
-        onmousedown="this.style.transform='scale(0.96)'"
-        onmouseup="this.style.transform='scale(1)'"
-      >
-        Run AI
-      </button>
-    </div>
-    <pre id="appBuilderOutput" 
-     style="background:#f5f5f5; padding:10px; border-radius:4px; margin-top:10px; height:200px; overflow-y:auto; white-space:pre-wrap; display:none;">
-</pre>
-
-  </div>
-
-  <!-- File Editor Panel -->
-  <div id="fileEditorPanel" style="padding:10px; flex:1; display:none; flex-direction:column;">
-    <div style="display:flex; gap:10px; margin-bottom:6px;">
-      <input 
-        id="fileChatPrompt" 
-        placeholder="Describe changes to apply to current file..." 
-        style="flex:1; padding:10px 12px; font-size:15px; border:1px solid #ccc; border-radius:4px;"
-      />
-      <button 
-        id="applyBtn" 
-        style="padding:10px 18px; background:#28a745; color:white; font-size:15px; border:none; border-radius:6px; cursor:pointer; transition:background 0.2s, transform 0.1s; white-space:nowrap;"
-        onmouseover="this.style.background='#218838'"
-        onmouseout="this.style.background='#28a745'"
-        onmousedown="this.style.transform='scale(0.96)'"
-        onmouseup="this.style.transform='scale(1)'"
-      >
-        Apply Changes
-      </button>
-    </div>
-    <pre id="fileChatOutput" style="background:#f5f5f5; flex:1; overflow-y:auto; padding:10px; border-radius:4px; white-space:pre-wrap;"></pre>
-  </div>
-
-  <!-- Resize handle for floating AI panel -->
-  <div id="resizeHandleAI" style="height:6px; cursor: row-resize; background:#ccc;"></div>
-</div>
-
-
-<script>
-/* ================= TAB SWITCHING ================= */
-const appBuilderTab = document.getElementById('appBuilderTab');
-const fileEditorTab = document.getElementById('fileEditorTab');
-const appBuilderPanel = document.getElementById('appBuilderPanel');
-const fileEditorPanel = document.getElementById('fileEditorPanel');
-
-function switchTab(activeTab, activePanel, activeColor) {
-    // Hide all panels
-    [appBuilderPanel, fileEditorPanel].forEach(p => p.style.display = 'none');
-    
-    // Show active panel
-    activePanel.style.display = 'flex';
-    
-    // Reset all tabs
-    [appBuilderTab, fileEditorTab].forEach(tab => {
-        tab.style.borderBottom = '3px solid transparent';
-        tab.style.fontWeight = 'normal';
-        tab.style.color = '#666';
+  try {
+    const res = await fetch("{% url 'webprojects:file_detail' project.id file.id %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken()
+      },
+      body: JSON.stringify({ 
+        file_id: {{ file.id }}, 
+        prompt: prompt,
+        ai_action: 'build_project'
+      })
     });
+
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('Server returned HTML:', text.substring(0, 200));
+      throw new Error('Server returned HTML instead of JSON. Check the Django view handles ai_action=build_project.');
+    }
+
+    const data = await res.json();
     
-    // Style active tab
-    activeTab.style.borderBottom = `3px solid ${activeColor}`;
-    activeTab.style.fontWeight = 'bold';
-    activeTab.style.color = activeColor;
-}
+    if (data.status === 'success' && data.ai_content) {
+      outputEl.textContent = '✅ Project generated!\n\n';
+      outputEl.textContent += '📄 HTML:\n' + (data.ai_content.html || '') + '\n\n';
+      outputEl.textContent += '🎨 CSS:\n' + (data.ai_content.css || '') + '\n\n';
+      outputEl.textContent += '⚡ JS:\n' + (data.ai_content.js || '');
+      
+      // 👇 UPDATE THE FILE LIST DYNAMICALLY WITHOUT REFRESH
+      await refreshFileList();
+      
+      showToast('✅ Project generated! Files added to sidebar.', 'success');
+    } else {
+      outputEl.textContent = `❌ ${data.message || 'Generation failed'}`;
+      showToast(data.message || 'Generation failed', 'error');
+    }
 
-function switchToAppBuilder() {
-    switchTab(appBuilderTab, appBuilderPanel, '#007bff');
-}
-
-function switchToFileEditor() {
-    switchTab(fileEditorTab, fileEditorPanel, '#28a745');
-}
-
-appBuilderTab.onclick = switchToAppBuilder;
-fileEditorTab.onclick = switchToFileEditor;
-
-/* ================= FLOATING PANEL DRAG (IMPROVED) ================= */
-const panel = document.getElementById('floatingAI');
-const dragHandle = document.getElementById('dragHandle');
-
-let isDraggingPanel = false;
-let dragOffsetX = 0;
-let dragOffsetY = 0;
-let panelPosition = {
-    top: 100,
-    left: null,
-    right: 30
+  } catch (err) {
+    console.error(err);
+    outputEl.textContent = `❌ ${err.message}`;
+    showToast('Error: ' + err.message, 'error');
+  } finally {
+    runBtn.disabled = false;
+    runBtn.textContent = 'Run AI';
+  }
 };
 
-// Load saved position
-try {
-    const saved = localStorage.getItem('aiPanelPosition');
-    if (saved) {
-        const pos = JSON.parse(saved);
-        panelPosition.top = pos.top || 100;
-        panelPosition.right = pos.right || 30;
-        panel.style.top = panelPosition.top + 'px';
-        panel.style.right = panelPosition.right + 'px';
-        panel.style.left = 'auto';
-    }
-} catch (e) {
-    // Use defaults
-}
+// ============================================
+// AI APPLY CHANGES - FIXED (Global Scope)
+// ============================================
 
-dragHandle.addEventListener('mousedown', (e) => {
-    // Don't start drag if click was on close button
-    if (e.target.closest('.close-panel-btn')) return;
-    
-    isDraggingPanel = true;
-    const rect = panel.getBoundingClientRect();
-    dragOffsetX = e.clientX - rect.left;
-    dragOffsetY = e.clientY - rect.top;
-    
-    dragHandle.style.cursor = 'grabbing';
-    panel.style.cursor = 'grabbing';
-    document.body.style.userSelect = 'none';
-    e.preventDefault();
-});
-
-document.addEventListener('mousemove', (e) => {
-    if (!isDraggingPanel) return;
-    
-    let newX = e.clientX - dragOffsetX;
-    let newY = e.clientY - dragOffsetY;
-    
-    // Keep within viewport
-    const panelWidth = panel.offsetWidth;
-    const panelHeight = panel.offsetHeight;
-    const maxX = window.innerWidth - panelWidth - 10;
-    const maxY = window.innerHeight - panelHeight - 10;
-    
-    newX = Math.max(10, Math.min(newX, maxX));
-    newY = Math.max(10, Math.min(newY, maxY));
-    
-    panel.style.left = newX + 'px';
-    panel.style.top = newY + 'px';
-    panel.style.right = 'auto';
-    
-    // Save position periodically
-    clearTimeout(window._savePanelPosition);
-    window._savePanelPosition = setTimeout(() => {
-        try {
-            localStorage.setItem('aiPanelPosition', JSON.stringify({
-                top: newY,
-                right: window.innerWidth - newX - panelWidth
-            }));
-        } catch (e) {}
-    }, 100);
-});
-
-document.addEventListener('mouseup', () => {
-    if (isDraggingPanel) {
-        isDraggingPanel = false;
-        dragHandle.style.cursor = 'grab';
-        panel.style.cursor = '';
-        document.body.style.userSelect = '';
-    }
-});
-
-// Touch support
-dragHandle.addEventListener('touchstart', (e) => {
-    // Don't start drag if touch was on close button
-    if (e.target.closest('.close-panel-btn')) return;
-    
-    const touch = e.touches[0];
-    const rect = panel.getBoundingClientRect();
-    isDraggingPanel = true;
-    dragOffsetX = touch.clientX - rect.left;
-    dragOffsetY = touch.clientY - rect.top;
-    e.preventDefault();
-}, { passive: false });
-
-document.addEventListener('touchmove', (e) => {
-    if (!isDraggingPanel) return;
-    const touch = e.touches[0];
-    let newX = touch.clientX - dragOffsetX;
-    let newY = touch.clientY - dragOffsetY;
-    
-    const panelWidth = panel.offsetWidth;
-    const panelHeight = panel.offsetHeight;
-    newX = Math.max(10, Math.min(newX, window.innerWidth - panelWidth - 10));
-    newY = Math.max(10, Math.min(newY, window.innerHeight - panelHeight - 10));
-    
-    panel.style.left = newX + 'px';
-    panel.style.top = newY + 'px';
-    panel.style.right = 'auto';
-    e.preventDefault();
-}, { passive: false });
-
-document.addEventListener('touchend', () => {
-    isDraggingPanel = false;
-});
-
-/* ================= CLOSE AI PANEL ================= */
-function closeAIPanel() {
-    const panel = document.getElementById('floatingAI');
-    const toggleBtn = document.getElementById('toggleAI');
-    
-    if (panel) {
-        panel.style.display = 'none';
-        if (toggleBtn) {
-            toggleBtn.textContent = '🔧 Show AI Tools';
-            toggleBtn.style.background = '#444';
-            toggleBtn.style.color = '#fff';
-        }
-    }
-}
-
-function toggleAIPanel() {
-    const panel = document.getElementById('floatingAI');
-    const toggleBtn = document.getElementById('toggleAI');
-    
-    if (!panel) return;
-    
-    if (panel.style.display === 'none' || panel.style.display === '') {
-        panel.style.display = 'flex';
-        if (toggleBtn) {
-            toggleBtn.textContent = '❌ Hide AI Tools';
-            toggleBtn.style.background = '#e74c3c';
-            toggleBtn.style.color = '#fff';
-        }
-        // Restore position from localStorage
-        try {
-            const saved = localStorage.getItem('aiPanelPosition');
-            if (saved) {
-                const pos = JSON.parse(saved);
-                panel.style.top = pos.top + 'px';
-                panel.style.right = pos.right + 'px';
-                panel.style.left = 'auto';
-            }
-        } catch (e) {}
-    } else {
-        closeAIPanel();
-    }
-}
-
-// Make functions globally accessible
-window.toggleAIPanel = toggleAIPanel;
-window.closeAIPanel = closeAIPanel;
-
-/* ================= RESIZE (IMPROVED) ================= */
-const resizeHandleAI = document.getElementById('resizeHandleAI');
-let isResizing = false;
-let resizeStartY = 0;
-let resizeStartHeight = 0;
-
-resizeHandleAI.addEventListener('mousedown', (e) => {
-    isResizing = true;
-    resizeStartY = e.clientY;
-    resizeStartHeight = panel.offsetHeight;
-    document.body.style.userSelect = 'none';
-    e.preventDefault();
-});
-
-document.addEventListener('mousemove', (e) => {
-    if (!isResizing) return;
-    const deltaY = e.clientY - resizeStartY;
-    let newHeight = resizeStartHeight + deltaY;
-    newHeight = Math.max(150, Math.min(newHeight, 600));
-    panel.style.height = newHeight + 'px';
-});
-
-document.addEventListener('mouseup', () => {
-    if (isResizing) {
-        isResizing = false;
-        document.body.style.userSelect = '';
-    }
-});
-
-// Touch resize
-resizeHandleAI.addEventListener('touchstart', (e) => {
-    isResizing = true;
-    resizeStartY = e.touches[0].clientY;
-    resizeStartHeight = panel.offsetHeight;
-    e.preventDefault();
-}, { passive: false });
-
-document.addEventListener('touchmove', (e) => {
-    if (!isResizing) return;
-    const deltaY = e.touches[0].clientY - resizeStartY;
-    let newHeight = resizeStartHeight + deltaY;
-    newHeight = Math.max(150, Math.min(newHeight, 600));
-    panel.style.height = newHeight + 'px';
-    e.preventDefault();
-}, { passive: false });
-
-document.addEventListener('touchend', () => {
-    isResizing = false;
-});
-
-/* ================= AI APPLY CHANGES ================= */
-const FILE_CHAT_URL = "{% url 'webprojects:file_chat' project.id file.id %}";
-
-function getCsrfToken() {
-  return (
-    document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
-    document.querySelector('meta[name="csrf-token"]')?.content ||
-    ''
-  );
-}
-
-async function applyChanges() {
+window.applyChanges = async function() {
   const promptInput = document.getElementById('fileChatPrompt');
   const outputEl = document.getElementById('fileChatOutput');
   const applyBtn = document.getElementById('applyBtn');
-
   const prompt = promptInput.value.trim();
+
   if (!prompt) {
-    alert("Please describe the changes you want");
+    showToast('Please describe the changes you want', 'warning');
     return;
   }
 
   applyBtn.disabled = true;
-  applyBtn.innerHTML = '⏳ Applying...';
+  applyBtn.textContent = '⏳ Applying...';
   outputEl.style.display = 'block';
-  outputEl.textContent += `\n⏳ Applying: "${prompt}"\n`;
+  outputEl.textContent = `⏳ Applying: "${prompt}"\n`;
 
   try {
-    const res = await fetch(FILE_CHAT_URL, {
-      method: "POST",
+    const PROJECT_ID = {{ project.id }};
+    const FILE_ID = {{ file.id }};
+    
+    const res = await fetch(`/webprojects/project/${PROJECT_ID}/file/${FILE_ID}/chat/`, {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "X-CSRFToken": getCsrfToken()
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken()
       },
-      credentials: "same-origin",
-      body: JSON.stringify({
+      body: JSON.stringify({ 
         prompt: prompt,
-        apply: true
+        apply: true,
+        file_id: FILE_ID
       })
     });
 
-    const contentType = res.headers.get("content-type") || "";
-
-    if (!contentType.includes("application/json")) {
-      throw new Error("Server returned HTML instead of JSON");
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('Server returned HTML:', text.substring(0, 200));
+      throw new Error('Server returned HTML instead of JSON. The chat endpoint may not be configured.');
     }
 
     const data = await res.json();
 
-    if (data.status === "success" && data.code) {
-      if (typeof editor !== "undefined") {
+    if (data.status === 'success' && data.code) {
+      if (typeof editor !== 'undefined') {
         if (editor.setValue) {
           editor.setValue(data.code);
         } else if (editor.getModel) {
           editor.getModel().setValue(data.code);
         }
       }
-
-      outputEl.textContent += "✅ Changes applied and saved!\n\n";
-      promptInput.value = "";
+      
+      outputEl.textContent += '✅ Changes applied and saved!\n';
+      outputEl.textContent += `   File ID: ${data.file_id}\n\n`;
+      promptInput.value = '';
+      showToast('✅ Changes applied successfully!', 'success');
     } else {
-      outputEl.textContent += `❌ Error: ${data.message || "Unknown error"}\n\n`;
+      outputEl.textContent += `❌ Error: ${data.message || 'Failed to apply changes'}\n\n`;
+      showToast('Error: ' + (data.message || 'Failed to apply changes'), 'error');
     }
-
   } catch (err) {
     console.error(err);
     outputEl.textContent += `❌ Request failed: ${err.message}\n\n`;
+    outputEl.textContent += '💡 Make sure the chat endpoint is configured in your Django URLs.\n';
+    showToast('Error: ' + err.message, 'error');
   } finally {
     applyBtn.disabled = false;
     applyBtn.textContent = 'Apply Changes';
   }
+};
+
+// ============================================
+// AI FUNCTIONS (Legacy)
+// ============================================
+
+function getAISuggestion() {
+  showToast('AI Suggestion: Select code and click AI Suggest in toolbar', 'info');
 }
 
-document.getElementById('applyBtn').onclick = applyChanges;
+function explainCode() {
+  const selectedText = getSelectedText();
+  if (!selectedText.trim()) {
+    showToast('Please select some code first', 'warning');
+    return;
+  }
+  showToast('Explain Code: ' + selectedText.substring(0, 50) + '...', 'info');
+}
 
-document.getElementById('fileChatPrompt').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    applyChanges();
+function runAIAction() {
+  const action = document.getElementById("aiAction").value;
+  const selectedText = getSelectedText();
+  if (!selectedText.trim()) {
+    showToast('Please select some code first', 'warning');
+    return;
+  }
+  showToast('Running AI Action: ' + action + ' on selected code', 'info');
+}
+
+function closeAIPanel() {
+  const panel = document.getElementById('floatingAI');
+  const toggleBtn = document.getElementById('toggleAI');
+  if (panel) {
+    panel.style.display = 'none';
+    if (toggleBtn) {
+      toggleBtn.textContent = '🔧 Show AI Tools';
+      toggleBtn.style.background = '#444';
+      toggleBtn.style.color = '#fff';
+    }
+  }
+}
+
+function getSelectedText() {
+  if (editor && editor.getModel && editor.getSelection) {
+    return editor.getModel().getValueInRange(editor.getSelection());
+  }
+  return '';
+}
+
+// ============================================
+// FOLDER TOGGLE - INITIAL SETUP
+// ============================================
+
+document.addEventListener('DOMContentLoaded', function() {
+  attachFolderToggleListeners();
+
+  // Load quiz progress
+  loadQuizProgress();
+
+  // Auto-hide AI toolbar on small screens
+  if (window.innerWidth <= 768) {
+    document.getElementById("aiToolbar").style.display = "none";
   }
 });
 
+// ============================================
+// MONACO EDITOR INITIALIZATION
+// ============================================
 
-/* ================= ESCAPE KEY SUPPORT ================= */
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const panel = document.getElementById('floatingAI');
-        if (panel && panel.style.display !== 'none' && panel.style.display !== '') {
-            closeAIPanel();
-        }
-        // Also close image modal if open
-        const imageModal = document.getElementById('imagePopupModal');
-        if (imageModal && imageModal.style.display === 'block') {
-            closeImageModal();
-        }
-    }
-});
+let editor;
+require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' } });
 
-/* ================= DOCUMENT READY - INITIAL SETUP ================= */
-document.addEventListener('DOMContentLoaded', function() {
-    // Ensure AI panel is visible by default
-    const panel = document.getElementById('floatingAI');
-    const toggleBtn = document.getElementById('toggleAI');
-    
-    if (panel && panel.style.display === 'none') {
-        // If it was closed, show it
-        panel.style.display = 'flex';
-        if (toggleBtn) {
-            toggleBtn.textContent = '❌ Hide AI Tools';
-            toggleBtn.style.background = '#e74c3c';
-            toggleBtn.style.color = '#fff';
-        }
-    }
-    
-    // Restore position from localStorage if available
-    try {
-        const saved = localStorage.getItem('aiPanelPosition');
-        if (saved && panel) {
-            const pos = JSON.parse(saved);
-            panel.style.top = pos.top + 'px';
-            panel.style.right = pos.right + 'px';
-            panel.style.left = 'auto';
-        }
-    } catch (e) {}
-});
+require(['vs/editor/editor.main'], function () {
+    editor = monaco.editor.create(document.getElementById('container'), {
+        value: `{{ file.content|escapejs }}`,
+        language: getLanguage("{{ file.name }}"),
+        theme: 'vs-dark',
+        automaticLayout: true,
+        readOnly: false
+    });
 
-/* ================= PROMPTS JS ================= */
-document.addEventListener("DOMContentLoaded", async () => {
-    const runButton = document.getElementById("runAIPrompt");
-    const aiPrompt = document.getElementById("aiPrompt");
-    const preview = document.getElementById("preview");
-    const outputEl = document.getElementById('appBuilderOutput');
+    // ── Save indicator pill ──────────────────────────────────────────────
+    const saveIndicator = document.createElement('div');
+    saveIndicator.id = 'saveIndicator';
+    saveIndicator.style.cssText = `
+        position: fixed;
+        bottom: 16px;
+        right: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 5px 12px;
+        border-radius: 20px;
+        background: #1e1e1e;
+        border: 1px solid #3c3c3c;
+        color: #888;
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    `;
+    document.body.appendChild(saveIndicator);
 
-    const FILE_ID = {{ file.id }};
-    const PROJECT_ID = {{ project.id }};
-    const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-    function renderPreview(html, css, js) {
-        if (!preview) return;
-        preview.srcdoc = `
-            <html>
-                <head>
-                    <style>${css || ""}</style>
-                </head>
-                <body>
-                    ${html || ""}
-                    <script>${js || ""}<\/script>
-                </body>
-            </html>`;
+    function showSaveStatus(msg, color = '#888') {
+        saveIndicator.textContent = msg;
+        saveIndicator.style.color = color;
+        saveIndicator.style.opacity = '1';
+        clearTimeout(saveIndicator._hide);
+        saveIndicator._hide = setTimeout(() => {
+            saveIndicator.style.opacity = '0';
+        }, 2500);
     }
 
+    // ── Core save function ───────────────────────────────────────────────
+    let lastSavedContent = editor.getValue();
+    let isSaving         = false;
+    let autosaveTimer    = null;
 
-    async function loadSavedProject() {
+    async function autosave() {
+        const content = editor.getValue();
+
+        // Skip if nothing changed or already in-flight
+        if (content === lastSavedContent || isSaving) return;
+
+        isSaving = true;
+        showSaveStatus('⏳ Saving...', '#888');
+
         try {
-            const res = await fetch(`/webprojects/{{ project.id }}/load-files/`);
-            const data = await res.json();
-            if (data.status === "success") {
-                renderPreview(data.html, data.css, data.js);
-            } else {
-                console.warn("No saved project files found");
-            }
-        } catch (err) {
-            console.error("Error loading saved project:", err);
-        }
-    }
+            const res = await fetch("{% url 'webprojects:file_autosave' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({
+                    file_id: {{ file.id }},
+                    content: content,
+                }),
+            });
 
-    if (runButton) {
-        runButton.addEventListener("click", async () => {
-            const promptText = aiPrompt.value.trim();
-            if (!promptText) {
-                showToast("Please enter a prompt", 'warning');
+            if (res.status === 503) {
+                showSaveStatus('⚠️ Busy, retrying...', '#f59e0b');
                 return;
             }
 
-            runButton.disabled = true;
-            runButton.innerHTML = '⏳ Generating...';
-            if (outputEl) {
-                outputEl.style.display = 'block';
-                outputEl.textContent = '⏳ Generating...\n';
+            const data = await res.json();
+
+            if (res.ok && data.status === 'success') {
+                lastSavedContent = content;
+                showSaveStatus('✅ Saved', '#4ade80');
+            } else {
+                showSaveStatus('❌ Save failed', '#f87171');
+                console.warn('Autosave failed:', data.message);
             }
 
-            try {
-                const res = await fetch(`/webprojects/${PROJECT_ID}/file/${FILE_ID}/`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrftoken
-                    },
-                    body: JSON.stringify({ file_id: FILE_ID, prompt: promptText })
-                });
-
-                const data = await res.json();
-                console.log("AI Response:", data);
-
-                if (data.status === "success" && data.ai_content) {
-                    renderPreview(
-                        data.ai_content.html,
-                        data.ai_content.css,
-                        data.ai_content.js
-                    );
-                    if (outputEl) {
-                        outputEl.textContent = '✅ Project generated successfully!\n\n' + 
-                            JSON.stringify(data.ai_content, null, 2);
-                    }
-                    showToast('Project generated successfully!', 'success');
-                } else {
-                    throw new Error(data.message || 'Generation failed');
-                }
-
-            } catch (err) {
-                console.error(err);
-                if (outputEl) {
-                    outputEl.textContent = `❌ Error: ${err.message}`;
-                }
-                showToast('Error: ' + err.message, 'error');
-            } finally {
-                runButton.disabled = false;
-                runButton.innerHTML = '✨ Generate';
-            }
-        });
+        } catch (err) {
+            showSaveStatus('❌ Network error', '#f87171');
+            console.error('Autosave error:', err);
+        } finally {
+            isSaving = false;
+        }
     }
 
-    // Initial load
-    await loadSavedProject();
+    // ── Debounce: save 2s after user stops typing ────────────────────────
+    editor.onDidChangeModelContent(() => {
+        clearTimeout(autosaveTimer);
+        autosaveTimer = setTimeout(autosave, 2000);
+    });
+
+    // ── Fallback: save every 30s regardless ─────────────────────────────
+    setInterval(autosave, 30000);
+
+    // ── Ctrl+S / Cmd+S — immediate save ─────────────────────────────────
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+        clearTimeout(autosaveTimer);
+        autosave();
+    });
+
+    // ── Save on tab/window close ─────────────────────────────────────────
+    window.addEventListener('beforeunload', (e) => {
+        const content = editor.getValue();
+        if (content !== lastSavedContent) {
+            navigator.sendBeacon(
+                "{% url 'webprojects:file_autosave' %}",
+                new Blob([JSON.stringify({
+                    file_id: {{ file.id }},
+                    content: content,
+                })], { type: 'application/json' })
+            );
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
 });
 
-/* ================= SIDE CONTENT JS ================= */
-function toggleDesc(id, el, lang) {
-    const desc = document.getElementById(id);
-    if(desc.style.display === "none") {
-        desc.style.display = "block";
-        el.querySelector(".toggle-icon").textContent = "➖";
-        const codeEl = desc.querySelector('code');
-        codeEl.className = 'language-' + lang;
-        Prism.highlightElement(codeEl);
+function getLanguage(fileName) {
+  const ext = fileName.split('.').pop().toLowerCase();
+  switch (ext) {
+    case "py": return "python";
+    case "js": return "javascript";
+    case "html": return "html";
+    case "css": return "css";
+    case "json": return "json";
+    default: return "plaintext";
+  }
+}
+
+// ============================================
+// RUN CODE FUNCTION
+// ============================================
+
+function runCode() {
+  const code = editor.getValue();
+  const output = document.getElementById("outputText");
+  const tablePreview = document.getElementById("tablePreview");
+  const plotPreview = document.getElementById("plotPreview");
+
+  output.innerHTML = `⏳ Running... <span class="spinner"></span>`;
+  tablePreview.innerHTML = "";
+  plotPreview.innerHTML = "";
+
+  fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: JSON.stringify({ 
+      content: code,
+      run_plot: true,
+      run_table: true
+    })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.status === "error") {
+      output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`;
     } else {
-        desc.style.display = "none";
-        el.querySelector(".toggle-icon").textContent = "➕";
-    }
-}
-
-
-/* ================= SIDEBAR RESIZE ================= */
-document.addEventListener('DOMContentLoaded', () => {
-    const editorLayout = document.getElementById('editorLayout');
-    const toggleBtn = document.getElementById('toggleSidebarBtn');
-    const sidebar = document.querySelector('.sidebar');
-    const resizeHandle = document.createElement('div');
-    
-    if (!sidebar) return;
-    
-    resizeHandle.className = 'resize-handle';
-    resizeHandle.style.cssText = `
-        position: absolute;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        width: 5px;
-        cursor: col-resize;
-        background: transparent;
-        z-index: 10;
-        transition: background 0.2s;
-    `;
-    resizeHandle.onmouseenter = () => resizeHandle.style.background = '#4fa';
-    resizeHandle.onmouseleave = () => resizeHandle.style.background = 'transparent';
-    
-    sidebar.style.position = 'relative';
-    sidebar.appendChild(resizeHandle);
-
-    let isResizing = false;
-    let startX = 0;
-    let startWidth = 0;
-
-    resizeHandle.addEventListener('mousedown', (e) => {
-        isResizing = true;
-        startX = e.clientX;
-        startWidth = sidebar.offsetWidth;
-        document.body.style.cursor = 'col-resize';
-        document.body.style.userSelect = 'none';
-        e.preventDefault();
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if (!isResizing) return;
-        
-        const width = startWidth + (e.clientX - startX);
-        const minWidth = 200;
-        const maxWidth = 950;
-        
-        if (width >= minWidth && width <= maxWidth) {
-            sidebar.style.width = width + 'px';
-            sidebar.style.flexBasis = width + 'px';
-            sidebar.style.minWidth = width + 'px';
-            
-            if (window.editor?.layout) {
-                window.editor.layout();
-            }
-        }
-    });
-
-    document.addEventListener('mouseup', () => {
-        if (isResizing) {
-            isResizing = false;
-            document.body.style.cursor = '';
-            document.body.style.userSelect = '';
-            localStorage.setItem('sidebarWidth', sidebar.offsetWidth);
-        }
-    });
-
-    const savedWidth = localStorage.getItem('sidebarWidth');
-    if (savedWidth) {
-        sidebar.style.width = savedWidth + 'px';
-        sidebar.style.flexBasis = savedWidth + 'px';
-        sidebar.style.minWidth = savedWidth + 'px';
-    }
-
-    const updateToggleIcon = (isCollapsed) => {
-        if (!toggleBtn) return;
-        toggleBtn.innerHTML = isCollapsed 
-            ? '<span title="Open Sidebar">☰</span>' 
-            : '<span title="Close Sidebar">✖</span>';
-    };
-
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            const isCollapsed = editorLayout.classList.toggle('collapsed');
-            updateToggleIcon(isCollapsed);
-
-            setTimeout(() => {
-                if (window.editor?.layout) {
-                    window.editor.layout();
-                }
-            }, 100);
+      output.textContent = data.output || "[No output]";
+      if (data.table) {
+        tablePreview.innerHTML = data.table;
+        tablePreview.style.display = "block";
+      } else {
+        tablePreview.style.display = "none";
+      }
+      plotPreview.innerHTML = "";
+      if (Array.isArray(data.images) && data.images.length > 0) {
+        data.images.forEach(function(src) {
+          const img = document.createElement("img");
+          img.src = src;
+          img.style.maxWidth = "100%";
+          img.style.marginBottom = "10px";
+          plotPreview.appendChild(img);
         });
-
-        updateToggleIcon(editorLayout.classList.contains('collapsed'));
+        plotPreview.style.display = "block";
+      } else {
+        plotPreview.style.display = "none";
+      }
     }
+  })
+  .catch(function(err) {
+    output.innerHTML = `<span style="color:red;">❌ Request Failed: ${escapeHTML(err.message)}</span>`;
+  });
+}
+
+// ============================================
+// OUTPUT PANEL RESIZE
+// ============================================
+
+document.addEventListener('DOMContentLoaded', function() {
+  var container = document.getElementById("container");
+  var outputPanel = document.getElementById("outputPanel");
+  var resizeHandle = document.getElementById("resizeHandle");
+
+  if (!outputPanel || !resizeHandle) return;
+  
+  var isDragging = false;
+  var startY = 0;
+  var startHeight = 0;
+  
+  resizeHandle.addEventListener("mousedown", function(e) {
+    isDragging = true;
+    startY = e.clientY;
+    startHeight = outputPanel.offsetHeight;
+    document.body.style.userSelect = "none";
+    e.preventDefault();
+  });
+  
+  document.addEventListener("mousemove", function(e) {
+    if (!isDragging) return;
+    var dy = e.clientY - startY;
+    var newHeight = Math.max(startHeight - dy, 80);
+    outputPanel.style.height = newHeight + "px";
+  });
+  
+  document.addEventListener("mouseup", function() {
+    if (isDragging) {
+      isDragging = false;
+      document.body.style.userSelect = "";
+    }
+  });
 });
 
-/* ================= IMAGE MODAL ================= */
-function showImageModal(imgUrl) {
-    const modal = document.getElementById('imagePopupModal');
-    const img = document.getElementById('popupImage');
-    if (modal && img) {
-        img.src = imgUrl;
-        modal.style.display = 'block';
-    }
-}
+// ============================================
+// FILE UPLOAD
+// ============================================
 
-function closeImageModal() {
-    const modal = document.getElementById('imagePopupModal');
-    const img = document.getElementById('popupImage');
-    if (modal) {
-        modal.style.display = 'none';
-        if (img) img.src = "";
-    }
-}
+document.addEventListener('DOMContentLoaded', function() {
+  var dropZone = document.getElementById('dropZone');
+  var fileInput = document.getElementById('fileInput');
 
-/* ================= FOLDER TOGGLE ================= */
-document.addEventListener('DOMContentLoaded', () => {
-    const toggles = document.querySelectorAll('.folder-toggle');
-
-    toggles.forEach(toggle => {
-        const ext = toggle.dataset.ext;
-        const storedState = localStorage.getItem('folder_' + ext);
-
-        if (storedState === 'open') {
-            toggle.classList.add('open');
-            if (toggle.nextElementSibling) {
-                toggle.nextElementSibling.style.display = 'block';
-            }
-        }
-
-        toggle.addEventListener('click', () => {
-            const group = toggle.nextElementSibling;
-            const isOpen = toggle.classList.toggle('open');
-            if (group) {
-                group.style.display = isOpen ? 'block' : 'none';
-            }
-            localStorage.setItem('folder_' + ext, isOpen ? 'open' : 'closed');
-        });
+  if (dropZone) {
+    dropZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      dropZone.style.backgroundColor = '#333';
     });
+
+    dropZone.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      dropZone.style.backgroundColor = '';
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dropZone.style.backgroundColor = '';
+      var file = e.dataTransfer.files[0];
+      if (file) uploadFile(file);
+    });
+  }
+
+  if (fileInput) {
+    fileInput.addEventListener('change', function() {
+      var file = fileInput.files[0];
+      if (file) uploadFile(file);
+    });
+  }
 });
 
-/* ================= TOAST MESSAGE ================= */
-function showToast(message, type = 'info') {
-    const toast = document.getElementById("toastMessage");
-    if (!toast) return;
-    
-    const colors = {
-        success: '#28a745',
-        error: '#dc3545',
-        info: '#007bff',
-        warning: '#ffc107'
-    };
-    
-    toast.innerHTML = `
-        <span>${message}</span>
-        <button onclick="hideToast()" style="
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 22px;
-            position: absolute;
-            right: 12px;
-            top: 8px;
-            cursor: pointer;
-        ">&times;</button>
-    `;
-    toast.style.backgroundColor = colors[type] || '#222';
-    toast.style.display = "block";
-    toast.style.opacity = "1";
-    
-    clearTimeout(toast._timeout);
-    toast._timeout = setTimeout(() => {
-        toast.style.opacity = "0";
-        setTimeout(() => toast.style.display = "none", 500);
-    }, 3000);
-}
+function uploadFile(file) {
+  var formData = new FormData();
+  formData.append('file', file);
+  formData.append('name', file.name);
 
-function hideToast() {
-    const toast = document.getElementById("toastMessage");
-    if (toast) {
-        toast.style.opacity = "0";
-        setTimeout(() => toast.style.display = "none", 500);
+  var loader = document.getElementById("upload-loader");
+  if (loader) loader.style.display = "flex";
+
+  fetch("{% url 'webprojects:upload_file_ajax' project.id %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+    body: formData
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.success) {
+      showToast('✅ Uploaded: ' + file.name, 'success');
+      // Refresh the file list dynamically
+      setTimeout(function() { refreshFileList(); }, 500);
+    } else {
+      showToast('❌ Upload failed: ' + (data.error || ''), 'error');
     }
+  })
+  .catch(function() { showToast('⚠️ Upload error', 'error'); })
+  .finally(function() {
+    if (loader) loader.style.display = "none";
+  });
 }
 
+// ============================================
+// DELETE FILE
+// ============================================
 
-/* ================= OUTPUT PANEL RESIZE ================= */
-document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById("container");
-    const outputPanel = document.getElementById("outputPanel");
-    const resizeHandle = document.getElementById("outputResizeHandle");
-    
-    if (!outputPanel || !resizeHandle) return;
-    
-    let isDragging = false;
-    let startY = 0;
-    let startHeight = 0;
-    
-    resizeHandle.addEventListener("mousedown", (e) => {
-        isDragging = true;
-        startY = e.clientY;
-        startHeight = outputPanel.offsetHeight;
-        document.body.style.userSelect = "none";
-        e.preventDefault();
-    });
-    
-    document.addEventListener("mousemove", (e) => {
-        if (!isDragging) return;
-        const dy = e.clientY - startY;
-        const newHeight = Math.max(startHeight - dy, 80);
-        outputPanel.style.height = `${newHeight}px`;
-    });
-    
-    document.addEventListener("mouseup", () => {
-        if (isDragging) {
-            isDragging = false;
-            document.body.style.userSelect = "";
+document.addEventListener('DOMContentLoaded', function() {
+  var deleteForms = document.querySelectorAll('.delete-file-form');
+
+  deleteForms.forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!confirm("Are you sure you want to delete this file?")) return;
+
+      var url = form.getAttribute('action');
+      var csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      })
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        if (data.status === 'success') {
+          form.closest('.file-item').remove();
+          showToast('File deleted successfully', 'success');
+          // Refresh the file list
+          refreshFileList();
+        } else {
+          showToast(data.message || 'Failed to delete file.', 'error');
         }
+      })
+      .catch(function(err) {
+        console.error(err);
+        showToast('Error deleting file.', 'error');
+      });
     });
-    
-    // Touch support
-    resizeHandle.addEventListener("touchstart", (e) => {
-        isDragging = true;
-        startY = e.touches[0].clientY;
-        startHeight = outputPanel.offsetHeight;
-        e.preventDefault();
-    }, { passive: false });
-    
-    document.addEventListener("touchmove", (e) => {
-        if (!isDragging) return;
-        const dy = e.touches[0].clientY - startY;
-        const newHeight = Math.max(startHeight - dy, 80);
-        outputPanel.style.height = `${newHeight}px`;
-        e.preventDefault();
-    }, { passive: false });
-    
-    document.addEventListener("touchend", () => {
-        isDragging = false;
-    });
+  });
 });
 
-/* ================= UTILITY FUNCTIONS ================= */
-function getSelectedText() {
-    if (editor && editor.getModel && editor.getSelection) {
-        return editor.getModel().getValueInRange(editor.getSelection());
+// ============================================
+// FLOATING AI PANEL - DRAG & RESIZE
+// ============================================
+
+/* ================= CLOSE PANEL ================= */
+function closeAIPanel() {
+  document.getElementById('floatingAI').style.display = 'none';
+}
+
+/* ================= TAB SWITCHING ================= */
+var appBuilderTab = document.getElementById('appBuilderTab');
+var fileEditorTab = document.getElementById('fileEditorTab');
+var appBuilderPanel = document.getElementById('appBuilderPanel');
+var fileEditorPanel = document.getElementById('fileEditorPanel');
+
+function switchToAppBuilder() {
+  appBuilderPanel.style.display = 'flex';
+  fileEditorPanel.style.display = 'none';
+
+  appBuilderTab.style.borderBottom = '3px solid #007bff';
+  appBuilderTab.style.fontWeight = 'bold';
+  appBuilderTab.style.color = '#007bff';
+
+  fileEditorTab.style.borderBottom = '3px solid transparent';
+  fileEditorTab.style.fontWeight = 'normal';
+  fileEditorTab.style.color = '#666';
+}
+
+function switchToFileEditor() {
+  appBuilderPanel.style.display = 'none';
+  fileEditorPanel.style.display = 'flex';
+
+  fileEditorTab.style.borderBottom = '3px solid #28a745';
+  fileEditorTab.style.fontWeight = 'bold';
+  fileEditorTab.style.color = '#28a745';
+
+  appBuilderTab.style.borderBottom = '3px solid transparent';
+  appBuilderTab.style.fontWeight = 'normal';
+  appBuilderTab.style.color = '#666';
+}
+
+appBuilderTab.addEventListener('click', switchToAppBuilder);
+fileEditorTab.addEventListener('click', switchToFileEditor);
+
+/* ================= DRAG ================= */
+var panel = document.getElementById('floatingAI');
+var dragHandle = document.getElementById('dragHandle');
+
+var isDraggingPanel = false;
+var dragOffsetX = 0;
+var dragOffsetY = 0;
+
+dragHandle.addEventListener('mousedown', function(e) {
+  if (e.target.closest('.close-panel-btn')) return;
+  isDraggingPanel = true;
+  dragHandle.style.cursor = 'grabbing';
+  var rect = panel.getBoundingClientRect();
+  panel.style.left = rect.left + 'px';
+  panel.style.top = rect.top + 'px';
+  panel.style.right = 'auto';
+  dragOffsetX = e.clientX - rect.left;
+  dragOffsetY = e.clientY - rect.top;
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', function(e) {
+  if (!isDraggingPanel) return;
+  var newLeft = e.clientX - dragOffsetX;
+  var newTop = e.clientY - dragOffsetY;
+  var maxLeft = window.innerWidth - panel.offsetWidth;
+  var maxTop = window.innerHeight - panel.offsetHeight;
+  newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+  newTop = Math.max(0, Math.min(newTop, maxTop));
+  panel.style.left = newLeft + 'px';
+  panel.style.top = newTop + 'px';
+});
+
+document.addEventListener('mouseup', function() {
+  isDraggingPanel = false;
+  dragHandle.style.cursor = 'grab';
+});
+
+/* ================= RESIZE ================= */
+var resizeHandleAI = document.getElementById('resizeHandleAI');
+var isResizing = false;
+
+resizeHandleAI.addEventListener('mousedown', function(e) {
+  isResizing = true;
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', function(e) {
+  if (!isResizing) return;
+  var newHeight = e.clientY - panel.offsetTop;
+  if (newHeight < 150) newHeight = 150;
+  panel.style.height = newHeight + 'px';
+});
+
+document.addEventListener('mouseup', function() {
+  isResizing = false;
+});
+
+// ============================================
+// SIDEBAR RESIZE
+// ============================================
+
+document.addEventListener('DOMContentLoaded', function() {
+  var editorLayout = document.getElementById('editorLayout');
+  var toggleBtn = document.getElementById('toggleSidebarBtn');
+  var sidebar = document.querySelector('.sidebar');
+  var resizeHandle = document.createElement('div');
+  
+  if (!sidebar) return;
+  
+  resizeHandle.className = 'resize-handle';
+  resizeHandle.style.cssText = `
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    cursor: col-resize;
+    background: transparent;
+    z-index: 10;
+    transition: background 0.2s;
+  `;
+  resizeHandle.onmouseenter = function() { resizeHandle.style.background = '#4fa'; };
+  resizeHandle.onmouseleave = function() { resizeHandle.style.background = 'transparent'; };
+  
+  sidebar.style.position = 'relative';
+  sidebar.appendChild(resizeHandle);
+
+  var isResizingSidebar = false;
+  var startX = 0;
+  var startWidth = 0;
+
+  resizeHandle.addEventListener('mousedown', function(e) {
+    isResizingSidebar = true;
+    startX = e.clientX;
+    startWidth = sidebar.offsetWidth;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!isResizingSidebar) return;
+    
+    var width = startWidth + (e.clientX - startX);
+    var minWidth = 200;
+    var maxWidth = 950;
+    
+    if (width >= minWidth && width <= maxWidth) {
+      sidebar.style.width = width + 'px';
+      sidebar.style.flexBasis = width + 'px';
+      sidebar.style.minWidth = width + 'px';
+      
+      if (window.editor && window.editor.layout) {
+        window.editor.layout();
+      }
     }
-    return '';
-}
+  });
 
-function insertAfterSelection(original, insertion) {
-    if (!editor) return;
-    const range = editor.getSelection();
-    editor.executeEdits(null, [{
-        range: range,
-        text: original + "\n\n" + insertion,
-        forceMoveMarkers: true
-    }]);
-}
+  document.addEventListener('mouseup', function() {
+    if (isResizingSidebar) {
+      isResizingSidebar = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      localStorage.setItem('sidebarWidth', sidebar.offsetWidth);
+    }
+  });
 
-function cleanAIResponse(text) {
-    if (!text) return '';
-    if (text.includes("```")) {
-        const parts = text.split("```");
-        if (parts.length >= 2) {
-            let code = parts[1];
-            code = code.replace(/^(\w+\n)?/, "");
-            return code.trim();
+  var savedWidth = localStorage.getItem('sidebarWidth');
+  if (savedWidth) {
+    sidebar.style.width = savedWidth + 'px';
+    sidebar.style.flexBasis = savedWidth + 'px';
+    sidebar.style.minWidth = savedWidth + 'px';
+  }
+
+  var updateToggleIcon = function(isCollapsed) {
+    if (!toggleBtn) return;
+    toggleBtn.innerHTML = isCollapsed 
+      ? '<span title="Open Sidebar">☰</span>' 
+      : '<span title="Close Sidebar">✖</span>';
+  };
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      var isCollapsed = editorLayout.classList.toggle('collapsed');
+      updateToggleIcon(isCollapsed);
+
+      setTimeout(function() {
+        if (window.editor && window.editor.layout) {
+          window.editor.layout();
         }
-    }
-    return text.trim();
-}
+      }, 100);
+    });
 
-function escapeHTML(str) {
-    return String(str).replace(/[&<>"']/g, tag => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-    }[tag]));
-}
+    updateToggleIcon(editorLayout.classList.contains('collapsed'));
+  }
+});
 </script>
 
 {% endblock %}

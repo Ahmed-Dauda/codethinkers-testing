@@ -484,64 +484,86 @@ from django.views.decorators.http import require_http_methods
 #             "traceback": traceback.format_exc()
 #         }, status=500)
 
+import time
+import json
+import traceback
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
+from django.db import transaction, OperationalError
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def file_autosave(request):
+    file_id = None
+
+    # ── Parse JSON body ──────────────────────────────────────────────────
     try:
-        print("=== AUTOSAVE BACKEND DEBUG ===")
-        print("Request method:", request.method)
-        print("Request body:", request.body[:200])
-        
         data = json.loads(request.body)
         file_id = data.get("file_id")
         content = data.get("content", "")
-        
-        print(f"File ID: {file_id}")
-        print(f"Content length: {len(content)}")
-        
-        # Use select_for_update with timeout
-        from django.db import transaction
-        with transaction.atomic():
-            file_obj = File.objects.select_for_update(nowait=True).get(id=file_id)
-            print(f"Found file: {file_obj.name}")
-            
-            # Save the content
-            file_obj.content = content
-            file_obj.save(update_fields=["content"])
-            
-            print("✅ File saved successfully")
-            
+    except json.JSONDecodeError as e:
+        return JsonResponse({
+            "status": "error",
+            "message": "Invalid JSON data",
+            "detail": str(e)
+        }, status=400)
+
+    if not file_id:
+        return JsonResponse({
+            "status": "error",
+            "message": "file_id is required"
+        }, status=400)
+
+    # ── Save with retry (handles SQLite "database is locked") ────────────
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        try:
+            with transaction.atomic():
+                file_obj = (
+                    File.objects
+                    .select_for_update(nowait=False)   # wait for lock, don't raise immediately
+                    .get(id=file_id)
+                )
+                file_obj.content = content
+                file_obj.save(update_fields=["content"])
+
             return JsonResponse({
                 "status": "success",
-                "message": "File saved successfully",
+                "message": "File saved",
                 "file_id": file_id,
-                "content_length": len(content)
+                "content_length": len(content),
             })
-        
-    except File.DoesNotExist:
-        print(f"❌ File not found: {file_id}")
-        return JsonResponse({
-            "status": "error",
-            "message": f"File with ID {file_id} not found"
-        }, status=404)
-        
-    except json.JSONDecodeError as e:
-        print(f"❌ JSON decode error: {e}")
-        return JsonResponse({
-            "status": "error",
-            "message": "Invalid JSON data"
-        }, status=400)
-        
-    except Exception as e:
-        import traceback
-        print(f"❌ Error: {e}")
-        print(traceback.format_exc())
-        return JsonResponse({
-            "status": "error",
-            "message": str(e),
-            "traceback": traceback.format_exc()
-        }, status=500)        
 
+        except OperationalError as e:
+            if "locked" in str(e).lower() and attempt < max_attempts - 1:
+                wait = 0.3 * (attempt + 1)   # 0.3s, 0.6s, then give up
+                print(f"⚠️ DB locked (attempt {attempt + 1}), retrying in {wait}s...")
+                time.sleep(wait)
+                continue
+            print(f"❌ DB OperationalError after {attempt + 1} attempts: {e}")
+            return JsonResponse({
+                "status": "error",
+                "message": "Database is busy. Please try again in a moment.",
+                "detail": str(e)
+            }, status=503)
+
+        except File.DoesNotExist:
+            return JsonResponse({
+                "status": "error",
+                "message": f"File with ID {file_id} not found"
+            }, status=404)
+
+        except Exception as e:
+            print(f"❌ Autosave error: {e}")
+            print(traceback.format_exc())
+            return JsonResponse({
+                "status": "error",
+                "message": str(e)
+            }, status=500)
+
+            
 @require_http_methods(["GET"])
 def get_file_content(request, project_id, file_id):
     """Fetch file content without full page load"""
@@ -1997,7 +2019,6 @@ def get_xp_stats(request):
 # Initialize once when the module loads, not on every request
 
 
-
 @login_required
 @require_http_methods(["GET", "POST"])
 def file_detail(request, project_id, file_id):
@@ -2019,16 +2040,12 @@ def file_detail(request, project_id, file_id):
         course = None
 
     # Find the exam tied to this course, if one exists
-    # Find the exam tied to this course, if one exists
     from quiz.models import Course as ExamCourse
     exam = ExamCourse.objects.filter(course_name=course).first() if course else None
 
-
     # Fetch topics using the course object
     topics = Topics.objects.filter(courses=course).select_related("courses", "categories") if course else Topics.objects.none()
-    # ADD THESE 3 LINES:
-    from .models import StudentProgress
-    # ✅ FIX: get progress without course=None filter
+    
     from .models import StudentProgress
     progress = StudentProgress.objects.filter(
         student=request.user,
@@ -2042,16 +2059,11 @@ def file_detail(request, project_id, file_id):
         progress.completed_topics.filter(id__in=course_topic_ids).values_list('id', flat=True)
     ) if progress else []
 
-
     current_topic_id = (
         progress.current_topic.id
         if progress and progress.current_topic
         else None
     )
-
-    print("CURRENT TOPIC ID:", current_topic_id)
-    print("COMPLETED TOPIC IDS:", completed_topic_ids)
-    print("PROGRESS OBJECT:", progress)
 
     # ================= SIDEBAR EXTENSIONS =================
     exts = sorted({
@@ -2078,9 +2090,10 @@ def file_detail(request, project_id, file_id):
         run_plot = data.get("run_plot", False)
         run_table = data.get("run_table", False)
         prompt = data.get("prompt", "")
+        ai_action = data.get("ai_action", "")
 
         # ================= AI PROMPT =================
-        if prompt:
+        if prompt or ai_action == "build_project":
             # Check if OpenAI client is available
             if client is None:
                 return JsonResponse({
@@ -2109,90 +2122,123 @@ def file_detail(request, project_id, file_id):
                     )
 
                     # ================= ENHANCED AI SYSTEM PROMPT =================
-                    system_message = """You are a senior full-stack web developer with expertise in modern web technologies.
+                    system_message = """You are an elite UI/UX engineer and creative developer who builds stunning, modern web applications. Your code rivals the quality of Vercel, Linear, Stripe, and Apple design systems.
 
-**Your Role:**
-- Generate clean, production-ready HTML, CSS, and JavaScript
-- Follow modern best practices and web standards
-- Create responsive, accessible, and performant code
-- Write semantic HTML with proper structure
-- Use modern CSS (Flexbox, Grid, custom properties)
-- Write vanilla JavaScript with ES6+ features
+## DESIGN PHILOSOPHY
+- Clean, purposeful whitespace — never crowded
+- Strong visual hierarchy with clear typographic scale
+- Consistent 8px spacing grid (8, 16, 24, 32, 48, 64px)
+- Subtle depth using shadows, not heavy borders
+- Smooth micro-interactions and transitions (150-300ms)
+- Mobile-first, fully responsive layouts
 
-**Code Quality Standards:**
-- Use meaningful class names and IDs
-- Include helpful comments for complex logic
-- Ensure cross-browser compatibility
-- Follow consistent indentation (2 spaces)
-- Write DRY (Don't Repeat Yourself) code
+## VISUAL STYLE DEFAULTS (use unless user specifies otherwise)
+- Font: Inter or system-ui — never serif fonts
+- Primary color: #6366f1 (indigo) with #4f46e5 dark variant
+- Background: #ffffff or #f9fafb (light) / #0f172a (dark mode)
+- Text: #0f172a primary, #64748b secondary, #94a3b8 muted
+- Border: #e2e8f0 — use sparingly
+- Border radius: 8px cards, 6px buttons, 12px modals
+- Shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06)
 
-**Response Format:**
-Return ONLY valid JSON with these exact keys: "html", "css", "js"
-Each value should be the complete file content as a string.
-Do NOT include any markdown code fences, explanations, or extra text.
+## CSS REQUIREMENTS (mandatory every response)
+- CSS custom properties (variables) for all colors, spacing, radii at :root
+- Flexbox and CSS Grid for all layouts
+- transition: all 0.2s ease on every interactive element
+- :hover and :focus states on every button, link, input
+- box-sizing: border-box on *, *::before, *::after
+- scroll-behavior: smooth on html element
+- NO inline styles — everything goes in CSS file
 
-**Example Response Structure:**
-{
-  "html": "<!DOCTYPE html>...",
-  "css": "body { ... }",
-  "js": "document.addEventListener..."
-}
+## BUTTON STANDARD
+background: #6366f1; color: #fff; padding: 10px 20px;
+border-radius: 6px; font-weight: 600; font-size: 15px;
+border: none; cursor: pointer; transition: all 0.2s ease;
+Hover: background: #4f46e5; transform: translateY(-1px);
+box-shadow: 0 4px 12px rgba(99,102,241,0.3);
 
-**Important Rules:**
-1. Preserve existing functionality unless explicitly asked to change it
-2. Only modify what the user requests
-3. Keep the code clean and maintainable
-4. Ensure all three files work together cohesively
-5. Always include proper DOCTYPE and meta tags in HTML
-6. Link CSS and JS files correctly in HTML"""
+## CARD STANDARD
+background: #fff; border-radius: 12px; padding: 24px;
+border: 1px solid #e2e8f0;
+box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+Hover: transform: translateY(-2px);
+box-shadow: 0 8px 24px rgba(0,0,0,0.10);
 
-                    # ================= ENHANCED USER PROMPT =================
-                    user_message = f"""**Current Project State:**
+## INPUT STANDARD
+width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0;
+border-radius: 6px; font-size: 15px; outline: none;
+transition: border-color 0.2s;
+Focus: border-color: #6366f1;
+box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
 
-**HTML File (index.html):**
-```html
-{html_file.content if html_file.content.strip() else "<!-- Empty file -->"}
-```
+## HTML REQUIREMENTS (mandatory)
+- Semantic tags: <header>, <main>, <nav>, <section>, <footer>, <article>
+- lang="en" on <html>
+- <meta name="viewport" content="width=device-width, initial-scale=1.0">
+- <meta charset="UTF-8">
+- Descriptive alt on all images
+- aria-label on icon-only buttons
+- Link style.css in <head>, script.js before </body>
 
-**CSS File (style.css):**
-```css
-{css_file.content if css_file.content.strip() else "/* Empty file */"}
-```
+## JS REQUIREMENTS
+- Vanilla JS, ES6+ only (const/let, arrow functions, async/await)
+- All DOM code inside DOMContentLoaded
+- Animate with CSS class toggling, not inline style manipulation
+- Handle loading/error states on all async operations
 
-**JavaScript File (script.js):**
-```javascript
-{js_file.content if js_file.content.strip() else "// Empty file"}
-```
+## GREAT UI CHECKLIST — include these in every build
+[x] Sticky nav with logo left, links right
+[x] Hero section: big headline + subtext + primary CTA + optional secondary CTA
+[x] Section padding: 80px top/bottom, max-width 1200px centered
+[x] Card grid with hover lift effect
+[x] Footer with links and copyright
+[x] Responsive: single column on mobile (<768px)
+[x] Button loading state (disabled + spinner while fetching)
+[x] Smooth scroll to sections on nav click
+[x] Subtle gradient or pattern on hero background
+[x] Consistent icon style (use emoji or Unicode symbols — no external icon libs)
+
+## RESPONSE FORMAT — CRITICAL
+Return ONLY a raw JSON object. No markdown. No code fences. No explanation. No text before or after.
+Exactly: {"html": "...", "css": "...", "js": "..."}"""
+
+                    user_message = f"""## Current Project Files
+
+**index.html:**
+{html_file.content if html_file.content.strip() else "<!-- Empty -->"}
+
+**style.css:**
+{css_file.content if css_file.content.strip() else "/* Empty */"}
+
+**script.js:**
+{js_file.content if js_file.content.strip() else "// Empty"}
 
 ---
 
-**User Request:**
+## User Request
 {prompt}
 
 ---
 
-**Instructions:**
-1. Analyze the current code state
-2. Implement the requested changes
-3. Ensure all files work together
-4. Maintain consistency with existing code style
-5. Return complete, updated files in JSON format
+## Quality Bar
+Build this to the standard of Vercel, Linear, or Stripe landing pages.
+- If building from scratch: include nav, hero, features/content section, footer
+- Use the design system from the system prompt (indigo primary, clean cards, smooth transitions)
+- Every interactive element must have a hover state
+- Must look great on both desktop and mobile
 
-Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra text or markdown."""
+Return ONLY the JSON object: {{"html": "...", "css": "...", "js": "..."}}
+No markdown. No explanation. Raw JSON only."""
 
-                    # ================= API CALL WITH BETTER ERROR HANDLING =================
-                    print(f"🤖 AI Request: {prompt[:100]}...")
-                    print(f"📊 Request size: System={len(system_message)} chars, User={len(user_message)} chars")
-                    
                     try:
                         response = client.chat.completions.create(
-                            model="gpt-4-turbo-preview",
+                            model="gpt-4o-mini",
                             messages=[
                                 {"role": "system", "content": system_message},
                                 {"role": "user", "content": user_message},
                             ],
-                            max_tokens=4000,
-                            temperature=0.3,
+                            max_tokens=6000,
+                            temperature=0.4,
                             response_format={"type": "json_object"}
                         )
                         
@@ -2201,9 +2247,7 @@ Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra te
                         
                     except Exception as api_error:
                         error_msg = str(api_error)
-                        print(f"❌ OpenAI API Error: {error_msg}")
-                        print(f"❌ Full traceback: {traceback.format_exc()}")
-                        
+
                         # Check for common API errors
                         if "rate_limit" in error_msg.lower():
                             return JsonResponse({
@@ -2240,18 +2284,12 @@ Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra te
                     try:
                         ai_generated = json.loads(ai_text)
                     except json.JSONDecodeError as json_error:
-                        print(f"⚠️ JSON Parse Error: {json_error}")
-                        print(f"⚠️ Raw AI response: {ai_text[:500]}...")
-                        
-                        # Try to extract JSON from markdown code blocks
-                        print("⚠️ Attempting to extract JSON from malformed response")
                         start = ai_text.find("{")
                         end = ai_text.rfind("}") + 1
                         if start != -1 and end > start:
                             ai_text_cleaned = ai_text[start:end]
                             try:
                                 ai_generated = json.loads(ai_text_cleaned)
-                                print("✅ Successfully extracted JSON from response")
                             except json.JSONDecodeError:
                                 return JsonResponse({
                                     "status": "error",
@@ -2383,14 +2421,13 @@ Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra te
         "exts": exts,
         "project": project,
         "is_image": is_image,
-        'completed_topic_ids': completed_topic_ids,      # ← ADD
-        'current_topic_id': current_topic_id,            # ← ADD
+        'completed_topic_ids': completed_topic_ids,
+        'current_topic_id': current_topic_id,
         "topics": topics,
-        "course": course,   # ← ADD THIS
-        'course_id': course.id if course else None,  # ← ADD THIS ONE LINE
-        'exam_id': exam.id if exam else None,   # ← ADD THI
+        "course": course,
+        'course_id': course.id if course else None,
+        'exam_id': exam.id if exam else None,
     })
-
 
 
 

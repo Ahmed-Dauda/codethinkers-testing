@@ -7,12 +7,11 @@ run_python_code, set_current_topic, share_preview_view, file_chat, topic_info,
 upload_file_ajax,explain_code_view,load_project_files ,validate_topic_completion, view_rendered_file, voice_chat_tutor)
 
 
-
 app_name = 'webprojects'
 
 urlpatterns = [
     path('topic/<int:topic_id>/quiz/generate/', generate_topic_quiz, name='generate_topic_quiz'),
-path('topic/<int:topic_id>/quiz/submit/', submit_topic_quiz, name='submit_topic_quiz'),
+    path('topic/<int:topic_id>/quiz/submit/', submit_topic_quiz, name='submit_topic_quiz'),
     # In urls.py
     path('<int:project_id>/load-files/', load_project_files, name='load_project_files'),
     path('get-course-exam/<int:course_id>/', get_course_exam, name='get_course_exam'),
@@ -20,8 +19,8 @@ path('topic/<int:topic_id>/quiz/submit/', submit_topic_quiz, name='submit_topic_
     path('voice-chat-tutor/', voice_chat_tutor, name='voice_chat_tutor'),
     path('recommend-next-course/', recommend_next_course, name='recommend_next_course'),
     path('topic-info/<int:topic_id>/', topic_info, name='topic_info'),
-   path('validate-topic/', validate_topic_completion, name='validate_topic_completion'),
-     path('xp-stats/', get_xp_stats, name='xp_stats'),
+    path('validate-topic/', validate_topic_completion, name='validate_topic_completion'),
+    path('xp-stats/', get_xp_stats, name='xp_stats'),
    
     path('progress/', get_student_progress, name='get_student_progress'),
     path('mark-topic-complete/', mark_topic_complete,  name='mark_topic_complete'),
@@ -59,4 +58,5 @@ path('topic/<int:topic_id>/quiz/submit/', submit_topic_quiz, name='submit_topic_
     path('explain-code/', explain_code_view, name='explain_code'),
     path('ai-suggest/', ai_suggest_code, name='ai_suggest_code'),
 ]
+
 
