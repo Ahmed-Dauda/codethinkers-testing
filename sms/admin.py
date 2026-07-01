@@ -14,9 +14,14 @@ from sms.models import (
     CareerOpportunities, Whatyouwillbuild, 
     AboutCourseOwner, 
     CourseLearnerReviews,
-    CompletedTopics
+   
     )
 
+from quiz.models import Session, Term, ExamType
+
+admin.site.register(Session)
+admin.site.register(Term)
+admin.site.register(ExamType)
 
 admin.site.register(Gallery)
 admin.site.register(FrequentlyAskQuestions)
@@ -28,53 +33,6 @@ admin.site.register(Whatyouwilllearn)
 admin.site.register(CareerOpportunities)
 admin.site.register(Whatyouwillbuild)
 admin.site.register(AboutCourseOwner)
-
-@admin.register(CompletedTopics)
-class CompletedTopicsAdmin(admin.ModelAdmin):
-
-    list_display = (
-        "user",
-        "topic",
-        "get_course",
-    )
-
-    list_select_related = (
-        "user",
-        "user__user",
-        "topic",
-        "topic__courses",
-    )
-
-    search_fields = (
-        "user__user__username",
-        "user__user__email",
-        "topic__title",
-        "topic__courses__title",
-    )
-
-    list_filter = (
-        "topic__courses",
-    )
-
-    ordering = (
-        "user__user__username",
-    )
-
-    autocomplete_fields = (
-        "user",
-        "topic",
-    )
-
-    def get_course(self, obj):
-        return obj.topic.courses
-    get_course.short_description = "Course"
-
-# class ArticleAdminResource(resources.ModelResource):
-    
-#     class Meta:
-#         model = Gallery
-        # fields = ('title',)
-
 
 
 class ArticleAdminResource(resources.ModelResource):

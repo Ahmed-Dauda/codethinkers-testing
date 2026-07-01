@@ -589,38 +589,6 @@ def take_exams_view(request):
     return render(request, 'student/dashboard/take_exams.html', {'categories': categories})
 
 
-# @login_required
-# def take_exams_view(request):
-#     # course = Course.objects.get_queryset().order_by('id')
-#     course = QMODEL.Course.objects.all()
-#     context = {
-#         'courses':course
-#     }
-#     return render(request, 'student/dashboard/take_exams.html', context=context)
-
-
-# @login_required
-# def start_exams_view(request, pk):
-    
-#     course = QMODEL.Course.objects.get(id = pk)
-#     questions = QMODEL.Question.objects.get_queryset().filter(course = course).order_by('id')
-#     q_count = QMODEL.Question.objects.all().filter(course = course).count()
-#     paginator = Paginator(questions, 100) # Show 25 contacts per page.
-#     page_number = request.GET.get('page')
-#     page_obj = paginator.get_page(page_number)
-
-#     context = {
-#         'course':course,
-#         'questions':questions,
-#         'q_count':q_count,
-#         'page_obj':page_obj
-#     }
-#     if request.method == 'POST':
-#         pass
-#     response = render(request, 'student/dashboard/start_exams.html', context=context)
-#     response.set_cookie('course_id', course.id)
-#     return response
-
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.http import HttpResponse
@@ -649,6 +617,23 @@ async def _start_exam_async(request, pk):
     user = request.user
     user_profile = await get_user_profile(user)
     course = await get_course(pk)
+
+    # ================= MODULE COMPLETION GATE =================
+# ================= MODULE COMPLETION GATE =================
+    modules_complete, completed_count, total_count = await check_modules_complete(user, course)
+    if not modules_complete:
+        await add_warning_message(
+            request,
+            f"Complete all {total_count} module quizzes for {course.course_name.title} before taking the exam. "
+            f"({completed_count}/{total_count} done)"
+        )
+        next_url = request.GET.get('next')
+        if not next_url:
+            next_url = await get_editor_url_for_course(user, course.course_name)
+        return await async_redirect(next_url if next_url else 'student:take-exam')
+    # ================= END GATE =================
+ 
+
     all_questions = await get_course_questions(course)
     result_exists = await check_result_exists(user_profile, course)
 
@@ -682,6 +667,20 @@ def get_user_profile(user):
     return user.profile
 
 @sync_to_async
+def get_editor_url_for_course(user, courses_obj):
+    from webprojects.models import Project
+    if not courses_obj:
+        return None
+    project = Project.objects.filter(course=courses_obj, user=user).first()
+    if not project:
+        return None
+    file = project.files.first()
+    if not file:
+        return None
+    return f"/webprojects/{project.id}/file/{file.id}/"
+
+
+@sync_to_async
 def get_course(pk):
     return Course.objects.select_related('course_name').only(
         'id', 'room_name', 'course_name__id', 'exam_type__name',
@@ -694,6 +693,37 @@ def get_course_questions(course):
         'id', 'course__id', 'marks', 'question', 'img_quiz',
         'option1', 'option2', 'option3', 'option4', 'answer'
     ).filter(course=course).order_by('id'))
+
+@sync_to_async
+def check_modules_complete(user, course):
+    from sms.models import Topics
+    from webprojects.models import StudentProgress
+
+    course_topics = Topics.objects.filter(courses=course.course_name)
+    total_topics = course_topics.count()
+
+    if total_topics == 0:
+        return True, 0, 0
+
+    progress = StudentProgress.objects.filter(
+        student=user,
+        course=course.course_name
+    ).prefetch_related('completed_topics').first()
+
+    completed_ids = set(
+        progress.completed_topics.values_list('id', flat=True)
+    ) if progress else set()
+
+    course_topic_ids = set(course_topics.values_list('id', flat=True))
+    relevant_completed = completed_ids & course_topic_ids
+
+    return len(relevant_completed) >= total_topics, len(relevant_completed), total_topics
+
+
+@sync_to_async
+def add_warning_message(request, text):
+    from django.contrib import messages
+    messages.warning(request, text)
 
 @sync_to_async
 def check_result_exists(profile, course):

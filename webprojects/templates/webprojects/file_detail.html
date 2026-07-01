@@ -414,9 +414,9 @@
         📁 {{ file.project.name }} — 📝 {{ file.name }}
     </a>
 
-    <a style="color: white;" href="{% url 'quiz:take-exam' %}">
+    <!-- <a style="color: white;" href="{% url 'quiz:take-exam' %}">
         take exam
-    </a>
+    </a> -->
 </div>
 
 
@@ -425,6 +425,17 @@
 
 
 {% block sidebar %}
+
+<div id="quizModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10001; align-items:center; justify-content:center;">
+  <div style="background:#fff; width:90%; max-width:520px; max-height:85vh; overflow-y:auto; border-radius:10px; padding:20px; position:relative;">
+    <span onclick="closeQuizModal()" style="position:absolute; top:12px; right:16px; font-size:24px; cursor:pointer; color:#888;">&times;</span>
+    <h3 id="quizModalTitle" style="margin-top:0; color:#222;">Quiz</h3>
+    <div id="quizModalBody"></div>
+    <div id="quizModalFooter" style="margin-top:16px; text-align:right; display:none;">
+      <button id="quizSubmitBtn" onclick="submitQuiz()" style="padding:8px 18px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer;">Submit Quiz</button>
+    </div>
+  </div>
+</div>
 
 <div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
   Drop File Here or 
@@ -466,9 +477,34 @@
 
 <h2 class="mb-3">Topics for {{ course.title }}</h2>
 
+{% if not exam_id %}
+    <span style="color: #666;" title="No exam configured for this course">
+        🎓 No Exam Available
+    </span>
+    {% elif topics and completed_topic_ids|length == topics|length %}
+    <a style="color: white;" href="{% url 'student:start-exam' pk=exam_id %}">
+        🎓 Take Exam
+    </a>
+ {% else %}
+    <a href="{% url 'student:start-exam' pk=exam_id %}?next={{ request.path|urlencode }}"
+       style="color: #aaa;" title="Complete all module quizzes to unlock the exam">
+        🔒 Take Exam ({{ completed_topic_ids|length }}/{{ topics|length }} modules)
+    </a>
+    {% endif %}
+
+<div id="quizProgressWrap" style="margin: 10px 0 16px;">
+  <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#555; margin-bottom:4px;">
+    <span>Module Progress</span>
+    <span id="quizProgressLabel">{% if topics %}{% widthratio completed_topic_ids|length topics|length 100 %}{% else %}0{% endif %}%</span>
+  </div>
+  <div style="background:#e0e0e0; border-radius:6px; height:10px; overflow:hidden;">
+    <div id="quizProgressFill" style="background:#28a745; height:100%; width:{% if topics %}{% widthratio completed_topic_ids|length topics|length 100 %}{% else %}0{% endif %}%; transition:width 0.4s ease;"></div>
+  </div>
+</div>
+
 <div class="topics-container">
   {% for topic in topics %}
-    <div class="topic-item">
+    <div class="topic-item" data-topic-id="{{ topic.id }}">
       <!-- Topic title with toggle icon -->
       <a href="javascript:void(0);" class="topic-toggle d-flex justify-content-between align-items-center"
          onclick="toggleDesc('topic-{{ topic.id }}', this, '{{ topic.language|default:"python" }}')">
@@ -481,6 +517,15 @@
            style="display:none;">
 <code class="language-{{ topic.language|default:'python' }}">{{ topic.desc|safe|escape }}</code>
       </pre>
+
+      <div class="quiz-action-row" style="margin-top:6px; display:flex; align-items:center; gap:8px;">
+        <button class="quiz-btn" data-topic-id="{{ topic.id }}" data-topic-title="{{ topic.title|escapejs }}"
+                onclick="openQuizModal({{ topic.id }}, this)"
+                style="padding:4px 10px; font-size:0.8em; border:none; border-radius:4px; background:#3498db; color:#fff; cursor:pointer;">
+          {% if topic.id in completed_topic_ids %}🔁 Retake Quiz{% else %}📝 Take Quiz{% endif %}
+        </button>
+        <span class="quiz-passed-badge" data-topic-id="{{ topic.id }}" style="{% if topic.id in completed_topic_ids %}display:inline;{% else %}display:none;{% endif %} color:#28a745; font-size:0.8em; font-weight:bold;">✅ Passed</span>
+      </div>
     </div>
   {% empty %}
     <p class="text-muted">No content found for this course.</p>
@@ -588,6 +633,164 @@
 <!-- delete js  -->
 
 <script>
+
+const CREATE_FILE_URL = "{% url 'webprojects:create_file' project.id %}";
+
+
+async function createNewFile() {
+  const input = document.getElementById('newFileName');
+  const name = input.value.trim();
+
+  if (!name) {
+    showToast('Please enter a file name', 'warning');
+    return;
+  }
+
+  try {
+    const res = await fetch(CREATE_FILE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+      },
+      body: JSON.stringify({ name: name, folder_id: null }),
+    });
+
+    const data = await res.json();
+
+    if (data.status === 'success') {
+      showToast(`Created ${data.file_name}`, 'success');
+      input.value = '';
+      // Navigate straight into the new file's editor page
+      window.location.href = `/webprojects/{{ project.id }}/file/${data.file_id}/`;
+    } else {
+      showToast(data.message || 'Failed to create file', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Request failed while creating file', 'error');
+  }
+}  
+
+
+let currentQuizTopicId = null;
+let currentQuizQuestions = [];
+const COURSE_ID = {{ course_id|default:"null" }};
+
+
+function updateProgressUI(pct, completedIds) {
+  const fill = document.getElementById('quizProgressFill');
+  const label = document.getElementById('quizProgressLabel');
+  if (fill) fill.style.width = pct + '%';
+  if (label) label.textContent = pct + '%';
+
+  document.querySelectorAll('.quiz-passed-badge').forEach(badge => {
+    const tId = badge.dataset.topicId;
+    const btn = document.querySelector(`.quiz-btn[data-topic-id="${tId}"]`);
+    const isDone = completedIds.includes(parseInt(tId));
+    badge.style.display = isDone ? 'inline' : 'none';
+    if (btn) btn.textContent = isDone ? '🔁 Retake Quiz' : '📝 Take Quiz';
+  });
+}
+
+async function openQuizModal(topicId, btnEl) {
+  currentQuizTopicId = topicId;
+  currentQuizQuestions = [];
+
+  const modal = document.getElementById('quizModal');
+  document.getElementById('quizModalTitle').textContent = `Quiz: ${btnEl?.dataset.topicTitle || ''}`;
+  document.getElementById('quizModalBody').innerHTML = '<div style="text-align:center; padding:30px;">⏳ Generating questions...</div>';
+  document.getElementById('quizModalFooter').style.display = 'none';
+  modal.style.display = 'flex';
+
+  try {
+    const res = await fetch(`/webprojects/topic/${topicId}/quiz/generate/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+    });
+    const data = await res.json();
+
+    if (data.status !== 'success') {
+      document.getElementById('quizModalBody').innerHTML =
+        `<div style="color:#dc3545; padding:20px;">❌ ${data.message || 'Failed to generate quiz'}</div>`;
+      return;
+    }
+
+    currentQuizQuestions = data.questions;
+    renderQuizQuestions();
+    document.getElementById('quizModalFooter').style.display = 'block';
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById('quizModalBody').innerHTML = `<div style="color:#dc3545; padding:20px;">❌ Request failed</div>`;
+  }
+}
+
+function renderQuizQuestions() {
+  document.getElementById('quizModalBody').innerHTML = currentQuizQuestions.map((q, qi) => `
+    <div style="margin-bottom:18px;">
+      <p style="font-weight:600; margin-bottom:8px; color:#222;">${qi + 1}. ${escapeHTML(q.question)}</p>
+      ${q.options.map((opt, oi) => `
+        <label style="display:block; padding:6px 10px; margin-bottom:4px; background:#f5f5f5; border-radius:6px; cursor:pointer; color:#333;">
+          <input type="radio" name="quiz-q-${qi}" value="${oi}" style="margin-right:8px;">${escapeHTML(opt)}
+        </label>`).join('')}
+    </div>`).join('');
+}
+
+async function submitQuiz() {
+  const answers = [];
+  for (let qi = 0; qi < currentQuizQuestions.length; qi++) {
+    const selected = document.querySelector(`input[name="quiz-q-${qi}"]:checked`);
+    if (!selected) { showToast('Please answer all questions', 'warning'); return; }
+    answers.push(parseInt(selected.value));
+  }
+
+  const submitBtn = document.getElementById('quizSubmitBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
+
+  try {
+    const res = await fetch(`/webprojects/topic/${currentQuizTopicId}/quiz/submit/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+      body: JSON.stringify({ answers, course_id: COURSE_ID }),
+    });
+    const data = await res.json();
+
+    if (data.status !== 'success') { showToast(data.message || 'Submission failed', 'error'); return; }
+
+    const body = document.getElementById('quizModalBody');
+    document.getElementById('quizModalFooter').style.display = 'none';
+
+    if (data.passed) {
+      body.innerHTML = `<div style="text-align:center; padding:20px;">
+        <div style="font-size:40px;">🎉</div>
+        <p style="font-weight:bold; color:#28a745;">Passed! ${data.score}/${data.total} correct</p>
+      </div>`;
+      showToast('Quiz passed! Module marked complete.', 'success');
+      updateProgressUI(data.overall_pct, data.completed_topic_ids || []);
+    } else {
+      body.innerHTML = `<div style="text-align:center; padding:20px;">
+        <div style="font-size:40px;">😕</div>
+        <p style="font-weight:bold; color:#dc3545;">${data.score}/${data.total} correct — try again</p>
+        <button onclick="openQuizModal(${currentQuizTopicId}, document.querySelector('.quiz-btn[data-topic-id=&quot;${currentQuizTopicId}&quot;]'))"
+                style="margin-top:10px; padding:8px 16px; background:#3498db; color:#fff; border:none; border-radius:6px; cursor:pointer;">🔁 Retry</button>
+      </div>`;
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Request failed', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Quiz';
+  }
+}
+
+function closeQuizModal() {
+  document.getElementById('quizModal').style.display = 'none';
+}
+
+
 document.addEventListener('DOMContentLoaded', function() {
     const deleteForms = document.querySelectorAll('.delete-file-form');
 
@@ -650,12 +853,35 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 </script>
 
-<div class="editor-panel" style="display: flex; flex-direction: column; height: 10%;">
+
+<div class="editor-panel" style="display: flex; flex-direction: column; height: 100vh;">
+  
   <!-- Code Editor -->
-  <div id="container" style="flex-grow: 1; min-height: 10px;"></div>
+  <!-- Code Editor -->
+<div id="container" style="flex-grow: 1; min-height: 200px;"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+<script>
+  require.config({ 
+    paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }
+  });
+
+  require(['vs/editor/editor.main'], function () {
+    window.editor = monaco.editor.create(document.getElementById('container'), {
+      value: '',
+      language: 'html',
+      theme: 'vs-dark',
+      automaticLayout: true,
+      fontSize: 14,
+      minimap: { enabled: true },
+      scrollBeyondLastLine: false,
+      wordWrap: 'on'
+    });
+  });
+</script>
 
   <!-- Resize handle for code editor -->
-  <div id="resizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
+  <div id="editorResizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
 </div>
 
 <!-- Floating AI Panel -->
@@ -675,7 +901,21 @@ document.addEventListener('DOMContentLoaded', function() {
 ">
 
   <!-- Drag handle -->
-  <div id="dragHandle" style="cursor: grab; padding: 8px; background: #f1f1f1; border-bottom: 1px solid #ccc;">🖐️ Drag Me</div>
+<!-- Drag handle -->
+<div id="dragHandle" style="cursor: grab; padding: 8px; background: #f1f1f1; border-bottom: 1px solid #ccc; display:flex; align-items:center; justify-content:space-between;">
+  <span>🖐️ Drag Me</span>
+  <button class="close-panel-btn" onclick="closeAIPanel()" title="Close" style="
+    background: none;
+    border: none;
+    font-size: 18px;
+    line-height: 1;
+    color: #555;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
+  " onmouseover="this.style.background='#e74c3c'; this.style.color='#fff';" onmouseout="this.style.background='none'; this.style.color='#555';">&times;</button>
+</div>
 
   <!-- Tab Headers -->
   <div style="display:flex; border-bottom:2px solid #eee; background:#f9f9f9;">
@@ -747,6 +987,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div id="resizeHandleAI" style="height:6px; cursor: row-resize; background:#ccc;"></div>
 </div>
 
+
 <script>
 /* ================= TAB SWITCHING ================= */
 const appBuilderTab = document.getElementById('appBuilderTab');
@@ -754,79 +995,252 @@ const fileEditorTab = document.getElementById('fileEditorTab');
 const appBuilderPanel = document.getElementById('appBuilderPanel');
 const fileEditorPanel = document.getElementById('fileEditorPanel');
 
+function switchTab(activeTab, activePanel, activeColor) {
+    // Hide all panels
+    [appBuilderPanel, fileEditorPanel].forEach(p => p.style.display = 'none');
+    
+    // Show active panel
+    activePanel.style.display = 'flex';
+    
+    // Reset all tabs
+    [appBuilderTab, fileEditorTab].forEach(tab => {
+        tab.style.borderBottom = '3px solid transparent';
+        tab.style.fontWeight = 'normal';
+        tab.style.color = '#666';
+    });
+    
+    // Style active tab
+    activeTab.style.borderBottom = `3px solid ${activeColor}`;
+    activeTab.style.fontWeight = 'bold';
+    activeTab.style.color = activeColor;
+}
+
 function switchToAppBuilder() {
-  appBuilderPanel.style.display = 'flex';
-  fileEditorPanel.style.display = 'none';
-
-  appBuilderTab.style.borderBottom = '3px solid #007bff';
-  appBuilderTab.style.fontWeight = 'bold';
-  appBuilderTab.style.color = '#007bff';
-
-  fileEditorTab.style.borderBottom = '3px solid transparent';
-  fileEditorTab.style.fontWeight = 'normal';
-  fileEditorTab.style.color = '#666';
+    switchTab(appBuilderTab, appBuilderPanel, '#007bff');
 }
 
 function switchToFileEditor() {
-  appBuilderPanel.style.display = 'none';
-  fileEditorPanel.style.display = 'flex';
-
-  fileEditorTab.style.borderBottom = '3px solid #28a745';
-  fileEditorTab.style.fontWeight = 'bold';
-  fileEditorTab.style.color = '#28a745';
-
-  appBuilderTab.style.borderBottom = '3px solid transparent';
-  appBuilderTab.style.fontWeight = 'normal';
-  appBuilderTab.style.color = '#666';
+    switchTab(fileEditorTab, fileEditorPanel, '#28a745');
 }
 
 appBuilderTab.onclick = switchToAppBuilder;
 fileEditorTab.onclick = switchToFileEditor;
 
-/* ================= FLOATING PANEL DRAG ================= */
+/* ================= FLOATING PANEL DRAG (IMPROVED) ================= */
 const panel = document.getElementById('floatingAI');
 const dragHandle = document.getElementById('dragHandle');
 
 let isDraggingPanel = false;
+let dragOffsetX = 0;
 let dragOffsetY = 0;
+let panelPosition = {
+    top: 100,
+    left: null,
+    right: 30
+};
 
-dragHandle.addEventListener('mousedown', e => {
-  isDraggingPanel = true;
-  dragOffsetY = e.clientY - panel.offsetTop;
-  dragHandle.style.cursor = 'grabbing';
+// Load saved position
+try {
+    const saved = localStorage.getItem('aiPanelPosition');
+    if (saved) {
+        const pos = JSON.parse(saved);
+        panelPosition.top = pos.top || 100;
+        panelPosition.right = pos.right || 30;
+        panel.style.top = panelPosition.top + 'px';
+        panel.style.right = panelPosition.right + 'px';
+        panel.style.left = 'auto';
+    }
+} catch (e) {
+    // Use defaults
+}
+
+dragHandle.addEventListener('mousedown', (e) => {
+    // Don't start drag if click was on close button
+    if (e.target.closest('.close-panel-btn')) return;
+    
+    isDraggingPanel = true;
+    const rect = panel.getBoundingClientRect();
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+    
+    dragHandle.style.cursor = 'grabbing';
+    panel.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
 });
 
-document.addEventListener('mousemove', e => {
-  if (!isDraggingPanel) return;
-  panel.style.top = (e.clientY - dragOffsetY) + 'px';
+document.addEventListener('mousemove', (e) => {
+    if (!isDraggingPanel) return;
+    
+    let newX = e.clientX - dragOffsetX;
+    let newY = e.clientY - dragOffsetY;
+    
+    // Keep within viewport
+    const panelWidth = panel.offsetWidth;
+    const panelHeight = panel.offsetHeight;
+    const maxX = window.innerWidth - panelWidth - 10;
+    const maxY = window.innerHeight - panelHeight - 10;
+    
+    newX = Math.max(10, Math.min(newX, maxX));
+    newY = Math.max(10, Math.min(newY, maxY));
+    
+    panel.style.left = newX + 'px';
+    panel.style.top = newY + 'px';
+    panel.style.right = 'auto';
+    
+    // Save position periodically
+    clearTimeout(window._savePanelPosition);
+    window._savePanelPosition = setTimeout(() => {
+        try {
+            localStorage.setItem('aiPanelPosition', JSON.stringify({
+                top: newY,
+                right: window.innerWidth - newX - panelWidth
+            }));
+        } catch (e) {}
+    }, 100);
 });
 
 document.addEventListener('mouseup', () => {
-  isDraggingPanel = false;
-  dragHandle.style.cursor = 'grab';
+    if (isDraggingPanel) {
+        isDraggingPanel = false;
+        dragHandle.style.cursor = 'grab';
+        panel.style.cursor = '';
+        document.body.style.userSelect = '';
+    }
 });
 
-/* ================= RESIZE ================= */
+// Touch support
+dragHandle.addEventListener('touchstart', (e) => {
+    // Don't start drag if touch was on close button
+    if (e.target.closest('.close-panel-btn')) return;
+    
+    const touch = e.touches[0];
+    const rect = panel.getBoundingClientRect();
+    isDraggingPanel = true;
+    dragOffsetX = touch.clientX - rect.left;
+    dragOffsetY = touch.clientY - rect.top;
+    e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('touchmove', (e) => {
+    if (!isDraggingPanel) return;
+    const touch = e.touches[0];
+    let newX = touch.clientX - dragOffsetX;
+    let newY = touch.clientY - dragOffsetY;
+    
+    const panelWidth = panel.offsetWidth;
+    const panelHeight = panel.offsetHeight;
+    newX = Math.max(10, Math.min(newX, window.innerWidth - panelWidth - 10));
+    newY = Math.max(10, Math.min(newY, window.innerHeight - panelHeight - 10));
+    
+    panel.style.left = newX + 'px';
+    panel.style.top = newY + 'px';
+    panel.style.right = 'auto';
+    e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('touchend', () => {
+    isDraggingPanel = false;
+});
+
+/* ================= CLOSE AI PANEL ================= */
+function closeAIPanel() {
+    const panel = document.getElementById('floatingAI');
+    const toggleBtn = document.getElementById('toggleAI');
+    
+    if (panel) {
+        panel.style.display = 'none';
+        if (toggleBtn) {
+            toggleBtn.textContent = '🔧 Show AI Tools';
+            toggleBtn.style.background = '#444';
+            toggleBtn.style.color = '#fff';
+        }
+    }
+}
+
+function toggleAIPanel() {
+    const panel = document.getElementById('floatingAI');
+    const toggleBtn = document.getElementById('toggleAI');
+    
+    if (!panel) return;
+    
+    if (panel.style.display === 'none' || panel.style.display === '') {
+        panel.style.display = 'flex';
+        if (toggleBtn) {
+            toggleBtn.textContent = '❌ Hide AI Tools';
+            toggleBtn.style.background = '#e74c3c';
+            toggleBtn.style.color = '#fff';
+        }
+        // Restore position from localStorage
+        try {
+            const saved = localStorage.getItem('aiPanelPosition');
+            if (saved) {
+                const pos = JSON.parse(saved);
+                panel.style.top = pos.top + 'px';
+                panel.style.right = pos.right + 'px';
+                panel.style.left = 'auto';
+            }
+        } catch (e) {}
+    } else {
+        closeAIPanel();
+    }
+}
+
+// Make functions globally accessible
+window.toggleAIPanel = toggleAIPanel;
+window.closeAIPanel = closeAIPanel;
+
+/* ================= RESIZE (IMPROVED) ================= */
 const resizeHandleAI = document.getElementById('resizeHandleAI');
 let isResizing = false;
+let resizeStartY = 0;
+let resizeStartHeight = 0;
 
-resizeHandleAI.addEventListener('mousedown', e => {
-  isResizing = true;
-  e.preventDefault();
+resizeHandleAI.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    resizeStartY = e.clientY;
+    resizeStartHeight = panel.offsetHeight;
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
 });
 
-document.addEventListener('mousemove', e => {
-  if (!isResizing) return;
-  let newHeight = e.clientY - panel.offsetTop;
-  if (newHeight < 150) newHeight = 150;
-  panel.style.height = newHeight + 'px';
+document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const deltaY = e.clientY - resizeStartY;
+    let newHeight = resizeStartHeight + deltaY;
+    newHeight = Math.max(150, Math.min(newHeight, 600));
+    panel.style.height = newHeight + 'px';
 });
 
-document.addEventListener('mouseup', () => isResizing = false);
+document.addEventListener('mouseup', () => {
+    if (isResizing) {
+        isResizing = false;
+        document.body.style.userSelect = '';
+    }
+});
+
+// Touch resize
+resizeHandleAI.addEventListener('touchstart', (e) => {
+    isResizing = true;
+    resizeStartY = e.touches[0].clientY;
+    resizeStartHeight = panel.offsetHeight;
+    e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('touchmove', (e) => {
+    if (!isResizing) return;
+    const deltaY = e.touches[0].clientY - resizeStartY;
+    let newHeight = resizeStartHeight + deltaY;
+    newHeight = Math.max(150, Math.min(newHeight, 600));
+    panel.style.height = newHeight + 'px';
+    e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('touchend', () => {
+    isResizing = false;
+});
 
 /* ================= AI APPLY CHANGES ================= */
-
-// ✅ SAFE URL FROM DJANGO
 const FILE_CHAT_URL = "{% url 'webprojects:file_chat' project.id file.id %}";
 
 function getCsrfToken() {
@@ -849,7 +1263,7 @@ async function applyChanges() {
   }
 
   applyBtn.disabled = true;
-  applyBtn.textContent = 'Applying...';
+  applyBtn.innerHTML = '⏳ Applying...';
   outputEl.style.display = 'block';
   outputEl.textContent += `\n⏳ Applying: "${prompt}"\n`;
 
@@ -908,181 +1322,186 @@ document.getElementById('fileChatPrompt').addEventListener('keydown', e => {
     applyChanges();
   }
 });
-</script>
 
+/* ================= ESCAPE KEY SUPPORT ================= */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const panel = document.getElementById('floatingAI');
+        if (panel && panel.style.display !== 'none' && panel.style.display !== '') {
+            closeAIPanel();
+        }
+        // Also close image modal if open
+        const imageModal = document.getElementById('imagePopupModal');
+        if (imageModal && imageModal.style.display === 'block') {
+            closeImageModal();
+        }
+    }
+});
 
+/* ================= DOCUMENT READY - INITIAL SETUP ================= */
+document.addEventListener('DOMContentLoaded', function() {
+    // Ensure AI panel is visible by default
+    const panel = document.getElementById('floatingAI');
+    const toggleBtn = document.getElementById('toggleAI');
+    
+    if (panel && panel.style.display === 'none') {
+        // If it was closed, show it
+        panel.style.display = 'flex';
+        if (toggleBtn) {
+            toggleBtn.textContent = '❌ Hide AI Tools';
+            toggleBtn.style.background = '#e74c3c';
+            toggleBtn.style.color = '#fff';
+        }
+    }
+    
+    // Restore position from localStorage if available
+    try {
+        const saved = localStorage.getItem('aiPanelPosition');
+        if (saved && panel) {
+            const pos = JSON.parse(saved);
+            panel.style.top = pos.top + 'px';
+            panel.style.right = pos.right + 'px';
+            panel.style.left = 'auto';
+        }
+    } catch (e) {}
+});
 
-  <!-- Output panel -->
-  <div id="outputPanel" style="height: 100px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
-    <strong>🔽 Output:2</strong>
-    <pre id="outputText" style="white-space: pre-wrap;"></pre>
-    <div id="tablePreview" style="margin-top: 15px;display: none;"></div>
-    <div id="plotPreview" style="display: none;"></div>
-  </div>
-</div>
-
-
-
-    <!-- AI Suggestion Preview Modal -->
-<div id="aiModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%);
-  background:#2d2d2d; color:#fff; padding:20px; border-radius:8px; z-index:1000; max-width:80%; box-shadow:0 0 10px #000;">
-  <h3>💡 AI Suggestion Preview</h3>
-  <pre id="aiModalContent" style="max-height:400px; overflow-y:auto; white-space:pre-wrap; background:#1e1e1e; padding:10px; border:1px solid #444;"></pre>
-  <div style="text-align:right; margin-top:10px;">
-    <button onclick="insertSuggestionFromModal()" style="background:#2ecc71; color:white; padding:6px 12px; border:none; border-radius:4px;">Insert</button>
-    <button onclick="closeAIModal()" style="background:#e74c3c; color:white; padding:6px 12px; border:none; border-radius:4px; margin-left:8px;">Cancel</button>
-  </div>
-</div>
-
-  </div>
-</div>
-
-<div id="toastMessage" style="
-  display: none;
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #222;
-  color: #fff;
-  padding: 10px 18px;
-  border-radius: 6px;
-  z-index: 9999;
-  font-size: 0.9em;
-  max-width: 90%;
-  text-align: left;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-"></div>
-
-
-<!-- js section -->
-
-<!-- prompts js -->
-
-<script>
-  document.addEventListener("DOMContentLoaded", async () => {
+/* ================= PROMPTS JS ================= */
+document.addEventListener("DOMContentLoaded", async () => {
     const runButton = document.getElementById("runAIPrompt");
     const aiPrompt = document.getElementById("aiPrompt");
     const preview = document.getElementById("preview");
+    const outputEl = document.getElementById('appBuilderOutput');
 
     const FILE_ID = {{ file.id }};
     const PROJECT_ID = {{ project.id }};
     const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    // ✅ Helper: Render into iframe
     function renderPreview(html, css, js) {
-      preview.srcdoc = `
-        <html>
-          <head>
-            <style>${css || ""}</style>
-          </head>
-          <body>
-            ${html || ""}
-            <script>${js || ""}<\/script>
-          </body>
-        </html>`;
+        if (!preview) return;
+        preview.srcdoc = `
+            <html>
+                <head>
+                    <style>${css || ""}</style>
+                </head>
+                <body>
+                    ${html || ""}
+                    <script>${js || ""}<\/script>
+                </body>
+            </html>`;
     }
 
-    // ✅ Load saved project files on page load
+
     async function loadSavedProject() {
-      try {
-        const res = await fetch(`/webprojects/${PROJECT_ID}/load-files/`);
-        const data = await res.json();
-        if (data.status === "success") {
-          renderPreview(data.html, data.css, data.js);
-        } else {
-          console.warn("No saved project files found");
+        try {
+            const res = await fetch(`/webprojects/{{ project.id }}/load-files/`);
+            const data = await res.json();
+            if (data.status === "success") {
+                renderPreview(data.html, data.css, data.js);
+            } else {
+                console.warn("No saved project files found");
+            }
+        } catch (err) {
+            console.error("Error loading saved project:", err);
         }
-      } catch (err) {
-        console.error("Error loading saved project:", err);
-      }
     }
 
-    // ✅ Run AI and update project
-    runButton.addEventListener("click", async () => {
-      const promptText = aiPrompt.value.trim();
-      if (!promptText) return alert("Enter a prompt");
+    if (runButton) {
+        runButton.addEventListener("click", async () => {
+            const promptText = aiPrompt.value.trim();
+            if (!promptText) {
+                showToast("Please enter a prompt", 'warning');
+                return;
+            }
 
-      runButton.disabled = true;
-      runButton.textContent = "Generating...";
+            runButton.disabled = true;
+            runButton.innerHTML = '⏳ Generating...';
+            if (outputEl) {
+                outputEl.style.display = 'block';
+                outputEl.textContent = '⏳ Generating...\n';
+            }
 
-      try {
-        const res = await fetch(`/webprojects/${PROJECT_ID}/file/${FILE_ID}/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken
-          },
-          body: JSON.stringify({ file_id: FILE_ID, prompt: promptText })
+            try {
+                const res = await fetch(`/webprojects/${PROJECT_ID}/file/${FILE_ID}/`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrftoken
+                    },
+                    body: JSON.stringify({ file_id: FILE_ID, prompt: promptText })
+                });
+
+                const data = await res.json();
+                console.log("AI Response:", data);
+
+                if (data.status === "success" && data.ai_content) {
+                    renderPreview(
+                        data.ai_content.html,
+                        data.ai_content.css,
+                        data.ai_content.js
+                    );
+                    if (outputEl) {
+                        outputEl.textContent = '✅ Project generated successfully!\n\n' + 
+                            JSON.stringify(data.ai_content, null, 2);
+                    }
+                    showToast('Project generated successfully!', 'success');
+                } else {
+                    throw new Error(data.message || 'Generation failed');
+                }
+
+            } catch (err) {
+                console.error(err);
+                if (outputEl) {
+                    outputEl.textContent = `❌ Error: ${err.message}`;
+                }
+                showToast('Error: ' + err.message, 'error');
+            } finally {
+                runButton.disabled = false;
+                runButton.innerHTML = '✨ Generate';
+            }
         });
+    }
 
-        const data = await res.json();
-        console.log("AI Response:", data);
+    // Initial load
+    await loadSavedProject();
+});
 
-        if (data.status === "success" && data.ai_content) {
-          // ✅ Render new AI output immediately
-          renderPreview(
-            data.ai_content.html,
-            data.ai_content.css,
-            data.ai_content.js
-          );
-        } else {
-          alert("AI generation failed: " + (data.message || JSON.stringify(data)));
-        }
-
-      } catch (err) {
-        console.error(err);
-        alert("Error contacting AI backend: " + err.message);
-      } finally {
-        runButton.disabled = false;
-        runButton.textContent = "✨ Generate";
-      }
-    });
-
-    // ✅ Initial load
-    loadSavedProject();
-  });
-</script>
-
-<!-- side content js -->
-
-<script>
-  function toggleDesc(id, el, lang) {
+/* ================= SIDE CONTENT JS ================= */
+function toggleDesc(id, el, lang) {
     const desc = document.getElementById(id);
     if(desc.style.display === "none") {
-      desc.style.display = "block";
-      el.querySelector(".toggle-icon").textContent = "➖";
-
-      // Apply Prism highlighting
-      const codeEl = desc.querySelector('code');
-      codeEl.className = 'language-' + lang;
-      Prism.highlightElement(codeEl);
+        desc.style.display = "block";
+        el.querySelector(".toggle-icon").textContent = "➖";
+        const codeEl = desc.querySelector('code');
+        codeEl.className = 'language-' + lang;
+        Prism.highlightElement(codeEl);
     } else {
-      desc.style.display = "none";
-      el.querySelector(".toggle-icon").textContent = "➕";
+        desc.style.display = "none";
+        el.querySelector(".toggle-icon").textContent = "➕";
     }
-  }
-</script>
+}
 
-<!-- your sidebar content below... -->
- <script>
-  document.addEventListener('DOMContentLoaded', () => {
+
+/* ================= SIDEBAR RESIZE ================= */
+document.addEventListener('DOMContentLoaded', () => {
     const editorLayout = document.getElementById('editorLayout');
     const toggleBtn = document.getElementById('toggleSidebarBtn');
-    const sidebar = document.querySelector('.sidebar'); // Add your sidebar selector
+    const sidebar = document.querySelector('.sidebar');
     const resizeHandle = document.createElement('div');
     
-    // Create resize handle
+    if (!sidebar) return;
+    
     resizeHandle.className = 'resize-handle';
     resizeHandle.style.cssText = `
-      position: absolute;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      width: 5px;
-      cursor: col-resize;
-      background: transparent;
-      z-index: 10;
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        cursor: col-resize;
+        background: transparent;
+        z-index: 10;
+        transition: background 0.2s;
     `;
     resizeHandle.onmouseenter = () => resizeHandle.style.background = '#4fa';
     resizeHandle.onmouseleave = () => resizeHandle.style.background = 'transparent';
@@ -1090,1253 +1509,261 @@ document.getElementById('fileChatPrompt').addEventListener('keydown', e => {
     sidebar.style.position = 'relative';
     sidebar.appendChild(resizeHandle);
 
-    // Resize functionality
     let isResizing = false;
     let startX = 0;
     let startWidth = 0;
 
     resizeHandle.addEventListener('mousedown', (e) => {
-      isResizing = true;
-      startX = e.clientX;
-      startWidth = sidebar.offsetWidth;
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-      e.preventDefault();
+        isResizing = true;
+        startX = e.clientX;
+        startWidth = sidebar.offsetWidth;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
     });
 
     document.addEventListener('mousemove', (e) => {
-      if (!isResizing) return;
-      
-      const width = startWidth + (e.clientX - startX);
-      const minWidth = 200; // Minimum sidebar width
-      const maxWidth = 950; // Maximum sidebar width
-      
-      if (width >= minWidth && width <= maxWidth) {
-        sidebar.style.width = width + 'px';
-        sidebar.style.flexBasis = width + 'px';
-        sidebar.style.minWidth = width + 'px';
+        if (!isResizing) return;
         
-        // Relayout Monaco Editor during resize
-        if (window.editor?.layout) {
-          window.editor.layout();
+        const width = startWidth + (e.clientX - startX);
+        const minWidth = 200;
+        const maxWidth = 950;
+        
+        if (width >= minWidth && width <= maxWidth) {
+            sidebar.style.width = width + 'px';
+            sidebar.style.flexBasis = width + 'px';
+            sidebar.style.minWidth = width + 'px';
+            
+            if (window.editor?.layout) {
+                window.editor.layout();
+            }
         }
-      }
     });
 
     document.addEventListener('mouseup', () => {
-      if (isResizing) {
-        isResizing = false;
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-        
-        // Save width to localStorage
-        localStorage.setItem('sidebarWidth', sidebar.offsetWidth);
-      }
+        if (isResizing) {
+            isResizing = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            localStorage.setItem('sidebarWidth', sidebar.offsetWidth);
+        }
     });
 
-    // Restore saved width
     const savedWidth = localStorage.getItem('sidebarWidth');
     if (savedWidth) {
-      sidebar.style.width = savedWidth + 'px';
-      sidebar.style.flexBasis = savedWidth + 'px';
-      sidebar.style.minWidth = savedWidth + 'px';
+        sidebar.style.width = savedWidth + 'px';
+        sidebar.style.flexBasis = savedWidth + 'px';
+        sidebar.style.minWidth = savedWidth + 'px';
     }
 
-    // Toggle sidebar
     const updateToggleIcon = (isCollapsed) => {
-      toggleBtn.innerHTML = isCollapsed 
-        ? '<span title="Open Sidebar">☰</span>' 
-        : '<span title="Close Sidebar">✖</span>';
+        if (!toggleBtn) return;
+        toggleBtn.innerHTML = isCollapsed 
+            ? '<span title="Open Sidebar">☰</span>' 
+            : '<span title="Close Sidebar">✖</span>';
     };
 
-    toggleBtn.addEventListener('click', () => {
-      const isCollapsed = editorLayout.classList.toggle('collapsed');
-      updateToggleIcon(isCollapsed);
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const isCollapsed = editorLayout.classList.toggle('collapsed');
+            updateToggleIcon(isCollapsed);
 
-      // Relayout Monaco Editor
-      setTimeout(() => {
-        if (window.editor?.layout) {
-          window.editor.layout();
-        }
-      }, 100);
-    });
+            setTimeout(() => {
+                if (window.editor?.layout) {
+                    window.editor.layout();
+                }
+            }, 100);
+        });
 
-    // Initial state
-    updateToggleIcon(editorLayout.classList.contains('collapsed'));
-  });
-</script>
-
-<script>
-  function showImageModal(imgUrl) {
-    document.getElementById('popupImage').src = imgUrl;
-    document.getElementById('imagePopupModal').style.display = 'block';
-  }
-
-  function closeImageModal() {
-    document.getElementById('imagePopupModal').style.display = 'none';
-    document.getElementById('popupImage').src = "";
-  }
-</script>
-
-<script>
-function getAISuggestion() {
-  alert("AI Suggestion not implemented yet.");
-}
-function explainCode() {
-  alert("Explain Code not implemented yet.");
-}
-function runAIAction() {
-  const action = document.getElementById("aiAction").value;
-  alert("Run AI Action (" + action + ") not implemented yet.");
-}
-</script>
-
-<script>
-let editor;
-require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' } });
-require(['vs/editor/editor.main'], function () {
-  editor = monaco.editor.create(document.getElementById('container'), {
-    value: `{{ file.content|escapejs }}`,
-    language: getLanguage("{{ file.name }}"),
-    theme: 'vs-dark',
-    automaticLayout: true,
-    readOnly: false
-  });
-
-  // Auto-save every 3s
-
-let autoSaveInterval = setInterval(() => {
-  fetch("{% url 'webprojects:file_autosave' %}", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": "{{ csrf_token }}"
-    },
-    body: JSON.stringify({
-      file_id: {{ file.id }},
-      content: editor.getValue()
-    })
-  }).then(response => {
-    if (!response.ok) {
-      console.error("❌ Auto-save failed.");
-    } else {
-      console.log("✅ Auto-saved at", new Date().toLocaleTimeString());
+        updateToggleIcon(editorLayout.classList.contains('collapsed'));
     }
-  }).catch(err => {
-    console.error("❌ Auto-save error:", err);
-  });
-}, 3000);
-
-  // === HTML Snippet Completions ===
-monaco.languages.registerCompletionItemProvider('html', {
-  triggerCharacters: ['<', '"', "'", ' ', ':', '.', '{'],
-  provideCompletionItems: function (model, position) {
-    const textUntilPosition = model.getValueInRange({
-      startLineNumber: 1,
-      startColumn: 1,
-      endLineNumber: position.lineNumber,
-      endColumn: position.column
-    });
-
-    const cssProperties = [
-      "color", "background", "background-color", "font-size", "font-weight", "font-family",
-      "margin", "padding", "border", "border-radius", "width", "height", "display", "position",
-      "top", "left", "right", "bottom", "z-index", "overflow", "opacity", "flex", "justify-content",
-      "align-items", "gap", "grid", "box-shadow", "transition", "animation", "text-align",
-      "line-height", "letter-spacing", "visibility"
-    ];
-
-    const cssColors = [
-      "red", "green", "blue", "black", "white", "gray", "grey", "yellow", "orange", "pink", "purple",
-      "brown", "cyan", "magenta", "lime", "teal", "navy", "gold", "silver", "maroon", "aqua",
-      "chocolate", "coral", "crimson", "indigo", "khaki", "lavender", "plum", "salmon", "tan", "violet"
-    ];
-
-    const htmlTags = [
-      'html', 'head', 'body', 'title', 'meta', 'link', 'style', 'script',
-      'header', 'nav', 'main', 'footer', 'section', 'article', 'aside',
-      'div', 'span', 'p', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'ul', 'ol', 'li', 'strong', 'em', 'br', 'hr', 'mark', 'abbr', 'cite',
-      'form', 'input', 'textarea', 'label', 'button', 'select', 'option',
-      'fieldset', 'legend', 'output', 'progress', 'meter',
-      'img', 'video', 'audio', 'source', 'canvas', 'iframe',
-      'details', 'summary', 'dialog', 'template',
-      'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td',
-      'code', 'pre', 'blockquote', 'figure', 'figcaption',
-      'b', 'i', 'u', 'small', 'big', 'sub', 'sup', 'kbd', 'samp'
-    ];
-
-    const voidTags = [
-      'meta', 'link', 'br', 'hr', 'img', 'input', 'source', 'area', 'base', 'col', 'embed', 'track', 'wbr'
-    ];
-
-    const jsSnippets = [
-      {
-        label: 'console.log',
-        insertText: `console.log($1);`,
-        documentation: 'Log output to the console'
-      },
-      {
-        label: 'function',
-        insertText: `function $1() {\n\t$2\n}`,
-        documentation: 'Function declaration'
-      },
-      {
-        label: 'addEventListener',
-        insertText: `document.querySelector('$1').addEventListener('$2', function(e) {\n\t$3\n});`,
-        documentation: 'Attach event listener'
-      },
-      {
-        label: 'fetch',
-        insertText: `fetch('$1')\n\t.then(res => res.json())\n\t.then(data => {\n\t\t$2\n});`,
-        documentation: 'Fetch API example'
-      }
-    ];
-
-    const tagSuggestions = htmlTags.map(tag => {
-      const isVoid = voidTags.includes(tag);
-      return {
-        label: tag,
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: isVoid ? `<${tag} $1>` : `<${tag}>$1</${tag}>`,
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: isVoid
-          ? `Insert <${tag}> tag (self-closing)`
-          : `Insert <${tag}>...</${tag}>`
-      };
-    });
-
-    const cssPropertySuggestions = cssProperties.map(prop => ({
-      label: prop,
-      kind: monaco.languages.CompletionItemKind.Property,
-      insertText: `${prop}: $1;`,
-      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-      documentation: `CSS property: ${prop}`
-    }));
-
-    const cssColorSuggestions = cssColors.map(color => ({
-      label: color,
-      kind: monaco.languages.CompletionItemKind.Color,
-      insertText: color,
-      documentation: `CSS color: ${color}`
-    }));
-
-    const jsSuggestions = jsSnippets.map(snip => ({
-      label: snip.label,
-      kind: monaco.languages.CompletionItemKind.Snippet,
-      insertText: snip.insertText,
-      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-      documentation: snip.documentation
-    }));
-
-    const insideStyle = /<style[\s\S]*?>[\s\S]*$/i.test(textUntilPosition);
-    const insideScript = /<script[\s\S]*?>[\s\S]*$/i.test(textUntilPosition);
-    const insideInlineStyle = /style\s*=\s*["'][^"']*$/i.test(textUntilPosition);
-
-    if (insideStyle || insideInlineStyle) {
-      return {
-        suggestions: [...cssPropertySuggestions, ...cssColorSuggestions]
-      };
-    }
-
-    if (insideScript) {
-      return {
-        suggestions: jsSuggestions
-      };
-    }
-
-    return {
-      suggestions: [...tagSuggestions]
-    };
-  }
 });
 
-  // === JavaScript Snippets ===
-monaco.languages.registerCompletionItemProvider('javascript', {
-  triggerCharacters: ['.', '(', ' '],
-  provideCompletionItems: () => ({
-    suggestions: [
-      {
-        label: 'for loop',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: [
-          'for (let ${1:i} = 0; ${1:i} < ${2:array}.length; ${1:i}++) {',
-          '\t${3:// code}',
-          '}'
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'A basic for loop over an array'
-      },
-      {
-        label: 'for...of loop',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: [
-          'for (const ${1:item} of ${2:array}) {',
-          '\t${3:// code}',
-          '}'
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Iterates over iterable objects like arrays'
-      },
-      {
-        label: 'if statement',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: [
-          'if (${1:condition}) {',
-          '\t${2:// code}',
-          '}'
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Basic if condition'
-      },
-      {
-        label: 'console.log',
-        kind: monaco.languages.CompletionItemKind.Function,
-        insertText: 'console.log(${1:message});',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Prints a message to the console'
-      },
-      {
-        label: 'addEventListener',
-        kind: monaco.languages.CompletionItemKind.Function,
-        insertText: "document.querySelector('${1:selector}').addEventListener('${2:event}', function(e) {\n\t$3\n});",
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Attaches an event listener to an element'
-      },
-      {
-        label: 'setTimeout',
-        kind: monaco.languages.CompletionItemKind.Function,
-        insertText: 'setTimeout(() => {\n\t$1\n}, ${2:1000});',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Delays execution of code'
-      },
-      {
-        label: 'fetch',
-        kind: monaco.languages.CompletionItemKind.Function,
-        insertText: [
-          "fetch('${1:url}')",
-          "  .then(response => response.json())",
-          "  .then(data => {",
-          "    ${2:// process data}",
-          "  })",
-          "  .catch(error => console.error(error));"
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Makes a network request using fetch API'
-      }
-    ]
-  })
-});
-
-monaco.languages.registerHoverProvider('javascript', {
-  provideHover: function(model, position) {
-    const word = model.getWordAtPosition(position);
-    if (!word) return;
-
-    const docs = {
-      'console': {
-        value: '**console.log()**\n\nOutputs messages to the browser console.\nUseful for debugging.'
-      },
-      'fetch': {
-        value: '**fetch()**\n\nPerforms a network request and returns a Promise.\nUsed for AJAX and API calls.'
-      },
-      'setTimeout': {
-        value: '**setTimeout()**\n\nExecutes a function after a specified delay (in milliseconds).'
-      }
-    };
-
-    const doc = docs[word.word];
-    if (doc) {
-      return {
-        contents: [{ value: doc.value }]
-      };
+/* ================= IMAGE MODAL ================= */
+function showImageModal(imgUrl) {
+    const modal = document.getElementById('imagePopupModal');
+    const img = document.getElementById('popupImage');
+    if (modal && img) {
+        img.src = imgUrl;
+        modal.style.display = 'block';
     }
-
-    return null;
-  }
-});
-
-
- // === Python Snippets ===
-const staticCompletions = {
-  python: {
-    keywords: [
-      "False", "None", "True", "and", "as", "assert", "async", "await", "break", "class",
-      "continue", "def", "del", "elif", "else", "except", "finally", "for", "from", "global",
-      "if", "import", "in", "is", "lambda", "match", "nonlocal", "not", "or", "pass", "raise",
-      "return", "try", "while", "with", "yield", "case"
-    ],
-    functions: [
-      "abs", "aiter", "all", "any", "anext", "ascii", "bin", "bool", "breakpoint", "bytearray", "bytes",
-      "callable", "chr", "classmethod", "compile", "complex", "delattr", "dict", "dir", "divmod", "enumerate",
-      "eval", "exec", "filter", "float", "format", "frozenset", "getattr", "globals", "hasattr", "hash",
-      "help", "hex", "id", "input", "int", "isinstance", "issubclass", "iter", "len", "list", "locals", "map",
-      "max", "memoryview", "min", "next", "object", "oct", "open", "ord", "pow", "print", "property", "range",
-      "repr", "reversed", "round", "set", "setattr", "slice", "sorted", "staticmethod", "str", "sum", "super",
-      "tuple", "type", "vars", "zip", "__import__"
-    ],
-    classes: [
-      "int", "float", "str", "list", "dict", "set", "tuple", "object", "bool", "bytes", "bytearray",
-      "complex", "frozenset", "memoryview"
-    ],
-    exceptions: [
-      "ArithmeticError", "AssertionError", "AttributeError", "BaseException", "BlockingIOError", "BrokenPipeError",
-      "BufferError", "BytesWarning", "ChildProcessError", "ConnectionAbortedError", "ConnectionError",
-      "ConnectionRefusedError", "ConnectionResetError", "DeprecationWarning", "EOFError", "EnvironmentError",
-      "Exception", "FileExistsError", "FileNotFoundError", "FloatingPointError", "FutureWarning", "GeneratorExit",
-      "ImportError", "ImportWarning", "IndentationError", "IndexError", "InterruptedError", "IsADirectoryError",
-      "KeyError", "KeyboardInterrupt", "LookupError", "MemoryError", "ModuleNotFoundError", "NameError",
-      "NotADirectoryError", "NotImplemented", "NotImplementedError", "OSError", "OverflowError",
-      "PendingDeprecationWarning", "PermissionError", "ProcessLookupError", "RecursionError", "ReferenceError",
-      "ResourceWarning", "RuntimeError", "RuntimeWarning", "StopAsyncIteration", "StopIteration", "SyntaxError",
-      "SyntaxWarning", "SystemError", "SystemExit", "TabError", "TimeoutError", "TypeError", "UnboundLocalError",
-      "UnicodeDecodeError", "UnicodeEncodeError", "UnicodeError", "UnicodeTranslateError", "UnicodeWarning",
-      "UserWarning", "ValueError", "Warning", "ZeroDivisionError"
-    ],
-    modules: [
-      "os", "sys", "math", "random", "datetime", "time", "json", "re", "statistics", "itertools", "functools",
-      "collections", "pathlib", "shutil", "subprocess", "glob", "logging", "decimal", "fractions", "pprint",
-      "typing", "traceback", "urllib", "http", "argparse", "getopt", "enum", "dataclasses", "asyncio", "threading",
-      "multiprocessing", "platform", "socket", "email", "copy", "inspect", "pickle", "csv", "heapq", "uuid",
-      "base64", "hashlib", "html", "xml", "webbrowser", "sqlite3"
-    ]
-  },
-    np: [
-    "array", "arange", "linspace", "logspace", "zeros", "ones", "full", "eye", "identity", "diag", "empty",
-    "reshape", "transpose", "flatten", "ravel", "squeeze", "expand_dims",
-    "dot", "matmul", "tensordot", "inner", "outer", "cross",
-    "mean", "median", "std", "var", "sum", "cumsum", "prod", "max", "min", "argmax", "argmin", "where",
-    "unique", "sort", "argsort", "clip",
-    "concatenate", "stack", "vstack", "hstack", "dstack", "column_stack", "split", "hsplit", "vsplit", "array_split",
-    "random", "load", "save", "frombuffer", "fromfile", "fromiter", "fromfunction", "vectorize"
-  ],
-
-  pd: [
-    "DataFrame", "Series", "read_csv", "read_excel", "read_json", "read_sql", "read_html", "read_parquet", "read_feather",
-    "to_csv", "to_excel", "to_json", "to_sql", "to_parquet",
-    "head", "tail", "sample", "shape", "columns", "index", "dtypes", "axes",
-    "describe", "info", "memory_usage", "isnull", "notnull", "dropna", "fillna", "interpolate",
-    "groupby", "pivot", "pivot_table", "melt", "stack", "unstack", "merge", "join", "concat", "append",
-    "sort_values", "sort_index", "drop", "rename", "set_index", "reset_index",
-    "loc", "iloc", "at", "iat", "ix", "astype", "apply", "map", "applymap", "transform", "agg", "duplicated", "nunique", "value_counts"
-  ],
-
-  plt: [
-    "figure", "subplot", "subplots", "plot", "scatter", "bar", "barh", "hist", "pie", "boxplot", "violinplot", "stem",
-    "imshow", "matshow", "contour", "contourf", "pcolor", "quiver", "streamplot",
-    "xlabel", "ylabel", "title", "legend", "colorbar", "grid", "axis", "xlim", "ylim", "xticks", "yticks",
-    "tight_layout", "savefig", "show", "clf", "cla", "close"
-  ],
-
-  sns: [
-    "load_dataset", "scatterplot", "lineplot", "barplot", "boxplot", "histplot", "kdeplot", "violinplot", "stripplot",
-    "swarmplot", "countplot", "catplot", "pairplot", "heatmap", "clustermap", "jointplot",
-    "set", "set_theme", "set_style", "set_context", "color_palette", "despine"
-  ],
-
-  cv2: [
-    "imread", "imwrite", "imshow", "waitKey", "destroyAllWindows",
-    "cvtColor", "resize", "flip", "rotate", "GaussianBlur", "medianBlur", "threshold", "adaptiveThreshold",
-    "Canny", "VideoCapture", "VideoWriter", "findContours", "drawContours", "rectangle", "circle", "line", "putText",
-    "bitwise_and", "bitwise_or", "bitwise_not", "bitwise_xor", "add", "addWeighted", "subtract", "erode", "dilate",
-    "morphologyEx"
-  ]
-
-};
-
-monaco.languages.registerCompletionItemProvider('python', {
-  triggerCharacters: ['.', ...'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'],
-  provideCompletionItems: async function (model, position) {
-    const lineUntilCursor = model.getValueInRange({
-      startLineNumber: position.lineNumber,
-      startColumn: 1,
-      endLineNumber: position.lineNumber,
-      endColumn: position.column
-    });
-
-    // Dot notation (e.g., np.)
-    const dotMatch = lineUntilCursor.match(/(\w+)\.$/);
-    if (dotMatch) {
-      const prefix = dotMatch[1];
-      const completions = staticCompletions[prefix] || [];
-      return {
-        suggestions: completions.map(item => ({
-          label: item,
-          kind: monaco.languages.CompletionItemKind.Method,
-          insertText: item,
-          documentation: `${prefix}.${item}`
-        }))
-      };
-    }
-
-    // General Python typing (e.g., print, for, True, etc.)
-    const wordMatch = lineUntilCursor.match(/(\w+)$/);
-    if (wordMatch) {
-      const prefix = wordMatch[1].toLowerCase();
-      const python = staticCompletions.python;
-
-      const suggestions = [
-        ...python.keywords.filter(k => k.startsWith(prefix)).map(k => ({
-          label: k,
-          kind: monaco.languages.CompletionItemKind.Keyword,
-          insertText: k,
-          documentation: `Python keyword: ${k}`
-        })),
-        ...python.functions.filter(f => f.startsWith(prefix)).map(f => ({
-          label: f,
-          kind: monaco.languages.CompletionItemKind.Function,
-          insertText: f,
-          documentation: `Built-in function: ${f}`
-        })),
-        ...python.classes.filter(c => c.startsWith(prefix)).map(c => ({
-          label: c,
-          kind: monaco.languages.CompletionItemKind.Class,
-          insertText: c,
-          documentation: `Built-in class: ${c}`
-        })),
-        ...python.exceptions.filter(e => e.toLowerCase().startsWith(prefix)).map(e => ({
-          label: e,
-          kind: monaco.languages.CompletionItemKind.Class,
-          insertText: e,
-          documentation: `Exception: ${e}`
-        })),
-        ...python.modules.filter(m => m.startsWith(prefix)).map(m => ({
-          label: m,
-          kind: monaco.languages.CompletionItemKind.Module,
-          insertText: m,
-          documentation: `Python module: ${m}`
-        }))
-      ];
-
-      return { suggestions };
-    }
-
-    // Optional fallback to AI suggestions
-    try {
-      const res = await fetch("/ai-python-completion/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
-        },
-        body: JSON.stringify({ prefix: lineUntilCursor.trim() })
-      });
-
-      const data = await res.json();
-      if (data.completions) {
-        return {
-          suggestions: data.completions.map(item => ({
-            label: item,
-            kind: monaco.languages.CompletionItemKind.Function,
-            insertText: item,
-            documentation: `AI: ${item}`
-          }))
-        };
-      }
-    } catch (err) {
-      console.warn("AI fallback failed", err);
-    }
-
-    return { suggestions: [] };
-  }
-});
-
-
-});
-
-
-// === CSS Snippets ===
-monaco.languages.registerCompletionItemProvider('css', {
-  provideCompletionItems: () => ({
-    suggestions: [
-      // === Layout & Box Model ===
-      {
-        label: 'display: flex',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'display: flex;',
-        documentation: 'Set display mode to flex'
-      },
-      {
-        label: 'display: grid',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'display: grid;',
-        documentation: 'Set display mode to grid'
-      },
-      {
-        label: 'flex-center',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: [
-          'display: flex;',
-          'justify-content: center;',
-          'align-items: center;'
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Center content using flex'
-      },
-      {
-        label: 'margin',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'margin: ${1:0};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set margin'
-      },
-      {
-        label: 'padding',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'padding: ${1:0};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set padding'
-      },
-      {
-        label: 'box-sizing',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'box-sizing: border-box;',
-        documentation: 'Include padding and border in element width and height'
-      },
-      {
-        label: 'gap',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'gap: ${1:1rem};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Spacing between grid/flex items'
-      },
-
-      // === Dimensions ===
-      {
-        label: 'width',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'width: ${1:100%};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set width'
-      },
-      {
-        label: 'height',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'height: ${1:auto};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set height'
-      },
-
-      // === Positioning ===
-      {
-        label: 'position',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'position: ${1:relative};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set positioning method'
-      },
-      {
-        label: 'top',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'top: ${1:0};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set top offset'
-      },
-      {
-        label: 'left',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'left: ${1:0};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set left offset'
-      },
-
-      // === Typography ===
-      {
-        label: 'font-size',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'font-size: ${1:16px};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set font size'
-      },
-      {
-        label: 'font-weight',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'font-weight: ${1:bold};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set font weight'
-      },
-      {
-        label: 'line-height',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'line-height: ${1:1.5};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set line height'
-      },
-
-      // === Colors ===
-      {
-        label: 'color',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'color: ${1:#000};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Text color'
-      },
-      {
-        label: 'background-color',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'background-color: ${1:#fff};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Background color'
-      },
-      {
-        label: 'primary-color',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'color: ${1:#3498db};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Primary brand color'
-      },
-      {
-        label: 'named-color',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'color: ${1:red};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Use named color like red, blue, green, etc.'
-      },
-
-      // === Effects ===
-      {
-        label: 'transition',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'transition: ${1:all} ${2:0.3s} ease-in-out;',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Smooth transition'
-      },
-      {
-        label: 'box-shadow',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'box-shadow: ${1:0 2px 4px rgba(0,0,0,0.1)};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Shadow effect'
-      },
-      {
-        label: 'border-radius',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'border-radius: ${1:4px};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Rounded corners'
-      },
-
-      // === Animation ===
-      {
-        label: '@keyframes',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: [
-          '@keyframes ${1:fadeIn} {',
-          '  0% { opacity: 0; }',
-          '  100% { opacity: 1; }',
-          '}'
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Define keyframes'
-      },
-      {
-        label: 'animation',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'animation: ${1:fadeIn} ${2:1s} ${3:ease-in-out};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Apply animation'
-      },
-
-      // === Media Query ===
-      {
-        label: '@media',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: [
-          '@media (max-width: ${1:768px}) {',
-          '\t${2:selector} {',
-          '\t\t${3:property}: ${4:value};',
-          '\t}',
-          '}'
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Media query block'
-      },
-
-      // === Utility Reminder (Tailwind etc.) ===
-      {
-        label: 'tw-bg-blue-500',
-        kind: monaco.languages.CompletionItemKind.Text,
-        insertText: 'bg-blue-500',
-        documentation: 'Tailwind class (remember: this is not native CSS)'
-      }
-    ]
-  })
-});
-
-
-
-function getLanguage(fileName) {
-  const ext = fileName.split('.').pop().toLowerCase();
-  switch (ext) {
-    case "py": return "python";
-    case "js": return "javascript";
-    case "html": return "html";
-    case "css": return "css";
-    case "json": return "json";
-    default: return "plaintext";
-  }
 }
 
-function runCode() {
-    const code = editor.getValue();
-    const output = document.getElementById("outputText");
-    const tablePreview = document.getElementById("tablePreview");
-    const plotPreview = document.getElementById("plotPreview");
-
-    // Show spinner
-    output.innerHTML = `⏳ Running... <span class="spinner"></span>`;
-    tablePreview.innerHTML = "";
-    plotPreview.innerHTML = "";
-
-    fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: JSON.stringify({ 
-            content: code,
-            run_plot: true,
-            run_table: true
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === "error") {
-            output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`;
-        } else {
-            // Text output
-            output.textContent = data.output || "[No output]";
-
-            // Table preview (first 20 rows of CSV or resulting DataFrame)
-            if (data.table) {
-                tablePreview.innerHTML = data.table;
-                tablePreview.style.display = "block";
-            } else {
-                tablePreview.style.display = "none";
-            }
-
-            // Plot preview
-            plotPreview.innerHTML = "";
-            if (Array.isArray(data.images) && data.images.length > 0) {
-                data.images.forEach(src => {
-                    const img = document.createElement("img");
-                    img.src = src;
-                    img.style.maxWidth = "100%";
-                    img.style.marginBottom = "10px";
-                    plotPreview.appendChild(img);
-                });
-                plotPreview.style.display = "block";
-            } else {
-                plotPreview.style.display = "none";
-            }
-        }
-    })
-    .catch(err => {
-        output.innerHTML = `<span style="color:red;">❌ Request Failed: ${escapeHTML(err.message)}</span>`;
-    });
+function closeImageModal() {
+    const modal = document.getElementById('imagePopupModal');
+    const img = document.getElementById('popupImage');
+    if (modal) {
+        modal.style.display = 'none';
+        if (img) img.src = "";
+    }
 }
 
-function escapeHTML(str) {
-  return String(str).replace(/[&<>"']/g, tag => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[tag]));
-}
-
-</script>
-
-
-<script>
+/* ================= FOLDER TOGGLE ================= */
 document.addEventListener('DOMContentLoaded', () => {
-  const toggles = document.querySelectorAll('.folder-toggle');
+    const toggles = document.querySelectorAll('.folder-toggle');
 
-  toggles.forEach(toggle => {
-    const ext = toggle.dataset.ext;
-    const storedState = localStorage.getItem('folder_' + ext);
+    toggles.forEach(toggle => {
+        const ext = toggle.dataset.ext;
+        const storedState = localStorage.getItem('folder_' + ext);
 
-    if (storedState === 'open') {
-      toggle.classList.add('open');
-      toggle.nextElementSibling.style.display = 'block';
-    }
+        if (storedState === 'open') {
+            toggle.classList.add('open');
+            if (toggle.nextElementSibling) {
+                toggle.nextElementSibling.style.display = 'block';
+            }
+        }
 
-    toggle.addEventListener('click', () => {
-      const group = toggle.nextElementSibling;
-      const isOpen = toggle.classList.toggle('open');
-      group.style.display = isOpen ? 'block' : 'none';
-      localStorage.setItem('folder_' + ext, isOpen ? 'open' : 'closed');
+        toggle.addEventListener('click', () => {
+            const group = toggle.nextElementSibling;
+            const isOpen = toggle.classList.toggle('open');
+            if (group) {
+                group.style.display = isOpen ? 'block' : 'none';
+            }
+            localStorage.setItem('folder_' + ext, isOpen ? 'open' : 'closed');
+        });
     });
-  });
 });
 
-function getSelectedText() {
-  return editor.getModel().getValueInRange(editor.getSelection());
-}
-
-function insertAfterSelection(original, insertion) {
-  const range = editor.getSelection();
-  editor.executeEdits(null, [{
-    range: range,
-    text: original + "\n\n" + insertion,
-    forceMoveMarkers: true
-  }]);
-}
-
-function cleanAIResponse(text) {
-  if (text.includes("```")) {
-    const parts = text.split("```");
-    if (parts.length >= 2) {
-      return parts[1].replace(/^(\w+\n)?/, "").trim();
-    }
-  }
-  return text.trim();
-}
-
-function getAISuggestion() {
-  const selectedText = getSelectedText();
-  const btn = document.getElementById("aiBtn");
-  const loader = document.getElementById("aiLoading");
-
-  if (!selectedText.trim()) return alert("⚠️ Please select some code first.");
-
-  btn.disabled = true;
-  loader.style.display = "inline";
-
-  fetch("{% url 'webprojects:ai_suggest_code' %}", {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': '{{ csrf_token }}'
-    },
-    body: JSON.stringify({ prompt: selectedText })
-  })
-  .then(res => res.json())
-  .then(data => {
-    const suggestion = cleanAIResponse(data.suggestion || "");
-    insertAfterSelection(selectedText, suggestion);
-  })
-  .catch(err => alert("AI Suggestion Failed: " + err))
-  .finally(() => {
-    btn.disabled = false;
-    loader.style.display = "none";
-  });
-}
-function showToast(message) {
-  const toast = document.getElementById("toastMessage");
-  toast.innerHTML = `
-    <span>${message}</span>
-    <button onclick="hideToast()" style="
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 22px;
-      position: absolute;
-      right: 12px;
-      top: 8px;
-      cursor: pointer;
-    ">&times;</button>
-  `;
-  toast.style.display = "block";
-  toast.style.opacity = "1";
+/* ================= TOAST MESSAGE ================= */
+function showToast(message, type = 'info') {
+    const toast = document.getElementById("toastMessage");
+    if (!toast) return;
+    
+    const colors = {
+        success: '#28a745',
+        error: '#dc3545',
+        info: '#007bff',
+        warning: '#ffc107'
+    };
+    
+    toast.innerHTML = `
+        <span>${message}</span>
+        <button onclick="hideToast()" style="
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 22px;
+            position: absolute;
+            right: 12px;
+            top: 8px;
+            cursor: pointer;
+        ">&times;</button>
+    `;
+    toast.style.backgroundColor = colors[type] || '#222';
+    toast.style.display = "block";
+    toast.style.opacity = "1";
+    
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.style.display = "none", 500);
+    }, 3000);
 }
 
 function hideToast() {
-  const toast = document.getElementById("toastMessage");
-  toast.style.opacity = "0";
-  setTimeout(() => (toast.style.display = "none"), 500);
-}
-
-function explainCode() {
-  const code = getSelectedText();
-  const btn = document.getElementById("explainBtn");
-
-  if (!code.trim()) {
-    showToast("⚠️ Please select code to explain.");
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = "💬 Explaining...";
-
-  fetch("{% url 'webprojects:explain_code' %}", {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': '{{ csrf_token }}'
-    },
-    body: JSON.stringify({ code: code })
-  })
-  .then(res => res.json())
-  .then(data => {
-    showToast("📘 AI Explanation:\n" + data.explanation);
-  })
-  .catch(err => {
-    showToast("⚠️ AI Explanation Error: " + err.message);
-  })
-  .finally(() => {
-    btn.disabled = false;
-    btn.textContent = "💬 Explain Code";
-  });
-}
-
-
-function runAIAction() {
-  const selectedText = getSelectedText();
-  const action = document.getElementById("aiAction").value;
-  const loadingIndicator = document.getElementById("aiLoading");
-  const runBtn = document.getElementById("runBtn");
-
-  if (!selectedText.trim()) {
-    return alert("⚠️ Please select code first.");
-  }
-
-  const instructions = {
-    complete: "Complete the following code:",
-    explain: "Explain what this code does:",
-    optimize: "Optimize this code for performance or readability:",
-    comment: "Add detailed comments to the following code:",
-    fix: "Fix any bugs or issues in this code:"
-  };
-
-  const prompt = instructions[action] + "\n\n" + selectedText;
-
-  // Show loading
-  loadingIndicator.style.display = "inline";
-  runBtn.disabled = true;
-  runBtn.textContent = "⏳ Running...";
-
-  fetch("{% url 'webprojects:ai_suggest_code' %}", {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': '{{ csrf_token }}'
-    },
-    body: JSON.stringify({ prompt: prompt })
-  })
-  .then(res => res.json())
-  .then(data => {
-    const output = cleanAIResponse(data.suggestion || "");
-    insertAfterSelection(selectedText, output);
-  })
-  .catch(err => {
-    alert("AI Action Failed: " + err);
-  })
-  .finally(() => {
-    // Hide loading
-    loadingIndicator.style.display = "none";
-    runBtn.disabled = false;
-    runBtn.textContent = "🚀 Run AI Action";
-  });
-}
-
-
-function createNewFolder() {
-  const name = document.getElementById("newFolderName").value.trim();
-  const projectId = {{ file.project.id }};
-
-  if (!name) return alert("⚠️ Please enter a folder name");
-
-  fetch(`/webprojects/${projectId}/create-folder/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": "{{ csrf_token }}"
-    },
-    body: JSON.stringify({ name })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === "success") {
-      alert("✅ Folder created!");
-      location.reload(); // refresh to show the new folder
-    } else {
-      alert("❌ " + data.message);
+    const toast = document.getElementById("toastMessage");
+    if (toast) {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.style.display = "none", 500);
     }
-  })
-  .catch(err => alert("❌ Request failed: " + err));
 }
 
-function createNewFile() {
-  const name = document.getElementById("newFileName").value.trim();
-  const projectId = {{ file.project.id }};
 
-  if (!name) return alert("⚠️ Please enter a file name");
-
-  fetch(`/webprojects/${projectId}/create-file/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": "{{ csrf_token }}"
-    },
-    body: JSON.stringify({ name })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === "success") {
-      alert("✅ File created!");
-      window.location.href = `/webprojects/${projectId}/file/${data.file_id}/`;
-    } else {
-      alert("❌ " + data.message);
-    }
-  })
-  .catch(err => alert("❌ Request failed: " + err));
-}
-
-</script>
-
-<!-- uppload file js  -->
-<script>
-const dropZone = document.getElementById('dropZone');
-const fileInput = document.getElementById('fileInput');
-
-dropZone.addEventListener('dragover', e => {
-  e.preventDefault();
-  dropZone.style.backgroundColor = '#333';
+/* ================= OUTPUT PANEL RESIZE ================= */
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById("container");
+    const outputPanel = document.getElementById("outputPanel");
+    const resizeHandle = document.getElementById("outputResizeHandle");
+    
+    if (!outputPanel || !resizeHandle) return;
+    
+    let isDragging = false;
+    let startY = 0;
+    let startHeight = 0;
+    
+    resizeHandle.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        startY = e.clientY;
+        startHeight = outputPanel.offsetHeight;
+        document.body.style.userSelect = "none";
+        e.preventDefault();
+    });
+    
+    document.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        const dy = e.clientY - startY;
+        const newHeight = Math.max(startHeight - dy, 80);
+        outputPanel.style.height = `${newHeight}px`;
+    });
+    
+    document.addEventListener("mouseup", () => {
+        if (isDragging) {
+            isDragging = false;
+            document.body.style.userSelect = "";
+        }
+    });
+    
+    // Touch support
+    resizeHandle.addEventListener("touchstart", (e) => {
+        isDragging = true;
+        startY = e.touches[0].clientY;
+        startHeight = outputPanel.offsetHeight;
+        e.preventDefault();
+    }, { passive: false });
+    
+    document.addEventListener("touchmove", (e) => {
+        if (!isDragging) return;
+        const dy = e.touches[0].clientY - startY;
+        const newHeight = Math.max(startHeight - dy, 80);
+        outputPanel.style.height = `${newHeight}px`;
+        e.preventDefault();
+    }, { passive: false });
+    
+    document.addEventListener("touchend", () => {
+        isDragging = false;
+    });
 });
 
-dropZone.addEventListener('dragleave', e => {
-  e.preventDefault();
-  dropZone.style.backgroundColor = '';
-});
-
-dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.style.backgroundColor = '';
-  const file = e.dataTransfer.files[0];
-  if (file) uploadFile(file);
-});
-
-fileInput.addEventListener('change', () => {
-  const file = fileInput.files[0];
-  if (file) uploadFile(file);
-});
-
-function uploadFile(file) {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('name', file.name);
-
-  const loader = document.getElementById("upload-loader");
-  loader.style.display = "flex"; // show loader
-
-  fetch("{% url 'webprojects:upload_file_ajax' project.id %}", {
-    method: 'POST',
-    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-    body: formData
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      showToast(`✅ Uploaded: ${file.name}`);
-      addFileToList(data.file_id, file.name, data.file_url || "");
-
-      // ✅ reload after 1.5 seconds
-      setTimeout(() => {
-        location.reload();
-      }, 1500);
-    } else {
-      showToast(`❌ Upload failed: ${data.error || ''}`);
+/* ================= UTILITY FUNCTIONS ================= */
+function getSelectedText() {
+    if (editor && editor.getModel && editor.getSelection) {
+        return editor.getModel().getValueInRange(editor.getSelection());
     }
-  })
-  .catch(() => showToast("⚠️ Upload error"))
-  .finally(() => {
-    loader.style.display = "none"; // hide loader
-  });
+    return '';
 }
 
-
-function addFileToList(fileId, fileName, fileUrl) {
-  const ext = fileName.split('.').pop().toLowerCase();
-  const groups = document.querySelectorAll('.file-group');
-
-  groups.forEach(group => {
-    if (group.previousElementSibling.dataset.ext === ext) {
-      const div = document.createElement('div');
-      div.classList.add('file-item');
-
-      if (["png", "jpg", "jpeg", "gif", "svg", "webp"].includes(ext)) {
-        div.innerHTML = `<a href="javascript:void(0);" onclick="showImageModal('${fileUrl}')" style="color:#4fa;">🖼️ ${fileName}</a>`;
-      } 
-      else if (["xls", "xlsx", "csv"].includes(ext)) {
-        div.innerHTML = `<a href="${fileUrl}" target="_blank" style="color:#f1c40f;">📊 ${fileName}</a>`;
-      } 
-      else if (["pdf"].includes(ext)) {
-        div.innerHTML = `<a href="${fileUrl}" target="_blank" style="color:#e74c3c;">📄 ${fileName}</a>`;
-      } 
-      else if (["doc", "docx"].includes(ext)) {
-        div.innerHTML = `<a href="${fileUrl}" target="_blank" style="color:#3498db;">📑 ${fileName}</a>`;
-      } 
-      else if (["txt", "md"].includes(ext)) {
-        div.innerHTML = `<a href="${fileUrl}" target="_blank" style="color:#9b59b6;">📝 ${fileName}</a>`;
-      } 
-      else {
-        div.innerHTML = `<a href="/file/${fileId}/" style="color:#fff;">📦 ${fileName}</a>`;
-      }
-
-      group.appendChild(div);
-    }
-  });
+function insertAfterSelection(original, insertion) {
+    if (!editor) return;
+    const range = editor.getSelection();
+    editor.executeEdits(null, [{
+        range: range,
+        text: original + "\n\n" + insertion,
+        forceMoveMarkers: true
+    }]);
 }
 
-function showToast(message) {
-  const toast = document.getElementById("toastMessage");
-  toast.textContent = message;
-  toast.style.display = "block";
-  setTimeout(() => { toast.style.display = "none"; }, 2500);
+function cleanAIResponse(text) {
+    if (!text) return '';
+    if (text.includes("```")) {
+        const parts = text.split("```");
+        if (parts.length >= 2) {
+            let code = parts[1];
+            code = code.replace(/^(\w+\n)?/, "");
+            return code.trim();
+        }
+    }
+    return text.trim();
+}
+
+function escapeHTML(str) {
+    return String(str).replace(/[&<>"']/g, tag => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    }[tag]));
 }
 </script>
-
-
-<!-- dragging output area js -->
- <script>
-  const container = document.getElementById("container");
-  const outputPanel = document.getElementById("outputPanel");
-  const resizeHandle = document.getElementById("resizeHandle");
-
-  let isDragging = false;
-  let startY = 0;
-  let startHeight = 0;
-
-  resizeHandle.addEventListener("mousedown", (e) => {
-    isDragging = true;
-    startY = e.clientY;
-    startHeight = outputPanel.offsetHeight;
-    document.body.style.userSelect = "none"; // Prevent text selection
-  });
-
-  document.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    const dy = e.clientY - startY;
-    const newHeight = Math.max(startHeight - dy, 100); // Minimum height
-    outputPanel.style.height = `${newHeight}px`;
-  });
-
-  document.addEventListener("mouseup", () => {
-    isDragging = false;
-    document.body.style.userSelect = "";
-  });
-
-  // Touch support for mobile
-  resizeHandle.addEventListener("touchstart", (e) => {
-    isDragging = true;
-    startY = e.touches[0].clientY;
-    startHeight = outputPanel.offsetHeight;
-  });
-
-  document.addEventListener("touchmove", (e) => {
-    if (!isDragging) return;
-    const dy = e.touches[0].clientY - startY;
-    const newHeight = Math.max(startHeight - dy, 100);
-    outputPanel.style.height = `${newHeight}px`;
-  });
-
-  document.addEventListener("touchend", () => {
-    isDragging = false;
-  });
-</script>
-
 
 {% endblock %}

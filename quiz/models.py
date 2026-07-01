@@ -103,6 +103,7 @@ class Term(models.Model):
         return self.name
 
 
+
 class Course(models.Model):
 
     categories = models.ForeignKey(Categories, blank=False, default=1, on_delete=models.SET_NULL, related_name='category', null=True)

@@ -229,6 +229,7 @@ from urllib.parse import urlparse, parse_qs
 #     hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
 
 
+
 class Topics(models.Model):
     categories = models.ForeignKey(Categories, on_delete=models.CASCADE, blank=True, null=True)
     courses = models.ForeignKey(Courses, on_delete=models.CASCADE, blank=True, null=True) 
