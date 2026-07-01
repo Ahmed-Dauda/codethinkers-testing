@@ -466,9 +466,34 @@
 
 <h2 class="mb-3">Topics for {{ course.title }}</h2>
 
+{% if not exam_id %}
+    <span style="color: #666;" title="No exam configured for this course">
+        🎓 No Exam Available
+    </span>
+    {% elif topics and completed_topic_ids|length == topics|length %}
+    <a style="color: white;" href="{% url 'student:start-exam' pk=exam_id %}">
+        🎓 Take Exam
+    </a>
+ {% else %}
+    <a href="{% url 'student:start-exam' pk=exam_id %}?next={{ request.path|urlencode }}"
+       style="color: #aaa;" title="Complete all module quizzes to unlock the exam">
+        🔒 Take Exam ({{ completed_topic_ids|length }}/{{ topics|length }} modules)
+    </a>
+    {% endif %}
+
+<div id="quizProgressWrap" style="margin: 10px 0 16px;">
+  <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#555; margin-bottom:4px;">
+    <span>Module Progress</span>
+    <span id="quizProgressLabel">{% if topics %}{% widthratio completed_topic_ids|length topics|length 100 %}{% else %}0{% endif %}%</span>
+  </div>
+  <div style="background:#e0e0e0; border-radius:6px; height:10px; overflow:hidden;">
+    <div id="quizProgressFill" style="background:#28a745; height:100%; width:{% if topics %}{% widthratio completed_topic_ids|length topics|length 100 %}{% else %}0{% endif %}%; transition:width 0.4s ease;"></div>
+  </div>
+</div>
+
 <div class="topics-container">
   {% for topic in topics %}
-    <div class="topic-item">
+    <div class="topic-item" data-topic-id="{{ topic.id }}">
       <!-- Topic title with toggle icon -->
       <a href="javascript:void(0);" class="topic-toggle d-flex justify-content-between align-items-center"
          onclick="toggleDesc('topic-{{ topic.id }}', this, '{{ topic.language|default:"python" }}')">
@@ -481,6 +506,15 @@
            style="display:none;">
 <code class="language-{{ topic.language|default:'python' }}">{{ topic.desc|safe|escape }}</code>
       </pre>
+
+      <div class="quiz-action-row" style="margin-top:6px; display:flex; align-items:center; gap:8px;">
+        <button class="quiz-btn" data-topic-id="{{ topic.id }}" data-topic-title="{{ topic.title|escapejs }}"
+                onclick="openQuizModal({{ topic.id }}, this)"
+                style="padding:4px 10px; font-size:0.8em; border:none; border-radius:4px; background:#3498db; color:#fff; cursor:pointer;">
+          {% if topic.id in completed_topic_ids %}🔁 Retake Quiz{% else %}📝 Take Quiz{% endif %}
+        </button>
+        <span class="quiz-passed-badge" data-topic-id="{{ topic.id }}" style="{% if topic.id in completed_topic_ids %}display:inline;{% else %}display:none;{% endif %} color:#28a745; font-size:0.8em; font-weight:bold;">✅ Passed</span>
+      </div>
     </div>
   {% empty %}
     <p class="text-muted">No content found for this course.</p>
@@ -496,7 +530,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-javascript.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-css.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-html.min.js"></script>
-
 
 {% for ext in exts %}
   {% with files|dictsort:"name" as sorted_files %}
@@ -542,7 +575,6 @@
   {% endwith %}
 {% endfor %}
 
-
 <!-- 🖼️ Image Popup Modal -->
 <div id="imagePopupModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000;">
   <span onclick="closeImageModal()" style="position:absolute; top:20px; right:30px; font-size:32px; color:white; cursor:pointer;">&times;</span>
@@ -552,6 +584,8 @@
 </div>
 
 {% endblock %}
+
+
 
 
 {% block content %}
@@ -658,6 +692,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div id="resizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
 </div>
 
+
 <!-- Floating AI Panel -->
 <div id="floatingAI" style="
   position: fixed;
@@ -675,7 +710,32 @@ document.addEventListener('DOMContentLoaded', function() {
 ">
 
   <!-- Drag handle -->
-  <div id="dragHandle" style="cursor: grab; padding: 8px; background: #f1f1f1; border-bottom: 1px solid #ccc;">🖐️ Drag Me</div>
+  <div id="dragHandle" style="
+    cursor: grab;
+    padding: 8px 10px;
+    background: #f1f1f1;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+  ">
+    <span>🖐️ Drag Me</span>
+    <button id="closeFloatingAI" style="
+      background: none;
+      border: none;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      color: #666;
+      padding: 0 6px;
+      border-radius: 4px;
+    "
+    onmouseover="this.style.background='#e0e0e0'; this.style.color='#000';"
+    onmouseout="this.style.background='none'; this.style.color='#666';"
+    title="Close"
+    >&times;</button>
+  </div>
 
   <!-- Tab Headers -->
   <div style="display:flex; border-bottom:2px solid #eee; background:#f9f9f9;">
@@ -783,27 +843,60 @@ function switchToFileEditor() {
 appBuilderTab.onclick = switchToAppBuilder;
 fileEditorTab.onclick = switchToFileEditor;
 
-/* ================= FLOATING PANEL DRAG ================= */
+/* ================= FLOATING PANEL DRAG (x + y) ================= */
 const panel = document.getElementById('floatingAI');
 const dragHandle = document.getElementById('dragHandle');
+const closeBtn = document.getElementById('closeFloatingAI');
 
 let isDraggingPanel = false;
+let dragOffsetX = 0;
 let dragOffsetY = 0;
 
 dragHandle.addEventListener('mousedown', e => {
+  // Don't start a drag if the click was on the close button
+  if (e.target.closest('#closeFloatingAI')) return;
+
   isDraggingPanel = true;
-  dragOffsetY = e.clientY - panel.offsetTop;
   dragHandle.style.cursor = 'grabbing';
+
+  // Convert from top/right to top/left so x+y math is consistent
+  const rect = panel.getBoundingClientRect();
+  panel.style.left = rect.left + 'px';
+  panel.style.top = rect.top + 'px';
+  panel.style.right = 'auto';
+
+  dragOffsetX = e.clientX - rect.left;
+  dragOffsetY = e.clientY - rect.top;
+
+  e.preventDefault();
 });
 
 document.addEventListener('mousemove', e => {
   if (!isDraggingPanel) return;
-  panel.style.top = (e.clientY - dragOffsetY) + 'px';
+
+  let newLeft = e.clientX - dragOffsetX;
+  let newTop = e.clientY - dragOffsetY;
+
+  // Clamp so it can't be dragged fully off-screen
+  const maxLeft = window.innerWidth - panel.offsetWidth;
+  const maxTop = window.innerHeight - panel.offsetHeight;
+  newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+  newTop = Math.max(0, Math.min(newTop, maxTop));
+
+  panel.style.left = newLeft + 'px';
+  panel.style.top = newTop + 'px';
 });
 
 document.addEventListener('mouseup', () => {
   isDraggingPanel = false;
   dragHandle.style.cursor = 'grab';
+});
+
+/* ================= CLOSE BUTTON ================= */
+// Only hides #floatingAI itself — does not touch #outputPanel or anything else
+closeBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  panel.style.display = 'none';
 });
 
 /* ================= RESIZE ================= */
@@ -826,7 +919,6 @@ document.addEventListener('mouseup', () => isResizing = false);
 
 /* ================= AI APPLY CHANGES ================= */
 
-// ✅ SAFE URL FROM DJANGO
 const FILE_CHAT_URL = "{% url 'webprojects:file_chat' project.id file.id %}";
 
 function getCsrfToken() {
@@ -910,17 +1002,13 @@ document.getElementById('fileChatPrompt').addEventListener('keydown', e => {
 });
 </script>
 
-
-
-  <!-- Output panel -->
-  <div id="outputPanel" style="height: 100px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
-    <strong>🔽 Output:2</strong>
-    <pre id="outputText" style="white-space: pre-wrap;"></pre>
-    <div id="tablePreview" style="margin-top: 15px;display: none;"></div>
-    <div id="plotPreview" style="display: none;"></div>
-  </div>
+<!-- Output panel -->
+<div id="outputPanel" style="height: 100px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
+  <strong>🔽 Output:2</strong>
+  <pre id="outputText" style="white-space: pre-wrap;"></pre>
+  <div id="tablePreview" style="margin-top: 15px; display: none;"></div>
+  <div id="plotPreview" style="display: none;"></div>
 </div>
-
 
 
     <!-- AI Suggestion Preview Modal -->
