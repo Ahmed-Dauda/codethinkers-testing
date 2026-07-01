@@ -1,18 +1,12 @@
 {% extends "webprojects/base_editor.html" %}
 {% load file_filters %}
 
-<<<<<<< HEAD
+
 {% block title %}{{ file.name }} | {{ file.project.name }} 777 {% endblock %}
 
 {% block extra_head %}
 <meta name="csrf-token" content="{{ csrf_token }}">
 
-
-=======
-{% block title %}{{ file.name }} | {{ file.project.name }}{% endblock %}
-
-{% block extra_head %}
->>>>>>> heroku/main
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
 <style>
   html, body {
@@ -493,7 +487,6 @@
 
 
 {% block content %}
-<<<<<<< HEAD
 
 <div style="display: none;" class="preview-section"> 
   <h4>Preview</h4>
@@ -502,8 +495,6 @@
 
 <!-- end -->
 
-=======
->>>>>>> heroku/main
 <div style="padding: 8px 12px; background: #222; border-bottom: 1px solid #444; text-align: right;">
  <button id="runBtnCode" onclick="runCode()" style="background:#2ecc71; color:white;">▶ Run Code</button> 
   <button id="toggleAI" onclick="toggleAITools()" style="background: #444; color: #fff; padding: 6px 12px; border: none; border-radius: 4px;">
@@ -526,8 +517,6 @@
   <button id="runBtn" onclick="runAIAction()">🚀 Run AI Action</button>
 </div>
 
-<<<<<<< HEAD
-<!-- delete js  -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -569,30 +558,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-
-=======
->>>>>>> heroku/main
-<script>
-  function toggleAITools() {
-    const aiToolbar = document.getElementById("aiToolbar");
-    const toggleBtn = document.getElementById("toggleAI");
-
-    if (aiToolbar.style.display === "none" || aiToolbar.style.display === "") {
-      aiToolbar.style.display = "flex";
-      toggleBtn.textContent = "❌ Hide AI Tools";
-    } else {
-      aiToolbar.style.display = "none";
-      toggleBtn.textContent = "🔧 Show AI Tools";
-    }
-  }
-
-  // Auto-hide toolbar on small screens
-  document.addEventListener("DOMContentLoaded", function () {
-    if (window.innerWidth <= 768) {
-      document.getElementById("aiToolbar").style.display = "none";
-    }
-  });
-</script>
 
 <<<<<<< HEAD
 <div class="editor-panel" style="display: flex; flex-direction: column; height: 10%;">
@@ -1851,7 +1816,7 @@ function getLanguage(fileName) {
 }
 
 function runCode() {
-<<<<<<< HEAD
+
     const code = editor.getValue();
     const output = document.getElementById("outputText");
     const tablePreview = document.getElementById("tablePreview");

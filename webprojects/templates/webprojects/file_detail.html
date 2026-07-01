@@ -857,31 +857,18 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="editor-panel" style="display: flex; flex-direction: column; height: 100vh;">
   
   <!-- Code Editor -->
-  <!-- Code Editor -->
-<div id="container" style="flex-grow: 1; min-height: 200px;"></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
-<script>
-  require.config({ 
-    paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }
-  });
-
-  require(['vs/editor/editor.main'], function () {
-    window.editor = monaco.editor.create(document.getElementById('container'), {
-      value: '',
-      language: 'html',
-      theme: 'vs-dark',
-      automaticLayout: true,
-      fontSize: 14,
-      minimap: { enabled: true },
-      scrollBeyondLastLine: false,
-      wordWrap: 'on'
-    });
-  });
-</script>
+  <div id="container" style="flex-grow: 1; min-height: 200px;"></div>
 
   <!-- Resize handle for code editor -->
   <div id="editorResizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
+
+<!-- Output panel -->
+<div id="outputPanel" style="height: 100px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
+    <strong>🔽 Output:</strong>
+    <pre id="outputText" style="white-space: pre-wrap;"></pre>
+    <div id="tablePreview" style="margin-top: 15px; display: none;"></div>
+    <div id="plotPreview" style="display: none;"></div>
+</div>
 </div>
 
 <!-- Floating AI Panel -->
