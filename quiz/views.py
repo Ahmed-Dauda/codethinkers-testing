@@ -1171,17 +1171,41 @@ def generate_ai_questions(request):
 
 @login_required
 def take_exams_view(request):
-    course = TopicsAssessment.objects.get_queryset().order_by('id')
-    # print("Course Title:", course.title)
-    for ta in TopicsAssessment.objects.all():
-        print("TopicsAssessment Course Name Title:", ta.course_name.title)
-        print("TopicsAssessment topic Name:", ta.course_name)
+    ccourses = Course.objects.select_related('course_name').order_by('id')
+
+    course_lock_status = {}
+    for ta in courses:
+        course_topics = Topics.objects.filter(courses=ta.course_name)
+        total_topics = course_topics.count()
+
+        if total_topics == 0:
+            course_lock_status[ta.id] = {'locked': False, 'completed': 0, 'total': 0}
+            continue
+
+        progress = StudentProgress.objects.filter(
+            student=request.user,
+            course=ta.course_name
+        ).prefetch_related('completed_topics').first()
+
+        completed_ids = set(
+            progress.completed_topics.values_list('id', flat=True)
+        ) if progress else set()
+
+        relevant_completed = completed_ids & set(course_topics.values_list('id', flat=True))
+        locked = len(relevant_completed) < total_topics
+
+        course_lock_status[ta.id] = {
+            'locked': locked,
+            'completed': len(relevant_completed),
+            'total': total_topics,
+        }
+
     context = {
-        'courses':course,
-        'courses_title':ta.course_name.title,
-        'courses_name':ta.course_name
+        'courses': courses,
+        'course_lock_status': course_lock_status,
     }
     return render(request, 'quiz/dashboard/take_exams.html', context=context)
+
 
 from sms.models import Categories, Topics, Courses
 from django.shortcuts import redirect, render, get_object_or_404
@@ -1193,18 +1217,45 @@ from string import ascii_uppercase  # Import uppercase letters
 from django.contrib.sessions.models import Session
 from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponse
-
-
+from webprojects.models import StudentProgress
+from quiz.models import Result
 
 @login_required
 def start_exams_view(request, pk):
     
-    course = TopicsAssessment.objects.get(id = pk)
-    questions = QuestionAssessment.objects.filter(course = course).order_by('id')
+    course = Course.objects.get(id = pk)
+
+    # ================= MODULE COMPLETION GATE =================
+    course_topics = Topics.objects.filter(courses=course.course_name)
+    total_topics = course_topics.count()
+
+    if total_topics > 0:
+        progress = StudentProgress.objects.filter(
+            student=request.user,
+            course=course.course_name
+        ).prefetch_related('completed_topics').first()
+
+        completed_ids = set(
+            progress.completed_topics.values_list('id', flat=True)
+        ) if progress else set()
+
+        course_topic_ids = set(course_topics.values_list('id', flat=True))
+        relevant_completed = completed_ids & course_topic_ids
+
+        if len(relevant_completed) < total_topics:
+            messages.warning(
+                request,
+                f"Complete all {total_topics} module quizzes for {course.course_name.title} before taking the exam. "
+                f"({len(relevant_completed)}/{total_topics} done)"
+            )
+            return redirect('quiz:take-exam')
+    # ================= END GATE =================
+
+    questions = Question.objects.filter(course = course).order_by('id')
     topics = Topics.objects.all()
-    q_count = QuestionAssessment.objects.all().filter(course = course).count()
+    q_count = Question.objects.filter(course = course).count()
     student = request.user.profile
-    results = ResultAssessment.objects.filter(exam = course, student = student).order_by('id')
+    results = Result.objects.filter(exam = course, student = student).order_by('id')
     paginator = Paginator(questions, 1000) # Show 25 contacts per page.
     paginator_comp = Paginator(questions, 1) # Show 25 contacts per page.
     page_number = request.GET.get('page')
@@ -1235,6 +1286,7 @@ def start_exams_view(request, pk):
 
 
 from django.urls import reverse
+
 
 @login_required
 def calculate_marks_assessment(request):
@@ -1274,42 +1326,43 @@ def calculate_marks_assessment(request):
         return HttpResponseRedirect('quiz:take-exam')
 
 
-# @login_required
-# def calculate_marks_view(request):
-#     if request.COOKIES.get('course_id') is not None:
-#         course_id = request.COOKIES.get('course_id')
-#         course= TopicsAssessment.objects.get(id=course_id)
-#         options = []  # List to store the selected options
-#         total_marks=0
-#         questions= QuestionAssessment.objects.get_queryset().filter(course=course).order_by('id')
-#         for i in range(len(questions)):
-            
-#             # selected_ans = request.COOKIES.get(str(i+1))
-#             selected_ans = request.POST.get(str(i+1))
-#             options.append(selected_ans)  # Add selected option to the list
-#             print("answers", selected_ans)
-            
-#             actual_answer = questions[i].answer
-#             if selected_ans == actual_answer:
-#                 total_marks = total_marks + questions[i].marks
-#         student = Profile.objects.get(user_id=request.user.id)
-        
-#         result =ResultAssessment()
-        
-#         result.marks=total_marks 
-#         result.exam=course
-#         result.student=student
-#         # options_str = ", ".join(str(option) if option is not None else "None" for option in options)
-#         result.option = options  # Save selected options as a comma-separated string
-        
-#         print("result", result)
-#         print("pass mar", course.pass_mark)
-        
-#         result.save()
 
-#         return HttpResponseRedirect(reverse('quiz:start-exam', kwargs={'pk': course.pk}))
-#     else:
-#         return HttpResponseRedirect('take-exam')
+@login_required
+def calculate_marks_view(request):
+    if request.COOKIES.get('course_id') is not None:
+        course_id = request.COOKIES.get('course_id')
+        course= TopicsAssessment.objects.get(id=course_id)
+        options = []  # List to store the selected options
+        total_marks=0
+        questions= QuestionAssessment.objects.get_queryset().filter(course=course).order_by('id')
+        for i in range(len(questions)):
+            
+            # selected_ans = request.COOKIES.get(str(i+1))
+            selected_ans = request.POST.get(str(i+1))
+            options.append(selected_ans)  # Add selected option to the list
+            print("answers", selected_ans)
+            
+            actual_answer = questions[i].answer
+            if selected_ans == actual_answer:
+                total_marks = total_marks + questions[i].marks
+        student = Profile.objects.get(user_id=request.user.id)
+        
+        result =ResultAssessment()
+        
+        result.marks=total_marks 
+        result.exam=course
+        result.student=student
+        # options_str = ", ".join(str(option) if option is not None else "None" for option in options)
+        result.option = options  # Save selected options as a comma-separated string
+        
+        print("result", result)
+        print("pass mar", course.pass_mark)
+        
+        result.save()
+
+        return HttpResponseRedirect(reverse('quiz:start-exam', kwargs={'pk': course.pk}))
+    else:
+        return HttpResponseRedirect('take-exam')
 
 
 
