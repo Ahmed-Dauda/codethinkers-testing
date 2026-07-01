@@ -11,7 +11,7 @@ app_name = 'webprojects'
 
 urlpatterns = [
     path('topic/<int:topic_id>/quiz/generate/', generate_topic_quiz, name='generate_topic_quiz'),
-path('topic/<int:topic_id>/quiz/submit/', submit_topic_quiz, name='submit_topic_quiz'),
+    path('topic/<int:topic_id>/quiz/submit/', submit_topic_quiz, name='submit_topic_quiz'),
     # In urls.py
     path('<int:project_id>/load-files/', load_project_files, name='load_project_files'),
     path('get-course-exam/<int:course_id>/', get_course_exam, name='get_course_exam'),
@@ -19,8 +19,8 @@ path('topic/<int:topic_id>/quiz/submit/', submit_topic_quiz, name='submit_topic_
     path('voice-chat-tutor/', voice_chat_tutor, name='voice_chat_tutor'),
     path('recommend-next-course/', recommend_next_course, name='recommend_next_course'),
     path('topic-info/<int:topic_id>/', topic_info, name='topic_info'),
-   path('validate-topic/', validate_topic_completion, name='validate_topic_completion'),
-     path('xp-stats/', get_xp_stats, name='xp_stats'),
+    path('validate-topic/', validate_topic_completion, name='validate_topic_completion'),
+    path('xp-stats/', get_xp_stats, name='xp_stats'),
    
     path('progress/', get_student_progress, name='get_student_progress'),
     path('mark-topic-complete/', mark_topic_complete,  name='mark_topic_complete'),

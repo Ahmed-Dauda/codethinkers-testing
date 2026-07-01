@@ -469,12 +469,16 @@ import dj_database_url
 
 import os
 
-DATABASES = {
-    'default': dj_database_url.config(
-        conn_max_age=0,
-        ssl_require=False,)
-}
+import os
+import dj_database_url
 
+db_config = dj_database_url.config(conn_max_age=0, ssl_require=False)
+
+# Only add SQLite timeout for local dev
+if db_config.get('ENGINE') == 'django.db.backends.sqlite3':
+    db_config.setdefault('OPTIONS', {})['timeout'] = 20
+
+DATABASES = {'default': db_config}
 
 #local development settings
 # DATABASES = {
