@@ -454,7 +454,7 @@
     </span>
 {% elif topics and completed_topic_ids|length == topics|length %}
     <a style="color: white;" href="{% url 'student:start-exam' pk=exam_id %}">
-        🎓 Take Exam
+       🎓 Take Exam
     </a>
 {% else %}
     <a href="{% url 'student:start-exam' pk=exam_id %}?next={{ request.path|urlencode }}"

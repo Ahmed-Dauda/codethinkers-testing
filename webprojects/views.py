@@ -849,6 +849,7 @@ from django.views.decorators.http import require_http_methods
 #     })
 
 
+
 @csrf_protect
 @require_http_methods(["POST"])
 def file_chat(request, project_id, file_id):
@@ -932,6 +933,7 @@ RULES:
 - NO explanations
 - NO code fences
 - Output MUST start with code
+- CRITICAL: Preserve ALL existing HTML elements, CSS rules, and JavaScript functions that are not directly related to the user's request — including elements with ids, data-* attributes, or classes you don't recognize the purpose of. Only modify what the user explicitly asked for. Do not remove, rename, or restructure anything else, even if it looks unused.
 """
 
         user_prompt = f"""
@@ -1042,6 +1044,7 @@ from django.views.decorators.http import require_http_methods
 #      each topic completion to refresh the sidebar progress bar.
 # ─────────────────────────────────────────────────────────────────
 
+
 @login_required
 def get_student_progress(request):
     try:
@@ -1098,6 +1101,7 @@ def get_student_progress(request):
 
         
 
+
 @login_required
 @require_http_methods(["POST"])
 def mark_topic_complete(request):
@@ -1111,7 +1115,8 @@ def mark_topic_complete(request):
         topic = Topics.objects.get(id=topic_id)
 
         # ✅ Get the course object
-        course = Courses.objects.filter(id=course_id).first() if course_id else None
+        topic = get_object_or_404(Topics.objects.select_related('courses'), id=topic_id)
+        course = topic.courses  # ✅ derived from the topic itself, not the client
 
         # ✅ Get or create progress PER USER PER COURSE
         progress, _ = StudentProgress.objects.get_or_create(
@@ -1992,6 +1997,7 @@ def get_xp_stats(request):
 # Initialize once when the module loads, not on every request
 
 
+
 @login_required
 @require_http_methods(["GET", "POST"])
 def file_detail(request, project_id, file_id):
@@ -2011,6 +2017,12 @@ def file_detail(request, project_id, file_id):
         course = Courses.objects.get(title=file.project.name)
     except Courses.DoesNotExist:
         course = None
+
+    # Find the exam tied to this course, if one exists
+    # Find the exam tied to this course, if one exists
+    from quiz.models import Course as ExamCourse
+    exam = ExamCourse.objects.filter(course_name=course).first() if course else None
+
 
     # Fetch topics using the course object
     topics = Topics.objects.filter(courses=course).select_related("courses", "categories") if course else Topics.objects.none()
@@ -2374,661 +2386,10 @@ Remember: Return ONLY the JSON object with keys "html", "css", "js". No extra te
         'completed_topic_ids': completed_topic_ids,      # ← ADD
         'current_topic_id': current_topic_id,            # ← ADD
         "topics": topics,
+        "course": course,   # ← ADD THIS
         'course_id': course.id if course else None,  # ← ADD THIS ONE LINE
+        'exam_id': exam.id if exam else None,   # ← ADD THI
     })
-
-#worked
-# @login_required
-# @require_http_methods(["GET", "POST"])
-# def file_detail(request, project_id, file_id):
-#     # ================= PROJECT & FILE =================
-#     project = get_object_or_404(
-#         Project.objects.prefetch_related("files"),
-#         id=project_id,
-#         user=request.user
-#     )
-#     file = get_object_or_404(File, id=file_id, project=project)
-
-#     files = project.files.all()
-#     folders = Folder.objects.filter(project=project)
-
-#     # ================= SIDEBAR EXTENSIONS =================
-#     exts = sorted({
-#         os.path.splitext(f.name)[1].lstrip(".").lower()
-#         for f in files if "." in f.name
-#     })
-
-#     IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif")
-#     is_image = file.name.lower().endswith(IMAGE_EXTS)
-
-#     # ================= FILE TYPE =================
-#     ext = file.name.rsplit(".", 1)[-1].lower()
-#     is_python = ext == "py"
-
-#     # ================= POST =================
-#     if request.method == "POST":
-
-#         # ---------- Safe JSON parsing ----------
-#         try:
-#             data = json.loads(request.body.decode()) if request.body else {}
-#         except json.JSONDecodeError:
-#             data = {}
-
-#         new_content = data.get("content", "")
-#         run_plot = data.get("run_plot", False)
-#         run_table = data.get("run_table", False)
-#         prompt = data.get("prompt", "")
-
-#         # ================= AI PROMPT =================
-#         if prompt:
-#             try:
-#                 with transaction.atomic():
-#                     html_file, _ = File.objects.get_or_create(
-#                         project=project, name="index.html",
-#                         defaults={"content": ""}
-#                     )
-#                     css_file, _ = File.objects.get_or_create(
-#                         project=project, name="style.css",
-#                         defaults={"content": ""}
-#                     )
-#                     js_file, _ = File.objects.get_or_create(
-#                         project=project, name="script.js",
-#                         defaults={"content": ""}
-#                     )
-
-#                     system_message = (
-#                         "You are an expert web developer. "
-#                         "Update the HTML, CSS, and JS based on the user's request. "
-#                         "Only modify what is necessary. "
-#                         "Return VALID JSON with keys: html, css, js."
-#                     )
-
-#                     user_message = f"""
-# HTML:
-# {html_file.content}
-
-# CSS:
-# {css_file.content}
-
-# JS:
-# {js_file.content}
-
-# User request:
-# {prompt}
-# """
-
-#                     response = client.chat.completions.create(
-#                         model="gpt-4.1",
-#                         messages=[
-#                             {"role": "system", "content": system_message},
-#                             {"role": "user", "content": user_message},
-#                         ],
-#                         max_completion_tokens=4000,
-#                         temperature=0,
-#                     )
-
-#                     ai_text = response.choices[0].message.content.strip()
-#                     start, end = ai_text.find("{"), ai_text.rfind("}")
-#                     if start != -1 and end != -1:
-#                         ai_text = ai_text[start:end + 1]
-
-#                     ai_generated = json.loads(ai_text)
-
-#                     if ai_generated.get("html"):
-#                         html_file.content = ai_generated["html"]
-#                         html_file.save(update_fields=["content"])
-
-#                     if ai_generated.get("css"):
-#                         css_file.content = ai_generated["css"]
-#                         css_file.save(update_fields=["content"])
-
-#                     if ai_generated.get("js"):
-#                         js_file.content = ai_generated["js"]
-#                         js_file.save(update_fields=["content"])
-
-#                 return JsonResponse({
-#                     "status": "success",
-#                     "ai_content": ai_generated,
-#                     "message": "AI project updated successfully"
-#                 })
-
-#             except Exception:
-#                 return JsonResponse({
-#                     "status": "error",
-#                     "message": traceback.format_exc()
-#                 }, status=500)
-
-#         # ================= FILE SAVE =================
-#         if new_content and new_content != file.content:
-#             file.content = new_content
-#             file.save(update_fields=["content"])
-
-#         response_table = ""
-#         images = []
-
-#         # ================= CSV / EXCEL PREVIEW =================
-#         if ext in {"csv", "xls", "xlsx"} and file.file:
-#             try:
-#                 if ext == "csv":
-#                     df = pd.read_csv(file.file.path)
-#                 else:
-#                     df = pd.read_excel(file.file.path)
-
-#                 if run_table:
-#                     response_table = df.head(20).to_html(
-#                         classes="table table-bordered table-sm",
-#                         index=False
-#                     )
-#             except Exception as e:
-#                 return JsonResponse({
-#                     "status": "error",
-#                     "message": str(e)
-#                 }, status=400)
-
-#         # ================= SAFE PYTHON RUNNER =================
-#         if is_python and (run_plot or new_content.strip()):
-#             buffer_out = io.StringIO()
-#             buffer_err = io.StringIO()
-
-#             plt.clf()
-#             plt.close("all")
-
-#             SAFE_BUILTINS = {
-#                 "print": print,
-#                 "len": len,
-#                 "range": range,
-#                 "min": min,
-#                 "max": max,
-#                 "sum": sum,
-#                 "abs": abs,
-#             }
-
-#             safe_globals = {
-#                 "__builtins__": SAFE_BUILTINS,
-#                 "pd": pd,
-#                 "plt": plt,
-#             }
-
-#             def fake_show(*args, **kwargs):
-#                 buf = io.BytesIO()
-#                 plt.savefig(buf, format="png", bbox_inches="tight")
-#                 buf.seek(0)
-#                 images.append(
-#                     f"data:image/png;base64,{base64.b64encode(buf.read()).decode()}"
-#                 )
-#                 plt.close()
-
-#             plt.show = fake_show
-
-#             try:
-#                 with contextlib.redirect_stdout(buffer_out), \
-#                      contextlib.redirect_stderr(buffer_err):
-#                     exec(new_content, safe_globals, {})
-
-#                 if buffer_err.getvalue():
-#                     return JsonResponse({
-#                         "status": "error",
-#                         "message": buffer_err.getvalue()
-#                     }, status=500)
-
-#                 return JsonResponse({
-#                     "status": "success",
-#                     "output": buffer_out.getvalue() or "[No output]",
-#                     "table": response_table,
-#                     "images": images,
-#                 })
-
-#             except Exception:
-#                 return JsonResponse({
-#                     "status": "error",
-#                     "message": traceback.format_exc()
-#                 }, status=500)
-
-#         return JsonResponse({
-#             "status": "saved",
-#             "message": "File saved successfully"
-#         })
-
-#     # ================= GET =================
-#     return render(request, "webprojects/file_detail.html", {
-#         "file": file,
-#         "files": files,
-#         "folders": folders,
-#         "exts": exts,
-#         "project": project,
-#         "is_image": is_image,
-#     })
-
-#real view 2
-# @login_required
-# def file_detail(request, project_id, file_id):
-#     # Ensure the project belongs to the logged-in user
-#     project = get_object_or_404(Project, id=project_id, user=request.user)
-#     file = get_object_or_404(File, id=file_id, project=project)
-    
-#     files = project.files.all()
-#     folders = Folder.objects.filter(project=project)
-
-#     # Sidebar file extensions
-#     exts = sorted({os.path.splitext(f.name)[1].lstrip('.').lower() for f in files if '.' in f.name})
-
-#     # Detect if file is an image
-#     is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
-
-#     # Full path to the file
-#     file_path = os.path.join(settings.MEDIA_ROOT, str(file.file))
-
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body or "{}")
-#             new_content = data.get("content", "")
-#             run_plot = data.get("run_plot", False)
-#             run_table = data.get("run_table", False)
-#             prompt = data.get("prompt", "")
-
-#             # ===== AI Prompt Handling =====
-#             # ===== AI Prompt Handling =====
-#             if prompt:
-#                 try:
-#                     # Only fetch or create files for this verified project
-#                     html_file, _ = File.objects.get_or_create(project=project, name="index.html")
-#                     css_file, _ = File.objects.get_or_create(project=project, name="style.css")
-#                     js_file, _ = File.objects.get_or_create(project=project, name="script.js")
-
-#                     system_message = (
-#                         "You are an expert web developer. Update the given HTML, CSS, and JS project "
-#                         "based on the user's request. Only modify what is necessary. "
-#                         "Always return a VALID JSON object with keys: html, css, js. "
-#                         "Do NOT include explanations, markdown, or extra text."
-#                     )
-
-#                     user_message = f"""
-#                     Current project:
-#                     HTML:
-#                     {html_file.content}
-
-#                     CSS:
-#                     {css_file.content}
-
-#                     JS:
-#                     {js_file.content}
-
-#                     User request:
-#                     {prompt}
-#                     """
-
-#                     response = client.chat.completions.create(
-#                         model="gpt-4.1",
-#                         messages=[
-#                             {"role": "system", "content": system_message},
-#                             {"role": "user", "content": user_message}
-#                         ],
-#                         max_completion_tokens=4000,
-#                         temperature=0
-#                     )
-
-#                     ai_text = response.choices[0].message.content.strip()
-
-#                     # Extract only JSON portion
-#                     start = ai_text.find("{")
-#                     end = ai_text.rfind("}")
-#                     if start != -1 and end != -1:
-#                         ai_text = ai_text[start:end+1]
-
-#                     try:
-#                         ai_generated = json.loads(ai_text)
-#                     except json.JSONDecodeError:
-#                         cleaned = ai_text.replace("\n", " ").replace("\r", " ").strip()
-#                         try:
-#                             ai_generated = json.loads(cleaned)
-#                         except Exception:
-#                             ai_generated = {"html": ai_text, "css": "", "js": ""}
-
-#                     # ✅ Save AI updates only for files belonging to this project
-#                     if ai_generated.get("html"):
-#                         html_file.content = ai_generated["html"]
-#                         html_file.save()
-#                     if ai_generated.get("css"):
-#                         css_file.content = ai_generated["css"]
-#                         css_file.save()
-#                     if ai_generated.get("js"):
-#                         js_file.content = ai_generated["js"]
-#                         js_file.save()
-
-#                     return JsonResponse({
-#                         "status": "success",
-#                         "ai_content": ai_generated,
-#                         "message": "AI project updated and saved into index.html, style.css, script.js"
-#                     })
-
-#                 except Exception as e:
-#                     return JsonResponse({
-#                         "status": "error",
-#                         "message": str(e),
-#                         "trace": traceback.format_exc()
-#                     }, status=500)
-#             # ===== End AI Prompt =====
-
-
-#             # Prevent mismatched file updates
-#             if data.get("file_id") and data.get("file_id") != file.id:
-#                 return JsonResponse({"error": "Mismatched file ID"}, status=400)
-
-#             # Save new content
-#             if new_content:
-#                 file.content = new_content
-#                 file.save()
-
-#             ext = file.name.lower().split(".")[-1]
-#             response_table = ""
-#             images = []
-
-#             # CSV/Excel handling
-#             df = None
-#             if ext in ["csv", "xls", "xlsx"]:
-#                 try:
-#                     df = pd.read_csv(file_path) if ext == "csv" else pd.read_excel(file_path)
-#                     if run_table:
-#                         response_table = df.head(20).to_html(classes="table table-bordered table-sm", index=False)
-#                 except Exception as e:
-#                     return JsonResponse({"status": "error", "message": str(e)}, status=500)
-
-#             # Python execution (mini Jupyter)
-#             if run_plot or new_content.strip():
-#                 buffer_out = io.StringIO()
-#                 buffer_err = io.StringIO()
-#                 plt.clf()
-#                 plt.close('all')
-
-#                 # Patch pandas read methods to use MEDIA_ROOT/uploads
-#                 if not hasattr(pd, "_original_read_csv"):
-#                     pd._original_read_csv = pd.read_csv
-#                 if not hasattr(pd, "_original_read_excel"):
-#                     pd._original_read_excel = pd.read_excel
-
-#                 def patched_read_csv(name, *args, **kwargs):
-#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
-#                     return pd._original_read_csv(path, *args, **kwargs)
-
-#                 def patched_read_excel(name, *args, **kwargs):
-#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
-#                     return pd._original_read_excel(path, *args, **kwargs)
-
-#                 pd.read_csv = patched_read_csv
-#                 pd.read_excel = patched_read_excel
-
-#                 # Capture plots as base64
-#                 def fake_show(*args, **kwargs):
-#                     buf = io.BytesIO()
-#                     plt.savefig(buf, format="png", bbox_inches="tight")
-#                     buf.seek(0)
-#                     img_base64 = base64.b64encode(buf.read()).decode("utf-8")
-#                     images.append(f"data:image/png;base64,{img_base64}")
-#                     plt.close()
-
-#                 plt.show = fake_show
-
-#                 try:
-#                     with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
-#                         exec(new_content, {"pd": pd})
-
-#                     printed_output = buffer_out.getvalue()
-#                     error_output = buffer_err.getvalue()
-#                     if error_output:
-#                         return JsonResponse({"status": "error", "message": error_output}, status=500)
-
-#                     for i in plt.get_fignums():
-#                         fig = plt.figure(i)
-#                         buf = io.BytesIO()
-#                         fig.savefig(buf, format="png", bbox_inches="tight")
-#                         buf.seek(0)
-#                         img_base64 = base64.b64encode(buf.read()).decode("utf-8")
-#                         images.append(f"data:image/png;base64,{img_base64}")
-#                         plt.close(fig)
-
-#                     return JsonResponse({
-#                         "status": "success",
-#                         "output": printed_output or "[No output]",
-#                         "table": response_table,
-#                         "images": images
-#                     })
-#                 except Exception:
-#                     return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
-
-#             # Default save response
-#             return JsonResponse({"status": "saved", "message": "File saved successfully."})
-
-#         except Exception:
-#             return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
-
-#     # GET request
-#     return render(request, 'webprojects/file_detail.html', {
-#         'file': file,
-#         'files': files,
-#         'folders': folders,
-#         'exts': exts,
-#         'project': project,
-#         'is_image': is_image,
-#     })
-
-
-#real
-# def file_detail(request, project_id, file_id):
-#     file = get_object_or_404(File, id=file_id, project_id=project_id)
-#     files = file.project.files.all()
-#     project = get_object_or_404(Project, id=project_id)
-#     folders = Folder.objects.filter(project=file.project)
-
-#     # Sidebar file extensions
-#     exts = sorted({os.path.splitext(f.name)[1].lstrip('.').lower() for f in files if '.' in f.name})
-
-#     # Detect if file is an image
-#     is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
-
-#     # Full path to the file
-#     file_path = os.path.join(settings.MEDIA_ROOT, str(file.file))
-
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body or "{}")
-#             new_content = data.get("content", "")
-#             run_plot = data.get("run_plot", False)
-#             run_table = data.get("run_table", False)
-#             prompt = data.get("prompt", "")  # Safe access
-#             # ===== AI Prompt Handling =====
-#             if prompt:
-#                 try:
-#                     # ✅ Fetch existing files (create empty ones if missing)
-#                     html_file, _ = File.objects.get_or_create(project=project, name="index.html")
-#                     css_file, _ = File.objects.get_or_create(project=project, name="style.css")
-#                     js_file, _ = File.objects.get_or_create(project=project, name="script.js")
-
-#                     # ✅ System instruction (force JSON output only)
-#                     system_message = (
-#                         "You are an expert web developer. Update the given HTML, CSS, and JS project "
-#                         "based on the user's request. Only modify what is necessary. "
-#                         "Always return a VALID JSON object with keys: html, css, js. "
-#                         "Do NOT include explanations, markdown, or extra text. "
-#                         "Example: {\"html\": \"<h1>Hello</h1>\", \"css\": \"body {color:red;}\", \"js\": \"console.log('hi');\"}"
-#                     )
-
-#                     # ✅ Include current project state
-#                     user_message = f"""
-#                     Current project:
-#                     HTML:
-#                     {html_file.content}
-
-#                     CSS:
-#                     {css_file.content}
-
-#                     JS:
-#                     {js_file.content}
-
-#                     User request:
-#                     {prompt}
-#                     """
-
-#                     response = client.chat.completions.create(
-#                         model="gpt-4.1",
-                        
-#                         messages=[
-#                             {"role": "system", "content": system_message},
-#                             {"role": "user", "content": user_message}
-#                         ],
-#                         max_completion_tokens=4000,
-#                         temperature=0
-#                     )
-                
-
-#                     ai_text = response.choices[0].message.content.strip()
-
-#                     # 🛡️ Extract only JSON portion
-#                     start = ai_text.find("{")
-#                     end = ai_text.rfind("}")
-#                     if start != -1 and end != -1:
-#                         ai_text = ai_text[start:end+1]
-
-#                     # 🛡️ Try parsing JSON safely
-#                     try:
-#                         ai_generated = json.loads(ai_text)
-#                     except json.JSONDecodeError:
-#                         cleaned = ai_text.replace("\n", " ").replace("\r", " ").strip()
-#                         try:
-#                             ai_generated = json.loads(cleaned)
-#                         except Exception:
-#                             ai_generated = {"html": ai_text, "css": "", "js": ""}
-
-#                     # ✅ Update only if AI returned something new
-#                     if ai_generated.get("html"):
-#                         html_file.content = ai_generated["html"]
-#                         html_file.save()
-
-#                     if ai_generated.get("css"):
-#                         css_file.content = ai_generated["css"]
-#                         css_file.save()
-
-#                     if ai_generated.get("js"):
-#                         js_file.content = ai_generated["js"]
-#                         js_file.save()
-
-#                     return JsonResponse({
-#                         "status": "success",
-#                         "ai_content": ai_generated,
-#                         "message": "AI project updated and saved into index.html, style.css, script.js"
-#                     })
-
-#                 except Exception as e:
-#                     return JsonResponse({
-#                         "status": "error",
-#                         "message": str(e),
-#                         "trace": traceback.format_exc()
-#                     }, status=500)
-#             # ===== End AI Prompt =====
-
-#             # Prevent mismatched file updates
-#             if data.get("file_id") and data.get("file_id") != file.id:
-#                 return JsonResponse({"error": "Mismatched file ID"}, status=400)
-
-#             # Save new content
-#             if new_content:
-#                 file.content = new_content
-#                 file.save()
-
-#             ext = file.name.lower().split(".")[-1]
-#             response_table = ""
-#             images = []
-
-#             # CSV/Excel handling
-#             df = None
-#             if ext in ["csv", "xls", "xlsx"]:
-#                 try:
-#                     if ext == "csv":
-#                         df = pd.read_csv(file_path)
-#                     else:
-#                         df = pd.read_excel(file_path)
-#                     if run_table:
-#                         response_table = df.head(20).to_html(
-#                             classes="table table-bordered table-sm",
-#                             index=False
-#                         )
-#                 except Exception as e:
-#                     return JsonResponse({"status": "error", "message": str(e)}, status=500)
-
-#             # Python execution (mini Jupyter)
-#             if run_plot or new_content.strip():
-#                 buffer_out = io.StringIO()
-#                 buffer_err = io.StringIO()
-#                 plt.clf()
-#                 plt.close('all')
-
-#                 if not hasattr(pd, "_original_read_csv"):
-#                     pd._original_read_csv = pd.read_csv
-#                 if not hasattr(pd, "_original_read_excel"):
-#                     pd._original_read_excel = pd.read_excel
-
-#                 def patched_read_csv(name, *args, **kwargs):
-#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
-#                     return pd._original_read_csv(path, *args, **kwargs)
-
-#                 def patched_read_excel(name, *args, **kwargs):
-#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
-#                     return pd._original_read_excel(path, *args, **kwargs)
-
-#                 pd.read_csv = patched_read_csv
-#                 pd.read_excel = patched_read_excel
-
-#                 def fake_show(*args, **kwargs):
-#                     buf = io.BytesIO()
-#                     plt.savefig(buf, format="png", bbox_inches="tight")
-#                     buf.seek(0)
-#                     img_base64 = base64.b64encode(buf.read()).decode("utf-8")
-#                     images.append(f"data:image/png;base64,{img_base64}")
-#                     plt.close()
-
-#                 plt.show = fake_show
-
-#                 try:
-#                     with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
-#                         exec(new_content, {"pd": pd})
-
-#                     printed_output = buffer_out.getvalue()
-#                     error_output = buffer_err.getvalue()
-#                     if error_output:
-#                         return JsonResponse({"status": "error", "message": error_output}, status=500)
-
-#                     for i in plt.get_fignums():
-#                         fig = plt.figure(i)
-#                         buf = io.BytesIO()
-#                         fig.savefig(buf, format="png", bbox_inches="tight")
-#                         buf.seek(0)
-#                         img_base64 = base64.b64encode(buf.read()).decode("utf-8")
-#                         images.append(f"data:image/png;base64,{img_base64}")
-#                         plt.close(fig)
-
-#                     return JsonResponse({
-#                         "status": "success",
-#                         "output": printed_output or "[No output]",
-#                         "table": response_table,
-#                         "images": images
-#                     })
-#                 except Exception:
-#                     return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
-
-#             # Default save response
-#             return JsonResponse({"status": "saved", "message": "File saved successfully."})
-
-#         except Exception:
-#             return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
-
-#     # GET request
-#     return render(request, 'webprojects/file_detail.html', {
-#         'file': file,
-#         'files': files,
-#         'folders': folders,
-#         'exts': exts,
-#         'project': project,
-#         'is_image': is_image,
-#     })
 
 
 
@@ -4377,3 +3738,158 @@ def recommend_next_course(request):
         traceback.print_exc()
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     
+
+import re
+
+@login_required
+@csrf_protect
+@require_http_methods(["POST"])
+def generate_topic_quiz(request, topic_id):
+    topic = get_object_or_404(Topics, id=topic_id)
+    plain_desc = re.sub('<[^<]+?>', '', topic.desc or '')
+
+    system_prompt = """You are a strict quiz generator for a programming/learning platform.
+Generate exactly 3 multiple-choice questions that test understanding of the given lesson content.
+
+Return ONLY valid JSON, no markdown, no explanations, in this exact shape:
+{"questions": [
+  {"question": "...", "options": ["A", "B", "C", "D"], "correct_index": 0},
+  {"question": "...", "options": ["A", "B", "C", "D"], "correct_index": 2},
+  {"question": "...", "options": ["A", "B", "C", "D"], "correct_index": 1}
+]}
+Each question must have exactly 4 options. correct_index is 0-based."""
+
+    user_prompt = f"""TOPIC: {topic.title}
+
+LESSON CONTENT:
+{plain_desc[:4000]}
+
+Generate 3 multiple-choice questions testing understanding of this content."""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.4,
+            max_tokens=1000,
+        )
+        raw = response.choices[0].message.content.strip()
+
+        if raw.startswith("```"):
+            raw = "\n".join(
+                line for line in raw.splitlines()
+                if not line.strip().startswith("```")
+            ).strip()
+
+        quiz_data = json.loads(raw)
+        questions = quiz_data.get("questions", [])
+
+        if len(questions) != 3:
+            raise ValueError(f"Expected 3 questions, got {len(questions)}")
+        for q in questions:
+            if not all(k in q for k in ("question", "options", "correct_index")):
+                raise ValueError("Malformed question object")
+            if len(q["options"]) != 4:
+                raise ValueError("Each question must have 4 options")
+
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "message": "Failed to generate quiz",
+            "detail": str(e)
+        }, status=500)
+
+    # Correct answers never leave the server
+    request.session[f'quiz_{topic_id}_answers'] = [q["correct_index"] for q in questions]
+    request.session.modified = True
+
+    client_questions = [{"question": q["question"], "options": q["options"]} for q in questions]
+
+    return JsonResponse({"status": "success", "topic_id": topic_id, "questions": client_questions})
+
+
+@login_required
+@csrf_protect
+@require_http_methods(["POST"])
+def submit_topic_quiz(request, topic_id):
+    try:
+        data = json.loads(request.body)
+        answers = data.get("answers", [])
+    except json.JSONDecodeError:
+        return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
+
+    topic = get_object_or_404(Topics.objects.select_related('courses'), id=topic_id)
+    course = topic.courses  # ✅ derive from the topic itself — never trust the client for this
+
+    correct_answers = request.session.get(f'quiz_{topic_id}_answers')
+    if not correct_answers:
+        return JsonResponse({
+            "status": "error",
+            "message": "No active quiz found for this topic. Please start the quiz again."
+        }, status=400)
+
+    if len(answers) != len(correct_answers):
+        return JsonResponse({"status": "error", "message": "Answer count mismatch."}, status=400)
+
+    score = sum(1 for a, c in zip(answers, correct_answers) if a == c)
+    total = len(correct_answers)
+    percent = round((score / total) * 100) if total else 0
+    passed = percent >= 60
+
+    del request.session[f'quiz_{topic_id}_answers']
+    request.session.modified = True
+
+    response_data = {
+        "status": "success",
+        "passed": passed,
+        "score": score,
+        "total": total,
+        "percent": percent,
+    }
+
+    if passed:
+        progress, _ = StudentProgress.objects.get_or_create(
+            student=request.user,
+            course=course,
+            defaults={'current_topic': topic}
+        )
+        progress.completed_topics.add(topic)
+
+        course_topics = list(
+            Topics.objects.filter(courses=course).order_by('id')
+        ) if course else []
+
+        next_topic = None
+        ids = [t.id for t in course_topics]
+        try:
+            pos = ids.index(topic.id)
+            if pos + 1 < len(course_topics):
+                next_topic = course_topics[pos + 1]
+                progress.current_topic = next_topic
+        except ValueError:
+            pass
+
+        progress.save()
+
+        completed_ids = set(progress.completed_topics.values_list('id', flat=True))
+        relevant_completed = completed_ids & set(ids)
+        total_topics = len(course_topics)
+        done = len(relevant_completed)
+        overall_pct = round((done / total_topics) * 100) if total_topics else 0
+
+        xp_data = award_xp(request.user, 100)
+
+        response_data.update({
+            "xp": xp_data,
+            "completed_topic_ids": list(completed_ids),
+            "completed_count": done,
+            "total_count": total_topics,
+            "overall_pct": overall_pct,
+            "next_topic_id": next_topic.id if next_topic else None,
+            "course_id": course.id if course else None,
+        })
+
+    return JsonResponse(response_data)
