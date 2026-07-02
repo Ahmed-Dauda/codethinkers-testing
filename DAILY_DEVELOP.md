@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-=======
-
-# Daily Development Workflow — CodeThinkers
->>>>>>> staging
 
 # Daily Development Workflow — CodeThinkers
 ## Branch Strategy
