@@ -53,7 +53,7 @@ app_name = 'sms'
 
 urlpatterns = [
     
-
+path('search/', views.course_search, name='course_search'),
     path("download-badge/<int:student_id>/<int:course_id>/<int:rank>/", views.download_badge_image, name="download_badge"),
 
     path('ebooks/<int:pk>/', Ebooks.as_view(), name='ebooks'),

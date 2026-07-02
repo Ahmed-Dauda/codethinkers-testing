@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+
+# Daily Development Workflow — CodeThinkers
+>>>>>>> staging
 
 # Daily Development Workflow — CodeThinkers
 ## Branch Strategy
@@ -184,6 +189,7 @@ Production and staging are **separate Postgres databases** on the same server, u
 * Rotate any credential (API keys, DB passwords, server passwords) immediately if it's ever pasted into a chat, ticket, or shared document.
 
 
+<<<<<<< HEAD
 # Update `.env` in Production
 
 ### 1. SSH into the server
@@ -207,4 +213,58 @@ Run on your local machine:
 git commit --allow-empty -m "Update OpenAI API key"
 git push origin main
 ```
-systemctl restart esteemcbt
+systemctl restart codethinkers
+=======
+#  UPDATING ENV IN GITHUB
+
+# Codethinkers Staging — Environment & Deployment Reference
+
+## GitHub Secrets (Staging)
+Location: https://github.com/Ahmed-Dauda/codethinkers-testing/settings/secrets/actions
+---
+update all your secrets
+---
+## Update Environment Variables
+When any env variable changes (API keys, DB URL, etc.):
+1. Go to GitHub Secrets → CODETHINKERS_STAGING_ENV → Update secret
+
+## local machine
+```bash
+git commit --allow-empty -m "update env"
+git push origin staging
+```
+
+## Deploy to Staging
+```bash
+git checkout staging
+git add .
+git commit -m "feat: your change"
+git push origin staging
+```
+
+# Codethinkers Staging — Environment & Deployment Reference
+
+## GitHub Secrets (Staging)
+Location: https://github.com/Ahmed-Dauda/codethinkers-testing/settings/secrets/actions
+---
+update all your secrets
+---
+## Update Environment Variables
+When any env variable changes (API keys, DB URL, etc.):
+1. Go to GitHub Secrets → CODETHINKERS_STAGING_ENV → Update secret
+
+## local machine
+```bash
+git commit --allow-empty -m "update env"
+git push origin staging
+```
+
+## Deploy to Staging
+```bash
+git checkout staging
+git add .
+git commit -m "feat: your change"
+git push origin staging
+```
+
+>>>>>>> staging

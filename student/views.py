@@ -589,38 +589,6 @@ def take_exams_view(request):
     return render(request, 'student/dashboard/take_exams.html', {'categories': categories})
 
 
-# @login_required
-# def take_exams_view(request):
-#     # course = Course.objects.get_queryset().order_by('id')
-#     course = QMODEL.Course.objects.all()
-#     context = {
-#         'courses':course
-#     }
-#     return render(request, 'student/dashboard/take_exams.html', context=context)
-
-
-# @login_required
-# def start_exams_view(request, pk):
-    
-#     course = QMODEL.Course.objects.get(id = pk)
-#     questions = QMODEL.Question.objects.get_queryset().filter(course = course).order_by('id')
-#     q_count = QMODEL.Question.objects.all().filter(course = course).count()
-#     paginator = Paginator(questions, 100) # Show 25 contacts per page.
-#     page_number = request.GET.get('page')
-#     page_obj = paginator.get_page(page_number)
-
-#     context = {
-#         'course':course,
-#         'questions':questions,
-#         'q_count':q_count,
-#         'page_obj':page_obj
-#     }
-#     if request.method == 'POST':
-#         pass
-#     response = render(request, 'student/dashboard/start_exams.html', context=context)
-#     response.set_cookie('course_id', course.id)
-#     return response
-
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.http import HttpResponse
@@ -649,6 +617,23 @@ async def _start_exam_async(request, pk):
     user = request.user
     user_profile = await get_user_profile(user)
     course = await get_course(pk)
+
+    # ================= MODULE COMPLETION GATE =================
+# ================= MODULE COMPLETION GATE =================
+    modules_complete, completed_count, total_count = await check_modules_complete(user, course)
+    if not modules_complete:
+        await add_warning_message(
+            request,
+            f"Complete all {total_count} module quizzes for {course.course_name.title} before taking the exam. "
+            f"({completed_count}/{total_count} done)"
+        )
+        next_url = request.GET.get('next')
+        if not next_url:
+            next_url = await get_editor_url_for_course(user, course.course_name)
+        return await async_redirect(next_url if next_url else 'student:take-exam')
+    # ================= END GATE =================
+ 
+
     all_questions = await get_course_questions(course)
     result_exists = await check_result_exists(user_profile, course)
 
@@ -682,6 +667,20 @@ def get_user_profile(user):
     return user.profile
 
 @sync_to_async
+def get_editor_url_for_course(user, courses_obj):
+    from webprojects.models import Project
+    if not courses_obj:
+        return None
+    project = Project.objects.filter(course=courses_obj, user=user).first()
+    if not project:
+        return None
+    file = project.files.first()
+    if not file:
+        return None
+    return f"/webprojects/{project.id}/file/{file.id}/"
+
+
+@sync_to_async
 def get_course(pk):
     return Course.objects.select_related('course_name').only(
         'id', 'room_name', 'course_name__id', 'exam_type__name',
@@ -694,6 +693,37 @@ def get_course_questions(course):
         'id', 'course__id', 'marks', 'question', 'img_quiz',
         'option1', 'option2', 'option3', 'option4', 'answer'
     ).filter(course=course).order_by('id'))
+
+@sync_to_async
+def check_modules_complete(user, course):
+    from sms.models import Topics
+    from webprojects.models import StudentProgress
+
+    course_topics = Topics.objects.filter(courses=course.course_name)
+    total_topics = course_topics.count()
+
+    if total_topics == 0:
+        return True, 0, 0
+
+    progress = StudentProgress.objects.filter(
+        student=user,
+        course=course.course_name
+    ).prefetch_related('completed_topics').first()
+
+    completed_ids = set(
+        progress.completed_topics.values_list('id', flat=True)
+    ) if progress else set()
+
+    course_topic_ids = set(course_topics.values_list('id', flat=True))
+    relevant_completed = completed_ids & course_topic_ids
+
+    return len(relevant_completed) >= total_topics, len(relevant_completed), total_topics
+
+
+@sync_to_async
+def add_warning_message(request, text):
+    from django.contrib import messages
+    messages.warning(request, text)
 
 @sync_to_async
 def check_result_exists(profile, course):
@@ -825,173 +855,6 @@ def save_result(course, student, total_marks):
             result.marks = total_marks
             result.save()
 
-# @sync_to_async
-# def save_result(course, student, total_marks):
-#     with transaction.atomic():
-#         QMODEL.Result.objects.create(
-#             schools=course.schools,
-#             marks=total_marks,
-#             exam=course,
-#             session=course.session,
-#             term=course.term,
-#             exam_type=course.exam_type,
-#             student=student,
-#         )
-
-
-#working with async views
-# @csrf_exempt
-# def calculate_marks_view(request):
-#     if not request.user.is_authenticated:
-#         return JsonResponse({'success': False, 'error': 'Authentication required.'}, status=401)
-#     return async_to_sync(_calculate_marks_async)(request)
-
-
-# async def _calculate_marks_async(request):
-#     if request.method != 'POST':
-#         return JsonResponse({'success': False, 'error': 'Invalid request method.'})
-
-#     course_id = request.COOKIES.get('course_id')
-#     if not course_id:
-#         return JsonResponse({'success': False, 'error': 'Course ID not found in cookies.'})
-
-#     try:
-#         answers_dict = json.loads(request.body)
-#     except json.JSONDecodeError:
-#         return JsonResponse({'success': False, 'error': 'Invalid JSON format.'})
-
-#     try:
-#         course, student, result_exists, questions = await get_course_and_student_and_questions(course_id, request.user.id)
-#     except QMODEL.Course.DoesNotExist:
-#         return JsonResponse({'success': False, 'error': 'Course not found.'})
-#     except Profile.DoesNotExist:
-#         return JsonResponse({'success': False, 'error': 'Student profile not found.'})
-#     except Exception as e:
-#         return JsonResponse({'success': False, 'error': f'Unexpected error: {str(e)}'})
-
-#     if result_exists:
-#         return JsonResponse({'success': False, 'error': 'Result already exists.'})
-
-#     total_marks = 0
-
-#     for question in questions:
-#         qid = str(question.id)
-#         selected = answers_dict.get(qid)
-
-#         if selected and selected == question.answer:
-#             total_marks += question.marks or 0
-
-#     try:
-#         await save_result(course, student, total_marks)
-#         return JsonResponse({'success': True, 'message': 'Quiz graded and saved ✅'})
-#     except IntegrityError:
-#         return JsonResponse({'success': False, 'error': 'Result already exists.'})
-#     except Exception as e:
-#         return JsonResponse({'success': False, 'error': f'Unexpected error: {str(e)}'})
-
-
-# @sync_to_async
-# def get_course_and_student_and_questions(course_id, user_id):
-#     course = QMODEL.Course.objects.select_related('schools', 'session', 'term', 'exam_type').get(id=course_id)
-#     student = Profile.objects.select_related('user').get(user_id=user_id)
-
-#     result_exists = QMODEL.Result.objects.filter(
-#         student=student,
-#         exam=course,
-#         session=course.session,
-#         term=course.term,
-#         exam_type=course.exam_type,
-        
-#     ).exists()
-
-#     questions = list(QMODEL.Question.objects.filter(course=course).order_by('id'))
-
-#     return course, student, result_exists, questions
-
-
-# @sync_to_async
-# def save_result(course, student, total_marks):
-#     with transaction.atomic():
-#         QMODEL.Result.objects.create(
-#             schools=course.schools,
-#             marks=total_marks,
-#             exam=course,
-#             session=course.session,
-#             term=course.term,
-#             exam_type=course.exam_type,
-#             student=student,
-            
-#         )
-
-
-# @login_required
-# def start_exams_view(request, pk):
-#     course = QMODEL.Course.objects.get(id=pk)
-#     questions = QMODEL.Question.objects.filter(course=course).order_by('id')
-#     q_count = questions.count()
-#     paginator = Paginator(questions, 200)  # Show 100 questions per page.
-#     page_number = request.GET.get('page')
-#     page_obj = paginator.get_page(page_number)
-    
-#     # Calculate quiz end time
-#     quiz_duration = course.duration_minutes
-#     quiz_start_time = timezone.now()
-#     quiz_end_time = quiz_start_time + timedelta(minutes=quiz_duration)
-    
-#     # Store the quiz end time in cache
-#     cache.set(f'quiz_end_time_{course.id}', quiz_end_time, timeout=None)
-
-#     # Calculate remaining time until the end of the quiz
-#     remaining_time = quiz_end_time - timezone.now()
-#     remaining_seconds = max(int(remaining_time.total_seconds()), 0)
-
-#     context = {
-#         'course': course,
-#         'questions': questions,
-#         'q_count': q_count,
-#         'page_obj': page_obj,
-#         'remaining_seconds': remaining_seconds,  # Pass remaining time to template
-#     }
-
-#     if request.method == 'POST':
-#         # Handle form submission
-#         pass
-
-#     response = render(request, 'student/dashboard/start_exams.html', context=context)
-#     response.set_cookie('course_id', course.id)
-#     return response
-
-
-# @login_required
-# def start_exams_view(request, pk):
-#     course = QMODEL.Course.objects.get(id=pk)
-#     questions = QMODEL.Question.objects.filter(course=course).order_by('id')
-#     q_count = questions.count()
-#     paginator = Paginator(questions, 100)  # Show 100 questions per page.
-#     page_number = request.GET.get('page')
-#     page_obj = paginator.get_page(page_number)
-#     # Calculate quiz end time
-#     quiz_duration = course.duration_minutes  # Assuming duration_minutes is the duration of the quiz
-#     quiz_start_time = timezone.now()
-#     quiz_end_time = quiz_start_time + timedelta(minutes=quiz_duration)
-    
-#     context = {
-#         'course': course,
-#         'questions': questions,
-#         'q_count': q_count,
-#         'page_obj': page_obj,
-#         'quiz_end_time': quiz_end_time,  # Pass end time to template
-        
-#     }
-
-#     if request.method == 'POST':
-#         # Handle form submission
-#         pass
-
-#     response = render(request, 'student/dashboard/start_exams.html', context=context)
-#     response.set_cookie('course_id', course.id)
-#     return response
-
 # end of dashboard view
 
 import json
@@ -1007,72 +870,6 @@ from django.db import IntegrityError, transaction
 from django.db import transaction
 
 
-
-# @login_required
-# def calculate_marks_view(request):
-#     if request.COOKIES.get('course_id') is not None:
-#         course_id = request.COOKIES.get('course_id')
-#         course = QMODEL.Course.objects.get(id=course_id)
-        
-#         total_marks = 0
-#         questions = QMODEL.Question.objects.filter(course=course).order_by('id')
-        
-#         if request.body:
-#             json_data = json.loads(request.body)
-#             for i, question in enumerate(questions, start=1):
-#                 selected_ans = json_data.get(str(i))
-#                 print("answers" + str(i), selected_ans)
-#                 actual_answer = question.answer
-#                 if selected_ans == actual_answer:
-#                     total_marks += question.marks
-        
-#         student = Profile.objects.get(user_id=request.user.id)
-#         result = QMODEL.Result.objects.create(marks=total_marks, exam=course, student=student)
-        
-#         # Redirect to the view_result URL
-#         return JsonResponse({'success': True, 'message': 'Marks calculated successfully.'})
-    
-#     else:
-#         return JsonResponse({'success': False, 'error': 'Course ID not found.'})
-
-
-
-# @login_required
-# def calculate_marks_view(request):
-#     if request.COOKIES.get('course_id') is not None:
-#         course_id = request.COOKIES.get('course_id')
-#         course=QMODEL.Course.objects.get(id=course_id)
-        
-#         total_marks=0
-#         questions=QMODEL.Question.objects.get_queryset().filter(course=course).order_by('id')
-#         for i in range(len(questions)):
-            
-#             # selected_ans = request.COOKIES.get(str(i+1))
-#             selected_ans = request.POST.get(str(i+1))
-#             print("answers1", selected_ans)
-#             actual_answer = questions[i].answer
-#             if selected_ans == actual_answer:
-#                 total_marks = total_marks + questions[i].marks
-#         student = Profile.objects.get(user_id=request.user.id)
-#         result = QMODEL.Result()
-        
-#         result.marks=total_marks 
-#         result.exam=course
-#         result.student=student
-#         # m = QMODEL.Result.objects.aggregate(Max('marks'))
-#         # max_q = Result.objects.filter(student_id = OuterRef('student_id'),exam_id = OuterRef('exam_id'),).order_by('-marks').values('id')
-#         # max_result = Result.objects.filter(id__in = Subquery(max_q[:1]), exam=course, student=student)
-        
-#         result.save()
-#         # score = 0
-#         # for max_value in max_result:
-#         #     score = score + max_value.marks
-            
-#         # if total_marks > score:
-            
-#         return HttpResponseRedirect('view_result')
-#     else:
-#         return HttpResponseRedirect('take-exam')
 
 
 @login_required

@@ -148,6 +148,7 @@ class StudentXP(models.Model):
         return f"{self.student.username} — {self.total_xp}XP"
 
 
+
 class StudentProgress(models.Model):
     student          = models.ForeignKey(User, on_delete=models.CASCADE)
     course           = models.ForeignKey('sms.Courses', on_delete=models.CASCADE, null=True, blank=True)

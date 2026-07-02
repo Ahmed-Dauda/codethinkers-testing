@@ -1,4 +1,4 @@
-name: Deploy to Staging
+update this only and wait name: Deploy to Staging
 
 on:
   push:

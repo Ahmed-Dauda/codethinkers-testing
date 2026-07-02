@@ -21,24 +21,29 @@ from django.utils.text import slugify
 
 
 
+from django.db import models
+from django.contrib.contenttypes.fields import GenericRelation
+from hitcount.models import HitCount, HitCountMixin
 
 class Categories(models.Model, HitCountMixin):
-   
-    name = models.CharField(max_length=225, blank=True, null= True, unique=True)
-    desc = models.TextField( blank=True, null= True)
-    created = models.DateTimeField(auto_now_add=True, blank=True, null= True)
-    updated = models.DateTimeField(auto_now=True, blank=True, null= True)
-    img_cat = CloudinaryField('image', blank=True, null= True)
-    # object_pk = models.PositiveIntegerField(default=True)
+    name = models.CharField(max_length=225, blank=True, null=True, unique=True, db_index=True)  # Added db_index
+    desc = models.TextField(blank=True, null=True, db_index=True)  # Added db_index
+    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    img_cat = CloudinaryField('image', blank=True, null=True)
     hit_count_generic = GenericRelation(
-    HitCount, object_id_field='object_pk',
-    related_query_name='hit_count_generic_relation')
+        HitCount, object_id_field='object_pk',
+        related_query_name='hit_count_generic_relation'
+    )
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['name', 'desc']),
+        ]
 
     def __str__(self):
         return f'{self.name}'
-
-
 
 
 class Courses(models.Model):
@@ -57,29 +62,40 @@ class Courses(models.Model):
     ]
 
     img_course = CloudinaryField('image', blank=True, null=True)
-     # Add a ForeignKey field to represent the course a student is enrolled in.
-    schools = models.ManyToManyField("quiz.School" , related_name='courses', blank=True)
+    schools = models.ManyToManyField("quiz.School", related_name='courses', blank=True)
     prerequisites = models.ManyToManyField('self', blank=True, symmetrical=False)
-    categories = models.ForeignKey(Categories, blank=False, default=1, on_delete=models.SET_NULL, related_name='categories', null=True)
-    title = models.CharField(max_length=225, blank=True, null=True)
+    categories = models.ForeignKey(
+        Categories, blank=False, default=1, 
+        on_delete=models.SET_NULL, 
+        related_name='categories', 
+        null=True,
+        db_index=True  # Added db_index
+    )
+    title = models.CharField(max_length=225, blank=True, null=True, db_index=True)  # Added db_index
     course_logo = CloudinaryField('course_logo', blank=True, null=True)
     course_owner = models.CharField(max_length=225, blank=True, null=True)
     course_type = models.CharField(choices=COURSE_TYPE, default='course', max_length=225, blank=True, null=True)
     status_type = models.CharField(choices=PAYMENT_CHOICES, default='Free', max_length=225, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=0, default='500', max_length=225, blank=True, null=True)
     cert_price = models.DecimalField(max_digits=10, decimal_places=0, default='1000', max_length=225, blank=True, null=True)
-    desc = models.TextField(null=True)
+    desc = models.TextField(null=True, db_index=True)  # Added db_index
     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
     hit_count_generic = GenericRelation(
-        HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
-    
-    # NEW FIELD to mark programming courses
+        HitCount, object_id_field='object_pk', 
+        related_query_name='hit_count_generic_relation'
+    )
     is_programming = models.BooleanField(default=False)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['title']),
+            models.Index(fields=['desc']),
+            models.Index(fields=['title', 'desc']),
+        ]
 
     def __str__(self):
         return f'{self.title}'
-
 
 # payment models and logics 
 
@@ -211,6 +227,7 @@ from urllib.parse import urlparse, parse_qs
 #     updated = models.DateTimeField(auto_now=True, blank=True, null=True) 
 #     id = models.BigAutoField(primary_key=True)
 #     hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
+
 
 
 class Topics(models.Model):

@@ -188,202 +188,348 @@ class PaymentSucess(LoginRequiredMixin, HitCountDetailView, DetailView):
 
         return context
 
+
     
 from student.models import AdvertisementImage
+from django.db.models import Q, Count
+from django.shortcuts import get_object_or_404, render
+from django.views.generic import ListView
+from django.contrib import messages
+from django.conf import settings
+from users.models import NewUser
+
+from .models import (
+    Courses, Categories, Partners, Gallery, Blog, 
+    FrequentlyAskQuestions,  
+    Topics, CourseFrequentlyAskQuestions,
+    CourseLearnerReviews, CareerOpportunities, Skillyouwillgain,
+    Whatyouwilllearn, Whatyouwillbuild, AboutCourseOwner,
+    Comment, Alert, Blogcomment, Partners, Gallery
+)
+from hitcount.models import HitCount
+ 
+
 class Homepage1(ListView):
     model = Courses
     template_name = 'sms/dashboard/homepage1.html'
     success_message = 'TestModel successfully updated!'
     count_hit = True
-
+ 
+    # ------------------------------------------------------------------ #
+    # Base queryset — annotate topic count once, reuse everywhere          #
+    # ------------------------------------------------------------------ #
     def get_queryset(self):
-        qs = Courses.objects.annotate(topic_count=Count('topics'))
-        print("🔹 Homepage1 queryset:", qs)  # Debug: all courses
-        return qs
-
+        return Courses.objects.annotate(topic_count=Count('topics'))
+ 
+    # ------------------------------------------------------------------ #
+    # Helpers                                                              #
+    # ------------------------------------------------------------------ #
+    def _courses_by_level(self, level: str):
+        """
+        Return a queryset of courses whose category name matches `level`
+        (e.g. 'BEGINNER'), with topic_count already annotated so the
+        template can read obj.topic_count without extra DB hits.
+        """
+        return (
+            Courses.objects
+            .filter(categories__name__iexact=level)
+            .select_related('categories')
+            .annotate(topic_count=Count('topics'))
+        )
+ 
+    # ------------------------------------------------------------------ #
+    # Context                                                              #
+    # ------------------------------------------------------------------ #
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # General stats
-        context['students'] = NewUser.objects.all().count() + 1000
-        context['category'] = Categories.objects.count()
+        request = self.request
+ 
+        # ── Search ──────────────────────────────────────────────────────
+        query = request.GET.get('q', '').strip()
+        context['query'] = query
+        context['search_results'] = []
+        context['category_results'] = []
+        context['course_count'] = 0
+        context['blog_results'] = []
+        context['faq_results'] = []
+        context['topic_results'] = []
+ 
+        if query:
+            search_results = (
+                Courses.objects
+                .filter(
+                    Q(title__icontains=query) |
+                    Q(desc__icontains=query) |
+                    Q(categories__name__icontains=query) |
+                    Q(course_owner__icontains=query) |
+                    Q(course_type__icontains=query) |
+                    Q(status_type__icontains=query)
+                )
+                .select_related('categories')
+                .annotate(topic_count=Count('topics'))
+                .distinct()[:50]
+            )
+            context['search_results']   = search_results
+            context['course_count']     = search_results.count()
+            context['category_results'] = (
+                Categories.objects
+                .filter(Q(name__icontains=query) | Q(desc__icontains=query))[:10]
+            )
+            context['blog_results'] = (
+                Blog.objects
+                .filter(Q(title__icontains=query) | Q(desc__icontains=query) | Q(poster__icontains=query))[:5]
+            )
+            context['faq_results'] = (
+                FrequentlyAskQuestions.objects
+                .filter(Q(title__icontains=query) | Q(desc__icontains=query))[:5]
+            )
+            context['topic_results'] = (
+                Topics.objects
+                .filter(Q(title__icontains=query) | Q(desc__icontains=query))[:10]
+            )
+ 
+        # ── General stats ────────────────────────────────────────────────
+        context['students']      = NewUser.objects.count() + 1000
+        context['category']      = Categories.objects.count()
+        context['courses']       = Courses.objects.count()
         context['coursecategory'] = Categories.objects.all()
-        context['courses'] = Courses.objects.all().count()
-        context['gallery'] = Gallery.objects.all()
-        context['blogs'] = Blog.objects.all().order_by('-created')[:3]
-        context['blogs_count'] = Blog.objects.all().count()
-        context['faqs'] = FrequentlyAskQuestions.objects.all()
-        context['partners'] = Partners.objects.all()
-
-        # Courses and categories
-        context['coursess'] = Courses.objects.all().order_by('created')
-        context['category_sta'] = Categories.objects.annotate(num_courses=Count('categories'))
-
-        # Group courses by difficulty category
-        for level in ['BEGINNER', 'INTERMEDIATE', 'ADVANCED']:
-            courses_level = Courses.objects.filter(categories__name=level)
-            for course in courses_level:
-                course.topic_count = Topics.objects.filter(courses=course).count()
-            context[level.lower()] = courses_level
-            context[f"{level.lower()}_count"] = courses_level.count()
-
-        # Free courses
-        free_courses = Courses.objects.filter(status_type='Free')
-        for course in free_courses:
-            course.Free_courses_topic_count = Topics.objects.filter(courses=course).count()
-        context['Free_courses'] = free_courses
-        context['Free_courses_count'] = free_courses.count()
-        
-        # Latest courses
-        latest_courses = Courses.objects.all().order_by('-created')
-        for course in latest_courses:
-            course.latest_course_topic_count = Topics.objects.filter(courses=course).count()
-        context['latest_course'] = latest_courses
-        context['latest_course_count'] = latest_courses.count()
-
-        # Popular courses
-        popular_courses = Courses.objects.all().order_by('-hit_count_generic__hits')
-        for course in popular_courses:
-            course.popular_course_topic_count = Topics.objects.filter(courses=course).count()
-        context['popular_course'] = popular_courses
-
-        # PDF Alerts
-        context['alert_homes'] = PDFDocument.objects.order_by('-created')[:4]
-        context['alerts'] = PDFDocument.objects.order_by('-created')
+        context['gallery']       = Gallery.objects.all()
+        context['blogs']         = Blog.objects.order_by('-created')[:3]
+        context['blogs_count']   = Blog.objects.count()
+        context['faqs']          = FrequentlyAskQuestions.objects.all()
+        context['partners']      = Partners.objects.all()
+ 
+        # ── Sidebar / misc ───────────────────────────────────────────────
+        context['coursess']      = Courses.objects.order_by('created').annotate(topic_count=Count('topics'))
+        context['category_sta']  = Categories.objects.annotate(num_courses=Count('categories'))
+        context['advertisement_images'] = AdvertisementImage.objects.all()
+        context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
+ 
+        sidebar_categories = Categories.objects.prefetch_related('categories').all()
+        context['sidebar_categories'] = sidebar_categories
+ 
+        # ── PDF Alerts ───────────────────────────────────────────────────
+        context['alert_homes']       = PDFDocument.objects.order_by('-created')[:4]
+        context['alerts']            = PDFDocument.objects.order_by('-created')
         context['alert_count_homes'] = PDFDocument.objects.order_by('-created')[:4].count()
-        context['alert_count'] = PDFDocument.objects.all().count()
-
-        # Users
-        context['user'] = NewUser.objects.get_queryset().order_by('id')
-        context['users'] = self.request.user
-
-        messages.success(self.request, 'You have successfully logged in.')
-
-        if self.request.user.is_authenticated:
-            user_newuser = get_object_or_404(NewUser, email=self.request.user.email)
+        context['alert_count']       = PDFDocument.objects.count()
+ 
+        # ── Auth / school context ─────────────────────────────────────────
+        context['users'] = request.user
+        context['user']  = NewUser.objects.order_by('id')
+ 
+        messages.success(request, 'You have successfully logged in.')
+ 
+        if request.user.is_authenticated:
+            user_newuser = get_object_or_404(NewUser, email=request.user.email)
             if user_newuser.school:
                 context['school_name'] = user_newuser.school.school_name
-
-        # Advertisement
-        context['advertisement_images'] = AdvertisementImage.objects.all()
-        context['paystack_public_key'] = settings.PAYSTACK_PUBLIC_KEY
-
-        # Sidebar categories with prefetch
-        sidebar_categories = Categories.objects.prefetch_related("categories").all()
-        context['sidebar_categories'] = sidebar_categories
-
-        # Debug: show categories and linked courses
-        # print("📂 Sidebar categories and courses:")
-        for cat in sidebar_categories:
-            # print(f"Category: {cat.name} — Courses count: {cat.categories.count()}")
-            for course in cat.categories.all():
-                print(f"   - Course: {course.title}")
-
+ 
+        # ── Courses by difficulty level ───────────────────────────────────
+        # Template variable names:  beginner / beginner_count
+        #                           intermediate / intermediate_count
+        #                           advanced / advanced_count
+        for level in ['beginner', 'intermediate', 'advanced']:
+            qs = self._courses_by_level(level)
+            context[level]                  = qs
+            context[f'{level}_count']       = qs.count()
+ 
+        # ── Latest courses ────────────────────────────────────────────────
+        # Template variable: latest_courses / latest_count
+        latest_courses = (
+            Courses.objects
+            .select_related('categories')
+            .annotate(topic_count=Count('topics'))
+            .order_by('-created')
+        )
+        context['latest_courses'] = latest_courses
+        context['latest_count']   = latest_courses.count()
+ 
+        # ── Free courses ──────────────────────────────────────────────────
+        # Template variable: free_courses / free_count
+        free_courses = (
+            Courses.objects
+            .filter(status_type='Free')
+            .select_related('categories')
+            .annotate(topic_count=Count('topics'))
+        )
+        context['free_courses'] = free_courses
+        context['free_count']   = free_courses.count()
+ 
+        # ── Popular courses ───────────────────────────────────────────────
+        # Template variable: popular_courses
+        context['popular_courses'] = (
+            Courses.objects
+            .select_related('categories')
+            .annotate(topic_count=Count('topics'))
+            .order_by('-hit_count_generic__hits')
+        )
+ 
         return context
-    
-#working 
-# class Homepage1(ListView):
-#     models = Courses
-#     template_name = 'sms/dashboard/homepage1.html'
-#     success_message = 'TestModel successfully updated!'
-#     count_hit = True
-   
-#     def get_queryset(self):
-       
-#         # return  Courses.objects.all().select_related('categories').distinct()
-#          return Courses.objects.annotate(topic_count=Count('topics')) 
-    
-#     def get_context_data(self, **kwargs): 
-#         context = super(Homepage1, self).get_context_data(**kwargs)
         
-#         context['students'] = NewUser.objects.all().count() + 1000
-#         context['category'] = Categories.objects.count()
-#         context['coursecategory'] = Categories.objects.all()
-#         context['courses'] = Courses.objects.all().count()
-#         context['gallery'] = Gallery.objects.all()
-#         # latest_blogs = Blog.objects.all().order_by('-created')[:3]
-#         context['blogs'] =Blog.objects.all().order_by('-created')[:3]
-#         context['blogs_count'] =Blog.objects.all().count() 
-#         context['faqs'] = FrequentlyAskQuestions.objects.all()
-#         context['partners'] = Partners.objects.all()
-#         context['coursess'] = Courses.objects.all().order_by('created')[:10] 
-#         context['category_sta'] = Categories.objects.annotate(num_courses=Count('categories'))
-#         # course = Courses.objects.get(pk=self.kwargs["pk"])
-#         # context['topics_count'] = Topics.objects.get_queryset().filter(courses_id= course).order_by('id').count()
 
-#         context['beginner'] = Courses.objects.filter(categories__name = "BEGINNER")
-#         context['beginner_count'] = Courses.objects.filter(categories__name = "BEGINNER").count()
-#         beginner_courses = Courses.objects.filter(categories__name="BEGINNER")
-#         for course in beginner_courses:
-#             course.beginner_topic_count = Topics.objects.filter(courses=course).count()
-#         context['beginner'] = beginner_courses[:4]
+from django.db.models import Q
+from django.shortcuts import render
+from django.core.paginator import Paginator
+from django.shortcuts import render
 
-     
-#         context['intermediate'] = Courses.objects.filter(categories__name = "INTERMEDIATE")
-#         context['intermediate_count'] = Courses.objects.filter(categories__name = "INTERMEDIATE").count()
-#         intermediate_courses = Courses.objects.filter(categories__name="INTERMEDIATE")
-#         for course in intermediate_courses:
-#             course.intermediate_topic_count = Topics.objects.filter(courses=course).count()
-#         context['intermediate'] = intermediate_courses[:4]
+from django.db.models import Q, Count, Case, When, IntegerField, Value
 
-
-#         context['advanced'] = Courses.objects.filter(categories__name = "ADVANCED")
-#         context['advanced_count'] = Courses.objects.filter(categories__name = "ADVANCED").count()
-#         advanced_courses = Courses.objects.filter(categories__name="ADVANCED")
-#         for course in advanced_courses:
-#             course.advanced_topic_count = Topics.objects.filter(courses=course).count()
-#         context['advanced'] = advanced_courses[:4]
-
-
-#         context['Free_courses'] = Courses.objects.filter(status_type = 'Free')
-#         context['Free_courses_count'] = Courses.objects.filter(status_type = 'Free').count()
-#         Free_courses_courses = Courses.objects.filter(status_type = 'Free')
-#         for course in Free_courses_courses:
-#             course.Free_courses_topic_count = Topics.objects.filter(courses=course).count()
-#         context['Free_courses'] = Free_courses_courses
-
-      
-#         context['latest_course'] =   Courses.objects.all().order_by('-created')[:4] 
-#         context['latest_course_count'] =   Courses.objects.all().order_by('-created')[:4].count()
-#         latest_course_courses =  Courses.objects.all().order_by('-created')[:4]
-#         for course in latest_course_courses:
-#             course.latest_course_topic_count = Topics.objects.filter(courses=course).count()
-#         context['latest_course'] = latest_course_courses
-
-
-#         context['popular_course'] =   Courses.objects.all().order_by('-hit_count_generic__hits')[:4] 
-#         popular_course_courses =  Courses.objects.all().order_by('-hit_count_generic__hits')[:4]
-#         for course in popular_course_courses:
-#             course.popular_course_topic_count = Topics.objects.filter(courses=course).count()
-#         context['popular_course'] = popular_course_courses
-    
-   
-#         context['alert_homes']  = PDFDocument.objects.order_by('-created')[:4] 
-#         context['alerts']  = PDFDocument.objects.order_by('-created')
-#         context['alert_count_homes'] = PDFDocument.objects.order_by('-created')[:4].count() 
-#         context['alert_count'] = PDFDocument.objects.all().count()
-        
-#         context['user'] = NewUser.objects.get_queryset().order_by('id')
-#         context['users']  = self.request.user
-#         messages.success(self.request, 'You have successfully logged in.')
-
-
-#         if self.request.user.is_authenticated:
-#             user_newuser = get_object_or_404(NewUser, email=self.request.user.email)
-#             if user_newuser.school:
-#                 context['school_name'] = user_newuser.school.school_name
-#             # Rest of your code goes here
-#         else:
-#             # Handle the case when the user is not authenticated
-#             pass
-#         # advert
-#         context['advertisement_images']  = self.request.user= AdvertisementImage.objects.all()
-#         context['paystack_public_key']  = settings.PAYSTACK_PUBLIC_KEY
-        
-#         return context
-
-
-
+def course_search(request):
+    query = request.GET.get('q', '').strip()
+ 
+    context = {
+        'query': query,
+        'search_results': [],
+        'category_results': [],
+        'topic_results': [],
+        'blog_results': [],
+        'faq_results': [],
+        'course_count': 0,
+        # Standard page context
+        'students': NewUser.objects.count() + 1000,
+        'category': Categories.objects.count(),
+        'courses': Courses.objects.count(),
+        'coursecategory': Categories.objects.all(),
+        'gallery': Gallery.objects.all(),
+        'blogs': Blog.objects.order_by('-created')[:3],
+        'faqs': FrequentlyAskQuestions.objects.all(),
+        'partners': Partners.objects.all(),
+        'alert_homes': PDFDocument.objects.order_by('-created')[:4],
+        'advertisement_images': AdvertisementImage.objects.all(),
+    }
+ 
+    if not query:
+        return render(request, 'sms/dashboard/homepage1.html', context)
+ 
+    # ------------------------------------------------------------------ #
+    # Build per-word AND full-phrase Q objects                             #
+    # ------------------------------------------------------------------ #
+    words = query.split()          # e.g. "python foundation" → ["python", "foundation"]
+ 
+    # Full phrase match (highest relevance)
+    phrase_course_q = (
+        Q(title__icontains=query) |
+        Q(desc__icontains=query) |
+        Q(categories__name__icontains=query) |
+        Q(course_owner__icontains=query)
+    )
+ 
+    # Individual word match (catches "fundamentals of python" when query is "python")
+    word_course_q = Q()
+    word_category_q = Q()
+    word_topic_q = Q()
+    word_blog_q = Q()
+    word_faq_q = Q()
+ 
+    for word in words:
+        word_course_q |= (
+            Q(title__icontains=word) |
+            Q(desc__icontains=word) |
+            Q(categories__name__icontains=word) |
+            Q(course_owner__icontains=word)
+        )
+        word_category_q |= Q(name__icontains=word) | Q(desc__icontains=word)
+        word_topic_q    |= Q(title__icontains=word) | Q(desc__icontains=word)
+        word_blog_q     |= Q(title__icontains=word) | Q(desc__icontains=word) | Q(poster__icontains=word)
+        word_faq_q      |= Q(title__icontains=word) | Q(desc__icontains=word)
+ 
+    # Combined: phrase OR any individual word
+    combined_course_q = phrase_course_q | word_course_q
+ 
+    # ------------------------------------------------------------------ #
+    # Course search — annotate relevance score for ordering               #
+    # Score: 4 = title phrase match, 3 = title word match,               #
+    #        2 = category/owner match, 1 = desc match                     #
+    # ------------------------------------------------------------------ #
+    title_phrase_q   = Q(title__icontains=query)
+    title_word_q     = Q()
+    for word in words:
+        title_word_q |= Q(title__icontains=word)
+ 
+    search_results = (
+        Courses.objects
+        .filter(combined_course_q)
+        .select_related('categories')
+        .annotate(
+            topic_count=Count('topics', distinct=True),
+            relevance=Case(
+                # Exact phrase in title — highest priority
+                When(title_phrase_q, then=Value(4)),
+                # Any word from query in title — second priority
+                When(title_word_q, then=Value(3)),
+                # Match in category name or owner
+                When(
+                    Q(categories__name__icontains=query) | Q(course_owner__icontains=query),
+                    then=Value(2)
+                ),
+                # Match only in description — lowest priority
+                default=Value(1),
+                output_field=IntegerField()
+            )
+        )
+        .distinct()
+        .order_by('-relevance', 'title')   # best match first, then alphabetical
+        [:50]
+    )
+ 
+    # ------------------------------------------------------------------ #
+    # Category search                                                      #
+    # ------------------------------------------------------------------ #
+    category_results = (
+        Categories.objects
+        .filter(word_category_q)
+        .annotate(num_courses=Count('categories'))
+        [:10]
+    )
+ 
+    # ------------------------------------------------------------------ #
+    # Topic search                                                         #
+    # ------------------------------------------------------------------ #
+    topic_results = (
+        Topics.objects
+        .filter(word_topic_q)
+        .select_related('courses', 'courses__categories')
+        [:10]
+    )
+ 
+    # ------------------------------------------------------------------ #
+    # Blog search                                                          #
+    # ------------------------------------------------------------------ #
+    blog_results = (
+        Blog.objects
+        .filter(word_blog_q)
+        .order_by('-created')
+        [:5]
+    )
+ 
+    # ------------------------------------------------------------------ #
+    # FAQ search                                                           #
+    # ------------------------------------------------------------------ #
+    faq_results = (
+        FrequentlyAskQuestions.objects
+        .filter(word_faq_q)
+        [:5]
+    )
+ 
+    # course_count before slicing
+    course_count = (
+        Courses.objects
+        .filter(combined_course_q)
+        .distinct()
+        .count()
+    )
+ 
+    context.update({
+        'search_results':   search_results,
+        'category_results': category_results,
+        'topic_results':    topic_results,
+        'blog_results':     blog_results,
+        'faq_results':      faq_results,
+        'course_count':     course_count,
+    })
+ 
+    return render(request, 'sms/dashboard/homepage1.html', context)
 
 
 class Homepage2(SuccessMessageMixin, LoginRequiredMixin,ListView):
