@@ -172,137 +172,78 @@ class blogcommentAdmin(ImportExportModelAdmin):
 
 admin.site.register(Blogcomment, blogcommentAdmin)
     
-
 class TopicsResource(resources.ModelResource):
-    
+
     courses = fields.Field(
-        column_name= 'courses',
+        column_name='courses',
         attribute='courses',
-        widget=ForeignKeyWidget(Courses,'title') )
-    
+        widget=ForeignKeyWidget(Courses, 'title'))
+
     class Meta:
         model = Topics
         # fields = ('title',)
+
+
 class TopicsAdmin(ImportExportModelAdmin):
     list_display = [
-        'id', 
+        'id',
         'title',
         'courses',
-        'categories', 
-        'validation_type',  # ✅ Show validation type
+        'categories',
+        'img_topic',
+        'video',
+        'topics_url',
         'is_completed',
         'created'
     ]
-    
+
     prepopulated_fields = {"slug": ("title",)}
-    
+
     list_filter = [
-        'validation_type',  # ✅ Filter by validation type
-        'categories', 
-        'courses', 
+        'categories',
+        'courses',
         'is_completed',
         'created'
     ]
-    
+
     search_fields = [
-        'id', 
-        'title', 
+        'id',
+        'title',
         'desc',
-        'categories__name', 
+        'categories__name',
         'courses__title'
     ]
-    
+
     ordering = ['id']
     resource_class = TopicsResource
-    
-    # ✅ Organized fieldsets for better admin UX
+
     fieldsets = (
         ('Basic Information', {
             'fields': (
-                'title', 
-                'slug', 
-                'categories', 
-                'courses', 
-                'desc', 
+                'title',
+                'slug',
+                'categories',
+                'courses',
+                'desc',
                 'transcript'
             )
         }),
-        
+
         ('Media', {
             'fields': (
-                'img_topic', 
-                'video', 
+                'img_topic',
+                'video',
                 'topics_url'
             ),
-            'classes': ('collapse',)  # Collapsed by default
+            'classes': ('collapse',)
         }),
-        
-        ('🤖 AI Validation Settings', {
-            'fields': (
-                'validation_type',
-                'expected_output',
-                'quiz_question', 
-                'quiz_correct_answer',
-                'quiz_options',
-                'validation_hints'
-            ),
-            'classes': ('wide',),
-            'description': '''
-                <strong>How to use AI validation:</strong><br>
-                <ul>
-                    <li><strong>Code Output Validation:</strong> AI checks if student's code produces correct output</li>
-                    <li><strong>Quiz Question:</strong> AI validates student's answer (accepts variations)</li>
-                    <li><strong>Manual Completion:</strong> Student marks complete manually</li>
-                </ul>
-            '''
-        }),
-        
+
         ('Completion Status', {
             'fields': ('is_completed',),
             'classes': ('collapse',)
         })
     )
-    
-    # ✅ Custom actions
-    actions = ['mark_as_code_validation', 'mark_as_quiz_validation', 'mark_as_manual']
-    
-    def mark_as_code_validation(self, request, queryset):
-        updated = queryset.update(validation_type='code')
-        self.message_user(request, f'{updated} topics set to Code Validation')
-    mark_as_code_validation.short_description = "Set validation type to Code"
-    
-    def mark_as_quiz_validation(self, request, queryset):
-        updated = queryset.update(validation_type='quiz')
-        self.message_user(request, f'{updated} topics set to Quiz Validation')
-    mark_as_quiz_validation.short_description = "Set validation type to Quiz"
-    
-    def mark_as_manual(self, request, queryset):
-        updated = queryset.update(validation_type='manual')
-        self.message_user(request, f'{updated} topics set to Manual Completion')
-    mark_as_manual.short_description = "Set validation type to Manual"
-    
-    # ✅ Show validation type with colored badges
-    def validation_type(self, obj):
-        colors = {
-            'code': '#3498db',
-            'quiz': '#e67e22',
-            'manual': '#95a5a6'
-        }
-        icons = {
-            'code': '💻',
-            'quiz': '📝',
-            'manual': '✋'
-        }
-        color = colors.get(obj.validation_type, '#95a5a6')
-        icon = icons.get(obj.validation_type, '❓')
-        return format_html(
-            '<span style="background:{}; color:white; padding:3px 8px; border-radius:3px; font-size:11px;">{} {}</span>',
-            color,
-            icon,
-            obj.get_validation_type_display()
-        )
-    validation_type.short_description = 'Validation'
-    
+
     # ✅ Show completion status with icon
     def is_completed(self, obj):
         if obj.is_completed:
@@ -312,6 +253,7 @@ class TopicsAdmin(ImportExportModelAdmin):
     is_completed.admin_order_field = 'is_completed'
 
 admin.site.register(Topics, TopicsAdmin)
+
 
 # class TopicsAdmin(ImportExportModelAdmin):
 #     list_display = ['id', 'categories', 'courses','title', 'desc', 'img_topic', 'video', 'topics_url', 'created', 'updated']
