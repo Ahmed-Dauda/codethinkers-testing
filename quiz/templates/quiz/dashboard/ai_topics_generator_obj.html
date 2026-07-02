@@ -60,7 +60,8 @@
 <body>
 
 <div class="container my-5">
-<a href="{% url 'instructor:dashboard' %}" class="btn btn-outline-primary mb-3 ">← Back to Dashboard</a>
+  <a href="{% url 'instructor:dashboard' %}" class="btn btn-outline-primary mb-3">← Back to Dashboard</a>
+
   <!-- Header -->
   <div class="mb-4">
     <h2 class="fw-bold">🤖 AI Course Contents Generator</h2>
@@ -79,7 +80,7 @@
   {% endif %}
 
   <!-- GENERATION FORM -->
-  {% if not preview_topics %}
+  {% if not preview_topics and not polling %}
   <div class="card form-card p-4">
     <form id="generate-form" method="post" action="{% url 'quiz:ai_topics_generator_obj' %}">
       {% csrf_token %}
@@ -125,23 +126,22 @@
           class="form-control"></textarea>
 
         <small class="text-muted d-block mt-2">
-          One objective per line. Include Introduction, Summary, and Conclusion.
-        </small>
+        One objective per line. For Medium/Hard difficulty, add a maximum of <strong>5 objectives</strong> at a time to avoid token limits.
+      </small>
 
         <div class="mt-3 p-3 bg-light border rounded">
           <strong>Sample: Add a maximum of 5 objectives at a time. Save before adding the next set.</strong>
           <ul class="mt-2 mb-0">
-              <li>Introduction</li>
-              <li>Understand Python syntax</li>
-              <li>Identify basic data types</li>
-              <li>Apply conditional statements</li>
-              <li>Use loops (for and while)</li>
-              <li>Work with lists and dictionaries</li>
-              <li>Define and use functions</li>
-              <li>Summary</li>
-              <li>Conclusion</li>
+            <li>Introduction</li>
+            <li>Understand Python syntax</li>
+            <li>Identify basic data types</li>
+            <li>Apply conditional statements</li>
+            <li>Use loops (for and while)</li>
+            <li>Work with lists and dictionaries</li>
+            <li>Define and use functions</li>
+            <li>Summary</li>
+            <li>Conclusion</li>
           </ul>
-
         </div>
       </div>
 
@@ -168,10 +168,109 @@
   </div>
   {% endif %}
 
+  <!-- POLLING SECTION -->
+  {% if polling %}
+  <div class="card form-card p-4 mt-4" id="pollingBox">
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary mb-3" role="status"></div>
+      <p class="fw-semibold fs-5">⏳ AI is generating topics, please wait...</p>
+      <small class="text-muted">This may take 10–30 seconds</small>
+    </div>
+  </div>
+
+  <div id="topicsResult" style="display:none;">
+    <div class="card form-card p-4 mt-4">
+      <form method="post" action="{% url 'quiz:ai_topics_generator_obj' %}">
+        {% csrf_token %}
+        <input type="hidden" name="confirm_save" value="1">
+        <input type="hidden" name="category_id" value="{{ category_id }}">
+        <input type="hidden" name="course_id" value="{{ course_id }}">
+        <input type="hidden" name="total_topics" id="total_topics_input" value="0">
+
+        <h4 class="fw-bold mb-3">Preview Generated Topics</h4>
+
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle">
+            <thead class="table-light">
+              <tr>
+                <th width="25%">Title</th>
+                <th width="75%">Description</th>
+              </tr>
+            </thead>
+            <tbody id="topicsTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="text-end mt-4">
+          <button type="submit" class="btn btn-success px-4">Save Topics</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const taskKey = "{{ task_key }}";
+    let attempts = 0;
+    const maxAttempts = 60; // 3 minutes max
+
+    const interval = setInterval(async () => {
+      attempts++;
+      if (attempts > maxAttempts) {
+        clearInterval(interval);
+        document.getElementById('pollingBox').innerHTML = `
+          <div class="text-center py-4 text-danger">
+            ❌ Timed out. Please try again.
+          </div>`;
+        return;
+      }
+
+      try {
+        const res = await fetch(`/quiz/check-ai-task/${taskKey}/`);
+        const data = await res.json();
+        console.log("Polling:", data);
+
+        if (data.status === 'done') {
+          clearInterval(interval);
+          document.getElementById('pollingBox').style.display = 'none';
+
+          const tbody = document.getElementById('topicsTableBody');
+          tbody.innerHTML = '';
+
+          data.topics.forEach((topic, index) => {
+            const i = index + 1;
+            tbody.innerHTML += `
+              <tr>
+                <td>
+                  <input type="text" name="title_${i}" value="${topic.title}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                </td>
+                <td>
+                  <textarea name="desc_${i}" rows="8" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">${topic.desc}</textarea>
+                </td>
+              </tr>`;
+          });
+
+          document.getElementById('total_topics_input').value = data.topics.length;
+          document.getElementById('topicsResult').style.display = 'block';
+
+        } else if (data.status === 'error') {
+          clearInterval(interval);
+          document.getElementById('pollingBox').innerHTML = `
+            <div class="text-center py-4 text-danger">
+              ❌ Error: ${data.message}
+            </div>`;
+        }
+
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    }, 3000);
+  </script>
+  {% endif %}
+
   <!-- PREVIEW & SAVE -->
   {% if preview_topics %}
   <div class="card form-card p-4 mt-4">
-    <form method="post">
+    <form method="post" action="{% url 'quiz:ai_topics_generator_obj' %}">
       {% csrf_token %}
       <input type="hidden" name="confirm_save" value="1">
       <input type="hidden" name="category_id" value="{{ category_id }}">

@@ -96,15 +96,23 @@ def generate_topics_task(self, prompt, task_key, is_programming=False):
     max_retries = 3
     for attempt in range(max_retries):
         try:
+            # Adjust max tokens based on number of objectives and difficulty
+            objectives_count = prompt.count("TITLE MUST BE EXACTLY")
+            if is_programming:
+                max_tok = min(4000 * objectives_count, 16000)
+            else:
+                max_tok = min(2000 * objectives_count, 16000)
+
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant that outputs only valid JSON."},
                     {"role": "user", "content": prompt},
                 ],
-                max_tokens=16000,
+                max_tokens=max_tok,
                 temperature=0
             )
+            
 
             topics_text = response.choices[0].message.content.strip()
             topics_text = clean_response(topics_text)
