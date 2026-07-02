@@ -24,6 +24,88 @@
     transition: all 0.3s ease;
   }
 
+  /* When editor is hidden, sidebar takes 100% width */
+  .editor-layout.editor-hidden .sidebar {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 !important;
+    border-right: none;
+    height: calc(100vh - 48px);
+  }
+
+  .editor-layout.editor-hidden .editor-panel {
+    display: none !important;
+  }
+
+  /* Editor Toggle Button */
+  .editor-toggle-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    background: #2ecc71;
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+    display: none;
+  }
+
+  .editor-toggle-btn:hover {
+    background: #27ae60;
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px rgba(46, 204, 113, 0.4);
+  }
+
+  .editor-toggle-btn.show {
+    display: block;
+  }
+
+  /* Editor Close Button - X in corner */
+  .editor-close-btn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 22px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 100;
+    padding: 4px 8px;
+    border-radius: 4px;
+    line-height: 1;
+  }
+
+  .editor-close-btn:hover {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.15);
+  }
+
+  /* Editor container with close button */
+  .editor-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .editor-wrapper.hidden {
+    display: none;
+  }
+
+  .editor-panel.hidden {
+    display: none !important;
+  }
+
   .toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -58,6 +140,7 @@
     border-right: 1px solid #444;
     overflow-y: auto;
     transition: all 0.3s ease;
+    flex-shrink: 0;
   }
 
   .folder-toggle {
@@ -335,6 +418,111 @@
     font-size: 0.9rem;
   }
 
+  /* Topic description - readable for non-coding courses */
+  .topic-desc-readable {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 16px 20px;
+    border-radius: 8px;
+    line-height: 1.8;
+    font-size: 15px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 500px;
+    overflow-y: auto;
+    border-left: 3px solid #4fa;
+  }
+
+  .topic-desc-readable h1, .topic-desc-readable h2, .topic-desc-readable h3 {
+    color: #fff;
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+
+  .topic-desc-readable ul, .topic-desc-readable ol {
+    padding-left: 24px;
+    margin: 8px 0;
+  }
+
+  .topic-desc-readable li {
+    margin: 4px 0;
+  }
+
+  .topic-desc-readable p {
+    margin: 8px 0;
+  }
+
+  .topic-desc-readable strong {
+    color: #4fa;
+  }
+
+  .topic-desc-readable code {
+    background: #2d2d2d;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #f8f8f2;
+  }
+
+  .topic-desc-readable pre {
+    background: #2d2d2d;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 8px 0;
+  }
+
+  .topic-desc-readable a {
+    color: #4fa;
+    text-decoration: underline;
+  }
+
+  .topic-desc-readable blockquote {
+    border-left: 3px solid #4fa;
+    padding-left: 16px;
+    margin: 8px 0;
+    color: #aaa;
+  }
+
+  /* Topic media - images and videos */
+  .topic-media {
+    margin: 12px 0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .topic-media img {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 8px;
+    display: block;
+    border: 1px solid #333;
+  }
+
+  .topic-media video {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 8px;
+    display: block;
+    border: 1px solid #333;
+  }
+
+  .topic-media iframe {
+    max-width: 100%;
+    width: 100%;
+    height: 315px;
+    border-radius: 8px;
+    border: 1px solid #333;
+  }
+
+  .topic-media-caption {
+    color: #888;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 4px;
+  }
+
   #quizProgressWrap {
     margin: 10px 0 16px;
   }
@@ -383,10 +571,24 @@
 {% endblock %}
 
 {% block header %}
-<div style="display: flex; gap: 16px;">
+<div style="display: flex; gap: 16px; align-items: center; width: 100%;">
     <a style="color: white;" href="{% url 'webprojects:create_project' %}">
         📁 {{ file.project.name }} — 📝 {{ file.name }}
     </a>
+    <button id="toggleEditorBtn" onclick="toggleEditor()" style="
+        background: #2ecc71;
+        color: #fff;
+        border: none;
+        border-radius: 20px;
+        padding: 4px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-left: auto;
+    " onmouseover="this.style.background='#27ae60'" onmouseout="this.style.background='#2ecc71'">
+        ✕ Hide Editor
+    </button>
 </div>
 {% endblock %}
 
@@ -472,7 +674,9 @@
 </div>
 
 <!-- ===== TOPICS ===== -->
-<div class="topics-container">
+ 
+<!-- ===== TOPICS ===== -->
+<div class="topics-container" style= 'user-select: None'>
   {% for topic in topics %}
     <div class="topic-item" data-topic-id="{{ topic.id }}">
       <a href="javascript:void(0);" class="topic-toggle d-flex justify-content-between align-items-center"
@@ -481,10 +685,60 @@
         <span class="toggle-icon">➕</span>
       </a>
 
-      <pre id="topic-{{ topic.id }}" class="topic-desc language-{{ topic.language|default:'python' }}" 
-           style="display:none;">
-<code class="language-{{ topic.language|default:'python' }}">{{ topic.desc|safe|escape }}</code>
-      </pre>
+      <!-- Topic description with media support -->
+      <div id="topic-{{ topic.id }}" class="topic-desc language-{{ topic.language|default:'python' }}" 
+           style="display:none; background:#ffffff; color:#000000; padding:12px; border-radius:6px;">
+
+        <!-- ✅ Topic image (if it exists) -->
+        {% if topic.img_topic %}
+          <div style="margin-bottom:12px;">
+            <img src="{{ topic.img_topic.url }}" alt="{{ topic.title }}" 
+                 style="max-width:100%; border-radius:6px; display:block;">
+          </div>
+        {% endif %}
+
+        <!-- ✅ Topic uploaded video file (if it exists) -->
+        {% if topic.video %}
+          <div style="margin-bottom:12px;">
+            <video controls style="max-width:100%; border-radius:6px; display:block;">
+              <source src="{{ topic.video.url }}">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        {% endif %}
+
+        <!-- ✅ External video URL, e.g. YouTube (if it exists) -->
+        {% if topic.topics_url %}
+          <div style="margin-bottom:12px;">
+            <div class="ratio ratio-16x9">
+              <iframe src="{{ topic.topics_url }}" 
+                      frameborder="0" allowfullscreen
+                      style="width:100%; min-height:250px; border-radius:6px;">
+              </iframe>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if topic.language|default:'python' in 'python,javascript,html,css,java,cpp,csharp,php,ruby,go,rust,sql' %}
+          <!-- Code topic - show with syntax highlighting, forced white bg / black text -->
+          <p class="language-{{ topic.language|default:'python' }}" style="background:#ffffff !important; color:#000000 !important;">{{ topic.desc|safe|escape }}</p>
+        {% else %}
+          <!-- Non-code topic - parse for images, videos, and text -->
+          {% with topic.desc|safe as desc %}
+            {% if '<img' in desc or '<video' in desc or '<iframe' in desc %}
+              <!-- Has media - render as HTML -->
+              <div style="background:#ffffff; color:#000000; padding:16px; border-radius:6px; border:1px solid #e5e5e5; white-space:normal; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size:15px; line-height:1.6; max-width:100%;">
+                {{ desc|safe }}
+              </div>
+            {% else %}
+              <!-- Plain text - render readable -->
+              <div style="background:#ffffff; color:#000000; padding:16px; border-radius:6px; border:1px solid #e5e5e5; white-space:normal; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size:15px; line-height:1.6; max-width:100%;">
+                {{ desc|linebreaks|safe }}
+              </div>
+            {% endif %}
+          {% endwith %}
+        {% endif %}
+      </div>
 
       <div class="quiz-action-row" style="margin-top:6px; display:flex; align-items:center; gap:8px;">
         <button class="quiz-btn" data-topic-id="{{ topic.id }}" data-topic-title="{{ topic.title|escapejs }}"
@@ -498,6 +752,7 @@
     <p class="text-muted">No content found for this course.</p>
   {% endfor %}
 </div>
+
 
 <!-- ===== PRISM STYLES & SCRIPTS ===== -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" rel="stylesheet"/>
@@ -708,8 +963,12 @@
 
 <!-- ===== EDITOR PANEL ===== -->
 <div class="editor-panel" style="display: flex; flex-direction: column; height: 10%;">
-  <div id="container" style="flex-grow: 1; min-height: 10px;"></div>
-  <div id="resizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
+  <div class="editor-wrapper">
+    <!-- Close button inside editor -->
+    <button class="editor-close-btn" onclick="toggleEditor()" title="Close Editor">✕</button>
+    <div id="container" style="flex-grow: 1; min-height: 10px;"></div>
+    <div id="resizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
+  </div>
 </div>
 
 <!-- ===== OUTPUT PANEL ===== -->
@@ -886,9 +1145,7 @@ async function createNewFile() {
     if (data.status === 'success') {
       showToast(`Created ${data.file_name}`, 'success');
       input.value = '';
-      // Refresh the file list dynamically
       await refreshFileList();
-      // Navigate to the new file
       window.location.href = `/webprojects/{{ project.id }}/file/${data.file_id}/`;
     } else {
       showToast(data.message || 'Failed to create file', 'error');
@@ -1065,12 +1322,78 @@ function toggleDesc(id, el, lang) {
   if(desc.style.display === "none") {
     desc.style.display = "block";
     el.querySelector(".toggle-icon").textContent = "➖";
-    const codeEl = desc.querySelector('code');
-    codeEl.className = 'language-' + lang;
-    Prism.highlightElement(codeEl);
+    
+    // Check if this is a coding topic or non-coding
+    const codeLanguages = ['python', 'javascript', 'html', 'css', 'java', 'cpp', 'csharp', 'php', 'ruby', 'go', 'rust', 'sql'];
+    const isCodeTopic = codeLanguages.includes(lang);
+    
+    if (isCodeTopic) {
+      // Code topic - use Prism highlighting
+      const codeEl = desc.querySelector('code');
+      if (codeEl) {
+        codeEl.className = 'language-' + lang;
+        Prism.highlightElement(codeEl);
+      }
+    } else {
+      // Non-code topic - make it readable with media support
+      let content = desc.innerHTML;
+      
+      // Remove code wrapper if present
+      const codeMatch = content.match(/<code[^>]*>([\s\S]*?)<\/code>/);
+      if (codeMatch) {
+        content = codeMatch[1];
+      }
+      
+      // Check if content contains HTML tags (images, videos, iframes)
+      const hasMedia = /<img|<video|<iframe/.test(content);
+      
+      desc.className = 'topic-desc-readable';
+      
+      if (hasMedia) {
+        // Content has media - render as HTML with media support
+        desc.innerHTML = content
+          .replace(/\n/g, '<br>')
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/^# (.*?)$/gm, '<h3>$1</h3>')
+          .replace(/^## (.*?)$/gm, '<h4>$1</h4>')
+          .replace(/^- (.*?)$/gm, '<li>$1</li>')
+          .replace(/^(\d+)\. (.*?)$/gm, '<li>$2</li>');
+        
+        // Wrap lists
+        if (content.includes('<li>')) {
+          const items = content.match(/<li>.*?<\/li>/g);
+          if (items) {
+            const listType = content.match(/^(\d+)\./) ? 'ol' : 'ul';
+            desc.innerHTML = `<${listType}>${items.join('')}</${listType}>`;
+          }
+        }
+      } else {
+        // Plain text - render readable
+        desc.innerHTML = content
+          .replace(/\n/g, '<br>')
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/^# (.*?)$/gm, '<h3>$1</h3>')
+          .replace(/^## (.*?)$/gm, '<h4>$1</h4>')
+          .replace(/^- (.*?)$/gm, '<li>$1</li>')
+          .replace(/^(\d+)\. (.*?)$/gm, '<li>$2</li>');
+        
+        // Wrap lists
+        if (content.includes('<li>')) {
+          const items = content.match(/<li>.*?<\/li>/g);
+          if (items) {
+            const listType = content.match(/^(\d+)\./) ? 'ol' : 'ul';
+            desc.innerHTML = `<${listType}>${items.join('')}</${listType}>`;
+          }
+        }
+      }
+    }
   } else {
     desc.style.display = "none";
     el.querySelector(".toggle-icon").textContent = "➕";
+    // Reset class
+    desc.className = 'topic-desc language-' + lang;
   }
 }
 
@@ -1084,6 +1407,57 @@ function toggleAITools() {
   } else {
     aiToolbar.style.display = "none";
     toggleBtn.textContent = "🔧 Show AI Tools";
+  }
+}
+
+// ============================================
+// TOGGLE EDITOR - HIDE/SHOW WITH X BUTTON
+// ============================================
+
+function toggleEditor() {
+  const editorPanel = document.querySelector('.editor-panel');
+  const editorLayout = document.getElementById('editorLayout');
+  const toggleBtn = document.getElementById('toggleEditorBtn');
+  const sidebar = document.querySelector('.sidebar');
+  
+  if (!editorPanel) return;
+  
+  const isHidden = editorPanel.classList.toggle('hidden');
+  editorLayout.classList.toggle('editor-hidden');
+  
+  if (isHidden) {
+    toggleBtn.innerHTML = '📝 Show Editor';
+    toggleBtn.style.background = '#3498db';
+    toggleBtn.onmouseover = function() { this.style.background = '#2980b9'; };
+    toggleBtn.onmouseout = function() { this.style.background = '#3498db'; };
+    
+    // Make sidebar 100% width
+    if (sidebar) {
+      sidebar.style.width = '100%';
+      sidebar.style.maxWidth = '100%';
+      sidebar.style.flex = '1';
+    }
+    
+    showToast('Editor hidden. Sidebar is now full width.', 'info');
+  } else {
+    toggleBtn.innerHTML = '✕ Hide Editor';
+    toggleBtn.style.background = '#2ecc71';
+    toggleBtn.onmouseover = function() { this.style.background = '#27ae60'; };
+    toggleBtn.onmouseout = function() { this.style.background = '#2ecc71'; };
+    
+    // Reset sidebar width
+    if (sidebar) {
+      sidebar.style.width = '';
+      sidebar.style.maxWidth = '';
+      sidebar.style.flex = '';
+    }
+    
+    // Re-layout editor when showing
+    setTimeout(function() {
+      if (window.editor && window.editor.layout) {
+        window.editor.layout();
+      }
+    }, 100);
   }
 }
 
@@ -1115,7 +1489,6 @@ function closeImageModal() {
 
 async function refreshFileList() {
   try {
-    // Fetch the updated file list from the server using the existing endpoint
     const res = await fetch("{% url 'webprojects:file_detail' project.id file.id %}", {
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
@@ -1127,7 +1500,6 @@ async function refreshFileList() {
       throw new Error('Failed to fetch file list');
     }
     
-    // Since the file_detail returns HTML, we need to extract the file list
     const html = await res.text();
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -1137,14 +1509,12 @@ async function refreshFileList() {
       const currentContainer = document.getElementById('fileListContainer');
       if (currentContainer) {
         currentContainer.innerHTML = newFileList.innerHTML;
-        // Re-attach folder toggle event listeners
         attachFolderToggleListeners();
         showToast('✅ Files updated!', 'success');
       }
     }
   } catch (err) {
     console.error('Error refreshing file list:', err);
-    // Fallback: reload the page
     setTimeout(() => location.reload(), 1500);
   }
 }
@@ -1221,7 +1591,6 @@ window.runAIBuild = async function() {
       outputEl.textContent += '🎨 CSS:\n' + (data.ai_content.css || '') + '\n\n';
       outputEl.textContent += '⚡ JS:\n' + (data.ai_content.js || '');
       
-      // 👇 UPDATE THE FILE LIST DYNAMICALLY WITHOUT REFRESH
       await refreshFileList();
       
       showToast('✅ Project generated! Files added to sidebar.', 'success');
@@ -1432,7 +1801,6 @@ require(['vs/editor/editor.main'], function () {
     async function autosave() {
         const content = editor.getValue();
 
-        // Skip if nothing changed or already in-flight
         if (content === lastSavedContent || isSaving) return;
 
         isSaving = true;
@@ -1474,22 +1842,18 @@ require(['vs/editor/editor.main'], function () {
         }
     }
 
-    // ── Debounce: save 2s after user stops typing ────────────────────────
     editor.onDidChangeModelContent(() => {
         clearTimeout(autosaveTimer);
         autosaveTimer = setTimeout(autosave, 2000);
     });
 
-    // ── Fallback: save every 30s regardless ─────────────────────────────
     setInterval(autosave, 30000);
 
-    // ── Ctrl+S / Cmd+S — immediate save ─────────────────────────────────
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
         clearTimeout(autosaveTimer);
         autosave();
     });
 
-    // ── Save on tab/window close ─────────────────────────────────────────
     window.addEventListener('beforeunload', (e) => {
         const content = editor.getValue();
         if (content !== lastSavedContent) {
@@ -1667,7 +2031,6 @@ function uploadFile(file) {
   .then(function(data) {
     if (data.success) {
       showToast('✅ Uploaded: ' + file.name, 'success');
-      // Refresh the file list dynamically
       setTimeout(function() { refreshFileList(); }, 500);
     } else {
       showToast('❌ Upload failed: ' + (data.error || ''), 'error');
@@ -1706,7 +2069,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (data.status === 'success') {
           form.closest('.file-item').remove();
           showToast('File deleted successfully', 'success');
-          // Refresh the file list
           refreshFileList();
         } else {
           showToast(data.message || 'Failed to delete file.', 'error');
@@ -1724,12 +2086,10 @@ document.addEventListener('DOMContentLoaded', function() {
 // FLOATING AI PANEL - DRAG & RESIZE
 // ============================================
 
-/* ================= CLOSE PANEL ================= */
 function closeAIPanel() {
   document.getElementById('floatingAI').style.display = 'none';
 }
 
-/* ================= TAB SWITCHING ================= */
 var appBuilderTab = document.getElementById('appBuilderTab');
 var fileEditorTab = document.getElementById('fileEditorTab');
 var appBuilderPanel = document.getElementById('appBuilderPanel');
@@ -1764,7 +2124,6 @@ function switchToFileEditor() {
 appBuilderTab.addEventListener('click', switchToAppBuilder);
 fileEditorTab.addEventListener('click', switchToFileEditor);
 
-/* ================= DRAG ================= */
 var panel = document.getElementById('floatingAI');
 var dragHandle = document.getElementById('dragHandle');
 
@@ -1802,7 +2161,6 @@ document.addEventListener('mouseup', function() {
   dragHandle.style.cursor = 'grab';
 });
 
-/* ================= RESIZE ================= */
 var resizeHandleAI = document.getElementById('resizeHandleAI');
 var isResizing = false;
 
