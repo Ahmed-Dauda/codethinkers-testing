@@ -29,12 +29,24 @@ def generate_topics_task(self, prompt, task_key, is_programming=False):
         if match:
             return match.group(1).strip()
         return text.strip()
-
+   
     def format_topics(topics_json):
         heading_keywords = ["include:", "are:", "must:", "consist of:", "types of", "principles of"]
         preview_topics = []
 
+        # Ensure topics_json is a list
+        if isinstance(topics_json, str):
+            try:
+                topics_json = json.loads(topics_json)
+            except json.JSONDecodeError:
+                return []
+
+        if not isinstance(topics_json, list):
+            return []
+
         for topic in topics_json:
+            if not isinstance(topic, dict):
+                continue
             description = topic.get("description", "")
             lines = description.split("\n")
             formatted_lines = []
