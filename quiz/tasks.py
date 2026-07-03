@@ -18,6 +18,13 @@ from django.core.cache import cache
 
 @shared_task(bind=True)
 def generate_topics_task(self, prompt, task_key, is_programming=False):
+    from openai import OpenAI
+    import os
+    import json
+    import re
+    import time
+    import html
+    from django.core.cache import cache
 
     client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
 
@@ -29,7 +36,7 @@ def generate_topics_task(self, prompt, task_key, is_programming=False):
         if match:
             return match.group(1).strip()
         return text.strip()
-   
+
     def format_topics(topics_json):
         heading_keywords = ["include:", "are:", "must:", "consist of:", "types of", "principles of"]
         preview_topics = []
@@ -104,7 +111,7 @@ def generate_topics_task(self, prompt, task_key, is_programming=False):
                 max_tok = min(3000 * topic_count, 100000)
             else:
                 max_tok = min(1500 * topic_count, 100000)
-                
+
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -114,7 +121,6 @@ def generate_topics_task(self, prompt, task_key, is_programming=False):
                 max_tokens=max_tok,
                 temperature=0
             )
-
 
             topics_text = response.choices[0].message.content.strip()
             topics_text = clean_response(topics_text)
@@ -130,11 +136,14 @@ def generate_topics_task(self, prompt, task_key, is_programming=False):
         except json.JSONDecodeError:
             if attempt < max_retries - 1:
                 time.sleep(1)
+                # On retry reduce token count to avoid truncation
+                max_tok = max_tok // 2
                 continue
             cache.set(task_key, {
                 'status': 'error',
-                'message': 'Failed to parse AI response after 3 attempts'
+                'message': 'Failed to parse AI response — try reducing the number of topics or simplifying objectives'
             }, timeout=600)
+            raise
 
         except Exception as e:
             cache.set(task_key, {
