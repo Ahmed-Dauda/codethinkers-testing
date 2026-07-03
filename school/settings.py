@@ -104,10 +104,8 @@ INSTALLED_APPS = [
     'certificate_stats',
      "django_fastapi",
      'instructor',
+     'django_celery_results',
 
-    
-    
-    
 # the social providers
     # 'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.google',
@@ -561,6 +559,31 @@ TINYMCE_DEFAULT_CONFIG = {
 
 TINYMCE_JS_URL = 'https://cdn.tiny.cloud/1/r5ebxl5femg5gy8yvid6alg59ohekm45qlmxptc20qeu5jgw/tinymce/6/tinymce.min.js'
 TINYMCE_COMPRESSOR = False
+
+
+# Celery settings
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = 'django-db'
+
+# Use Redis as shared cache so Celery and Django can share data
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": os.environ.get('REDIS_URL', 'redis://localhost:6379/1'),
+    }
+}
+
+CELERY_CACHE_BACKEND = 'django-cache'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+# Celery Windows fix
+import sys
+if sys.platform == 'win32':
+    CELERY_TASK_ALWAYS_EAGER = False
+    CELERY_WORKER_POOL = 'solo'
+   
+    
 
 
 # problem of hosting to heroku and solution

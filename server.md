@@ -1,9 +1,11 @@
 
 # DEPLOYMENT QUICK REFERENCE — EXAMSPOWER
 # ===========================
-
+systemctl restart codethinkers
 ahmed.dr080@gmail.com
 admin0806
+
+celery -A school worker --loglevel=info
 
 ssh root@204.168.237.20
 MyServer2026!Coolify

@@ -184,32 +184,6 @@ Production and staging are **separate Postgres databases** on the same server, u
 * Rotate any credential (API keys, DB passwords, server passwords) immediately if it's ever pasted into a chat, ticket, or shared document.
 
 
-<<<<<<< HEAD
-# Update `.env` in Production
-
-### 1. SSH into the server
-
-```bash
-ssh root@204.168.237.20
-MyServer2026!Coolify
-cd /var/www/codethinkers
-source env/bin/activate
-cat .env
-```
-### 4. Update the GitHub secret
-
-- Go to **GitHub** → **Settings** → **Secrets and variables**
-- Select the secret/variable to update
-- Save the changes
-
-### 5. Trigger deployment
-Run on your local machine:
-```bash
-git commit --allow-empty -m "Update OpenAI API key"
-git push origin main
-```
-systemctl restart codethinkers
-=======
 #  UPDATING ENV IN GITHUB
 
 # Codethinkers Staging — Environment & Deployment Reference
@@ -262,4 +236,3 @@ git commit -m "feat: your change"
 git push origin staging
 ```
 
->>>>>>> staging
