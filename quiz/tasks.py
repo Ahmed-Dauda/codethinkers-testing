@@ -98,11 +98,13 @@ def generate_topics_task(self, prompt, task_key, is_programming=False):
         try:
             # Adjust max tokens based on number of objectives and difficulty
             objectives_count = prompt.count("TITLE MUST BE EXACTLY")
+            # Use num_topics if available otherwise fall back to objectives count
+            topic_count = max(objectives_count, 10)
             if is_programming:
-                max_tok = min(4000 * objectives_count, 16000)
+                max_tok = min(3000 * topic_count, 100000)
             else:
-                max_tok = min(2000 * objectives_count, 16000)
-
+                max_tok = min(1500 * topic_count, 100000)
+                
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -112,7 +114,7 @@ def generate_topics_task(self, prompt, task_key, is_programming=False):
                 max_tokens=max_tok,
                 temperature=0
             )
-            
+
 
             topics_text = response.choices[0].message.content.strip()
             topics_text = clean_response(topics_text)

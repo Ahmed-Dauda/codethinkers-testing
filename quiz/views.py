@@ -1,3 +1,4 @@
+from celery import shared_task
 from django.conf import settings
 from django.shortcuts import render
 
@@ -121,12 +122,23 @@ from django.utils.text import slugify
 
 logger = logging.getLogger(__name__)
 from django.http import JsonResponse
-
+from .tasks import shared_task
 from openai import OpenAI
 import os
+from quiz.tasks import generate_topics_task
+from openai import OpenAI
+import os, json, time, re, html
+
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
+
+
+
+import os, json, time, re, html
+from celery import shared_task
+from openai import OpenAI
+from django.core.cache import cache
 
 
 @login_required
@@ -158,32 +170,29 @@ def ai_topics_generator_obj(request):
             transcript = request.POST.get(f"transcript_{i}", "").strip()
 
             if title and (desc or transcript):
-                # Generate slug (same logic your model uses)
-                slug = slugify(title)
-                # Don't pre-compute the slug, let the model handle it
-                topic_obj, created = Topics.objects.update_or_create(
+                Topics.objects.update_or_create(
                     courses=course_obj,
-                    title=title,  # Use title as the lookup instead
+                    title=title,
                     defaults={
                         'categories': category_obj,
                         'desc': desc,
                         'transcript': transcript
                     }
                 )
-
                 saved += 1
 
         messages.success(request, f"{saved} topics saved successfully.")
         return redirect('quiz:ai_topics_generator_obj')
 
-    # Generate topics
+    # Generate topics via Celery
     elif request.method == 'POST':
+        import uuid
+        from quiz.tasks import generate_topics_task
+
         category_id = request.POST.get('category')
         course_id = request.POST.get('course')
-        # num_topics = int(request.POST.get('num_topics', 5))
-        custom_objectives = request.POST.get('num_objectives', '').strip()  # textarea content
+        custom_objectives = request.POST.get('num_objectives', '').strip()
         difficulty = request.POST.get('difficulty', 'medium').lower()
-        # real_learning_obj = int(request.POST.get('real_learning_obj', 5))
 
         try:
             category_obj = Categories.objects.get(id=category_id)
@@ -195,30 +204,26 @@ def ai_topics_generator_obj(request):
         course_title = course_obj.title or ""
         category_title = (category_obj.name or "").lower().strip()
 
-        # Category-level learning objectives (beginner, intermediate, advanced)
-    
         category_rules = {
             "beginner": """
             Focus on foundational knowledge and understanding.
-            Use Bloom’s verbs like: define, describe, identify, recognize, explain, understand, list, recall.
+            Use Bloom's verbs like: define, describe, identify, recognize, explain, understand, list, recall.
             Objectives should be simple, clear, and practical.
             """,
             "intermediate": """
             Focus on applying, analyzing, and comparing.
-            Use Bloom’s verbs like: apply, demonstrate, analyze, differentiate, evaluate, design, implement.
+            Use Bloom's verbs like: apply, demonstrate, analyze, differentiate, evaluate, design, implement.
             Objectives should link concepts to real-world applications.
             """,
             "advanced": """
             Focus on creating, evaluating, innovating, and leading.
-            Use Bloom’s verbs like: evaluate, formulate, create, develop, propose, integrate, critique, synthesize.
+            Use Bloom's verbs like: evaluate, formulate, create, develop, propose, integrate, critique, synthesize.
             Objectives should include advanced problem-solving, case studies, and professional practice.
             """
         }
 
-
         category_instruction = category_rules.get(category_title, category_rules["intermediate"])
 
-        # --- Determine if programming ---
         programming_keywords = [
             "python", "javascript", "java", "c++", "c#", "php", "ruby", "html", "css", "sql",
             "programming", "coding", "development", "data science", "machine learning",
@@ -226,7 +231,6 @@ def ai_topics_generator_obj(request):
         ]
         is_programming = any(kw in course_title.lower() for kw in programming_keywords)
 
-        # Base prompt
         prompt = f"""
         You are a JSON-only generator.
         Generate exactly course topics for a "{course_title}" course under the "{category_title}" category.
@@ -235,7 +239,6 @@ def ai_topics_generator_obj(request):
         IMPORTANT: The "title" field in every JSON object must be copied EXACTLY from the learning objectives provided. Do not paraphrase, shorten, or rename any title.
         """
 
-        # If user provided custom objectives
         if custom_objectives:
             objectives_list = [obj.strip() for obj in custom_objectives.split("\n") if obj.strip()]
             prompt += "\nCRITICAL RULE — TITLE MUST MATCH EXACTLY:\n"
@@ -244,55 +247,45 @@ def ai_topics_generator_obj(request):
                 prompt += f"{i}. TITLE MUST BE EXACTLY: \"{obj}\"\n"
             prompt += "\nIf you change any title even slightly, your output is wrong. The title in JSON must be a copy-paste of the text above.\n"
 
-
-
         if is_programming:
-            prompt += f"""
+            prompt += """
           RULES (STRICT JSON-SAFE):
-
-            
             3. For each topic:
-           - The "description" must **strictly and completely match every word, phrase, and item in the learning objective title**. It must fully expand each part with clear definitions, detailed explanations, multiple examples, practical applications, and, where relevant, comparisons. No element from the title may be skipped or only partially covered.
-                (Example: If the title is "Explain and apply data types, variables, and operators in Python," the description must include and explain all three parts: data types, variables, and operators, not just one or two of them.)  
-            - Write "description" as **lesson-style text** with definition, explanations, examples, and applications.  
-            - Always use **double backslashes for newlines** (`\\n`).  
-            - Escape all double quotes inside strings as `\"`.  
-            - Include **at least 5 runnable code examples** (if relevant), formatted properly, each with **line-by-line comments**.  
-            - Provide **solutions** for exercises or challenges.  
-            - Include **real-world examples** where this concept applies.  
-            
+            - The "description" must strictly and completely match every word, phrase, and item in the learning objective title.
+            - Write "description" as lesson-style text with definition, explanations, examples, and applications.
+            - Always use double backslashes for newlines (\\n).
+            - Escape all double quotes inside strings as \".
+            - Include at least 5 runnable code examples (if relevant), formatted properly, each with line-by-line comments.
+            - Provide solutions for exercises or challenges.
+            - Include real-world examples where this concept applies.
 
             4. Python lessons:
             - Always format code exactly as:
-                ```python
+```python
                 def sample_function():
                     return "Example"  # This function returns the string "Example"
-
                 print(sample_function())  # This line prints the result of the function
-                ```
-            - Every line of code must have a **comment below it**, explaining what it does.
+```
+            - Every line of code must have a comment below it, explaining what it does.
 
             5. HTML or web-related lessons:
-            - The "description" field must **never contain raw HTML tags**.  
-            - Detect and **escape all HTML tags** (`<div>` → `&lt;div&gt;`).  
-            - Only include the **full HTML structure** (`&lt;!DOCTYPE html&gt; ... &lt;/html&gt;`) if the lesson requires a complete page.  
+            - The "description" field must never contain raw HTML tags.
+            - Detect and escape all HTML tags (<div> → &lt;div&gt;).
+            - Only include the full HTML structure if the lesson requires a complete page.
             - Otherwise, show just the snippet wrapped inside:
                 <pre><code class="language-html"> ... </code></pre>
 
             6. Output format:
-            - A single valid **JSON array** of objects.  
-            - Each object must have exactly 2 keys:  
-                - "title"  
-                - "description"  
-            - Do not include any extra text outside the JSON.  
-            - Always escape special characters:  
-                - Newlines → `\\n`  
-                - Double quotes → `\"`  
-                - Tabs → `\\t`
-
-        """
+            - A single valid JSON array of objects.
+            - Each object must have exactly 2 keys: "title" and "description"
+            - Do not include any extra text outside the JSON.
+            - Always escape special characters:
+                - Newlines → \\n
+                - Double quotes → \"
+                - Tabs → \\t
+            """
         else:
-            prompt += f"""
+            prompt += """
         RULES:
         2. Generate topics with exactly 5 paragraphs per description:
         - Paragraphs must be substantial, coherent, and instructor-ready.
@@ -302,131 +295,35 @@ def ai_topics_generator_obj(request):
         3. Output: single valid JSON array of objects with keys "title" and "description" only, separated by \\n.
         """
 
-        def clean_response(text):
-            if text.startswith("```"):
-                text = text.strip("`")
-                text = text.lstrip("json").strip()
-            import re
-            match = re.search(r"(\[.*\])", text, re.DOTALL)
-            if match:
-                return match.group(1).strip()
-            return text.strip()
-
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant that outputs only valid JSON."},
-                        {"role": "user", "content": prompt},
-                    ],
-                    max_tokens=16000,
-                    temperature=0
-                )
-               
-
-                if not response.choices:
-                    messages.error(request, "OpenAI returned no content.")
-                    return redirect('quiz:ai_topics_generator_obj')
-
-                topics_text = response.choices[0].message.content.strip()
-                topics_text = clean_response(topics_text)
-
-                topics_json = json.loads(topics_text)
-                break  # Success
-
-            except json.JSONDecodeError as e:
-                if attempt < max_retries - 1:
-                    time.sleep(1)
-                    continue
-                else:
-                    messages.error(request, f"Failed to parse AI JSON output after {max_retries} attempts. Error: {e}")
-                    return redirect('quiz:ai_topics_generator_obj')
-            except Exception as e:
-                messages.error(request, f"OpenAI error: {str(e)}")
-                return redirect('quiz:ai_topics_generator_obj')
-
-        preview_topics = []
-        heading_keywords = ["include:", "are:", "must:", "consist of:", "types of", "principles of"]
-
-        import html 
-
-        for topic in topics_json:
-            description = topic.get("description", "")
-            lines = description.split("\n")
-
-            formatted_lines = []
-            in_code_block = False
-            current_lang = ""
-
-            for line in lines:
-                stripped = line.strip()
-
-                # Fenced code block start
-                if stripped.startswith("```") and not in_code_block:
-                    in_code_block = True
-                    current_lang = stripped.replace("```", "").strip().lower()
-                    lang_class = f' class="language-{current_lang}"' if current_lang else ""
-                    formatted_lines.append(f"<pre><code{lang_class}>")
-                    continue
-
-                # Fenced code block end
-                elif stripped.startswith("```") and in_code_block:
-                    in_code_block = False
-                    current_lang = ""
-                    formatted_lines.append("</code></pre>")
-                    continue
-
-                # Already wrapped <pre><code> from AI output
-                elif stripped.startswith("<pre><code"):
-                    in_code_block = True
-                    formatted_lines.append(stripped)
-                    continue
-
-                elif stripped.startswith("</code></pre>"):
-                    in_code_block = False
-                    formatted_lines.append(stripped)
-                    continue
-
-                # Inside *any* code block → escape HTML
-                if in_code_block:
-                    formatted_lines.append(html.escape(line))
-
-                else:
-                    # Outside code blocks → escape ALL tags first
-                    safe_line = html.escape(stripped)
-
-                    # Then apply formatting rules
-                    if any(keyword.lower() in stripped.lower() for keyword in heading_keywords):
-                        formatted_lines.append(f"<h3>{safe_line}</h3>")
-                    elif stripped:
-                        formatted_lines.append(f"<p>{safe_line}</p>")
-
-            formatted_desc = "\n".join(formatted_lines)
-
-            preview_topics.append({
-                    "title": topic.get("title", ""),
-                    "desc": formatted_desc,
-                    "transcript": ""
-                })
-
+        # Fire Celery task
+        task_key = f"ai_topics_{uuid.uuid4().hex}"
+        generate_topics_task.delay(prompt, task_key, is_programming)
 
         return render(request, 'quiz/dashboard/ai_topics_generator_obj.html', {
             'categories': categories,
             'courses': courses,
-            'preview_topics': preview_topics,
+            'task_key': task_key,
+            'polling': True,
             'category_id': category_id,
             'course_id': course_id,
-            # 'num_objectives': len(objectives_list) if custom_objectives else 5,  # default
         })
 
     # GET request
     return render(request, 'quiz/dashboard/ai_topics_generator_obj.html', {
         'categories': categories,
         'courses': courses,
-        # 'num_objectives': 5,  # default for GET
     })
+                
+
+# quiz/views.py
+from django.core.cache import cache
+from django.http import JsonResponse
+
+def check_ai_task(request, task_key):
+    result = cache.get(task_key)
+    if not result:
+        return JsonResponse({'status': 'pending'})
+    return JsonResponse(result)
 
 
 
