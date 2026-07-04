@@ -1096,7 +1096,7 @@
       🏗️ Build Project
     </button>
     <button id="fileEditorTab" class="ai-tab" style="flex:1; padding:12px 20px; border:none; background:none; cursor:pointer; border-bottom:3px solid transparent; font-size:15px; color:#666; transition:all 0.2s;">
-    Edit 📝 {{ file.name }} 
+      📝 Edit Current File
     </button>
   </div>
 
@@ -1119,6 +1119,15 @@
   <div id="resizeHandleAI" style="height:6px; cursor: row-resize; background:#ccc;"></div>
 </div>
 
+<!-- ===== AI SUGGESTION MODAL ===== -->
+<!-- <div id="aiModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#2d2d2d; color:#fff; padding:20px; border-radius:8px; z-index:1000; max-width:80%; box-shadow:0 0 10px #000;">
+  <h3>💡 AI Suggestion Preview</h3>
+  <pre id="aiModalContent" style="max-height:400px; overflow-y:auto; white-space:pre-wrap; background:#1e1e1e; padding:10px; border:1px solid #444;"></pre>
+  <div style="text-align:right; margin-top:10px;">
+    <button onclick="insertSuggestionFromModal()" style="background:#2ecc71; color:white; padding:6px 12px; border:none; border-radius:4px;">Insert</button>
+    <button onclick="closeAIModal()" style="background:#e74c3c; color:white; padding:6px 12px; border:none; border-radius:4px; margin-left:8px;">Cancel</button>
+  </div>
+</div> -->
 
 <!-- ===== TOAST MESSAGE ===== -->
 <div id="toastMessage"></div>

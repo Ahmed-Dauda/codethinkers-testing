@@ -1,704 +1,445 @@
+{% extends 'sms/dashboard/base.html' %}
 {% load hitcount_tags %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Course Details</title>
 
-  <!-- Bootstrap (needed for accordion/collapse behavior used below) -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.min.js"></script>
+{% block title %} Course Details {% endblock %}
 
-  <!-- Font Awesome (needed for fas fa-* icons used throughout) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
+{% block content %}  
 <style>
-  /* ===== ROOT VARIABLES ===== */
   :root {
-    --primary: #1a56db;
-    --primary-light: #e8effd;
-    --primary-dark: #1e3a8a;
-    --secondary: #3b82f6;
-    --accent: #2563eb;
-    --white: #ffffff;
-    --light: #f8fafc;
-    --dark: #0f172a;
-    --gray: #64748b;
-    --gray-light: #e2e8f0;
-    --success: #059669;
-    --warning: #d97706;
-    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    --hover-shadow: 0 4px 12px rgba(26, 86, 219, 0.12);
-    --border-radius: 10px;
-    --transition: all 0.2s ease;
+    --primary: #7890f9;
+    --secondary: #5660ed;
+    --accent: #151516;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --success: #4cc9f0;
+    --warning: #f72585;
+    --gray: #6c757d;
+    --light-gray: #e9ecef;
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --hover-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
   }
-
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: var(--light);
-    color: var(--dark);
-    line-height: 1.6;
-    margin: 0;
-  }
-
+  
   .course-hero {
-    background: var(--white);
-    padding: 2.5rem 2rem;
-    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    background: rgb(244, 242, 240);
+    color: rgb(16, 1, 1);
+    padding: 2.5rem 1.5rem;
+    border-radius: 0 0 20px 20px;
     margin-bottom: 2rem;
     box-shadow: var(--card-shadow);
-    border-bottom: 3px solid var(--primary);
   }
-
+  
   .course-header {
     display: flex;
     align-items: center;
     margin-bottom: 1.5rem;
   }
-
+  
   .instructor-img {
-    width: 56px;
-    height: 56px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     object-fit: cover;
-    margin-right: 1rem;
-    border: 2px solid var(--primary-light);
+    margin-right: 15px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
   }
-
-  .instructor-info h6 {
-    font-weight: 600;
-    color: var(--dark);
-    margin-bottom: 0;
+  
+  .instructor-info {
+    flex: 1;
   }
-
-  .instructor-info small {
-    color: var(--gray);
-    font-size: 0.85rem;
-  }
-
+  
   .course-title {
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 700;
-    color: var(--dark);
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     line-height: 1.2;
   }
-
+  
   .enrollment-count {
-    background: var(--primary-light);
-    color: var(--primary);
-    padding: 0.3rem 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.4rem 1rem;
     border-radius: 50px;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     display: inline-block;
     margin-bottom: 1rem;
-    font-weight: 500;
   }
-
+  
   .pricing-badge {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     font-weight: 700;
-    color: var(--dark);
     margin: 1rem 0;
-    padding: 0.5rem 1.2rem;
-    background: var(--primary-light);
+    padding: 0.6rem 1.2rem;
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 8px;
     display: inline-block;
   }
-
-  .pricing-badge .price {
-    color: var(--primary);
-  }
-
+  
   .category-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.6rem;
-    margin: 1rem 0;
+    gap: 0.8rem;
+    margin: 1.2rem 0;
   }
-
+  
   .category-tag {
-    background: var(--light);
-    color: var(--gray);
-    padding: 0.3rem 1rem;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.4rem 1rem;
     border-radius: 50px;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     display: flex;
     align-items: center;
-    border: 1px solid var(--gray-light);
   }
-
+  
   .category-tag i {
     margin-right: 0.5rem;
-    color: var(--primary);
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
-
+  
   .course-description {
-    font-size: 1.05rem;
-    line-height: 1.7;
-    color: var(--dark);
+    font-size: 1.1rem;
+    line-height: 1.6;
     margin-bottom: 1.5rem;
     max-width: 800px;
   }
-
+  
   .cta-container {
-    margin: 1.5rem 0 0.5rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    align-items: center;
+    margin: 2rem 0 1rem;
   }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.7rem 1.8rem;
-    font-weight: 600;
-    font-size: 0.95rem;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: var(--transition);
-    text-decoration: none;
-    font-family: inherit;
-  }
-
+  
   .btn-primary {
-    background: var(--primary);
-    color: var(--white);
-    box-shadow: 0 2px 8px rgba(26, 86, 219, 0.25);
+    background: var(--accent);
+    border: none;
+    padding: 0.8rem 2rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(114, 9, 183, 0.3);
   }
-
+  
   .btn-primary:hover {
-    background: var(--primary-dark);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(26, 86, 219, 0.35);
-    color: var(--white);
-    text-decoration: none;
+    background: #5a08a0;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(114, 9, 183, 0.4);
   }
-
-  .btn-outline {
-    background: transparent;
-    color: var(--primary);
-    border: 2px solid var(--primary);
-  }
-
-  .btn-outline:hover {
-    background: var(--primary-light);
-    color: var(--primary-dark);
-    transform: translateY(-1px);
-    text-decoration: none;
-  }
-
-  .btn i {
-    font-size: 0.9rem;
-  }
-
+  
   .section-card {
-    background: var(--white);
-    border-radius: var(--border-radius);
+    background: white;
+    border-radius: 12px;
     box-shadow: var(--card-shadow);
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
     overflow: hidden;
-    transition: var(--transition);
-    border: 1px solid var(--gray-light);
+    transition: all 0.3s ease;
   }
-
+  
   .section-card:hover {
     box-shadow: var(--hover-shadow);
   }
-
+  
   .section-header {
-    padding: 1.2rem 1.5rem;
-    border-bottom: 1px solid var(--gray-light);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--light-gray);
     font-weight: 700;
     color: var(--dark);
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     display: flex;
     align-items: center;
-    background: var(--light);
   }
-
+  
   .section-header i {
-    margin-right: 0.75rem;
+    margin-right: 0.8rem;
     color: var(--primary);
-    font-size: 1.1rem;
   }
-
+  
   .section-body {
     padding: 1.5rem;
   }
-
+  
   .read-more-toggle {
     color: var(--primary);
     font-weight: 600;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    margin-top: 0.75rem;
-    text-decoration: none;
-    font-size: 0.9rem;
+    margin-top: 1rem;
   }
-
-  .read-more-toggle:hover {
-    color: var(--primary-dark);
-    text-decoration: none;
-  }
-
+  
   .read-more-toggle i {
     margin-left: 0.5rem;
     transition: transform 0.3s ease;
   }
-
+  
   .read-more-toggle[aria-expanded="true"] i {
     transform: rotate(180deg);
   }
-
+  
   .prerequisites-list {
     list-style: none;
     padding: 0;
-    margin: 0;
   }
-
+  
   .prerequisites-list li {
-    padding: 0.6rem 0;
-    border-bottom: 1px solid var(--gray-light);
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--light-gray);
     display: flex;
     align-items: center;
   }
-
+  
   .prerequisites-list li:last-child {
     border-bottom: none;
   }
-
+  
   .prerequisites-list li i {
     color: var(--success);
-    margin-right: 0.8rem;
+    margin-right: 1rem;
   }
-
+  
   .prerequisites-list a {
     color: var(--dark);
     text-decoration: none;
-    transition: var(--transition);
+    transition: color 0.2s ease;
   }
-
+  
   .prerequisites-list a:hover {
     color: var(--primary);
-    text-decoration: underline;
   }
-
+  
   .benefits-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
   }
-
+  
   .benefit-card {
     background: var(--light);
-    border-radius: 8px;
-    padding: 1.2rem 1.5rem;
+    border-radius: 10px;
+    padding: 1.5rem;
     display: flex;
     align-items: center;
-    transition: var(--transition);
-    border: 1px solid var(--gray-light);
+    transition: all 0.3s ease;
   }
-
+  
   .benefit-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--hover-shadow);
-    border-color: var(--primary);
+    transform: translateY(-3px);
+    box-shadow: var(--card-shadow);
   }
-
+  
   .benefit-icon {
     background: var(--primary);
-    color: var(--white);
-    width: 42px;
-    height: 42px;
+    color: white;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 1.2rem;
     margin-right: 1rem;
     flex-shrink: 0;
   }
-
+  
   .learning-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.2rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
   }
-
+  
   .learning-card {
     background: var(--light);
-    border-radius: 8px;
-    padding: 1.2rem 1.5rem;
-    transition: var(--transition);
-    border: 1px solid var(--gray-light);
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
   }
-
+  
   .learning-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--hover-shadow);
-    border-color: var(--primary);
+    transform: translateY(-3px);
+    box-shadow: var(--card-shadow);
   }
-
+  
   .learning-card-header {
     font-weight: 600;
-    font-size: 1rem;
-    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
     color: var(--primary);
     display: flex;
     align-items: center;
   }
-
+  
   .learning-card-header i {
-    margin-right: 0.6rem;
+    margin-right: 0.8rem;
   }
-
+  
   .learning-item {
     display: flex;
     align-items: flex-start;
-    margin-bottom: 0.6rem;
-    font-size: 0.95rem;
+    margin-bottom: 1rem;
   }
-
-  .learning-item:last-child {
-    margin-bottom: 0;
-  }
-
+  
   .learning-item i {
     color: var(--success);
-    margin-right: 0.6rem;
+    margin-right: 0.8rem;
     margin-top: 0.2rem;
     flex-shrink: 0;
   }
-
+  
   .skill-badge {
     display: inline-block;
-    background: var(--primary-light);
+    background: rgba(67, 97, 238, 0.1);
     color: var(--primary);
-    padding: 0.3rem 0.9rem;
+    padding: 0.4rem 1rem;
     border-radius: 50px;
-    margin: 0 0.4rem 0.4rem 0;
-    font-size: 0.8rem;
-    font-weight: 500;
+    margin: 0 0.5rem 0.5rem 0;
+    font-size: 0.9rem;
   }
-
+  
   .accordion-button {
     font-weight: 600;
-    padding: 1rem 1.5rem;
-    color: var(--dark);
-    background: transparent;
-    border: none;
-    width: 100%;
-    text-align: left;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: var(--transition);
-  }
-
-  .accordion-button:hover {
-    background: var(--light);
-  }
-
-  .accordion-button:not(.collapsed) {
-    background: var(--primary-light);
-    color: var(--primary);
-  }
-
-  .accordion-button::after {
-    content: '\f078';
-    font-family: 'Font Awesome 5 Free';
-    font-weight: 900;
-    font-size: 0.8rem;
-    color: var(--gray);
-    transition: transform 0.3s ease;
-  }
-
-  .accordion-button:not(.collapsed)::after {
-    transform: rotate(180deg);
-    color: var(--primary);
-  }
-
-  .card {
-    border: 1px solid var(--gray-light);
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-  }
-
-  .card:last-child {
-    margin-bottom: 0;
-  }
-
-  .card-body {
     padding: 1.2rem 1.5rem;
     color: var(--dark);
   }
-
-  .review-card {
-    border: 1px solid var(--gray-light);
-    border-radius: 8px;
-    transition: var(--transition);
-    overflow: hidden;
-    height: 100%;
-    background: var(--white);
+  
+  .accordion-button:not(.collapsed) {
+    background-color: rgba(67, 97, 238, 0.05);
+    color: var(--primary);
   }
-
+  
+  .accordion-button::after {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%234361ee'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+  }
+  
+  .accordion-button:not(.collapsed)::after {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%234361ee'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+  }
+  
+  .review-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+  
   .review-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: var(--hover-shadow);
   }
-
+  
   .review-avatar {
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
     object-fit: cover;
     margin: 0 auto;
-    border: 2px solid var(--primary-light);
+    border: 3px solid var(--light-gray);
   }
-
+  
   .rating-stars {
-    color: #f59e0b;
+    color: #ffc107;
     margin: 0.5rem 0;
-    font-size: 0.9rem;
   }
-
+  
   .related-courses-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1.2rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
   }
-
+  
   .related-course-card {
-    border: 1px solid var(--gray-light);
-    border-radius: 8px;
-    transition: var(--transition);
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
     overflow: hidden;
-    background: var(--white);
   }
-
+  
   .related-course-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-5px);
     box-shadow: var(--hover-shadow);
-    border-color: var(--primary);
   }
-
+  
   .course-image {
-    height: 150px;
+    height: 160px;
     object-fit: cover;
-    width: 100%;
   }
-
+  
   .course-provider {
     display: flex;
     align-items: center;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.8rem;
   }
-
+  
   .provider-logo {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     object-fit: cover;
-    margin-right: 0.6rem;
+    margin-right: 0.8rem;
   }
-
+  
   .course-price {
     font-weight: 700;
     color: var(--primary);
   }
-
-  .course-price.free {
-    color: var(--success);
-  }
-
-  .btn-outline-primary {
-    background: transparent;
-    color: var(--primary);
-    border: 2px solid var(--primary);
-    padding: 0.5rem 1.2rem;
-    font-weight: 600;
-    border-radius: 6px;
-    transition: var(--transition);
-    display: inline-block;
-    text-align: center;
-    width: 100%;
-    font-size: 0.9rem;
-  }
-
-  .btn-outline-primary:hover {
-    background: var(--primary);
-    color: var(--white);
-    text-decoration: none;
-  }
-
-  .certificate-img {
-    max-width: 100%;
-    border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    margin: 1rem 0;
-  }
-
+  
   .fixed-bottom-cta {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--white);
-    box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.08);
-    padding: 0.8rem 1.5rem;
+    background: white;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+    padding: 1rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     transform: translateY(100%);
     transition: transform 0.3s ease;
     z-index: 1000;
-    border-top: 2px solid var(--primary-light);
   }
-
+  
   .fixed-bottom-cta.show {
     transform: translateY(0);
   }
-
-  .fixed-bottom-cta h5 {
-    font-weight: 600;
-    color: var(--dark);
-    margin-bottom: 0;
-    font-size: 1rem;
-  }
-
+  
   .fixed-price {
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     color: var(--primary);
   }
-
-  .fixed-actions {
-    display: flex;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-    align-items: center;
+  
+  .certificate-img {
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+    margin: 1.5rem 0;
   }
-
+  
   @media (max-width: 768px) {
-    .course-hero {
-      padding: 1.5rem 1rem;
-    }
-
     .course-title {
-      font-size: 1.5rem;
+      font-size: 1.8rem;
     }
-
+    
     .benefits-grid,
     .learning-grid,
     .related-courses-grid {
       grid-template-columns: 1fr;
     }
-
+    
     .fixed-bottom-cta {
       flex-direction: column;
       text-align: center;
-      gap: 0.6rem;
-      padding: 0.8rem 1rem;
+      gap: 1rem;
     }
-
-    .fixed-actions {
-      justify-content: center;
-    }
-
-    .cta-container {
+    
+    .header-container {
       flex-direction: column;
-      align-items: stretch;
+      align-items: flex-start;
     }
-
-    .btn {
-      justify-content: center;
-    }
-
-    .section-header {
-      font-size: 1rem;
-      padding: 1rem;
-    }
-
-    .section-body {
-      padding: 1rem;
+    
+    .instructor-info {
+      margin-top: 1rem;
     }
   }
-
-  @media (max-width: 480px) {
-    .course-header {
-      flex-direction: column;
-      text-align: center;
-    }
-
-    .instructor-img {
-      margin-right: 0;
-      margin-bottom: 0.5rem;
-    }
-
-    .category-tags {
-      justify-content: center;
-    }
-
-    .pricing-badge {
-      text-align: center;
-      display: block;
-    }
-  }
-
-  .spinner-border-sm {
-    width: 1rem;
-    height: 1rem;
-    border-width: 0.15em;
-  }
-
-  .text-muted {
-    color: var(--gray);
-  }
-
-  .text-success {
-    color: var(--success);
-  }
-
-  .mt-2 { margin-top: 0.5rem; }
-  .mt-3 { margin-top: 1rem; }
-  .mb-0 { margin-bottom: 0; }
-  .mb-2 { margin-bottom: 0.5rem; }
-  .mb-3 { margin-bottom: 1rem; }
-  .mr-1 { margin-right: 0.25rem; }
-  .mr-2 { margin-right: 0.5rem; }
-  .ml-3 { margin-left: 1rem; }
-  .d-flex { display: flex; }
-  .align-items-center { align-items: center; }
-  .flex-wrap { flex-wrap: wrap; }
-  .gap-2 { gap: 0.5rem; }
-  .gap-3 { gap: 1rem; }
-  .text-center { text-align: center; }
-  .btn-block { width: 100%; }
-  .card-img-top { border-radius: 8px 8px 0 0; }
-  .card-body { padding: 1rem; }
-  .card-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; }
-  .card-text { font-size: 0.95rem; color: var(--gray); }
-  .h-100 { height: 100%; }
-  .row { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.2rem; }
-  .col-md-6, .col-lg-4 { width: 100%; }
 </style>
-</head>
-<body>
 
-<!-- ===== COURSE HERO ===== -->
 <div class="course-hero">
   <div class="course-header">
     {% if object.course_logo.url %}
@@ -708,7 +449,7 @@
     {% endif %}
     
     <div class="instructor-info">
-      <h6>{{ object.course_owner|default:"Codethinkers Academy"|safe }}</h6>
+      <h6 class="mb-0">{{ object.course_owner|default:"Codethinkers Academy"|safe }}</h6>
       <small>Course Instructor</small>
     </div>
   </div>
@@ -716,7 +457,7 @@
   <h1 class="course-title">{{ object.title|safe }}</h1>
   
   <div class="enrollment-count">
-    <i class="fas fa-users"></i>
+    <i class="fas fa-users mr-1"></i>
     {% get_hit_count for object as hit_count %}
     {{ hit_count|add:100 }}+ students enrolled
   </div>
@@ -725,7 +466,7 @@
     <div class="pricing-badge">Premium Course</div>
   {% else %}
     {% if object.status_type == 'Premium' %}
-      <div class="pricing-badge">{{ object.status_type|safe }} | <span class="price">&#8358;{{ object.price|safe|floatformat:"0g" }}</span></div>
+      <div class="pricing-badge">{{ object.status_type|safe }} | &#8358;{{ object.price|safe|floatformat:"0g" }}</div>
     {% else %}
       <div class="pricing-badge">{{ object.status_type|safe }}</div>
     {% endif %}
@@ -743,35 +484,39 @@
   <p class="course-description">{{ object.desc|truncatechars:300|safe }}</p>
   
   <div class="cta-container">
-    {% if course.status_type == 'Free' or related_payments %}
-      <a onclick="createEditorProject('{{ course.id }}', '{{ course.title|escapejs }}')" href="javascript:void(0)" class="btn btn-primary">
-        <i class="fas fa-robot"></i> AI Coding Assistant
+    {% if course.status_type == 'Free' %}
+      <a href="{% url 'sms:topicslistview' course.id %}" class="btn btn-primary">
+        <i class="fas fa-play-circle mr-2"></i>Start Learning|  <a onclick="createEditorProject('{{ course.id }}', '{{ course.title }}')" href="javascript:void(0)" class="awesome-link">🚀 AI Coding Assistant</a>
+      </a>
+    {% elif related_payments %}
+      <a href="{% url 'sms:topicslistview' course.id %}" class="btn btn-primary">
+        <i class="fas fa-play-circle mr-2"></i>Continue Learning
       </a>
     {% elif associated_schools %}
       {% for school in associated_schools %}
         {% if school.school_name == school_name %}
-          <a onclick="createEditorProject('{{ course.id }}', '{{ course.title|escapejs }}')" href="javascript:void(0)" class="btn btn-primary">
-            <i class="fas fa-robot"></i> AI Coding Assistant
+          <a href="{% url 'sms:topicslistview' course.id %}" class="btn btn-primary">
+            <i class="fas fa-play-circle mr-2"></i>Start Learning
           </a>
         {% else %}
           <a href="{% url 'sms:course' course.id %}" class="btn btn-primary">
-            <i class="fas fa-lock"></i> Enroll Now
+            <i class="fas fa-lock mr-2"></i>Enroll Now
           </a>
         {% endif %}
       {% endfor %}
     {% else %}
       <a href="{% url 'sms:course' course.id %}" class="btn btn-primary">
-        <i class="fas fa-lock"></i> Enroll Now
+        <i class="fas fa-lock mr-2"></i>Enroll Now
       </a>
     {% endif %}
   </div>
 </div>
 
-<!-- ===== MAIN CONTENT ===== -->
 <div class="container">
+  <!-- About Course Section -->
   <div class="section-card">
     <div class="section-header">
-      <i class="fas fa-info-circle"></i> About This Course
+      <i class="fas fa-info-circle"></i>About This Course
     </div>
     <div class="section-body">
       <p>{{ object.desc|linebreaksbr|truncatechars:200|safe }}</p>
@@ -779,16 +524,17 @@
         <p>{{ object.desc|linebreaksbr|safe }}</p>
       </div>
       <a data-toggle="collapse" href="#courseDescription" class="read-more-toggle" aria-expanded="false" aria-controls="courseDescription">
-        <span class="collapsed">Read more</span>
+        <span class="collapsed">Show more</span>
         <span class="expanded">Show less</span>
         <i class="fas fa-chevron-down"></i>
       </a>
     </div>
   </div>
 
+  <!-- Prerequisites Section -->
   <div class="section-card">
     <div class="section-header">
-      <i class="fas fa-clipboard-list"></i> Course Prerequisites
+      <i class="fas fa-clipboard-list"></i>Course Prerequisites
     </div>
     <div class="section-body">
       {% if prerequisites %}
@@ -801,14 +547,15 @@
           {% endfor %}
         </ul>
       {% else %}
-        <p class="text-muted">No prerequisites required for this course.</p>
+        <p class="text-muted">No prerequisites for this course.</p>
       {% endif %}
     </div>
   </div>
 
+  <!-- Benefits Section -->
   <div class="section-card">
     <div class="section-header">
-      <i class="fas fa-star"></i> Course Benefits
+      <i class="fas fa-star"></i>Course Benefits
     </div>
     <div class="section-body">
       <div class="benefits-grid">
@@ -840,12 +587,13 @@
     </div>
   </div>
 
+  <!-- Instructor Section -->
   <div class="section-card">
     <div class="section-header">
-      <i class="fas fa-user-tie"></i> About the Instructor
+      <i class="fas fa-user-tie"></i>About the Instructor
     </div>
     <div class="section-body">
-      <div class="d-flex align-items-center mb-3">
+      <div class="d-flex align-items-center mb-4">
         {% if object.course_logo.url %}
           <img class="instructor-img" src="{{ object.course_logo.url }}" alt="Instructor"> 
         {% else %}
@@ -885,19 +633,20 @@
     </div>
   </div>
 
+  <!-- Learning Objectives Section -->
   <div class="section-card">
     <div class="section-header">
-      <i class="fas fa-bullseye"></i> What You'll Learn
+      <i class="fas fa-bullseye"></i>What You'll Learn
     </div>
     <div class="section-body">
       <div class="learning-grid">
         <div class="learning-card">
           <div class="learning-card-header">
-            <i class="fas fa-brain"></i> Knowledge
+            <i class="fas fa-brain"></i>Knowledge
           </div>
           {% for obj in whatyouwilllearn %}
             <div class="learning-item">
-              <i class="fas fa-check"></i>
+              <i class="fas fa-check text-success"></i>
               <div>{{ obj.desc|safe }}</div>
             </div>
           {% empty %}
@@ -907,11 +656,11 @@
         
         <div class="learning-card">
           <div class="learning-card-header">
-            <i class="fas fa-tools"></i> Skills
+            <i class="fas fa-tools"></i>Skills
           </div>
           {% for category in skillyouwillgain %}
             <div class="learning-item">
-              <i class="fas fa-check"></i>
+              <i class="fas fa-check text-success"></i>
               <div>{{ category.title|safe }}</div>
             </div>
           {% empty %}
@@ -921,11 +670,11 @@
         
         <div class="learning-card">
           <div class="learning-card-header">
-            <i class="fas fa-project-diagram"></i> Projects
+            <i class="fas fa-project-diagram"></i>Projects
           </div>
           {% for category in whatyouwillbuild %}
             <div class="learning-item">
-              <i class="fas fa-check"></i>
+              <i class="fas fa-check text-success"></i>
               <div>{{ category.desc|safe }}</div>
             </div>
           {% empty %}
@@ -936,14 +685,15 @@
     </div>
   </div>
 
+  <!-- FAQ Section -->
   <div class="section-card">
     <div class="section-header">
-      <i class="fas fa-question-circle"></i> Frequently Asked Questions
+      <i class="fas fa-question-circle"></i>Frequently Asked Questions
     </div>
     <div class="section-body">
       <div class="accordion" id="faqAccordion">
         {% for faq in faqs %}
-          <div class="card">
+          <div class="card mb-2">
             <div class="card-header p-0" id="faqHeading{{ faq.id }}">
               <h2 class="mb-0">
                 <button class="accordion-button collapsed" type="button" data-toggle="collapse" data-target="#faqCollapse{{ faq.id }}" aria-expanded="false" aria-controls="faqCollapse{{ faq.id }}">
@@ -962,14 +712,15 @@
     </div>
   </div>
 
+  <!-- Career Opportunities Section -->
   <div class="section-card">
     <div class="section-header">
-      <i class="fas fa-briefcase"></i> Career Opportunities
+      <i class="fas fa-briefcase"></i>Career Opportunities
     </div>
     <div class="section-body">
       <div class="accordion" id="careerAccordion">
         {% for obj in careeropportunities %}
-          <div class="card">
+          <div class="card mb-2">
             <div class="card-header p-0" id="careerHeading{{ forloop.counter }}">
               <h2 class="mb-0">
                 <button class="accordion-button collapsed" type="button" data-toggle="collapse" data-target="#careerCollapse{{ forloop.counter }}" aria-expanded="false" aria-controls="careerCollapse{{ forloop.counter }}">
@@ -988,9 +739,10 @@
     </div>
   </div>
 
+  <!-- Certificate Section -->
   <div class="section-card">
     <div class="section-header">
-      <i class="fas fa-award"></i> Shareable Certificate
+      <i class="fas fa-award"></i>Shareable Certificate
     </div>
     <div class="section-body text-center">
       <img src="https://iili.io/dwR2F3b.png" class="certificate-img" alt="Certificate">
@@ -998,14 +750,15 @@
     </div>
   </div>
 
+  <!-- Reviews Section -->
   <div class="section-card">
     <div class="section-header">
-      <i class="fas fa-star"></i> Learners' Reviews
+      <i class="fas fa-star"></i>Learners' Reviews
     </div>
     <div class="section-body">
       <div class="row">
         {% for obj in courseLearnerReviews %}
-          <div class="col-md-6 col-lg-4">
+          <div class="col-md-6 col-lg-4 mb-4">
             <div class="review-card card h-100">
               <div class="card-body text-center">
                 <img src="/static/sms/images/blankavater.png" class="review-avatar mb-3" />
@@ -1026,9 +779,10 @@
     </div>
   </div>
 
+  <!-- Related Courses Section -->
   <div class="section-card">
     <div class="section-header">
-      <i class="fas fa-book"></i> Related Courses
+      <i class="fas fa-book"></i>Related Courses
     </div>
     <div class="section-body">
       <div class="related-courses-grid">
@@ -1050,17 +804,17 @@
               </div>
               
               {% if obj.status_type == 'Premium' %}
-                <div class="course-price">&#8358;{{ obj.price|safe }}</div>
+                <div class="course-price">{{ obj.status_type|safe }} | &#8358;{{ obj.price|safe }}</div>
               {% else %}
-                <div class="course-price free">{{ obj.status_type|safe }}</div>
+                <div class="course-price text-success">{{ obj.status_type|safe }}</div>
               {% endif %}
               
-              <div class="d-flex flex-wrap mt-2">
+              <div class="d-flex flex-wrap mt-3">
                 <span class="skill-badge">{{ obj.categories.name|safe|title }}</span>
                 <span class="skill-badge">{{ obj.course_type|safe }}</span>
               </div>
               
-              <a href="{% url 'sms:courseslistdesc' obj.pk %}" class="btn-outline-primary mt-3">View Course</a>
+              <a href="{% url 'sms:courseslistdesc' obj.pk %}" class="btn btn-outline-primary btn-block mt-3">View Course</a>
             </div>
           </div>
         {% endfor %}
@@ -1069,108 +823,87 @@
   </div>
 </div>
 
-<!-- ===== FIXED BOTTOM CTA ===== -->
+<!-- Fixed Bottom CTA -->
 <div class="fixed-bottom-cta" id="fixedCta">
   <div>
-    <h5>{{ object.title|safe }}</h5>
+    <h5 class="mb-0">{{ object.title|safe }}</h5>
     {% if object.status_type == 'Premium' %}
       <div class="fixed-price">&#8358;{{ object.price|safe|floatformat:"0g" }}</div>
     {% else %}
       <div class="fixed-price">Free</div>
     {% endif %}
   </div>
-  <div class="fixed-actions">
-    {% if course.status_type == 'Free' or related_payments %}
-      <a onclick="createEditorProject('{{ course.id }}', '{{ course.title|escapejs }}')" href="javascript:void(0)" class="btn btn-primary">
-        <i class="fas fa-robot"></i> AI Coding Assistant
+  <div>
+    {% if course.status_type == 'Free' %}
+      <a href="{% url 'sms:topicslistview' course.id %}" class="btn btn-primary">
+        Start Learning
+      </a>
+    {% elif related_payments %}
+      <a href="{% url 'sms:topicslistview' course.id %}" class="btn btn-primary">
+        Continue Learning
       </a>
     {% elif associated_schools %}
       {% for school in associated_schools %}
         {% if school.school_name == school_name %}
-          <a onclick="createEditorProject('{{ course.id }}', '{{ course.title|escapejs }}')" href="javascript:void(0)" class="btn btn-primary">
-            <i class="fas fa-robot"></i> AI Coding Assistant
+          <a href="{% url 'sms:topicslistview' course.id %}" class="btn btn-primary">
+            Start Learning
           </a>
         {% else %}
           <a href="{% url 'sms:course' course.id %}" class="btn btn-primary">
-            <i class="fas fa-lock"></i> Enroll Now
+            Enroll Now
           </a>
         {% endif %}
       {% endfor %}
     {% else %}
       <a href="{% url 'sms:course' course.id %}" class="btn btn-primary">
-        <i class="fas fa-lock"></i> Enroll Now
+        Enroll Now
       </a>
     {% endif %}
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Show/hide fixed CTA based on scroll position
+    window.addEventListener("scroll", function() {
+      var cta = document.getElementById("fixedCta");
+      if (window.pageYOffset > 300) {
+        cta.classList.add("show");
+      } else {
+        cta.classList.remove("show");
+      }
+    });
+  });
+</script>
 
 {% if related_payments.exists and not payment_success %}
   <input type="hidden" id="paymentSuccess" value="true">
 {% endif %}
 
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    const cta = document.getElementById("fixedCta");
-    if (cta) {
-      window.addEventListener("scroll", function() {
-        if (window.pageYOffset > 300) {
-          cta.classList.add("show");
-        } else {
-          cta.classList.remove("show");
-        }
-      });
-    }
-  });
-
-  function createEditorProject(courseId, courseTitle) {
-    const btn = event.currentTarget;
-    const originalText = btn.innerHTML;
-    
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Loading...';
-    btn.disabled = true;
-    
-    fetch("{% url 'webprojects:create_project' %}", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": '{{ csrf_token }}'
-      },
-      body: JSON.stringify({
-        name: courseTitle,
-        course_id: courseId
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === 'success') {
-        if (data.file_id) {
-          window.location.href = `/webprojects/${data.project_id}/file/${data.file_id}/`;
-        } else {
-          alert("Project created, but no file attached.");
-        }
-      } else {
-        alert("Error: " + data.message);
-      }
-    })
-    .catch(err => alert("Project creation failed: " + err))
-    .finally(() => {
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-    });
-  }
-
-  const paymentSuccessInput = document.getElementById('paymentSuccess');
+  // Check if the payment success flag is present
+  var paymentSuccessInput = document.getElementById('paymentSuccess');
   if (paymentSuccessInput && paymentSuccessInput.value === 'true') {
-    const paymentSuccessStorage = sessionStorage.getItem('payment_success');
+    // Check if the payment_success session storage is set
+    var paymentSuccessStorage = sessionStorage.getItem('payment_success');
     if (!paymentSuccessStorage || paymentSuccessStorage === 'true') {
+      // Set the payment_success session storage to false and reload the page after 1 second
       sessionStorage.setItem('payment_success', 'false');
-      setTimeout(() => window.location.reload(), 1000);
+      console.log('Page reloading - 1st time');
+      setTimeout(function() {
+        console.log('Page reloaded - 1st time');
+        window.location.reload();
+      }, 1000);
     } else if (paymentSuccessStorage === 'false') {
+      // Set the payment_success session storage back to true and reload the page again after 5 seconds
       sessionStorage.setItem('payment_success', 'true');
-      setTimeout(() => window.location.reload(), 300000);
+      console.log('Page reloading - 2nd time');
+      setTimeout(function() {
+        console.log('Page reloaded - 2nd time');
+        window.location.reload();
+      }, 300000);
     }
   }
 </script>
 
-</body>
-</html>
+{% endblock %}
