@@ -108,9 +108,9 @@ def generate_topics_task(self, prompt, task_key, is_programming=False):
             # Use num_topics if available otherwise fall back to objectives count
             topic_count = max(objectives_count, 10)
             if is_programming:
-                max_tok = min(3000 * topic_count, 100000)
+                max_tok = min(3000 * topic_count, 16384)
             else:
-                max_tok = min(1500 * topic_count, 100000)
+                max_tok = min(1500 * topic_count, 16384)
 
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
