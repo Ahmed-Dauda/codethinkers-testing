@@ -1,4 +1,8 @@
 name: Deploy to Staging
+<<<<<<< HEAD
+=======
+
+>>>>>>> f7f0302b0f654bf25ed1566c5dcb826ef34d7325
 on:
   push:
     branches:
