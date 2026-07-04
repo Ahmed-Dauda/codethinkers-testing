@@ -779,6 +779,132 @@
             <a href="{% url 'account_login' %}" class="btn btn--primary btn--sm">Join Free Now</a>
             {% endif %}
         </div>
+        <!-- ============ USER MENU CSS ============ -->
+<style>
+.ums-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.ums-trigger {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+  display: inline-flex;
+  transition: box-shadow 0.2s ease;
+}
+
+.ums-trigger:hover,
+.ums-trigger:focus-visible {
+  box-shadow: 0 0 0 3px var(--primary-light, #e8effd);
+  outline: none;
+}
+
+.ums-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--gray-light, #e2e8f0);
+  display: block;
+}
+
+.ums-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 220px;
+  background: var(--white, #ffffff);
+  border: 1px solid var(--gray-light, #e2e8f0);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+  z-index: 1050;
+}
+
+.ums-panel.ums-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.ums-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--dark, #0f172a);
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ums-item:hover,
+.ums-item:focus-visible {
+  background: var(--primary-light, #e8effd);
+  color: var(--primary, #1a56db);
+  text-decoration: none;
+  outline: none;
+}
+
+.ums-item--danger {
+  color: #dc2626;
+}
+
+.ums-item--danger:hover,
+.ums-item--danger:focus-visible {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ums-divider {
+  height: 1px;
+  background: var(--gray-light, #e2e8f0);
+  margin: 6px 4px;
+}
+
+@media (max-width: 480px) {
+  .ums-panel {
+    right: -8px;
+    min-width: 200px;
+  }
+}
+</style>
+
+<!-- ============ USER MENU HTML ============ -->
+<!-- User Menu — self-contained, no Bootstrap JS needed for the dropdown itself -->
+<div class="ums-wrap" id="umsWrap">
+    <button class="ums-trigger" id="umsTrigger" aria-haspopup="true" aria-expanded="false" aria-label="User menu">
+        <img class="ums-avatar" src="/static/sms/dashboard/img/undraw_profile.svg" alt="Profile">
+    </button>
+
+    <div class="ums-panel" id="umsPanel" role="menu">
+        <a class="ums-item" href="{% url 'sms:myprofile' %}" role="menuitem">
+            👤 Profile
+        </a>
+        <a class="ums-item" href="{% url 'account_change_password' %}" role="menuitem">
+            🔑 Change Password
+        </a>
+        <a class="ums-item" href="{% url 'account_reset_password' %}" role="menuitem">
+            🔒 Password Reset
+        </a>
+        <div class="ums-divider"></div>
+        <a class="ums-item ums-item--danger" href="#" role="menuitem"
+           data-toggle="modal" data-target="#logoutModal">
+            🚪 Logout
+        </a>
+    </div>
+</div>
+
+
     </div>
 </header>
 
@@ -862,6 +988,11 @@
                 {% endif %}
                 <a href="mailto:codethinkersa@gmail.com" class="btn btn--outline">Contact Us</a>
             </div>
+            {% if user.is_authenticated %}
+                <h2>Welcome, {{ user.username }}!</h2>
+            {% else %}
+                <h2>Welcome, Guest!</h2>
+            {% endif %}
         </div>
         <div class="hero-media">
             <img src="/static/sms/images/kids.webp" alt="CodeThinkers Academy students" loading="lazy">
@@ -1372,7 +1503,43 @@
     </div>
 </footer>
 
+
+<!-- ============ USER MENU JS ============ -->
 <script>
+(function () {
+    const trigger = document.getElementById('umsTrigger');
+    const panel   = document.getElementById('umsPanel');
+    if (!trigger || !panel) return;
+
+    // Toggle on click
+    trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isOpen = panel.classList.toggle('ums-open');
+        trigger.setAttribute('aria-expanded', isOpen);
+    });
+
+    // Close on outside click
+    document.addEventListener('click', function (e) {
+        if (!panel.contains(e.target) && e.target !== trigger) {
+            panel.classList.remove('ums-open');
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            panel.classList.remove('ums-open');
+            trigger.setAttribute('aria-expanded', 'false');
+            trigger.focus();
+        }
+    });
+})();
+</script>
+
+<script>
+
+
     document.addEventListener('DOMContentLoaded', function () {
         const alerts = document.querySelectorAll('.alert');
         setTimeout(() => { alerts.forEach(a => a.style.display = 'none'); }, 6000);
