@@ -1,63 +1,90 @@
-name: Deploy to Staging
+name: Deploy Codethinkers
 
 on:
   push:
     branches:
       - staging
+      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to Staging
+      - name: Deploy to Hetzner
         id: deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          envs: EXAMSPOWER_STAGING_ENV
+          envs: DEPLOY_BRANCH
           script: |
-            cd /var/www/examspower-staging
+            # ── Set variables based on branch ─────────────────────────────
+            if [ "$DEPLOY_BRANCH" = "main" ]; then
+              APP_DIR=/var/www/codethinkers
+              SERVICE=codethinkers
+              GUNICORN=gunicorn-codethinkers
+              BACKUP_DIR=/var/backups/codethinkers
+              DB_NAME=codethinkers
+              LAST_WORKING_FILE=/tmp/codethinkers_prod_last_working
+            else
+              APP_DIR=/var/www/codethinkers-staging
+              SERVICE=codethinkers-staging
+              GUNICORN=gunicorn-codethinkers-staging
+              BACKUP_DIR=/var/backups/codethinkers-staging
+              DB_NAME=codethinkers_staging
+              LAST_WORKING_FILE=/tmp/codethinkers_staging_last_working
+            fi
 
-            # ── Write .env from GitHub Secret ─────────────────────────────
-            echo "$EXAMSPOWER_STAGING_ENV" > .env
-            chmod 600 .env
+            cd $APP_DIR
 
-            # Validate .env
-            grep -q "postgres" .env || { echo "DATABASE_URL not set - aborting"; exit 1; }
+            # ── Check and auto-fix Redis ──────────────────────────────────
+            if ! redis-cli ping | grep -q PONG; then
+              echo "Redis is DOWN - attempting auto-restart"
+              systemctl restart redis
+              sleep 5
+              redis-cli ping | grep -q PONG || { echo "Redis failed to restart"; exit 1; }
+              echo "Redis auto-restarted successfully"
+            fi
 
+            # ── Save last working commit ──────────────────────────────────
+            LAST_WORKING=$(git rev-parse HEAD)
+            echo $LAST_WORKING > $LAST_WORKING_FILE
+
+            # ── Pull new code ─────────────────────────────────────────────
             git fetch origin
-            git reset --hard origin/staging
+            git reset --hard origin/$DEPLOY_BRANCH
             source venv/bin/activate
             pip install -r requirements.txt
+
+            # ── Database backup ───────────────────────────────────────────
+            mkdir -p $BACKUP_DIR
+            BACKUP_FILE=$BACKUP_DIR/backup_$(date +%Y%m%d_%H%M%S).dump
+            sudo -u postgres /usr/lib/postgresql/17/bin/pg_dump -Fc $DB_NAME > $BACKUP_FILE
+            echo "Backup saved: $BACKUP_FILE"
+            ls -t $BACKUP_DIR/*.dump | tail -n +8 | xargs rm -f 2>/dev/null
+
+            # ── Migrate and collect static ────────────────────────────────
             python3 manage.py migrate --noinput
             python3 manage.py collectstatic --noinput
 
-            # ── Restart staging services ──────────────────────────────────
-            systemctl restart examspower-staging
-            systemctl restart celery-examspower-staging
+            # ── Restart and verify ────────────────────────────────────────
+            systemctl restart $GUNICORN
+            systemctl restart $SERVICE
             sleep 10
 
-            # ── Verify staging is up ──────────────────────────────────────
-            ERRORS=""
-
-            if ! systemctl is-active --quiet examspower-staging; then
-              ERRORS="$ERRORS\n❌ Staging web app is DOWN"
+            if ! systemctl is-active --quiet $SERVICE; then
+              echo "$SERVICE down - rolling back"
+              git reset --hard $LAST_WORKING
+              systemctl restart $SERVICE
+              sleep 10
+              systemctl is-active --quiet $SERVICE || exit 1
             fi
 
-            if ! systemctl is-active --quiet celery-examspower-staging; then
-              ERRORS="$ERRORS\n❌ Staging Celery worker is DOWN"
-            fi
-
-            if [ -n "$ERRORS" ]; then
-              echo -e "$ERRORS"
-              exit 1
-            fi
-
-            echo "Staging deploy successful - test at https://staging.examspower.com"
+            echo "$DEPLOY_BRANCH deploy successful"
         env:
-          EXAMSPOWER_STAGING_ENV: ${{ secrets.EXAMSPOWER_STAGING_ENV }}
+          DEPLOY_BRANCH: ${{ github.ref_name }}
 
       - name: Send success email
         if: success()
@@ -67,19 +94,19 @@ jobs:
           server_port: 587
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "✅ ExamsPower Staging Deploy Successful"
+          subject: "✅ Codethinkers ${{ github.ref_name }} Deploy Successful"
           to: codethinkersa@gmail.com
           from: ${{ secrets.EMAIL_USER }}
           body: |
-            ExamsPower staging deployed successfully!
+            Codethinkers ${{ github.ref_name }} deployed successfully!
 
             Commit: ${{ github.sha }}
             Time: ${{ github.event.head_commit.timestamp }}
             Message: ${{ github.event.head_commit.message }}
 
-            ✅ Test it at: https://staging.examspower.com
-
-            When satisfied, merge staging → main to deploy to production.
+            Services Status:
+            ✅ Web app: Running
+            ✅ Redis: Running
 
       - name: Send failure email
         if: failure()
@@ -89,16 +116,14 @@ jobs:
           server_port: 587
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "❌ ExamsPower Staging Deploy FAILED"
+          subject: "❌ Codethinkers ${{ github.ref_name }} Deploy FAILED"
           to: codethinkersa@gmail.com
           from: ${{ secrets.EMAIL_USER }}
           body: |
-            ExamsPower staging deploy failed!
+            Codethinkers ${{ github.ref_name }} deploy failed!
 
             Commit: ${{ github.sha }}
             Time: ${{ github.event.head_commit.timestamp }}
             Message: ${{ github.event.head_commit.message }}
 
-            Fix the issue before merging to production.
-
-            Check logs: https://github.com/Ahmed-Dauda/examspower/actions
+            Check logs: https://github.com/Ahmed-Dauda/codethinkers-testing/actions
