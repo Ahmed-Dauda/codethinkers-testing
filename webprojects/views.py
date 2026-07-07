@@ -3731,7 +3731,6 @@ from django.http import JsonResponse
 from django.db.models import Count, Avg, F
 from .models import LeaderboardEntry, StudentProgress
 from sms.models import Courses, Topics
-
 @login_required
 def course_leaderboard(request, course_id):
     """Display the leaderboard for a specific course"""
@@ -3742,24 +3741,38 @@ def course_leaderboard(request, course_id):
         course=course
     ).select_related('student', 'student__profile').order_by('rank')
     
-    # Get the current user's entry
-    user_entry = leaderboard_entries.filter(student=request.user).first()
-    user_rank = user_entry.rank if user_entry else None
-    
     # Get course statistics
     total_students = leaderboard_entries.count()
     total_topics = Topics.objects.filter(courses=course).count()
     
+    # Cap points and completion percentage for each entry
+    for entry in leaderboard_entries:
+        # Cap completed_topics at total_topics
+        if entry.completed_topics > total_topics:
+            entry.completed_topics = total_topics
+        
+        # Cap points at total_topics
+        if entry.points > total_topics:
+            entry.points = total_topics
+        
+        # Cap completion percentage at 100%
+        if entry.completion_percentage > 100:
+            entry.completion_percentage = 100
+    
+    # Get the current user's entry
+    user_entry = leaderboard_entries.filter(student=request.user).first()
+    user_rank = user_entry.rank if user_entry else None
+    
     # Get top 3 for podium
     top_performers = list(leaderboard_entries[:3])
     
-    # Get all entries for the full table (already fetched above)
+    # Get all entries for the full table
     all_entries = list(leaderboard_entries)
     
     context = {
         'course': course,
-        'all_entries': all_entries,  # ALL entries for the table
-        'top_performers': top_performers,  # Top 3 for podium
+        'all_entries': all_entries,
+        'top_performers': top_performers,
         'user_entry': user_entry,
         'user_rank': user_rank,
         'total_students': total_students,
@@ -3767,7 +3780,7 @@ def course_leaderboard(request, course_id):
     }
     
     return render(request, 'webprojects/leaderboard.html', context)
-
+    
 
 
 @login_required
