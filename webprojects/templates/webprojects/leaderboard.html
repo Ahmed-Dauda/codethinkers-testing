@@ -1,226 +1,442 @@
 {% extends "webprojects/base_editor.html" %}
 {% load static %}
 
-{% block title %}🏆 {{ course.title }} Leaderboard{% endblock %}
+{% block title %}🏆 Leaderboard | {{ course.title }}{% endblock %}
 
 {% block extra_head %}
 <style>
+    :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-card: #1e293b;
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --border-color: #334155;
+        --gold: #FFD700;
+        --silver: #C0C0C0;
+        --bronze: #CD7F32;
+        --accent: #6366f1;
+        --success: #22c55e;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+    }
+
     .leaderboard-container {
         max-width: 900px;
         margin: 0 auto;
-        padding: 20px;
+        padding: 40px 20px;
     }
-    
+
+    /* Header Section */
     .leaderboard-header {
         text-align: center;
-        padding: 30px 0;
-        background: linear-gradient(135deg, #1e1e1e 0%, #2a2d2e 100%);
-        border-radius: 12px;
-        margin-bottom: 30px;
-        border: 1px solid #3c3c3c;
+        margin-bottom: 40px;
     }
-    
+
+    .leaderboard-header .trophy-icon {
+        font-size: 60px;
+        margin-bottom: 12px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
     .leaderboard-header h1 {
-        color: #fff;
-        font-size: 28px;
+        font-size: 2.5em;
+        font-weight: 800;
+        background: linear-gradient(135deg, #6366f1, #a78bfa, #f59e0b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         margin-bottom: 8px;
     }
-    
-    .leaderboard-header p {
-        color: #94a3b8;
-        font-size: 14px;
+
+    .leaderboard-header .course-name {
+        font-size: 1.2em;
+        color: var(--text-secondary);
+        font-weight: 500;
     }
-    
-    .trophy-icon {
-        font-size: 48px;
-        display: block;
-        margin-bottom: 10px;
+
+    .leaderboard-header .stats-row {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 20px;
+        flex-wrap: wrap;
     }
-    
-    .leaderboard-stats {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-    
-    .stat-card {
-        background: #252526;
-        border: 1px solid #3c3c3c;
-        border-radius: 8px;
-        padding: 16px;
+
+    .stat-item {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 16px 24px;
         text-align: center;
+        min-width: 120px;
     }
-    
-    .stat-card .stat-number {
-        font-size: 24px;
+
+    .stat-value {
+        font-size: 1.8em;
         font-weight: 700;
-        color: #4ade80;
+        color: var(--accent);
     }
-    
-    .stat-card .stat-label {
-        font-size: 12px;
-        color: #94a3b8;
+
+    .stat-label {
+        font-size: 0.85em;
+        color: var(--text-muted);
         margin-top: 4px;
     }
-    
-    /* Leaderboard Table */
-    .leaderboard-table-wrap {
-        background: #252526;
-        border: 1px solid #3c3c3c;
-        border-radius: 12px;
+
+    /* Top 3 Podium */
+    .podium-section {
+        margin-bottom: 40px;
+    }
+
+    .podium-section h2 {
+        text-align: center;
+        font-size: 1.5em;
+        margin-bottom: 24px;
+        color: var(--text-secondary);
+    }
+
+    .podium {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .podium-card {
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: 16px;
+        padding: 24px 20px;
+        text-align: center;
+        min-width: 200px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+    }
+
+    .podium-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .podium-card.first {
+        order: 2;
+        border-color: var(--gold);
+        background: linear-gradient(180deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.02));
+        transform: scale(1.05);
+    }
+
+    .podium-card.second {
+        order: 1;
+        border-color: var(--silver);
+    }
+
+    .podium-card.third {
+        order: 3;
+        border-color: var(--bronze);
+    }
+
+    .podium-card .rank-medal {
+        font-size: 48px;
+        margin-bottom: 8px;
+    }
+
+    .podium-card .student-avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 0 auto 12px;
+        border: 3px solid var(--accent);
+    }
+
+    .podium-card.first .student-avatar {
+        width: 85px;
+        height: 85px;
+        border-color: var(--gold);
+    }
+
+    .podium-card .student-name {
+        font-size: 1.1em;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: var(--text-primary);
+    }
+
+    .podium-card .student-points {
+        font-size: 1.4em;
+        font-weight: 700;
+        color: var(--accent);
+    }
+
+    .podium-card.first .student-points {
+        color: var(--gold);
+    }
+
+    .podium-card .student-progress {
+        font-size: 0.85em;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    .podium-card .crown {
+        position: absolute;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 36px;
+    }
+
+    /* Full Leaderboard Table */
+    .leaderboard-table-section {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
         overflow: hidden;
     }
-    
+
+    .leaderboard-table-section h2 {
+        padding: 20px 24px;
+        font-size: 1.3em;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+
     .leaderboard-table {
         width: 100%;
         border-collapse: collapse;
     }
-    
+
     .leaderboard-table th {
-        background: #1e1e1e;
-        padding: 12px 16px;
+        padding: 14px 20px;
         text-align: left;
-        font-size: 12px;
-        font-weight: 600;
+        font-size: 0.8em;
+        font-weight: 700;
+        color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: #94a3b8;
-        border-bottom: 2px solid #3c3c3c;
+        background: rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid var(--border-color);
     }
-    
+
     .leaderboard-table td {
-        padding: 12px 16px;
-        border-bottom: 1px solid #2d2d2d;
-        color: #e0e0e0;
-        font-size: 14px;
+        padding: 14px 20px;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        vertical-align: middle;
     }
-    
-    .leaderboard-table tr:hover td {
-        background: #2a2d2e;
+
+    .leaderboard-table tr:last-child td {
+        border-bottom: none;
     }
-    
-    .leaderboard-table tr.current-user td {
-        background: #094771;
-        border-left: 3px solid #4ade80;
+
+    .leaderboard-table tbody tr {
+        transition: background 0.2s ease;
     }
-    
-    .rank-badge {
-        display: inline-flex;
+
+    .leaderboard-table tbody tr:hover {
+        background: rgba(99, 102, 241, 0.05);
+    }
+
+    .leaderboard-table tbody tr.current-user {
+        background: rgba(99, 102, 241, 0.15);
+        border-left: 3px solid var(--accent);
+    }
+
+    .leaderboard-table tbody tr.current-user td:first-child {
+        padding-left: 17px;
+    }
+
+    .rank-cell {
+        font-weight: 700;
+        font-size: 1.1em;
+        color: var(--text-secondary);
+        width: 60px;
+    }
+
+    .rank-cell.top-rank {
+        font-size: 1.3em;
+    }
+
+    .student-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .student-cell .mini-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--border-color);
+    }
+
+    .student-cell .mini-avatar.default-avatar {
+        background: var(--accent);
+        display: flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
+        color: #fff;
         font-weight: 700;
-        font-size: 13px;
+        font-size: 0.9em;
     }
-    
-    .rank-1 {
-        background: #fbbf24;
-        color: #1e1e1e;
+
+    .student-cell .student-info {
+        display: flex;
+        flex-direction: column;
     }
-    
-    .rank-2 {
-        background: #94a3b8;
-        color: #1e1e1e;
-    }
-    
-    .rank-3 {
-        background: #cd7f32;
-        color: #1e1e1e;
-    }
-    
-    .rank-other {
-        background: #2d2d2d;
-        color: #94a3b8;
-    }
-    
-    .rank-top-3 {
-        background: #fbbf24;
-        color: #1e1e1e;
-    }
-    
-    .points-badge {
-        display: inline-block;
-        padding: 2px 10px;
-        background: #1e1e1e;
-        border: 1px solid #3c3c3c;
-        border-radius: 12px;
+
+    .student-cell .student-info .name {
         font-weight: 600;
-        color: #4ade80;
-        font-size: 13px;
+        color: var(--text-primary);
     }
-    
-    .progress-bar-wrap {
-        width: 100px;
+
+    .student-cell .student-info .username {
+        font-size: 0.8em;
+        color: var(--text-muted);
+    }
+
+    .points-cell {
+        font-weight: 700;
+        color: var(--accent);
+        font-size: 1.05em;
+    }
+
+    .progress-cell {
+        color: var(--text-secondary);
+    }
+
+    .progress-bar-mini {
+        width: 80px;
         height: 6px;
-        background: #1e1e1e;
+        background: rgba(255, 255, 255, 0.1);
         border-radius: 3px;
         overflow: hidden;
         display: inline-block;
         vertical-align: middle;
+        margin-right: 8px;
     }
-    
-    .progress-bar-fill {
+
+    .progress-bar-mini .fill {
         height: 100%;
-        background: #4ade80;
+        background: var(--success);
         border-radius: 3px;
-        transition: width 0.3s ease;
+        transition: width 0.5s ease;
     }
-    
-    .user-rank-highlight {
-        display: inline-block;
-        padding: 4px 12px;
-        background: #4ade80;
-        color: #1e1e1e;
-        border-radius: 4px;
-        font-weight: 700;
-        font-size: 13px;
-    }
-    
-    .back-link {
-        display: inline-block;
-        margin-top: 16px;
-        color: #94a3b8;
-        text-decoration: none;
-        font-size: 14px;
-        transition: color 0.2s;
-    }
-    
-    .back-link:hover {
+
+    .badge-you {
+        background: var(--accent);
         color: #fff;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.7em;
+        font-weight: 700;
+        margin-left: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
-    
+
     .empty-state {
         text-align: center;
-        padding: 60px 20px;
-        color: #94a3b8;
+        padding: 40px;
+        color: var(--text-muted);
     }
-    
-    .empty-state .empty-icon {
+
+    .empty-state .icon {
         font-size: 48px;
-        margin-bottom: 16px;
-        display: block;
+        margin-bottom: 12px;
     }
-    
+
+    /* Back Button */
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.95em;
+        margin-bottom: 20px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+
+    /* Responsive */
     @media (max-width: 768px) {
-        .leaderboard-stats {
-            grid-template-columns: 1fr;
+        .leaderboard-header h1 {
+            font-size: 1.8em;
         }
-        
+
+        .podium {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .podium-card {
+            order: unset !important;
+            min-width: 250px;
+        }
+
+        .podium-card.first {
+            transform: scale(1);
+        }
+
+        .leaderboard-table th:nth-child(4),
+        .leaderboard-table td:nth-child(4) {
+            display: none;
+        }
+
+        .stats-row {
+            gap: 12px;
+        }
+
+        .stat-item {
+            min-width: 90px;
+            padding: 12px 16px;
+        }
+
+        .stat-value {
+            font-size: 1.4em;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .leaderboard-container {
+            padding: 20px 10px;
+        }
+
         .leaderboard-table th,
         .leaderboard-table td {
-            padding: 8px 10px;
-            font-size: 12px;
+            padding: 10px 12px;
+            font-size: 0.85em;
         }
-        
-        .progress-bar-wrap {
-            width: 60px;
-        }
-        
-        .leaderboard-header h1 {
-            font-size: 22px;
+
+        .student-cell .mini-avatar {
+            width: 28px;
+            height: 28px;
         }
     }
 </style>
@@ -228,98 +444,136 @@
 
 {% block content %}
 <div class="leaderboard-container">
+    <!-- Back Button -->
+    <a href="javascript:history.back()" class="back-btn">
+        ← Back to Course
+    </a>
+
     <!-- Header -->
     <div class="leaderboard-header">
-        <span class="trophy-icon">🏆</span>
-        <h1>{{ course.title }} Leaderboard</h1>
-        <p>Track your progress and compete with other students</p>
-    </div>
-    
-    <!-- Stats -->
-    <div class="leaderboard-stats">
-        <div class="stat-card">
-            <div class="stat-number">{{ total_students }}</div>
-            <div class="stat-label">Total Students</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">{{ total_topics }}</div>
-            <div class="stat-label">Total Modules</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">
-                {% if user_entry %}
-                    #{{ user_rank }}
-                {% else %}
-                    —
-                {% endif %}
+        <div class="trophy-icon">🏆</div>
+        <h1>Leaderboard</h1>
+        <p class="course-name">{{ course.title }}</p>
+        
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-value">{{ total_students }}</div>
+                <div class="stat-label">Students</div>
             </div>
-            <div class="stat-label">Your Rank</div>
+            <div class="stat-item">
+                <div class="stat-value">{{ total_topics }}</div>
+                <div class="stat-label">Modules</div>
+            </div>
+            {% if user_rank %}
+            <div class="stat-item">
+                <div class="stat-value">#{{ user_rank }}</div>
+                <div class="stat-label">Your Rank</div>
+            </div>
+            {% endif %}
         </div>
     </div>
-    
-    <!-- Leaderboard Table -->
-    <div class="leaderboard-table-wrap">
+
+    <!-- Top 3 Podium -->
+    {% if top_performers %}
+    <div class="podium-section">
+        <h2>🏅 Top Performers</h2>
+        <div class="podium">
+            {% for entry in top_performers %}
+            <div class="podium-card {% if forloop.counter == 1 %}first{% elif forloop.counter == 2 %}second{% elif forloop.counter == 3 %}third{% endif %}">
+                {% if forloop.counter == 1 %}
+                <div class="crown">👑</div>
+                {% endif %}
+                <div class="rank-medal">
+                    {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}
+                </div>
+                
+                {% if entry.student.profile.avatar %}
+                <img src="{{ entry.student.profile.avatar.url }}" alt="{{ entry.student.username }}" class="student-avatar">
+                {% else %}
+                <div class="student-avatar default-avatar" style="background: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                    <span style="font-size: 1.8em; font-weight: 700; color: #fff;">{{ entry.student.username|slice:":1"|upper }}</span>
+                </div>
+                {% endif %}
+                
+                <div class="student-name">
+                    {{ entry.student.get_full_name|default:entry.student.username }}
+                    {% if entry.student == request.user %}
+                    <span class="badge-you">You</span>
+                    {% endif %}
+                </div>
+                <div class="student-points">{{ entry.points }} pts</div>
+                <div class="student-progress">
+                    {{ entry.completed_topics }}/{{ entry.total_topics }} modules ({{ entry.completion_percentage|floatformat:1 }}%)
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Full Leaderboard Table -->
+    <div class="leaderboard-table-section">
+        <h2>📋 All Rankings</h2>
+        
+        {% if leaderboard_entries %}
         <table class="leaderboard-table">
             <thead>
                 <tr>
-                    <th style="width:60px;">Rank</th>
+                    <th>Rank</th>
                     <th>Student</th>
-                    <th style="text-align:center;">Points</th>
-                    <th style="text-align:center;">Progress</th>
-                    <th style="text-align:right;">Completion</th>
+                    <th>Points</th>
+                    <th>Progress</th>
                 </tr>
             </thead>
             <tbody>
                 {% for entry in leaderboard_entries %}
                 <tr class="{% if entry.student == request.user %}current-user{% endif %}">
-                    <td>
-                        <span class="rank-badge 
-                            {% if entry.rank == 1 %}rank-1
-                            {% elif entry.rank == 2 %}rank-2
-                            {% elif entry.rank == 3 %}rank-3
-                            {% else %}rank-other{% endif %}">
-                            {% if entry.rank == 1 %}🥇
-                            {% elif entry.rank == 2 %}🥈
-                            {% elif entry.rank == 3 %}🥉
-                            {% else %}#{{ entry.rank }}{% endif %}
-                        </span>
+                    <td class="rank-cell {% if entry.rank <= 3 %}top-rank{% endif %}">
+                        {% if entry.rank == 1 %}🥇
+                        {% elif entry.rank == 2 %}🥈
+                        {% elif entry.rank == 3 %}🥉
+                        {% else %}#{{ entry.rank }}{% endif %}
                     </td>
                     <td>
-                        <strong style="color:#fff;">{{ entry.student.get_full_name|default:entry.student.username }}</strong>
-                        {% if entry.student == request.user %}
-                            <span style="color:#4ade80; font-size:11px; margin-left:8px;">(You)</span>
-                        {% endif %}
-                    </td>
-                    <td style="text-align:center;">
-                        <span class="points-badge">{{ entry.points }}</span>
-                    </td>
-                    <td style="text-align:center;">
-                        <div class="progress-bar-wrap">
-                            <div class="progress-bar-fill" style="width: {{ entry.completion_percentage }}%;"></div>
+                        <div class="student-cell">
+                            {% if entry.student.profile.avatar %}
+                            <img src="{{ entry.student.profile.avatar.url }}" alt="{{ entry.student.username }}" class="mini-avatar">
+                            {% else %}
+                            <div class="mini-avatar default-avatar">
+                                {{ entry.student.username|slice:":1"|upper }}
+                            </div>
+                            {% endif %}
+                            <div class="student-info">
+                                <span class="name">
+                                    {{ entry.student.get_full_name|default:entry.student.username }}
+                                    {% if entry.student == request.user %}
+                                    <span class="badge-you">You</span>
+                                    {% endif %}
+                                </span>
+                                <span class="username">@{{ entry.student.username }}</span>
+                            </div>
                         </div>
                     </td>
-                    <td style="text-align:right; font-weight:500;">
-                        {{ entry.completion_percentage|floatformat:0 }}%
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5">
-                        <div class="empty-state">
-                            <span class="empty-icon">📊</span>
-                            <p>No students have started this course yet.</p>
-                            <p style="font-size:13px; margin-top:8px;">Be the first to earn points!</p>
+                    <td class="points-cell">{{ entry.points }}</td>
+                    <td class="progress-cell">
+                        <div class="progress-bar-mini">
+                            <div class="fill" style="width: {{ entry.completion_percentage|default:0 }}%;"></div>
                         </div>
+                        {{ entry.completion_percentage|floatformat:1 }}%
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="icon">📭</div>
+            <p>No students on the leaderboard yet.</p>
+            <p style="font-size: 0.9em;">Complete modules to appear here!</p>
+        </div>
+        {% endif %}
     </div>
-    
-    <!-- Back Link -->
-    <a href="{% url 'webprojects:file_detail' project_id=request.GET.project_id|default:0 file_id=request.GET.file_id|default:0 %}" class="back-link">
-        ← Back to Course
-    </a>
 </div>
 {% endblock %}
+
+{% block sidebar %}{% endblock %}

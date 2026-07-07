@@ -3737,10 +3737,10 @@ def course_leaderboard(request, course_id):
     """Display the leaderboard for a specific course"""
     course = get_object_or_404(Courses, id=course_id)
     
-    # Get or create leaderboard entries for all students in this course
+    # Get all leaderboard entries for this course, ordered by rank
     leaderboard_entries = LeaderboardEntry.objects.filter(
         course=course
-    ).select_related('student').order_by('-points', 'completion_percentage')
+    ).select_related('student', 'student__profile').order_by('rank')
     
     # Get the current user's entry
     user_entry = leaderboard_entries.filter(student=request.user).first()
@@ -3753,8 +3753,24 @@ def course_leaderboard(request, course_id):
     # Get top 3 performers
     top_performers = leaderboard_entries[:3]
     
+    # Separate remaining entries (excluding top 3 and current user if not in top 3)
+    if user_entry and user_rank and user_rank > 3:
+        # Show top 3, then user's position with context, then others
+        remaining_entries = leaderboard_entries[3:]
+        other_entries = [entry for entry in remaining_entries if entry.student_id != request.user.id]
+    else:
+        remaining_entries = leaderboard_entries[3:]
+        other_entries = remaining_entries
+    
     # Check if current user is in top 3
     is_in_top_3 = user_entry and user_entry.rank and user_entry.rank <= 3
+    
+    # Get medal colors for top 3
+    medals = {
+        1: {'icon': '🥇', 'color': '#FFD700', 'bg': 'rgba(255, 215, 0, 0.1)'},
+        2: {'icon': '🥈', 'color': '#C0C0C0', 'bg': 'rgba(192, 192, 192, 0.1)'},
+        3: {'icon': '🥉', 'color': '#CD7F32', 'bg': 'rgba(205, 127, 50, 0.1)'},
+    }
     
     context = {
         'course': course,
@@ -3765,9 +3781,13 @@ def course_leaderboard(request, course_id):
         'total_topics': total_topics,
         'top_performers': top_performers,
         'is_in_top_3': is_in_top_3,
+        'remaining_entries': remaining_entries,
+        'other_entries': other_entries,
+        'medals': medals,
     }
     
     return render(request, 'webprojects/leaderboard.html', context)
+
 
 
 @login_required
@@ -3827,6 +3847,7 @@ def update_leaderboard(request, course_id):
         'total_students': total_students,
         'completion_percentage': completion_percentage,
     })
+
 
 
 # views.py
