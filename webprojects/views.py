@@ -3731,21 +3731,22 @@ from django.http import JsonResponse
 from django.db.models import Count, Avg, F
 from .models import LeaderboardEntry, StudentProgress
 from sms.models import Courses, Topics
+
+
 @login_required
 def course_leaderboard(request, course_id):
     """Display the leaderboard for a specific course"""
     course = get_object_or_404(Courses, id=course_id)
+    
+    # Get total topics for this course
+    total_topics = Topics.objects.filter(courses=course).count()
     
     # Get all leaderboard entries ordered by rank
     leaderboard_entries = LeaderboardEntry.objects.filter(
         course=course
     ).select_related('student', 'student__profile').order_by('rank')
     
-    # Get course statistics
-    total_students = leaderboard_entries.count()
-    total_topics = Topics.objects.filter(courses=course).count()
-    
-    # Cap points and completion percentage for each entry
+    # Cap points, completed_topics, and completion percentage for each entry
     for entry in leaderboard_entries:
         # Cap completed_topics at total_topics
         if entry.completed_topics > total_topics:
@@ -3758,6 +3759,9 @@ def course_leaderboard(request, course_id):
         # Cap completion percentage at 100%
         if entry.completion_percentage > 100:
             entry.completion_percentage = 100
+    
+    # Get course statistics
+    total_students = leaderboard_entries.count()
     
     # Get the current user's entry
     user_entry = leaderboard_entries.filter(student=request.user).first()
@@ -3780,7 +3784,6 @@ def course_leaderboard(request, course_id):
     }
     
     return render(request, 'webprojects/leaderboard.html', context)
-    
 
 
 @login_required
@@ -3800,34 +3803,46 @@ def update_leaderboard(request, course_id):
     if not progress:
         return JsonResponse({'error': 'No progress found'}, status=404)
     
-    # Get completed topics count
+    # Get completed topics count and total topics
     completed_topics = progress.completed_topics.filter(courses=course).count()
     total_topics = Topics.objects.filter(courses=course).count()
-    points = completed_topics  # Each completed topic = 1 point
-    completion_percentage = (completed_topics / total_topics * 100) if total_topics > 0 else 0
     
-    # Update or create leaderboard entry
+    # CAP values - points and completed_topics cannot exceed total_topics
+    capped_completed = min(completed_topics, total_topics)
+    capped_points = min(completed_topics, total_topics)  # Each completed topic = 1 point
+    capped_percentage = min((capped_completed / total_topics * 100) if total_topics > 0 else 0, 100)
+    
+    # Update or create leaderboard entry with capped values
     entry, created = LeaderboardEntry.objects.update_or_create(
         student=request.user,
         course=course,
         defaults={
-            'points': points,
-            'completed_topics': completed_topics,
+            'points': capped_points,
+            'completed_topics': capped_completed,
             'total_topics': total_topics,
-            'completion_percentage': completion_percentage,
+            'completion_percentage': capped_percentage,
         }
     )
     
     # Update rank
     entry.update_rank()
     
-    # Get updated leaderboard
-    leaderboard = LeaderboardEntry.objects.filter(course=course).order_by('-points', 'completion_percentage')
+    # Get updated leaderboard ordered by points then completion percentage
+    leaderboard = LeaderboardEntry.objects.filter(
+        course=course
+    ).order_by('-points', '-completion_percentage')
     
-    # Get rank
+    # Get user's rank
     rank = leaderboard.filter(
         points__gt=entry.points
     ).count() + 1
+    
+    # If tied on points, check if anyone has higher completion percentage
+    same_points = leaderboard.filter(points=entry.points)
+    if same_points.count() > 1:
+        rank = same_points.filter(
+            completion_percentage__gt=entry.completion_percentage
+        ).count() + 1
     
     # Get total students
     total_students = leaderboard.count()
@@ -3835,12 +3850,13 @@ def update_leaderboard(request, course_id):
     return JsonResponse({
         'status': 'success',
         'message': 'Leaderboard updated',
-        'points': points,
+        'points': capped_points,
+        'completed_topics': capped_completed,
+        'total_topics': total_topics,
         'rank': rank,
         'total_students': total_students,
-        'completion_percentage': completion_percentage,
+        'completion_percentage': capped_percentage,
     })
-
 
 
 # views.py
