@@ -32,7 +32,6 @@
     transition: all 0.3s ease;
   }
 
-  /* When editor is hidden, sidebar takes 100% width */
   .editor-layout.editor-hidden .sidebar {
     width: 100% !important;
     max-width: 100% !important;
@@ -45,7 +44,6 @@
     display: none !important;
   }
 
-  /* Editor Toggle Button */
   .editor-toggle-btn {
     position: fixed;
     bottom: 20px;
@@ -75,7 +73,6 @@
     display: block;
   }
 
-  /* Editor Close Button - X in corner */
   .editor-close-btn {
     position: absolute;
     top: 8px;
@@ -97,7 +94,6 @@
     background: rgba(231, 76, 60, 0.15);
   }
 
-  /* Editor container with close button */
   .editor-wrapper {
     position: relative;
     flex: 1;
@@ -216,6 +212,25 @@
     font-family: monospace;
     font-size: 0.9em;
     border-top: 1px solid #444;
+    transition: height 0.1s ease;
+  }
+
+  #resizeHandle {
+    height: 20px;
+    cursor: row-resize;
+    background: #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  #resizeHandle:hover,
+  #resizeHandle:active {
+    background: #4fa;
   }
 
   ::-webkit-scrollbar {
@@ -248,9 +263,19 @@
     }
     .editor-panel {
       height: auto;
+      flex: 1;
     }
     #outputPanel {
-      height: 140px;
+      min-height: 60px;
+      max-height: 70vh;
+      transition: height 0.2s ease;
+    }
+    #container {
+      min-height: 100px;
+      flex: 1;
+    }
+    #resizeHandle {
+      height: 24px;
     }
   }
 
@@ -312,7 +337,6 @@
     transition: opacity 0.3s ease;
   }
 
-  /* Quiz Modal Styles */
   #quizModal {
     display: none;
     position: fixed;
@@ -377,6 +401,7 @@
     background: #3498db;
     color: #fff;
     cursor: pointer;
+    transition: all 0.2s ease;
   }
 
   .quiz-btn:hover {
@@ -387,6 +412,7 @@
     color: #28a745;
     font-size: 0.8em;
     font-weight: bold;
+    transition: all 0.3s ease;
   }
 
   .topic-item {
@@ -395,7 +421,7 @@
     margin-bottom: 8px;
     padding: 8px 12px;
     background-color: #fafafa;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     font-size: 0.95rem;
   }
 
@@ -426,7 +452,6 @@
     font-size: 0.9rem;
   }
 
-  /* Topic description - readable for non-coding courses */
   .topic-desc-readable {
     background: #1e1e1e;
     color: #d4d4d4;
@@ -493,7 +518,6 @@
     color: #aaa;
   }
 
-  /* Topic media - images and videos */
   .topic-media {
     margin: 12px 0;
     border-radius: 8px;
@@ -575,13 +599,11 @@
     background: rgba(255,255,255,0.1);
   }
 
-
-/* CSS OF SMALL MENU All classes prefixed with ums- so nothing leaks out */
-.ums-wrap {
+  .ums-wrap {
     position: relative;
     display: inline-block;
-}
-.ums-trigger {
+  }
+  .ums-trigger {
     background: none;
     border: 1px solid #e2e8f0;
     border-radius: 50%;
@@ -594,15 +616,15 @@
     justify-content: center;
     overflow: hidden;
     transition: border-color 0.2s ease;
-}
-.ums-trigger:hover { border-color: #1A56DB; }
-.ums-avatar {
+  }
+  .ums-trigger:hover { border-color: #1A56DB; }
+  .ums-avatar {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-}
-.ums-panel {
+  }
+  .ums-panel {
     display: none;
     position: absolute;
     right: 0;
@@ -615,13 +637,13 @@
     padding: 6px;
     z-index: 9999;
     animation: umsFadeIn 0.15s ease;
-}
-.ums-panel.ums-open { display: block; }
-@keyframes umsFadeIn {
+  }
+  .ums-panel.ums-open { display: block; }
+  @keyframes umsFadeIn {
     from { opacity: 0; transform: translateY(-6px); }
     to   { opacity: 1; transform: translateY(0); }
-}
-.ums-item {
+  }
+  .ums-item {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -632,21 +654,58 @@
     text-decoration: none;
     border-radius: 6px;
     transition: background 0.15s ease;
-}
-.ums-item:hover {
+  }
+  .ums-item:hover {
     background: #f1f5f9;
     color: #1A56DB;
     text-decoration: none;
-}
-.ums-item--danger { color: #dc2626; }
-.ums-item--danger:hover { background: #fef2f2; color: #dc2626; }
-.ums-divider {
+  }
+  .ums-item--danger { color: #dc2626; }
+  .ums-item--danger:hover { background: #fef2f2; color: #dc2626; }
+  .ums-divider {
     height: 1px;
     background: #e2e8f0;
     margin: 6px 4px;
-}
+  }
 
- 
+  .studying-indicator {
+    color: #6366f1;
+    font-size: 0.8em;
+    margin-left: 8px;
+    font-weight: 500;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .topic-item.active-topic {
+    border-color: #6366f1;
+    background-color: #f0f4ff;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  }
+
+  .points-updated {
+    animation: pointsPop 0.5s ease;
+  }
+
+  @keyframes pointsPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); color: #fbbf24; }
+    100% { transform: scale(1); }
+  }
+
+  .badge-appear {
+    animation: badgeIn 0.4s ease;
+  }
+
+  @keyframes badgeIn {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
 </style>
 
 {% endblock %}
@@ -671,32 +730,58 @@
         ✕ Hide Editor
     </button>
     
-    <!-- User Menu — self-contained, no Bootstrap JS needed -->
-<div class="ums-wrap" id="umsWrap">
-    <button class="ums-trigger" id="umsTrigger" aria-haspopup="true" aria-expanded="false" aria-label="User menu">
-        <img class="ums-avatar" src="/static/sms/dashboard/img/undraw_profile.svg" alt="Profile">
-    </button>
-
-    <div class="ums-panel" id="umsPanel" role="menu">
-        <a class="ums-item" href="{% url 'sms:myprofile' %}" role="menuitem">
-            👤 Profile
-        </a>
-        <a class="ums-item" href="{% url 'account_change_password' %}" role="menuitem">
-            🔑 Change Password
-        </a>
-        <a class="ums-item" href="{% url 'account_reset_password' %}" role="menuitem">
-            🔒 Password Reset
-        </a>
-        <div class="ums-divider"></div>
-        <a class="ums-item ums-item--danger" href="#" role="menuitem"
-           data-toggle="modal" data-target="#logoutModal">
-            🚪 Logout
-        </a>
+    <div id="pointsDisplay" style="
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        background: #2a2d2e;
+        border-radius: 20px;
+        border: 1px solid #3c3c3c;
+        font-size: 14px;
+        font-weight: 500;
+        color: #e0e0e0;
+        margin-left: 16px;
+    ">
+        <span>🏆</span>
+        <span>Points:</span>
+        <span id="pointsValue" style="color: #4ade80; font-weight: 700;">
+            {{ earned_points|default:"0" }}/{{ total_topics|default:"0" }}
+        </span>
+        <span id="completionBadge" style="color: #fbbf24; font-size: 12px; {% if earned_points != total_topics or total_topics == 0 %}display:none;{% endif %}">🌟 Complete!</span>
     </div>
-</div>
-
-
-
+    
+    {% if user_rank %}
+    <div id="rankDisplay" style="
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: #2a2d2e;
+        border-radius: 20px;
+        border: 1px solid #3c3c3c;
+        font-size: 13px;
+        color: #9cdcfe;
+        margin-left: 8px;
+    ">
+        <span>🏅</span>
+        <span>Rank:</span>
+        <span id="rankValue" style="color: #4ade80; font-weight: 700;">#{{ user_rank }}</span>
+    </div>
+    {% endif %}
+    
+    <div class="ums-wrap" id="umsWrap">
+        <button class="ums-trigger" id="umsTrigger" aria-haspopup="true" aria-expanded="false" aria-label="User menu">
+            <img class="ums-avatar" src="/static/sms/dashboard/img/undraw_profile.svg" alt="Profile">
+        </button>
+        <div class="ums-panel" id="umsPanel" role="menu">
+            <a class="ums-item" href="{% url 'sms:myprofile' %}" role="menuitem">👤 Profile</a>
+            <a class="ums-item" href="{% url 'account_change_password' %}" role="menuitem">🔑 Change Password</a>
+            <a class="ums-item" href="{% url 'account_reset_password' %}" role="menuitem">🔒 Password Reset</a>
+            <div class="ums-divider"></div>
+            <a class="ums-item ums-item--danger" href="#" role="menuitem" data-toggle="modal" data-target="#logoutModal">🚪 Logout</a>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -718,33 +803,14 @@
 <div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
   Drop File Here or 
   <label for="fileInput" style="color: #4fa; cursor:pointer;">Browse</label>
-  <input type="file" id="fileInput" 
-         accept=".png,.jpg,.jpeg,.gif,.xls,.xlsx,.csv" 
-         style="display:none;">
+  <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.gif,.xls,.xlsx,.csv" style="display:none;">
 </div>
 <small style="color: #888;">Images and Excel files will be added to your files</small>
 
-<!-- ===== UPLOAD LOADER ===== -->
-<div id="upload-loader" style="
-  display:none;
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,0.4);
-  z-index:9999;
-  justify-content:center;
-  align-items:center;
-">
-  <div style="
-    width:50px; height:50px;
-    border:5px solid #f3f3f3;
-    border-top:5px solid #3498db;
-    border-radius:50%;
-    animation: spin 1s linear infinite;
-  "></div>
+<div id="upload-loader" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:9999; justify-content:center; align-items:center;">
+  <div style="width:50px; height:50px; border:5px solid #f3f3f3; border-top:5px solid #3498db; border-radius:50%; animation: spin 1s linear infinite;"></div>
 </div>
 
-<!-- ===== CREATE FILE ===== -->
 <div style="margin-bottom: 20px;">
   <input type="text" id="newFileName" placeholder="📝 New file name (e.g., index.html)" style="width: 100%; padding: 5px; margin-bottom: 5px; font-size: 0.9em;">
   <button onclick="createNewFile()" style="width: 100%; background: #3498db; color: white; padding: 6px 10px; border: none; border-radius: 4px;">➕ Create File</button>
@@ -753,20 +819,13 @@
 <hr>
 
 <!-- ===== EXAM SECTION ===== -->
-<!-- <h2 class="mb-3">Topics for {{ course.title }}</h2> -->
-
 {% if not exam_id %}
-    <span style="color: #666;" title="No exam configured for this course">
-        🎓 No Exam Available
-    </span>
+    <span style="color: #666;" title="No exam configured for this course">🎓 No Exam Available</span>
 {% elif topics and completed_topic_ids|length == topics|length %}
-    <a style="color: white;" href="{% url 'student:start-exam' pk=exam_id %}">
-       🎓 Take Exam
-    </a>
+    <a style="color: white;" href="{% url 'student:start-exam' pk=exam_id %}">🎓 Take Exam</a>
 {% else %}
-    <a href="{% url 'student:start-exam' pk=exam_id %}?next={{ request.path|urlencode }}"
-       style="color: #aaa;" title="Complete all module quizzes to unlock the exam">
-        🔒 Take Exam ({{ completed_topic_ids|length }}/{{ topics|length }} modules)
+    <a id="examLockLink" href="{% url 'student:start-exam' pk=exam_id %}?next={{ request.path|urlencode }}" style="color: #aaa;" title="Complete all module quizzes to unlock the exam">
+        🔒 Take Exam (<span id="examProgressCount">{{ completed_topic_ids|length }}</span>/{{ topics|length }} modules)
     </a>
 {% endif %}
 
@@ -781,77 +840,64 @@
   </div>
 </div>
 
+<!-- Leaderboard Link -->
+{% if course %}
+<a href="{% url 'webprojects:course_leaderboard' course.id %}?project_id={{ project.id }}&file_id={{ file.id }}" 
+   style="display: block; padding: 8px 12px; color: #9cdcfe; text-decoration: none; border: 1px solid #3c3c3c; border-radius: 6px; margin-bottom: 12px; transition: all 0.2s ease;"
+   onmouseover="this.style.background='#2a2d2e'; this.style.borderColor='#4fa';"
+   onmouseout="this.style.background=''; this.style.borderColor='#3c3c3c';">
+    🏆 Leaderboard
+    {% if user_rank %}<span style="float:right; color: #4ade80; font-weight:600;" id="leaderboardRank">#{{ user_rank }}</span>{% endif %}
+</a>
+{% endif %}
 
 <!-- ===== TOPICS ===== -->
-<div class="topics-container" style= 'user-select: None'>
+<div class="topics-container" style='user-select: None'>
   {% for topic in topics %}
-    <div class="topic-item" data-topic-id="{{ topic.id }}">
+    <div class="topic-item" data-topic-id="{{ topic.id }}" id="topic-item-{{ topic.id }}">
       <a href="javascript:void(0);" class="topic-toggle d-flex justify-content-between align-items-center"
          onclick="toggleDesc('topic-{{ topic.id }}', this, '{{ topic.language|default:"python" }}')">
         <span>{{ topic.title }}</span>
         <span class="toggle-icon">➕</span>
       </a>
+      <span id="studying-{{ topic.id }}" class="studying-indicator" style="display:none;">📖 Studying...</span>
 
-      <!-- Topic description with media support -->
-      <div id="topic-{{ topic.id }}" class="topic-desc language-{{ topic.language|default:'python' }}" 
-           style="display:none; background:#ffffff; color:#000000; padding:12px; border-radius:6px;">
-
-        <!-- ✅ Topic image (if it exists) -->
+      <div id="topic-{{ topic.id }}" class="topic-desc language-{{ topic.language|default:'python' }}" style="display:none; background:#ffffff; color:#000000; padding:12px; border-radius:6px;">
         {% if topic.img_topic %}
-          <div style="margin-bottom:12px;">
-            <img src="{{ topic.img_topic.url }}" alt="{{ topic.title }}" 
-                 style="max-width:100%; border-radius:6px; display:block;">
-          </div>
+          <div style="margin-bottom:12px;"><img src="{{ topic.img_topic.url }}" alt="{{ topic.title }}" style="max-width:100%; border-radius:6px; display:block;"></div>
         {% endif %}
-
-        <!-- ✅ Topic uploaded video file (if it exists) -->
         {% if topic.video %}
-          <div style="margin-bottom:12px;">
-            <video controls style="max-width:100%; border-radius:6px; display:block;">
-              <source src="{{ topic.video.url }}">
-              Your browser does not support the video tag.
-            </video>
-          </div>
+          <div style="margin-bottom:12px;"><video controls style="max-width:100%; border-radius:6px; display:block;"><source src="{{ topic.video.url }}"></video></div>
         {% endif %}
-
-        <!-- ✅ External video URL, e.g. YouTube (if it exists) -->
         {% if topic.topics_url %}
-          <div style="margin-bottom:12px;">
-            <div class="ratio ratio-16x9">
-              <iframe src="{{ topic.topics_url }}" 
-                      frameborder="0" allowfullscreen
-                      style="width:100%; min-height:250px; border-radius:6px;">
-              </iframe>
-            </div>
-          </div>
+          <div style="margin-bottom:12px;"><iframe src="{{ topic.topics_url }}" frameborder="0" allowfullscreen style="width:100%; min-height:250px; border-radius:6px;"></iframe></div>
         {% endif %}
-
         {% if topic.language|default:'python' in 'python,javascript,html,css,java,cpp,csharp,php,ruby,go,rust,sql' %}
-          <!-- Code topic - show with syntax highlighting, forced white bg / black text -->
           <p class="language-{{ topic.language|default:'python' }}" style="background:#ffffff !important; color:#000000 !important;">{{ topic.desc|safe|escape }}</p>
         {% else %}
-          <!-- Non-code topic - parse for images, videos, and text -->
           {% with topic.desc|safe as desc %}
             {% if '<img' in desc or '<video' in desc or '<iframe' in desc %}
-              <!-- Has media - render as HTML -->
-              <div style="background:#ffffff; color:#000000; padding:16px; border-radius:6px; border:1px solid #e5e5e5; white-space:normal; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size:15px; line-height:1.6; max-width:100%;">
-                {{ desc|safe }}
-              </div>
+              <div style="background:#ffffff; color:#000000; padding:16px; border-radius:6px; border:1px solid #e5e5e5; white-space:normal; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size:15px; line-height:1.6; max-width:100%;">{{ desc|safe }}</div>
             {% else %}
-              <!-- Plain text - render readable -->
-              <div style="background:#ffffff; color:#000000; padding:16px; border-radius:6px; border:1px solid #e5e5e5; white-space:normal; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size:15px; line-height:1.6; max-width:100%;">
-                {{ desc|linebreaks|safe }}
-              </div>
+              <div style="background:#ffffff; color:#000000; padding:16px; border-radius:6px; border:1px solid #e5e5e5; white-space:normal; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size:15px; line-height:1.6; max-width:100%;">{{ desc|linebreaks|safe }}</div>
             {% endif %}
           {% endwith %}
         {% endif %}
       </div>
 
+      <!-- ===== QUIZ BUTTON & PASSED BADGE - SHOWN FOR ALL COURSES ===== -->
+            <!-- ===== QUIZ BUTTON & PASSED BADGE ===== -->
       <div class="quiz-action-row" style="margin-top:6px; display:flex; align-items:center; gap:8px;">
-        <button class="quiz-btn" data-topic-id="{{ topic.id }}" data-topic-title="{{ topic.title|escapejs }}"
-                onclick="openQuizModal({{ topic.id }}, this)">
-          {% if topic.id in completed_topic_ids %}🔁 Retake Quiz{% else %}📝 Take Quiz{% endif %}
-        </button>
+        {% with course_title=course.title|lower %}
+        {% if 'python' not in course_title and 'rust' not in course_title %}
+          <!-- Non-coding course: show quiz button + passed badge -->
+          <button class="quiz-btn" data-topic-id="{{ topic.id }}" data-topic-title="{{ topic.title|escapejs }}"
+                  onclick="openQuizModal({{ topic.id }}, this)">
+            {% if topic.id in completed_topic_ids %}🔁 Retake Quiz{% else %}📝 Take Quiz{% endif %}
+          </button>
+        {% endif %}
+        {% endwith %}
+        <!-- Show passed badge for ALL courses (coding & non-coding) -->
         <span class="quiz-passed-badge" data-topic-id="{{ topic.id }}" style="{% if topic.id in completed_topic_ids %}display:inline;{% else %}display:none;{% endif %}">✅ Passed</span>
       </div>
     </div>
@@ -860,168 +906,39 @@
   {% endfor %}
 </div>
 
-
-
 <!-- ===== FILE LIST ===== -->
 <div id="fileListContainer">
 {% for ext in exts %}
   {% with files|dictsort:"name" as sorted_files %}
-
-    <!-- Folder Header -->
-    <div class="folder-toggle" data-ext="{{ ext }}" style="
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #2a2d2e;
-        border: 1px solid #3c3c3c;
-        border-radius: 6px;
-        padding: 8px 12px;
-        margin-bottom: 4px;
-        cursor: pointer;
-        font-size: 12.5px;
-        font-weight: 600;
-        color: #cccccc;
-        letter-spacing: 0.03em;
-        user-select: none;
-        transition: background 0.15s ease;
-    " onmouseover="this.style.background='#333638'" onmouseout="this.style.background='#2a2d2e'">
+    <div class="folder-toggle" data-ext="{{ ext }}" style="display: flex; justify-content: space-between; align-items: center; background: #2a2d2e; border: 1px solid #3c3c3c; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px; cursor: pointer; font-size: 12.5px; font-weight: 600; color: #cccccc; letter-spacing: 0.03em; user-select: none; transition: background 0.15s ease;" onmouseover="this.style.background='#333638'" onmouseout="this.style.background='#2a2d2e'">
         <span>📁 {{ ext|upper }} Files</span>
-        <span style="font-size:11px; color:#666; transition: transform 0.2s;">⮟</span>
+        <span class="folder-arrow" style="font-size:11px; color:#666; transition: transform 0.2s;">▶</span>
     </div>
-
-    <!-- File Group -->
-    <div class="file-group" style="
-        margin: 0 0 8px 0;
-        border-left: 2px solid #3c3c3c;
-        margin-left: 6px;
-        padding-left: 8px;
-        display: none;
-    ">
+    <div class="file-group" data-ext="{{ ext }}" style="margin: 0 0 8px 0; border-left: 2px solid #3c3c3c; margin-left: 6px; padding-left: 8px; display: none;">
       {% for f in sorted_files %}
         {% if f.name|has_ext:ext %}
           {% with f.name|lower as fname %}
-
-            <!-- File Item -->
-            <div class="file-item" data-file-id="{{ f.id }}" style="
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                padding: 5px 8px;
-                margin-bottom: 3px;
-                border-radius: 5px;
-                background: {% if f.id == file.id %}#094771{% else %}#1e1e1e{% endif %};
-                border: 1px solid {% if f.id == file.id %}#1177bb{% else %}#2d2d2d{% endif %};
-                transition: background 0.15s ease;
-            "
-            onmouseover="if('{{ f.id }}' !== '{{ file.id }}') this.style.background='#2a2d2e'"
-            onmouseout="if('{{ f.id }}' !== '{{ file.id }}') this.style.background='#1e1e1e'">
-
+            <div class="file-item" data-file-id="{{ f.id }}" style="display: flex; align-items: center; gap: 6px; padding: 5px 8px; margin-bottom: 3px; border-radius: 5px; background: {% if f.id == file.id %}#094771{% else %}#1e1e1e{% endif %}; border: 1px solid {% if f.id == file.id %}#1177bb{% else %}#2d2d2d{% endif %}; transition: background 0.15s ease;" onmouseover="if('{{ f.id }}' !== '{{ file.id }}') this.style.background='#2a2d2e'" onmouseout="if('{{ f.id }}' !== '{{ file.id }}') this.style.background='#1e1e1e'">
               {% if fname|slice:"-4:" == ".png" or fname|slice:"-4:" == ".jpg" or fname|slice:"-5:" == ".jpeg" or fname|slice:"-4:" == ".gif" %}
-                <!-- Image File -->
-                <a href="javascript:void(0);"
-                   onclick="showImageModal('{{ f.image.url }}')"
-                   title="{{ f.name }}"
-                   style="
-                       flex: 1;
-                       color: #4ec9b0;
-                       text-decoration: none;
-                       font-size: 12px;
-                       white-space: nowrap;
-                       overflow: hidden;
-                       text-overflow: ellipsis;
-                   ">
-                    🖼️ {{ f.name }}
-                </a>
-
+                <a href="javascript:void(0);" onclick="showImageModal('{{ f.image.url }}')" title="{{ f.name }}" style="flex: 1; color: #4ec9b0; text-decoration: none; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🖼️ {{ f.name }}</a>
               {% else %}
-                <!-- Code / Normal File -->
-                <a class="ajax-link"
-                   href="{% url 'webprojects:file_detail' f.project.id f.id %}"
-                   title="{{ f.name }}"
-                   style="
-                       flex: 1;
-                       color: {% if f.id == file.id %}#ffffff{% else %}#9cdcfe{% endif %};
-                       text-decoration: none;
-                       font-size: 12px;
-                       font-weight: {% if f.id == file.id %}600{% else %}400{% endif %};
-                       white-space: nowrap;
-                       overflow: hidden;
-                       text-overflow: ellipsis;
-                   ">
-                    📝 {{ f.name }}
-                </a>
-
+                <a href="{% url 'webprojects:file_detail' f.project.id f.id %}" title="{{ f.name }}" style="flex: 1; color: {% if f.id == file.id %}#ffffff{% else %}#9cdcfe{% endif %}; text-decoration: none; font-size: 12px; font-weight: {% if f.id == file.id %}600{% else %}400{% endif %}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" onclick="event.preventDefault(); window.location.href=this.href;">📝 {{ f.name }}</a>
                 {% if ".html" in f.name|lower %}
-                <a href="{% url 'webprojects:share_preview' f.project.id f.id %}"
-                   target="_blank"
-                   title="Publish"
-                   style="
-                       flex-shrink: 0;
-                       font-size: 10.5px;
-                       font-weight: 600;
-                       color: #4caf50;
-                       text-decoration: none;
-                       background: rgba(76,175,80,0.12);
-                       border: 1px solid rgba(76,175,80,0.3);
-                       border-radius: 3px;
-                       padding: 2px 6px;
-                       white-space: nowrap;
-                   ">
-                    ↗ Publish
-                </a>
+                <a href="{% url 'webprojects:share_preview' f.project.id f.id %}" target="_blank" title="Publish" style="flex-shrink: 0; font-size: 10.5px; font-weight: 600; color: #4caf50; text-decoration: none; background: rgba(76,175,80,0.12); border: 1px solid rgba(76,175,80,0.3); border-radius: 3px; padding: 2px 6px; white-space: nowrap;">↗ Publish</a>
                 {% endif %}
-
                 {% if f.is_excel %}
-                <a href="{% url 'webprojects:file_preview' f.project.id f.id %}"
-                   title="Preview spreadsheet"
-                   style="
-                       flex-shrink: 0;
-                       font-size: 10.5px;
-                       font-weight: 600;
-                       color: #569cd6;
-                       text-decoration: none;
-                       background: rgba(86,156,214,0.1);
-                       border: 1px solid rgba(86,156,214,0.3);
-                       border-radius: 3px;
-                       padding: 2px 6px;
-                       white-space: nowrap;
-                   ">
-                    👁 View
-                </a>
+                <a href="{% url 'webprojects:file_preview' f.project.id f.id %}" title="Preview spreadsheet" style="flex-shrink: 0; font-size: 10.5px; font-weight: 600; color: #569cd6; text-decoration: none; background: rgba(86,156,214,0.1); border: 1px solid rgba(86,156,214,0.3); border-radius: 3px; padding: 2px 6px; white-space: nowrap;">👁 View</a>
                 {% endif %}
               {% endif %}
-
-              <!-- Delete Button -->
-              <form method="POST"
-                    action="{% url 'webprojects:file_delete' f.project.id f.id %}"
-                    class="delete-file-form"
-                    style="flex-shrink: 0; margin: 0; padding: 0;">
+              <form method="POST" action="{% url 'webprojects:file_delete' f.project.id f.id %}" class="delete-file-form" style="flex-shrink: 0; margin: 0; padding: 0;" onsubmit="return confirm('Are you sure you want to delete this file?');">
                 {% csrf_token %}
-                <button type="submit"
-                        title="Delete {{ f.name }}"
-                        style="
-                            background: transparent;
-                            border: 1px solid transparent;
-                            border-radius: 4px;
-                            color: #666;
-                            font-size: 13px;
-                            padding: 2px 5px;
-                            cursor: pointer;
-                            line-height: 1;
-                            transition: all 0.15s ease;
-                        "
-                        onmouseover="this.style.background='rgba(220,53,69,0.15)'; this.style.borderColor='rgba(220,53,69,0.4)'; this.style.color='#f47983';"
-                        onmouseout="this.style.background='transparent'; this.style.borderColor='transparent'; this.style.color='#666';">
-                    🗑
-                </button>
+                <button type="submit" title="Delete {{ f.name }}" style="background: transparent; border: 1px solid transparent; border-radius: 4px; color: #666; font-size: 13px; padding: 2px 5px; cursor: pointer; line-height: 1; transition: all 0.15s ease;" onmouseover="this.style.background='rgba(220,53,69,0.15)'; this.style.borderColor='rgba(220,53,69,0.4)'; this.style.color='#f47983';" onmouseout="this.style.background='transparent'; this.style.borderColor='transparent'; this.style.color='#666';">🗑</button>
               </form>
-
             </div>
           {% endwith %}
         {% endif %}
       {% endfor %}
     </div>
-
   {% endwith %}
 {% endfor %}
 </div>
@@ -1040,1289 +957,533 @@
 <!-- ===== TOOLBAR ===== -->
 <div style="padding: 8px 12px; background: #222; border-bottom: 1px solid #444; text-align: right;">
   <button id="runBtnCode" onclick="runCode()" style="background:#2ecc71; color:white;">▶ Run Code</button> 
-
 </div>
 
 <!-- ===== EDITOR PANEL ===== -->
 <div class="editor-panel" style="display: flex; flex-direction: column; height: 10%;">
   <div class="editor-wrapper">
-    <!-- Close button inside editor -->
     <button class="editor-close-btn" onclick="toggleEditor()" title="Close Editor">✕</button>
     <div id="container" style="flex-grow: 1; min-height: 10px;"></div>
-    <div id="resizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
+    <div id="resizeHandle" style="height: 20px; cursor: row-resize; background: #444;">
+      <div style="width: 40px; height: 4px; background: #666; border-radius: 2px; pointer-events: none;"></div>
+    </div>
   </div>
 </div>
 
 <!-- ===== OUTPUT PANEL ===== -->
-<div id="outputPanel" style="height: 100px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
+<div id="outputPanel" style="height: 150px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
   <strong>🔽 Output:</strong>
   <pre id="outputText" style="white-space: pre-wrap;"></pre>
   <div id="tablePreview" style="margin-top: 15px; display: none;"></div>
   <div id="plotPreview" style="display: none;"></div>
+  <div id="scorePanel" style="display:none; margin-top:10px; padding:10px; background:#2d2d2d; border-radius:6px; border-left: 3px solid #6366f1;">
+    <div id="scoreDisplay" style="font-size:1.1em; font-weight:bold; color:#fff;"></div>
+    <div id="scoreFeedback" style="color:#94a3b8; margin-top:4px; font-size:0.9em;"></div>
+    <div id="scoreBar" style="margin-top:8px; background:#444; border-radius:4px; height:6px;">
+      <div id="scoreBarFill" style="height:6px; border-radius:4px; background:#6366f1; width:0%; transition: width 0.5s ease;"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ===== FLOATING AI PANEL ===== -->
-<div id="floatingAI" style="
-  position: fixed;
-  top: 100px;
-  right: 30px;
-  width: 400px;
-  height: 300px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  display: flex;
-  flex-direction: column;
-  z-index: 9999;
-">
+<div id="floatingAI" style="position: fixed; top: 100px; right: 30px; width: 400px; height: 300px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: flex; flex-direction: column; z-index: 9999;">
   <div id="dragHandle" style="cursor: grab; padding: 8px; background: #f1f1f1; border-bottom: 1px solid #ccc; display:flex; align-items:center; justify-content:space-between;">
     <span>🖐️ Drag Me</span>
-    <button class="close-panel-btn" onclick="closeAIPanel()" title="Close" style="
-      background: none;
-      border: none;
-      font-size: 18px;
-      line-height: 1;
-      color: #555;
-      cursor: pointer;
-      padding: 2px 6px;
-      border-radius: 4px;
-      transition: background 0.2s, color 0.2s;
-    " onmouseover="this.style.background='#e74c3c'; this.style.color='#fff';" onmouseout="this.style.background='none'; this.style.color='#555';">&times;</button>
+    <button class="close-panel-btn" onclick="closeAIPanel()" title="Close" style="background: none; border: none; font-size: 18px; line-height: 1; color: #555; cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: background 0.2s, color 0.2s;" onmouseover="this.style.background='#e74c3c'; this.style.color='#fff';" onmouseout="this.style.background='none'; this.style.color='#555';">&times;</button>
   </div>
-
   <div style="display:flex; border-bottom:2px solid #eee; background:#f9f9f9;">
-    <button id="appBuilderTab" class="ai-tab" style="flex:1; padding:12px 20px; border:none; background:none; cursor:pointer; border-bottom:3px solid #007bff; font-weight:bold; font-size:15px; color:#007bff; transition:all 0.2s;">
-      🏗️ Build Project
-    </button>
-    <button id="fileEditorTab" class="ai-tab" style="flex:1; padding:12px 20px; border:none; background:none; cursor:pointer; border-bottom:3px solid transparent; font-size:15px; color:#666; transition:all 0.2s;">
-    Edit 📝 {{ file.name }} 
-    </button>
+    <button id="appBuilderTab" class="ai-tab" style="flex:1; padding:12px 20px; border:none; background:none; cursor:pointer; border-bottom:3px solid #007bff; font-weight:bold; font-size:15px; color:#007bff; transition:all 0.2s;">🏗️ Build Project</button>
+    <button id="fileEditorTab" class="ai-tab" style="flex:1; padding:12px 20px; border:none; background:none; cursor:pointer; border-bottom:3px solid transparent; font-size:15px; color:#666; transition:all 0.2s;">Edit 📝 {{ file.name }}</button>
   </div>
-
   <div id="appBuilderPanel" style="padding:10px; flex:1; display:flex; flex-direction:column;">
     <div style="display:flex; gap:10px; margin-bottom:6px;">
-      <input type="text" id="aiPrompt" placeholder="Ask AI to generate a project (e.g., 'Create a bouncing ball game')" style="flex:1; padding:10px 12px; font-size:15px; border:1px solid #ccc; border-radius:4px;" />
+      <input type="text" id="aiPrompt" placeholder="Ask AI to generate a project..." style="flex:1; padding:10px 12px; font-size:15px; border:1px solid #ccc; border-radius:4px;" />
       <button id="runAIPrompt" onclick="runAIBuild()" style="padding:10px 18px; background:#007bff; color:#fff; font-size:15px; border:none; border-radius:6px; cursor:pointer; transition:background 0.2s, transform 0.1s; white-space:nowrap;" onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'">Run AI</button>
     </div>
     <pre id="appBuilderOutput" style="background:#f5f5f5; padding:10px; border-radius:4px; margin-top:10px; height:200px; overflow-y:auto; white-space:pre-wrap; display:none;"></pre>
   </div>
-
   <div id="fileEditorPanel" style="padding:10px; flex:1; display:none; flex-direction:column;">
     <div style="display:flex; gap:10px; margin-bottom:6px;">
-      <input id="fileChatPrompt" placeholder="Describe changes to apply to current file..." style="flex:1; padding:10px 12px; font-size:15px; border:1px solid #ccc; border-radius:4px;" />
+      <input id="fileChatPrompt" placeholder="Describe changes to apply..." style="flex:1; padding:10px 12px; font-size:15px; border:1px solid #ccc; border-radius:4px;" />
       <button id="applyBtn" onclick="applyChanges()" style="padding:10px 18px; background:#28a745; color:white; font-size:15px; border:none; border-radius:6px; cursor:pointer; transition:background 0.2s, transform 0.1s; white-space:nowrap;" onmouseover="this.style.background='#218838'" onmouseout="this.style.background='#28a745'" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'">Apply Changes</button>
     </div>
     <pre id="fileChatOutput" style="background:#f5f5f5; flex:1; overflow-y:auto; padding:10px; border-radius:4px; white-space:pre-wrap;"></pre>
   </div>
-
   <div id="resizeHandleAI" style="height:6px; cursor: row-resize; background:#ccc;"></div>
 </div>
-
 
 <!-- ===== TOAST MESSAGE ===== -->
 <div id="toastMessage"></div>
 
 <script>
-
-// small menu toggle logic
-
-(function () {
-    const trigger = document.getElementById('umsTrigger');
-    const panel   = document.getElementById('umsPanel');
-    if (!trigger || !panel) return;
-
-    // Toggle on click
-    trigger.addEventListener('click', function (e) {
-        e.stopPropagation();
-        const isOpen = panel.classList.toggle('ums-open');
-        trigger.setAttribute('aria-expanded', isOpen);
+// ============================================
+// FOLDER TOGGLE FUNCTIONALITY
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.folder-toggle').forEach(function(toggle) {
+        const ext = toggle.dataset.ext;
+        const fileGroup = document.querySelector(`.file-group[data-ext="${ext}"]`);
+        const arrow = toggle.querySelector('.folder-arrow');
+        const storedState = localStorage.getItem('folder_' + ext);
+        if (storedState === 'open' && fileGroup) { fileGroup.style.display = 'block'; if (arrow) arrow.textContent = '▼'; toggle.classList.add('open'); }
+        toggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const group = this.nextElementSibling;
+            const arrowIcon = this.querySelector('.folder-arrow');
+            if (group && group.classList.contains('file-group')) {
+                const isOpen = group.style.display === 'block';
+                if (isOpen) { group.style.display = 'none'; if (arrowIcon) arrowIcon.textContent = '▶'; this.classList.remove('open'); localStorage.setItem('folder_' + ext, 'closed'); }
+                else { group.style.display = 'block'; if (arrowIcon) arrowIcon.textContent = '▼'; this.classList.add('open'); localStorage.setItem('folder_' + ext, 'open'); }
+            }
+        });
     });
+});
 
-    // Close on outside click
-    document.addEventListener('click', function (e) {
-        if (!panel.contains(e.target) && e.target !== trigger) {
-            panel.classList.remove('ums-open');
-            trigger.setAttribute('aria-expanded', 'false');
-        }
+async function refreshFileList() {
+    try {
+        const res = await fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCsrfToken() } });
+        if (!res.ok) throw new Error('Failed to fetch file list');
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newFileList = doc.querySelector('#fileListContainer');
+        if (newFileList) { document.getElementById('fileListContainer').innerHTML = newFileList.innerHTML; reattachFolderListeners(); showToast('✅ Files updated!', 'success'); }
+    } catch (err) { console.error('Error refreshing file list:', err); setTimeout(() => window.location.reload(), 1500); }
+}
+
+function reattachFolderListeners() {
+    document.querySelectorAll('.folder-toggle').forEach(function(toggle) {
+        const ext = toggle.dataset.ext;
+        const storedState = localStorage.getItem('folder_' + ext);
+        if (storedState === 'open') { toggle.classList.add('open'); if (toggle.nextElementSibling) toggle.nextElementSibling.style.display = 'block'; }
+        toggle.addEventListener('click', function() { const group = this.nextElementSibling; const isOpen = this.classList.toggle('open'); if (group) group.style.display = isOpen ? 'block' : 'none'; localStorage.setItem('folder_' + ext, isOpen ? 'open' : 'closed'); });
     });
-
-    // Close on Escape key
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-            panel.classList.remove('ums-open');
-            trigger.setAttribute('aria-expanded', 'false');
-            trigger.focus();
-        }
-    });
-}());
-  
-// ============================================
-// CSRF TOKEN HELPER
-// ============================================
-
-function getCsrfToken() {
-  return (
-    document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
-    document.querySelector('meta[name="csrf-token"]')?.content ||
-    ''
-  );
 }
 
 // ============================================
-// TOAST FUNCTIONS
+// GLOBAL VARIABLES
 // ============================================
-
-function showToast(message, type = 'info') {
-  const toast = document.getElementById("toastMessage");
-  if (!toast) return;
-  
-  const colors = {
-    success: '#28a745',
-    error: '#dc3545',
-    info: '#007bff',
-    warning: '#ffc107'
-  };
-  
-  toast.innerHTML = `
-    <span>${message}</span>
-    <button onclick="hideToast()" style="background: none; border: none; color: #fff; font-size: 22px; position: absolute; right: 12px; top: 8px; cursor: pointer;">&times;</button>
-  `;
-  toast.style.backgroundColor = colors[type] || '#222';
-  toast.style.display = "block";
-  toast.style.opacity = "1";
-  
-  clearTimeout(toast._timeout);
-  toast._timeout = setTimeout(() => {
-    toast.style.opacity = "0";
-    setTimeout(() => toast.style.display = "none", 500);
-  }, 3000);
-}
-
-function hideToast() {
-  const toast = document.getElementById("toastMessage");
-  if (toast) {
-    toast.style.opacity = "0";
-    setTimeout(() => toast.style.display = "none", 500);
-  }
-}
-
-// ============================================
-// ESCAPE HTML HELPER
-// ============================================
-
-function escapeHTML(str) {
-  return String(str).replace(/[&<>"']/g, tag => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[tag]));
-}
-
-// ============================================
-// FILE MANAGEMENT FUNCTIONS
-// ============================================
-
-const CREATE_FILE_URL = "{% url 'webprojects:create_file' project.id %}";
-
-async function createNewFile() {
-  const input = document.getElementById('newFileName');
-  const name = input.value.trim();
-
-  if (!name) {
-    showToast('Please enter a file name', 'warning');
-    return;
-  }
-
-  try {
-    const res = await fetch(CREATE_FILE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCsrfToken(),
-      },
-      body: JSON.stringify({ name: name, folder_id: null }),
-    });
-
-    const data = await res.json();
-
-    if (data.status === 'success') {
-      showToast(`Created ${data.file_name}`, 'success');
-      input.value = '';
-      await refreshFileList();
-      window.location.href = `/webprojects/{{ project.id }}/file/${data.file_id}/`;
-    } else {
-      showToast(data.message || 'Failed to create file', 'error');
-    }
-  } catch (err) {
-    console.error(err);
-    showToast('Request failed while creating file', 'error');
-  }
-}
-
-// ============================================
-// QUIZ FUNCTIONS
-// ============================================
-
+let activeTopicId = {{ current_topic_id|default:"null" }};
+let editor = null;
 let currentQuizTopicId = null;
 let currentQuizQuestions = [];
 const COURSE_ID = {{ course_id|default:"null" }};
+const TOTAL_TOPICS = {{ total_topics|default:0 }};
 
+// ============================================
+// TOPIC TOGGLE
+// ============================================
+function toggleDesc(id, el, lang) {
+  const desc = document.getElementById(id);
+  const topicId = id.replace('topic-', '');
+  if (desc.style.display === "none") {
+    desc.style.display = "block"; el.querySelector(".toggle-icon").textContent = "➖";
+    activeTopicId = topicId; updateActiveTopic(topicId);
+    document.querySelectorAll('[id^="studying-"]').forEach(s => s.style.display = 'none');
+    const studying = document.getElementById('studying-' + topicId); if (studying) studying.style.display = 'inline';
+    document.querySelectorAll('.topic-item').forEach(item => item.classList.remove('active-topic'));
+    const topicItem = document.getElementById('topic-item-' + topicId); if (topicItem) topicItem.classList.add('active-topic');
+  } else {
+    desc.style.display = "none"; el.querySelector(".toggle-icon").textContent = "➕"; desc.className = 'topic-desc language-' + lang;
+    activeTopicId = null; updateActiveTopic(null);
+    const studying = document.getElementById('studying-' + topicId); if (studying) studying.style.display = 'none';
+    const topicItem = document.getElementById('topic-item-' + topicId); if (topicItem) topicItem.classList.remove('active-topic');
+  }
+}
+
+// ============================================
+// USER MENU TOGGLE
+// ============================================
+(function () {
+    const trigger = document.getElementById('umsTrigger'), panel = document.getElementById('umsPanel');
+    if (!trigger || !panel) return;
+    trigger.addEventListener('click', function (e) { e.stopPropagation(); const isOpen = panel.classList.toggle('ums-open'); trigger.setAttribute('aria-expanded', isOpen); });
+    document.addEventListener('click', function (e) { if (!panel.contains(e.target) && e.target !== trigger) { panel.classList.remove('ums-open'); trigger.setAttribute('aria-expanded', 'false'); } });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { panel.classList.remove('ums-open'); trigger.setAttribute('aria-expanded', 'false'); trigger.focus(); } });
+}());
+
+function getCsrfToken() { return document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.querySelector('meta[name="csrf-token"]')?.content || ''; }
+
+function showToast(message, type = 'info') {
+  const toast = document.getElementById("toastMessage"); if (!toast) return;
+  const colors = { success: '#28a745', error: '#dc3545', info: '#007bff', warning: '#ffc107' };
+  toast.innerHTML = `<span>${message}</span><button onclick="hideToast()" style="background: none; border: none; color: #fff; font-size: 22px; position: absolute; right: 12px; top: 8px; cursor: pointer;">&times;</button>`;
+  toast.style.backgroundColor = colors[type] || '#222'; toast.style.display = "block"; toast.style.opacity = "1";
+  clearTimeout(toast._timeout); toast._timeout = setTimeout(() => { toast.style.opacity = "0"; setTimeout(() => toast.style.display = "none", 500); }, 3000);
+}
+function hideToast() { const toast = document.getElementById("toastMessage"); if (toast) { toast.style.opacity = "0"; setTimeout(() => toast.style.display = "none", 500); } }
+function escapeHTML(str) { return String(str).replace(/[&<>"']/g, tag => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[tag])); }
+
+// ============================================
+// FILE MANAGEMENT
+// ============================================
+const CREATE_FILE_URL = "{% url 'webprojects:create_file' project.id %}";
+async function createNewFile() {
+  const input = document.getElementById('newFileName'); const name = input.value.trim();
+  if (!name) { showToast('Please enter a file name', 'warning'); return; }
+  try {
+    const res = await fetch(CREATE_FILE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }, body: JSON.stringify({ name: name, folder_id: null }) });
+    const data = await res.json();
+    if (data.status === 'success') { showToast(`Created ${data.file_name}`, 'success'); input.value = ''; await refreshFileList(); window.location.href = `/webprojects/{{ project.id }}/file/${data.file_id}/`; }
+    else { showToast(data.message || 'Failed to create file', 'error'); }
+  } catch (err) { console.error(err); showToast('Request failed while creating file', 'error'); }
+}
+
+// ============================================
+// QUIZ PROGRESS LOAD
+// ============================================
 async function loadQuizProgress() {
   try {
     const url = COURSE_ID ? `/webprojects/progress/?course_id=${COURSE_ID}` : '/webprojects/progress/';
     const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     const data = await res.json();
-    if (data.status === 'success') {
-      updateProgressUI(data.overall_pct, data.completed_topic_ids || []);
+    if (data.status === 'success') { updateProgressUI(data.overall_pct, data.completed_topic_ids || [], data.points || 0); }
+  } catch (err) { console.error('Failed to load progress', err); }
+}
+
+// ============================================
+// REAL-TIME POINTS UPDATE
+// ============================================
+function updatePointsDisplay(points, total) {
+    const pointsValue = document.getElementById('pointsValue');
+    const completionBadge = document.getElementById('completionBadge');
+    if (pointsValue) { pointsValue.textContent = `${points}/${total}`; pointsValue.classList.remove('points-updated'); void pointsValue.offsetWidth; pointsValue.classList.add('points-updated'); }
+    if (completionBadge) {
+        if (points === total && total > 0) { completionBadge.style.display = 'inline'; completionBadge.classList.remove('badge-appear'); void completionBadge.offsetWidth; completionBadge.classList.add('badge-appear'); showCompletionCelebration(); }
+        else { completionBadge.style.display = 'none'; }
     }
-  } catch (err) {
-    console.error('Failed to load progress', err);
-  }
+    const examLockLink = document.getElementById('examLockLink'); const examProgressCount = document.getElementById('examProgressCount');
+    if (examLockLink && examProgressCount) { examProgressCount.textContent = points; if (points === total && total > 0) { examLockLink.innerHTML = '🎓 Take Exam'; examLockLink.style.color = 'white'; examLockLink.removeAttribute('title'); } }
 }
 
-function updateProgressUI(pct, completedIds) {
-  const fill = document.getElementById('quizProgressFill');
-  const label = document.getElementById('quizProgressLabel');
-  if (fill) fill.style.width = pct + '%';
-  if (label) label.textContent = pct + '%';
-
-  document.querySelectorAll('.quiz-passed-badge').forEach(badge => {
-    const tId = badge.dataset.topicId;
-    const btn = document.querySelector(`.quiz-btn[data-topic-id="${tId}"]`);
-    const isDone = completedIds.includes(parseInt(tId));
-    badge.style.display = isDone ? 'inline' : 'none';
-    if (btn) btn.textContent = isDone ? '🔁 Retake Quiz' : '📝 Take Quiz';
-  });
+// ============================================
+// REAL-TIME PROGRESS UI UPDATE
+// ============================================
+function updateProgressUI(pct, completedIds, points) {
+    const fill = document.getElementById('quizProgressFill');
+    const label = document.getElementById('quizProgressLabel');
+    const pointsValue = document.getElementById('pointsValue');
+    const rankValue = document.getElementById('rankValue');
+    const leaderboardRank = document.getElementById('leaderboardRank');
+    if (fill) { fill.style.transition = 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'; fill.style.width = pct + '%'; }
+    if (label) label.textContent = pct + '%';
+    if (points !== undefined && pointsValue) updatePointsDisplay(points, TOTAL_TOPICS);
+    
+    // Update badges and buttons for ALL topics
+    document.querySelectorAll('.quiz-passed-badge').forEach(badge => {
+        const tId = parseInt(badge.dataset.topicId);
+        const btn = document.querySelector(`.quiz-btn[data-topic-id="${tId}"]`);
+        const isDone = completedIds.includes(tId);
+        if (isDone) {
+            badge.style.display = 'inline';
+            badge.classList.remove('badge-appear'); void badge.offsetWidth; badge.classList.add('badge-appear');
+        } else { badge.style.display = 'none'; }
+        if (btn) { btn.textContent = isDone ? '🔁 Retake Quiz' : '📝 Take Quiz'; btn.style.background = isDone ? '#28a745' : '#3498db'; }
+    });
+    
+    if (window._lastRank !== undefined && rankValue) { rankValue.textContent = '#' + window._lastRank; rankValue.classList.remove('points-updated'); void rankValue.offsetWidth; rankValue.classList.add('points-updated'); }
+    if (window._lastRank !== undefined && leaderboardRank) leaderboardRank.textContent = '#' + window._lastRank;
 }
 
+// ============================================
+// COMPLETION CELEBRATION
+// ============================================
+function showCompletionCelebration() {
+    const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd'];
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.cssText = `position: fixed; width: 10px; height: 10px; background: ${colors[Math.floor(Math.random() * colors.length)]}; left: ${Math.random() * 100}vw; top: -10px; border-radius: ${Math.random() > 0.5 ? '50%' : '2px'}; pointer-events: none; z-index: 99999; animation: confettiFall ${2 + Math.random() * 2}s linear forwards; animation-delay: ${Math.random() * 0.5}s; transform: rotate(${Math.random() * 360}deg);`;
+        document.body.appendChild(confetti);
+        setTimeout(() => { if (confetti.parentNode) confetti.remove(); }, 4000);
+    }
+    showToast('🎉 Congratulations! You completed all modules!', 'success');
+}
+const styleSheet = document.createElement("style");
+styleSheet.textContent = `@keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; } }`;
+document.head.appendChild(styleSheet);
+
+// ============================================
+// QUIZ MODAL
+// ============================================
 async function openQuizModal(topicId, btnEl) {
-  currentQuizTopicId = topicId;
-  currentQuizQuestions = [];
-
-  const modal = document.getElementById('quizModal');
-  if (!modal) {
-    console.error('Quiz modal not found');
-    showToast('Quiz modal not found', 'error');
-    return;
-  }
-  
+  currentQuizTopicId = topicId; currentQuizQuestions = [];
+  const modal = document.getElementById('quizModal'); if (!modal) return;
   document.getElementById('quizModalTitle').textContent = `Quiz: ${btnEl?.dataset.topicTitle || ''}`;
   document.getElementById('quizModalBody').innerHTML = '<div style="text-align:center; padding:30px;">⏳ Generating questions...</div>';
-  document.getElementById('quizModalFooter').style.display = 'none';
-  modal.style.display = 'flex';
-
+  document.getElementById('quizModalFooter').style.display = 'none'; modal.style.display = 'flex';
   try {
-    const res = await fetch(`/webprojects/topic/${topicId}/quiz/generate/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-    });
+    const res = await fetch(`/webprojects/topic/${topicId}/quiz/generate/`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() } });
     const data = await res.json();
-
-    if (data.status !== 'success') {
-      document.getElementById('quizModalBody').innerHTML =
-        `<div style="color:#dc3545; padding:20px;">❌ ${data.message || 'Failed to generate quiz'}</div>`;
-      return;
-    }
-
-    currentQuizQuestions = data.questions;
-    renderQuizQuestions();
-    document.getElementById('quizModalFooter').style.display = 'block';
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById('quizModalBody').innerHTML = `<div style="color:#dc3545; padding:20px;">❌ Request failed: ${err.message}</div>`;
-  }
+    if (data.status !== 'success') { document.getElementById('quizModalBody').innerHTML = `<div style="color:#dc3545; padding:20px;">❌ ${data.message || 'Failed to generate quiz'}</div>`; return; }
+    currentQuizQuestions = data.questions; renderQuizQuestions(); document.getElementById('quizModalFooter').style.display = 'block';
+  } catch (err) { document.getElementById('quizModalBody').innerHTML = `<div style="color:#dc3545; padding:20px;">❌ Request failed: ${err.message}</div>`; }
 }
 
 function renderQuizQuestions() {
-  const body = document.getElementById('quizModalBody');
-  if (!body) return;
-  
+  const body = document.getElementById('quizModalBody'); if (!body) return;
   body.innerHTML = currentQuizQuestions.map((q, qi) => `
-    <div style="margin-bottom:18px;">
-      <p style="font-weight:600; margin-bottom:8px; color:#222;">${qi + 1}. ${escapeHTML(q.question)}</p>
-      ${q.options.map((opt, oi) => `
-        <label style="display:block; padding:6px 10px; margin-bottom:4px; background:#f5f5f5; border-radius:6px; cursor:pointer; color:#333;">
-          <input type="radio" name="quiz-q-${qi}" value="${oi}" style="margin-right:8px;">${escapeHTML(opt)}
-        </label>`).join('')}
+    <div style="margin-bottom:18px;"><p style="font-weight:600; margin-bottom:8px; color:#222;">${qi + 1}. ${escapeHTML(q.question)}</p>
+      ${q.options.map((opt, oi) => `<label style="display:block; padding:6px 10px; margin-bottom:4px; background:#f5f5f5; border-radius:6px; cursor:pointer; color:#333;"><input type="radio" name="quiz-q-${qi}" value="${oi}" style="margin-right:8px;">${escapeHTML(opt)}</label>`).join('')}
     </div>`).join('');
 }
 
 async function submitQuiz() {
   const answers = [];
-  for (let qi = 0; qi < currentQuizQuestions.length; qi++) {
-    const selected = document.querySelector(`input[name="quiz-q-${qi}"]:checked`);
-    if (!selected) { 
-      showToast('Please answer all questions', 'warning'); 
-      return; 
-    }
-    answers.push(parseInt(selected.value));
-  }
-
-  const submitBtn = document.getElementById('quizSubmitBtn');
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
-  }
-
+  for (let qi = 0; qi < currentQuizQuestions.length; qi++) { const selected = document.querySelector(`input[name="quiz-q-${qi}"]:checked`); if (!selected) { showToast('Please answer all questions', 'warning'); return; } answers.push(parseInt(selected.value)); }
+  const submitBtn = document.getElementById('quizSubmitBtn'); if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
   try {
-    const res = await fetch(`/webprojects/topic/${currentQuizTopicId}/quiz/submit/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-      body: JSON.stringify({ answers, course_id: COURSE_ID }),
-    });
+    const res = await fetch(`/webprojects/topic/${currentQuizTopicId}/quiz/submit/`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }, body: JSON.stringify({ answers, course_id: COURSE_ID }) });
     const data = await res.json();
-
-    if (data.status !== 'success') { 
-      showToast(data.message || 'Submission failed', 'error'); 
-      return; 
-    }
-
-    const body = document.getElementById('quizModalBody');
-    const footer = document.getElementById('quizModalFooter');
-    if (footer) footer.style.display = 'none';
-
+    if (data.status !== 'success') { showToast(data.message || 'Submission failed', 'error'); return; }
+    const body = document.getElementById('quizModalBody'); const footer = document.getElementById('quizModalFooter'); if (footer) footer.style.display = 'none';
     if (data.passed) {
-      if (body) {
-        body.innerHTML = `<div style="text-align:center; padding:20px;">
-          <div style="font-size:40px;">🎉</div>
-          <p style="font-weight:bold; color:#28a745;">Passed! ${data.score}/${data.total} correct</p>
-        </div>`;
-      }
+      if (body) body.innerHTML = `<div style="text-align:center; padding:20px;"><div style="font-size:40px;">🎉</div><p style="font-weight:bold; color:#28a745;">Passed! ${data.score}/${data.total} correct</p></div>`;
       showToast('Quiz passed! Module marked complete.', 'success');
-      updateProgressUI(data.overall_pct, data.completed_topic_ids || []);
+      if (data.overall_pct !== undefined && data.completed_topic_ids) updateProgressUI(data.overall_pct, data.completed_topic_ids, data.points);
+      if (data.rank !== undefined) window._lastRank = data.rank;
     } else {
-      if (body) {
-        body.innerHTML = `<div style="text-align:center; padding:20px;">
-          <div style="font-size:40px;">😕</div>
-          <p style="font-weight:bold; color:#dc3545;">${data.score}/${data.total} correct — try again</p>
-          <button class="quiz-btn" onclick="openQuizModal(${currentQuizTopicId}, document.querySelector('.quiz-btn[data-topic-id=&quot;${currentQuizTopicId}&quot;]'))">🔁 Retry</button>
-        </div>`;
-      }
+      if (body) body.innerHTML = `<div style="text-align:center; padding:20px;"><div style="font-size:40px;">😕</div><p style="font-weight:bold; color:#dc3545;">${data.score}/${data.total} correct — try again</p><button class="quiz-btn" onclick="openQuizModal(${currentQuizTopicId}, document.querySelector('.quiz-btn[data-topic-id=&quot;${currentQuizTopicId}&quot;]'))">🔁 Retry</button></div>`;
     }
-  } catch (err) {
-    console.error(err);
-    showToast('Request failed: ' + err.message, 'error');
-  } finally {
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit Quiz';
-    }
-  }
+  } catch (err) { showToast('Request failed: ' + err.message, 'error'); }
+  finally { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Quiz'; } }
 }
-
-function closeQuizModal() {
-  const modal = document.getElementById('quizModal');
-  if (modal) modal.style.display = 'none';
-}
+function closeQuizModal() { const modal = document.getElementById('quizModal'); if (modal) modal.style.display = 'none'; }
 
 // ============================================
-// TOGGLE FUNCTIONS
+// IMAGE MODAL
 // ============================================
-
-function toggleDesc(id, el, lang) {
-  const desc = document.getElementById(id);
-  if(desc.style.display === "none") {
-    desc.style.display = "block";
-    el.querySelector(".toggle-icon").textContent = "➖";
-    
-    // Check if this is a coding topic or non-coding
-    const codeLanguages = ['python', 'javascript', 'html', 'css', 'java', 'cpp', 'csharp', 'php', 'ruby', 'go', 'rust', 'sql'];
-    const isCodeTopic = codeLanguages.includes(lang);
-    
-    if (isCodeTopic) {
-      // Code topic - use Prism highlighting
-      const codeEl = desc.querySelector('code');
-      if (codeEl) {
-        codeEl.className = 'language-' + lang;
-        Prism.highlightElement(codeEl);
-      }
-    } else {
-      // Non-code topic - make it readable with media support
-      let content = desc.innerHTML;
-      
-      // Remove code wrapper if present
-      const codeMatch = content.match(/<code[^>]*>([\s\S]*?)<\/code>/);
-      if (codeMatch) {
-        content = codeMatch[1];
-      }
-      
-      // Check if content contains HTML tags (images, videos, iframes)
-      const hasMedia = /<img|<video|<iframe/.test(content);
-      
-      desc.className = 'topic-desc-readable';
-      
-      if (hasMedia) {
-        // Content has media - render as HTML with media support
-        desc.innerHTML = content
-          .replace(/\n/g, '<br>')
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/^# (.*?)$/gm, '<h3>$1</h3>')
-          .replace(/^## (.*?)$/gm, '<h4>$1</h4>')
-          .replace(/^- (.*?)$/gm, '<li>$1</li>')
-          .replace(/^(\d+)\. (.*?)$/gm, '<li>$2</li>');
-        
-        // Wrap lists
-        if (content.includes('<li>')) {
-          const items = content.match(/<li>.*?<\/li>/g);
-          if (items) {
-            const listType = content.match(/^(\d+)\./) ? 'ol' : 'ul';
-            desc.innerHTML = `<${listType}>${items.join('')}</${listType}>`;
-          }
-        }
-      } else {
-        // Plain text - render readable
-        desc.innerHTML = content
-          .replace(/\n/g, '<br>')
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/^# (.*?)$/gm, '<h3>$1</h3>')
-          .replace(/^## (.*?)$/gm, '<h4>$1</h4>')
-          .replace(/^- (.*?)$/gm, '<li>$1</li>')
-          .replace(/^(\d+)\. (.*?)$/gm, '<li>$2</li>');
-        
-        // Wrap lists
-        if (content.includes('<li>')) {
-          const items = content.match(/<li>.*?<\/li>/g);
-          if (items) {
-            const listType = content.match(/^(\d+)\./) ? 'ol' : 'ul';
-            desc.innerHTML = `<${listType}>${items.join('')}</${listType}>`;
-          }
-        }
-      }
-    }
-  } else {
-    desc.style.display = "none";
-    el.querySelector(".toggle-icon").textContent = "➕";
-    // Reset class
-    desc.className = 'topic-desc language-' + lang;
-  }
-}
-
+function showImageModal(imgUrl) { const modal = document.getElementById('imagePopupModal'), img = document.getElementById('popupImage'); if (modal && img) { img.src = imgUrl; modal.style.display = 'block'; } }
+function closeImageModal() { const modal = document.getElementById('imagePopupModal'), img = document.getElementById('popupImage'); if (modal) { modal.style.display = 'none'; if (img) img.src = ""; } }
 
 // ============================================
-// TOGGLE EDITOR - HIDE/SHOW WITH X BUTTON
+// AI BUILD
 // ============================================
-
-function toggleEditor() {
-  const editorPanel = document.querySelector('.editor-panel');
-  const editorLayout = document.getElementById('editorLayout');
-  const toggleBtn = document.getElementById('toggleEditorBtn');
-  const sidebar = document.querySelector('.sidebar');
-  
-  if (!editorPanel) return;
-  
-  const isHidden = editorPanel.classList.toggle('hidden');
-  editorLayout.classList.toggle('editor-hidden');
-  
-  if (isHidden) {
-    toggleBtn.innerHTML = '📝 Show Editor';
-    toggleBtn.style.background = '#3498db';
-    toggleBtn.onmouseover = function() { this.style.background = '#2980b9'; };
-    toggleBtn.onmouseout = function() { this.style.background = '#3498db'; };
-    
-    // Make sidebar 100% width
-    if (sidebar) {
-      sidebar.style.width = '100%';
-      sidebar.style.maxWidth = '100%';
-      sidebar.style.flex = '1';
-    }
-    
-    showToast('Editor hidden. Sidebar is now full width.', 'info');
-  } else {
-    toggleBtn.innerHTML = '✕ Hide Editor';
-    toggleBtn.style.background = '#2ecc71';
-    toggleBtn.onmouseover = function() { this.style.background = '#27ae60'; };
-    toggleBtn.onmouseout = function() { this.style.background = '#2ecc71'; };
-    
-    // Reset sidebar width
-    if (sidebar) {
-      sidebar.style.width = '';
-      sidebar.style.maxWidth = '';
-      sidebar.style.flex = '';
-    }
-    
-    // Re-layout editor when showing
-    setTimeout(function() {
-      if (window.editor && window.editor.layout) {
-        window.editor.layout();
-      }
-    }, 100);
-  }
-}
-
-// ============================================
-// IMAGE MODAL FUNCTIONS
-// ============================================
-
-function showImageModal(imgUrl) {
-  const modal = document.getElementById('imagePopupModal');
-  const img = document.getElementById('popupImage');
-  if (modal && img) {
-    img.src = imgUrl;
-    modal.style.display = 'block';
-  }
-}
-
-function closeImageModal() {
-  const modal = document.getElementById('imagePopupModal');
-  const img = document.getElementById('popupImage');
-  if (modal) {
-    modal.style.display = 'none';
-    if (img) img.src = "";
-  }
-}
-
-// ============================================
-// DYNAMIC FILE LIST REFRESH - BUILT IN
-// ============================================
-
-async function refreshFileList() {
-  try {
-    const res = await fetch("{% url 'webprojects:file_detail' project.id file.id %}", {
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRFToken': getCsrfToken()
-      }
-    });
-    
-    if (!res.ok) {
-      throw new Error('Failed to fetch file list');
-    }
-    
-    const html = await res.text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const newFileList = doc.querySelector('#fileListContainer');
-    
-    if (newFileList) {
-      const currentContainer = document.getElementById('fileListContainer');
-      if (currentContainer) {
-        currentContainer.innerHTML = newFileList.innerHTML;
-        attachFolderToggleListeners();
-        showToast('✅ Files updated!', 'success');
-      }
-    }
-  } catch (err) {
-    console.error('Error refreshing file list:', err);
-    setTimeout(() => location.reload(), 1500);
-  }
-}
-
-function attachFolderToggleListeners() {
-  document.querySelectorAll('.folder-toggle').forEach(toggle => {
-    const ext = toggle.dataset.ext;
-    const storedState = localStorage.getItem('folder_' + ext);
-    
-    if (storedState === 'open') {
-      toggle.classList.add('open');
-      if (toggle.nextElementSibling) {
-        toggle.nextElementSibling.style.display = 'block';
-      }
-    }
-
-    toggle.addEventListener('click', function() {
-      const group = this.nextElementSibling;
-      const isOpen = this.classList.toggle('open');
-      if (group) {
-        group.style.display = isOpen ? 'block' : 'none';
-      }
-      localStorage.setItem('folder_' + ext, isOpen ? 'open' : 'closed');
-    });
-  });
-}
-
-// ============================================
-// AI BUILD PROJECT - WITH DYNAMIC FILE LIST UPDATE
-// ============================================
-
 window.runAIBuild = async function() {
-  const promptInput = document.getElementById('aiPrompt');
-  const outputEl = document.getElementById('appBuilderOutput');
-  const runBtn = document.getElementById('runAIPrompt');
-  const prompt = promptInput.value.trim();
-
-  if (!prompt) {
-    showToast('Please enter a prompt', 'warning');
-    return;
-  }
-
-  runBtn.disabled = true;
-  runBtn.textContent = '⏳ Generating...';
-  outputEl.style.display = 'block';
-  outputEl.textContent = '⏳ Generating project from AI...\n';
-
+  const promptInput = document.getElementById('aiPrompt'), outputEl = document.getElementById('appBuilderOutput'), runBtn = document.getElementById('runAIPrompt'), prompt = promptInput.value.trim();
+  if (!prompt) { showToast('Please enter a prompt', 'warning'); return; }
+  runBtn.disabled = true; runBtn.textContent = '⏳ Generating...'; outputEl.style.display = 'block'; outputEl.textContent = '⏳ Generating project from AI...\n';
   try {
-    const res = await fetch("{% url 'webprojects:file_detail' project.id file.id %}", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCsrfToken()
-      },
-      body: JSON.stringify({ 
-        file_id: {{ file.id }}, 
-        prompt: prompt,
-        ai_action: 'build_project'
-      })
-    });
-
-    const contentType = res.headers.get('content-type') || '';
-    if (!contentType.includes('application/json')) {
-      const text = await res.text();
-      console.error('Server returned HTML:', text.substring(0, 200));
-      throw new Error('Server returned HTML instead of JSON. Check the Django view handles ai_action=build_project.');
-    }
-
+    const res = await fetch("{% url 'webprojects:file_detail' project.id file.id %}", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }, body: JSON.stringify({ file_id: {{ file.id }}, prompt: prompt, ai_action: 'build_project' }) });
     const data = await res.json();
-    
-    if (data.status === 'success' && data.ai_content) {
-      outputEl.textContent = '✅ Project generated!\n\n';
-      outputEl.textContent += '📄 HTML:\n' + (data.ai_content.html || '') + '\n\n';
-      outputEl.textContent += '🎨 CSS:\n' + (data.ai_content.css || '') + '\n\n';
-      outputEl.textContent += '⚡ JS:\n' + (data.ai_content.js || '');
-      
-      await refreshFileList();
-      
-      showToast('✅ Project generated! Files added to sidebar.', 'success');
-    } else {
-      outputEl.textContent = `❌ ${data.message || 'Generation failed'}`;
-      showToast(data.message || 'Generation failed', 'error');
-    }
-
-  } catch (err) {
-    console.error(err);
-    outputEl.textContent = `❌ ${err.message}`;
-    showToast('Error: ' + err.message, 'error');
-  } finally {
-    runBtn.disabled = false;
-    runBtn.textContent = 'Run AI';
-  }
+    if (data.status === 'success' && data.ai_content) { outputEl.textContent = '✅ Project generated!\n\n📄 HTML:\n' + (data.ai_content.html || '') + '\n\n🎨 CSS:\n' + (data.ai_content.css || '') + '\n\n⚡ JS:\n' + (data.ai_content.js || ''); await refreshFileList(); showToast('✅ Project generated!', 'success'); }
+    else { outputEl.textContent = `❌ ${data.message || 'Generation failed'}`; showToast(data.message || 'Generation failed', 'error'); }
+  } catch (err) { outputEl.textContent = `❌ ${err.message}`; showToast('Error: ' + err.message, 'error'); }
+  finally { runBtn.disabled = false; runBtn.textContent = 'Run AI'; }
 };
 
 // ============================================
-// AI APPLY CHANGES - FIXED (Global Scope)
+// AI APPLY CHANGES
 // ============================================
-
 window.applyChanges = async function() {
-  const promptInput = document.getElementById('fileChatPrompt');
-  const outputEl = document.getElementById('fileChatOutput');
-  const applyBtn = document.getElementById('applyBtn');
-  const prompt = promptInput.value.trim();
-
-  if (!prompt) {
-    showToast('Please describe the changes you want', 'warning');
-    return;
-  }
-
-  applyBtn.disabled = true;
-  applyBtn.textContent = '⏳ Applying...';
-  outputEl.style.display = 'block';
-  outputEl.textContent = `⏳ Applying: "${prompt}"\n`;
-
+  const promptInput = document.getElementById('fileChatPrompt'), outputEl = document.getElementById('fileChatOutput'), applyBtn = document.getElementById('applyBtn'), prompt = promptInput.value.trim();
+  if (!prompt) { showToast('Please describe the changes', 'warning'); return; }
+  applyBtn.disabled = true; applyBtn.textContent = '⏳ Applying...'; outputEl.style.display = 'block'; outputEl.textContent = `⏳ Applying: "${prompt}"\n`;
   try {
-    const PROJECT_ID = {{ project.id }};
-    const FILE_ID = {{ file.id }};
-    
-    const res = await fetch(`/webprojects/project/${PROJECT_ID}/file/${FILE_ID}/chat/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCsrfToken()
-      },
-      body: JSON.stringify({ 
-        prompt: prompt,
-        apply: true,
-        file_id: FILE_ID
-      })
-    });
-
-    const contentType = res.headers.get('content-type') || '';
-    if (!contentType.includes('application/json')) {
-      const text = await res.text();
-      console.error('Server returned HTML:', text.substring(0, 200));
-      throw new Error('Server returned HTML instead of JSON. The chat endpoint may not be configured.');
-    }
-
+    const PROJECT_ID = {{ project.id }}, FILE_ID = {{ file.id }};
+    const res = await fetch(`/webprojects/project/${PROJECT_ID}/file/${FILE_ID}/chat/`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }, body: JSON.stringify({ prompt: prompt, apply: true, file_id: FILE_ID }) });
     const data = await res.json();
-
-    if (data.status === 'success' && data.code) {
-      if (typeof editor !== 'undefined') {
-        if (editor.setValue) {
-          editor.setValue(data.code);
-        } else if (editor.getModel) {
-          editor.getModel().setValue(data.code);
-        }
-      }
-      
-      outputEl.textContent += '✅ Changes applied and saved!\n';
-      outputEl.textContent += `   File ID: ${data.file_id}\n\n`;
-      promptInput.value = '';
-      showToast('✅ Changes applied successfully!', 'success');
-    } else {
-      outputEl.textContent += `❌ Error: ${data.message || 'Failed to apply changes'}\n\n`;
-      showToast('Error: ' + (data.message || 'Failed to apply changes'), 'error');
-    }
-  } catch (err) {
-    console.error(err);
-    outputEl.textContent += `❌ Request failed: ${err.message}\n\n`;
-    outputEl.textContent += '💡 Make sure the chat endpoint is configured in your Django URLs.\n';
-    showToast('Error: ' + err.message, 'error');
-  } finally {
-    applyBtn.disabled = false;
-    applyBtn.textContent = 'Apply Changes';
-  }
+    if (data.status === 'success' && data.code) { if (editor) { if (editor.setValue) editor.setValue(data.code); else if (editor.getModel) editor.getModel().setValue(data.code); } outputEl.textContent += '✅ Changes applied!\n'; promptInput.value = ''; showToast('✅ Changes applied!', 'success'); }
+    else { outputEl.textContent += `❌ Error: ${data.message || 'Failed'}\n`; showToast('Error: ' + (data.message || 'Failed'), 'error'); }
+  } catch (err) { outputEl.textContent += `❌ ${err.message}\n`; showToast('Error: ' + err.message, 'error'); }
+  finally { applyBtn.disabled = false; applyBtn.textContent = 'Apply Changes'; }
 };
 
-
-
-document.addEventListener('DOMContentLoaded', function() {
-  attachFolderToggleListeners();
-
-  // Load quiz progress
-  loadQuizProgress();
-
-  // Auto-hide AI toolbar on small screens
-  if (window.innerWidth <= 768) {
-    document.getElementById("aiToolbar").style.display = "none";
-  }
-});
-
 // ============================================
-// MONACO EDITOR INITIALIZATION
+// RUN CODE
 // ============================================
-
-let editor;
-require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' } });
-
-require(['vs/editor/editor.main'], function () {
-    editor = monaco.editor.create(document.getElementById('container'), {
-        value: `{{ file.content|escapejs }}`,
-        language: getLanguage("{{ file.name }}"),
-        theme: 'vs-dark',
-        automaticLayout: true,
-        readOnly: false
-    });
-
-    // ── Save indicator pill ──────────────────────────────────────────────
-    const saveIndicator = document.createElement('div');
-    saveIndicator.id = 'saveIndicator';
-    saveIndicator.style.cssText = `
-        position: fixed;
-        bottom: 16px;
-        right: 20px;
-        font-size: 12px;
-        font-weight: 500;
-        padding: 5px 12px;
-        border-radius: 20px;
-        background: #1e1e1e;
-        border: 1px solid #3c3c3c;
-        color: #888;
-        z-index: 9999;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        pointer-events: none;
-    `;
-    document.body.appendChild(saveIndicator);
-
-    function showSaveStatus(msg, color = '#888') {
-        saveIndicator.textContent = msg;
-        saveIndicator.style.color = color;
-        saveIndicator.style.opacity = '1';
-        clearTimeout(saveIndicator._hide);
-        saveIndicator._hide = setTimeout(() => {
-            saveIndicator.style.opacity = '0';
-        }, 2500);
+function runCode() {
+  const code = editor.getValue(), output = document.getElementById("outputText"), tablePreview = document.getElementById("tablePreview"), plotPreview = document.getElementById("plotPreview"), scorePanel = document.getElementById("scorePanel");
+  output.innerHTML = `⏳ Running... <span class="spinner"></span>`; tablePreview.innerHTML = ""; plotPreview.innerHTML = ""; scorePanel.style.display = "none";
+  fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" }, body: JSON.stringify({ content: code, run_plot: true, run_table: true }) })
+  .then(r => r.json())
+  .then(data => {
+    if (data.status === "error") { output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`; }
+    else {
+      output.textContent = data.output || "[No output]";
+      if (activeTopicId) scoreOutput(data.output || "[No output]", activeTopicId); else scorePanel.style.display = "none";
+      if (data.table) { tablePreview.innerHTML = data.table; tablePreview.style.display = "block"; } else tablePreview.style.display = "none";
+      plotPreview.innerHTML = "";
+      if (Array.isArray(data.images)) { data.images.forEach(src => { const img = document.createElement("img"); img.src = src; img.style.maxWidth = "100%"; img.style.marginBottom = "10px"; plotPreview.appendChild(img); }); plotPreview.style.display = "block"; }
+      else plotPreview.style.display = "none";
     }
-
-    // ── Core save function ───────────────────────────────────────────────
-    let lastSavedContent = editor.getValue();
-    let isSaving         = false;
-    let autosaveTimer    = null;
-
-    async function autosave() {
-        const content = editor.getValue();
-
-        if (content === lastSavedContent || isSaving) return;
-
-        isSaving = true;
-        showSaveStatus('⏳ Saving...', '#888');
-
-        try {
-            const res = await fetch("{% url 'webprojects:file_autosave' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}',
-                },
-                body: JSON.stringify({
-                    file_id: {{ file.id }},
-                    content: content,
-                }),
-            });
-
-            if (res.status === 503) {
-                showSaveStatus('⚠️ Busy, retrying...', '#f59e0b');
-                return;
-            }
-
-            const data = await res.json();
-
-            if (res.ok && data.status === 'success') {
-                lastSavedContent = content;
-                showSaveStatus('✅ Saved', '#4ade80');
-            } else {
-                showSaveStatus('❌ Save failed', '#f87171');
-                console.warn('Autosave failed:', data.message);
-            }
-
-        } catch (err) {
-            showSaveStatus('❌ Network error', '#f87171');
-            console.error('Autosave error:', err);
-        } finally {
-            isSaving = false;
-        }
-    }
-
-    editor.onDidChangeModelContent(() => {
-        clearTimeout(autosaveTimer);
-        autosaveTimer = setTimeout(autosave, 2000);
-    });
-
-    setInterval(autosave, 30000);
-
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-        clearTimeout(autosaveTimer);
-        autosave();
-    });
-
-    window.addEventListener('beforeunload', (e) => {
-        const content = editor.getValue();
-        if (content !== lastSavedContent) {
-            navigator.sendBeacon(
-                "{% url 'webprojects:file_autosave' %}",
-                new Blob([JSON.stringify({
-                    file_id: {{ file.id }},
-                    content: content,
-                })], { type: 'application/json' })
-            );
-            e.preventDefault();
-            e.returnValue = '';
-        }
-    });
-
-});
-
-function getLanguage(fileName) {
-  const ext = fileName.split('.').pop().toLowerCase();
-  switch (ext) {
-    case "py": return "python";
-    case "js": return "javascript";
-    case "html": return "html";
-    case "css": return "css";
-    case "json": return "json";
-    default: return "plaintext";
-  }
+  })
+  .catch(err => { output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(err.message)}</span>`; });
 }
 
 // ============================================
-// RUN CODE FUNCTION
+// AI SCORE OUTPUT WITH REAL-TIME UPDATES
 // ============================================
+async function scoreOutput(studentOutput, topicId) {
+    const scorePanel = document.getElementById("scorePanel"), scoreDisplay = document.getElementById("scoreDisplay"), scoreFeedback = document.getElementById("scoreFeedback"), scoreBarFill = document.getElementById("scoreBarFill");
+    scorePanel.style.display = "block"; scoreDisplay.textContent = "🤖 AI is scoring..."; scoreFeedback.textContent = ""; scoreBarFill.style.width = "0%";
+    try {
+        const res = await fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" }, body: JSON.stringify({ action: "score_output", student_output: studentOutput, topic_id: topicId }) });
+        const data = await res.json();
+        if (data.status === "success") {
+            const { score, max_score, feedback, correct } = data.result;
+            const pct = (score / max_score) * 100, color = score >= max_score * 0.8 ? "#22c55e" : score >= max_score * 0.5 ? "#f59e0b" : "#ef4444";
+            scoreDisplay.innerHTML = `${correct ? "✅" : "❌"} Score: <span style="color:${color}">${score}/${max_score}</span>`;
+            scoreFeedback.textContent = feedback; scoreBarFill.style.background = color; scoreBarFill.style.width = pct + "%";
+            if (correct && data.points !== undefined && data.total_topics !== undefined) {
+                updatePointsDisplay(data.points, data.total_topics);
+                const newPct = Math.round((data.points / data.total_topics) * 100);
+                const completedIds = [];
+                document.querySelectorAll('.quiz-passed-badge').forEach(badge => { if (badge.style.display === 'inline') completedIds.push(parseInt(badge.dataset.topicId)); });
+                if (!completedIds.includes(parseInt(topicId))) completedIds.push(parseInt(topicId));
+                updateProgressUI(newPct, completedIds, data.points);
+                if (data.rank !== undefined) { window._lastRank = data.rank; const rv = document.getElementById('rankValue'), lr = document.getElementById('leaderboardRank'); if (rv) { rv.textContent = '#' + data.rank; rv.classList.add('points-updated'); } if (lr) lr.textContent = '#' + data.rank; }
+            }
+        } else { scoreDisplay.textContent = "⚠️ Could not score"; scoreFeedback.textContent = data.message || ""; }
+    } catch (err) { scoreDisplay.textContent = "⚠️ Scoring failed"; scoreFeedback.textContent = err.message; }
+}
 
-function runCode() {
-  const code = editor.getValue();
-  const output = document.getElementById("outputText");
-  const tablePreview = document.getElementById("tablePreview");
-  const plotPreview = document.getElementById("plotPreview");
-
-  output.innerHTML = `⏳ Running... <span class="spinner"></span>`;
-  tablePreview.innerHTML = "";
-  plotPreview.innerHTML = "";
-
-  fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": "{{ csrf_token }}"
-    },
-    body: JSON.stringify({ 
-      content: code,
-      run_plot: true,
-      run_table: true
-    })
-  })
-  .then(function(res) { return res.json(); })
-  .then(function(data) {
-    if (data.status === "error") {
-      output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`;
-    } else {
-      output.textContent = data.output || "[No output]";
-      if (data.table) {
-        tablePreview.innerHTML = data.table;
-        tablePreview.style.display = "block";
-      } else {
-        tablePreview.style.display = "none";
-      }
-      plotPreview.innerHTML = "";
-      if (Array.isArray(data.images) && data.images.length > 0) {
-        data.images.forEach(function(src) {
-          const img = document.createElement("img");
-          img.src = src;
-          img.style.maxWidth = "100%";
-          img.style.marginBottom = "10px";
-          plotPreview.appendChild(img);
-        });
-        plotPreview.style.display = "block";
-      } else {
-        plotPreview.style.display = "none";
-      }
+// ============================================
+// MONACO EDITOR
+// ============================================
+require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' } });
+require(['vs/editor/editor.main'], function () {
+    editor = monaco.editor.create(document.getElementById('container'), { value: `{{ file.content|escapejs }}`, language: getLanguage("{{ file.name }}"), theme: 'vs-dark', automaticLayout: true, readOnly: false });
+    const saveIndicator = document.createElement('div'); saveIndicator.id = 'saveIndicator';
+    saveIndicator.style.cssText = `position: fixed; bottom: 16px; right: 20px; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 20px; background: #1e1e1e; border: 1px solid #3c3c3c; color: #888; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none;`;
+    document.body.appendChild(saveIndicator);
+    function showSaveStatus(msg, color = '#888') { saveIndicator.textContent = msg; saveIndicator.style.color = color; saveIndicator.style.opacity = '1'; clearTimeout(saveIndicator._hide); saveIndicator._hide = setTimeout(() => { saveIndicator.style.opacity = '0'; }, 2500); }
+    let lastSavedContent = editor.getValue(), isSaving = false, autosaveTimer = null;
+    async function autosave() {
+        const content = editor.getValue(); if (content === lastSavedContent || isSaving) return;
+        isSaving = true; showSaveStatus('⏳ Saving...', '#888');
+        try {
+            const res = await fetch("{% url 'webprojects:file_autosave' %}", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, body: JSON.stringify({ file_id: {{ file.id }}, content: content }) });
+            if (res.status === 503) { showSaveStatus('⚠️ Busy...', '#f59e0b'); return; }
+            const data = await res.json();
+            if (res.ok && data.status === 'success') { lastSavedContent = content; showSaveStatus('✅ Saved', '#4ade80'); }
+            else showSaveStatus('❌ Save failed', '#f87171');
+        } catch (err) { showSaveStatus('❌ Network error', '#f87171'); }
+        finally { isSaving = false; }
     }
-  })
-  .catch(function(err) {
-    output.innerHTML = `<span style="color:red;">❌ Request Failed: ${escapeHTML(err.message)}</span>`;
-  });
+    editor.onDidChangeModelContent(() => { clearTimeout(autosaveTimer); autosaveTimer = setTimeout(autosave, 2000); });
+    setInterval(autosave, 30000);
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => { clearTimeout(autosaveTimer); autosave(); });
+    window.addEventListener('beforeunload', (e) => { const content = editor.getValue(); if (content !== lastSavedContent) { navigator.sendBeacon("{% url 'webprojects:file_autosave' %}", new Blob([JSON.stringify({ file_id: {{ file.id }}, content: content })], { type: 'application/json' })); e.preventDefault(); e.returnValue = ''; } });
+});
+function getLanguage(fileName) { const ext = fileName.split('.').pop().toLowerCase(); switch (ext) { case "py": return "python"; case "js": return "javascript"; case "html": return "html"; case "css": return "css"; case "json": return "json"; default: return "plaintext"; } }
+
+// ============================================
+// UPDATE ACTIVE TOPIC
+// ============================================
+async function updateActiveTopic(topicId) {
+    try {
+        const res = await fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }, body: JSON.stringify({ action: 'update_active_topic', topic_id: topicId, course_id: COURSE_ID }) });
+        const data = await res.json();
+        if (data.status === 'success' && data.points !== undefined) updatePointsDisplay(data.points, data.total_topics);
+    } catch (err) { console.error('Failed to update active topic:', err); }
 }
 
 // ============================================
 // OUTPUT PANEL RESIZE
 // ============================================
-
 document.addEventListener('DOMContentLoaded', function() {
-  var container = document.getElementById("container");
-  var outputPanel = document.getElementById("outputPanel");
-  var resizeHandle = document.getElementById("resizeHandle");
-
+  var container = document.getElementById("container"), outputPanel = document.getElementById("outputPanel"), resizeHandle = document.getElementById("resizeHandle");
   if (!outputPanel || !resizeHandle) return;
-  
-  var isDragging = false;
-  var startY = 0;
-  var startHeight = 0;
-  
-  resizeHandle.addEventListener("mousedown", function(e) {
-    isDragging = true;
-    startY = e.clientY;
-    startHeight = outputPanel.offsetHeight;
-    document.body.style.userSelect = "none";
-    e.preventDefault();
-  });
-  
-  document.addEventListener("mousemove", function(e) {
-    if (!isDragging) return;
-    var dy = e.clientY - startY;
-    var newHeight = Math.max(startHeight - dy, 80);
-    outputPanel.style.height = newHeight + "px";
-  });
-  
-  document.addEventListener("mouseup", function() {
-    if (isDragging) {
-      isDragging = false;
-      document.body.style.userSelect = "";
-    }
-  });
+  var isDragging = false, startY = 0, startHeight = 0, MIN_HEIGHT = 60, MAX_HEIGHT_PERCENT = 70;
+  function getMaxHeight() { return window.innerHeight * (MAX_HEIGHT_PERCENT / 100); }
+  function startDrag(clientY) { isDragging = true; startY = clientY; startHeight = outputPanel.offsetHeight; document.body.style.userSelect = "none"; document.body.style.cursor = "row-resize"; resizeHandle.style.background = "#4fa"; resizeHandle.style.transition = "none"; }
+  function doDrag(clientY) { if (!isDragging) return; var dy = clientY - startY; var newHeight = Math.max(MIN_HEIGHT, Math.min(startHeight - dy, getMaxHeight())); outputPanel.style.height = newHeight + "px"; if (container) { var th = outputPanel.parentElement.offsetHeight; var eh = th - newHeight - resizeHandle.offsetHeight; if (eh > 100) container.style.height = eh + "px"; } if (editor && editor.layout) editor.layout(); }
+  function endDrag() { if (isDragging) { isDragging = false; document.body.style.userSelect = ""; document.body.style.cursor = ""; resizeHandle.style.background = "#444"; resizeHandle.style.transition = "background 0.2s"; localStorage.setItem('outputPanelHeight', outputPanel.style.height); } }
+  resizeHandle.addEventListener("mousedown", function(e) { startDrag(e.clientY); e.preventDefault(); });
+  document.addEventListener("mousemove", function(e) { doDrag(e.clientY); });
+  document.addEventListener("mouseup", endDrag);
+  resizeHandle.addEventListener("touchstart", function(e) { startDrag(e.touches[0].clientY); e.preventDefault(); }, { passive: false });
+  document.addEventListener("touchmove", function(e) { if (!isDragging) return; doDrag(e.touches[0].clientY); e.preventDefault(); }, { passive: false });
+  document.addEventListener("touchend", endDrag); document.addEventListener("touchcancel", endDrag);
+  resizeHandle.addEventListener("mouseenter", function() { if (!isDragging) { resizeHandle.style.background = "#4fa"; resizeHandle.style.cursor = "row-resize"; } });
+  resizeHandle.addEventListener("mouseleave", function() { if (!isDragging) resizeHandle.style.background = "#444"; });
+  var savedHeight = localStorage.getItem('outputPanelHeight'); if (savedHeight && window.innerWidth <= 768) outputPanel.style.height = savedHeight;
 });
 
 // ============================================
 // FILE UPLOAD
 // ============================================
-
 document.addEventListener('DOMContentLoaded', function() {
-  var dropZone = document.getElementById('dropZone');
-  var fileInput = document.getElementById('fileInput');
-
-  if (dropZone) {
-    dropZone.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      dropZone.style.backgroundColor = '#333';
-    });
-
-    dropZone.addEventListener('dragleave', function(e) {
-      e.preventDefault();
-      dropZone.style.backgroundColor = '';
-    });
-
-    dropZone.addEventListener('drop', function(e) {
-      e.preventDefault();
-      dropZone.style.backgroundColor = '';
-      var file = e.dataTransfer.files[0];
-      if (file) uploadFile(file);
-    });
-  }
-
-  if (fileInput) {
-    fileInput.addEventListener('change', function() {
-      var file = fileInput.files[0];
-      if (file) uploadFile(file);
-    });
-  }
+  var dropZone = document.getElementById('dropZone'), fileInput = document.getElementById('fileInput');
+  if (dropZone) { dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.style.backgroundColor = '#333'; }); dropZone.addEventListener('dragleave', function(e) { e.preventDefault(); dropZone.style.backgroundColor = ''; }); dropZone.addEventListener('drop', function(e) { e.preventDefault(); dropZone.style.backgroundColor = ''; var file = e.dataTransfer.files[0]; if (file) uploadFile(file); }); }
+  if (fileInput) fileInput.addEventListener('change', function() { var file = fileInput.files[0]; if (file) uploadFile(file); });
 });
-
 function uploadFile(file) {
-  var formData = new FormData();
-  formData.append('file', file);
-  formData.append('name', file.name);
-
-  var loader = document.getElementById("upload-loader");
-  if (loader) loader.style.display = "flex";
-
-  fetch("{% url 'webprojects:upload_file_ajax' project.id %}", {
-    method: 'POST',
-    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-    body: formData
-  })
-  .then(function(res) { return res.json(); })
-  .then(function(data) {
-    if (data.success) {
-      showToast('✅ Uploaded: ' + file.name, 'success');
-      setTimeout(function() { refreshFileList(); }, 500);
-    } else {
-      showToast('❌ Upload failed: ' + (data.error || ''), 'error');
-    }
-  })
-  .catch(function() { showToast('⚠️ Upload error', 'error'); })
-  .finally(function() {
-    if (loader) loader.style.display = "none";
-  });
+  var formData = new FormData(); formData.append('file', file); formData.append('name', file.name);
+  var loader = document.getElementById("upload-loader"); if (loader) loader.style.display = "flex";
+  fetch("{% url 'webprojects:upload_file_ajax' project.id %}", { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' }, body: formData })
+  .then(r => r.json()).then(d => { if (d.success) { showToast('✅ Uploaded: ' + file.name, 'success'); setTimeout(refreshFileList, 500); } else showToast('❌ Upload failed: ' + (d.error || ''), 'error'); })
+  .catch(() => showToast('⚠️ Upload error', 'error')).finally(() => { if (loader) loader.style.display = "none"; });
 }
 
 // ============================================
 // DELETE FILE
 // ============================================
-
 document.addEventListener('DOMContentLoaded', function() {
-  var deleteForms = document.querySelectorAll('.delete-file-form');
-
-  deleteForms.forEach(function(form) {
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      if (!confirm("Are you sure you want to delete this file?")) return;
-
-      var url = form.getAttribute('action');
-      var csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
-
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': csrfToken,
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-      })
-      .then(function(response) { return response.json(); })
-      .then(function(data) {
-        if (data.status === 'success') {
-          form.closest('.file-item').remove();
-          showToast('File deleted successfully', 'success');
-          refreshFileList();
-        } else {
-          showToast(data.message || 'Failed to delete file.', 'error');
-        }
-      })
-      .catch(function(err) {
-        console.error(err);
-        showToast('Error deleting file.', 'error');
-      });
+  document.querySelectorAll('.delete-file-form').forEach(form => {
+    form.addEventListener('submit', function(e) { e.preventDefault(); if (!confirm("Delete this file?")) return;
+      fetch(form.getAttribute('action'), { method: 'POST', headers: { 'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value, 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(r => r.json()).then(d => { if (d.status === 'success') { form.closest('.file-item').remove(); showToast('File deleted', 'success'); refreshFileList(); } else showToast(d.message || 'Failed', 'error'); })
+      .catch(() => showToast('Error deleting file.', 'error'));
     });
   });
 });
 
 // ============================================
-// FLOATING AI PANEL - DRAG & RESIZE
+// FLOATING AI PANEL DRAG & RESIZE
 // ============================================
-
-function closeAIPanel() {
-  document.getElementById('floatingAI').style.display = 'none';
-}
-
-var appBuilderTab = document.getElementById('appBuilderTab');
-var fileEditorTab = document.getElementById('fileEditorTab');
-var appBuilderPanel = document.getElementById('appBuilderPanel');
-var fileEditorPanel = document.getElementById('fileEditorPanel');
-
-function switchToAppBuilder() {
-  appBuilderPanel.style.display = 'flex';
-  fileEditorPanel.style.display = 'none';
-
-  appBuilderTab.style.borderBottom = '3px solid #007bff';
-  appBuilderTab.style.fontWeight = 'bold';
-  appBuilderTab.style.color = '#007bff';
-
-  fileEditorTab.style.borderBottom = '3px solid transparent';
-  fileEditorTab.style.fontWeight = 'normal';
-  fileEditorTab.style.color = '#666';
-}
-
-function switchToFileEditor() {
-  appBuilderPanel.style.display = 'none';
-  fileEditorPanel.style.display = 'flex';
-
-  fileEditorTab.style.borderBottom = '3px solid #28a745';
-  fileEditorTab.style.fontWeight = 'bold';
-  fileEditorTab.style.color = '#28a745';
-
-  appBuilderTab.style.borderBottom = '3px solid transparent';
-  appBuilderTab.style.fontWeight = 'normal';
-  appBuilderTab.style.color = '#666';
-}
-
-appBuilderTab.addEventListener('click', switchToAppBuilder);
-fileEditorTab.addEventListener('click', switchToFileEditor);
-
-var panel = document.getElementById('floatingAI');
-var dragHandle = document.getElementById('dragHandle');
-
-var isDraggingPanel = false;
-var dragOffsetX = 0;
-var dragOffsetY = 0;
-
-dragHandle.addEventListener('mousedown', function(e) {
-  if (e.target.closest('.close-panel-btn')) return;
-  isDraggingPanel = true;
-  dragHandle.style.cursor = 'grabbing';
-  var rect = panel.getBoundingClientRect();
-  panel.style.left = rect.left + 'px';
-  panel.style.top = rect.top + 'px';
-  panel.style.right = 'auto';
-  dragOffsetX = e.clientX - rect.left;
-  dragOffsetY = e.clientY - rect.top;
-  e.preventDefault();
-});
-
-document.addEventListener('mousemove', function(e) {
-  if (!isDraggingPanel) return;
-  var newLeft = e.clientX - dragOffsetX;
-  var newTop = e.clientY - dragOffsetY;
-  var maxLeft = window.innerWidth - panel.offsetWidth;
-  var maxTop = window.innerHeight - panel.offsetHeight;
-  newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-  newTop = Math.max(0, Math.min(newTop, maxTop));
-  panel.style.left = newLeft + 'px';
-  panel.style.top = newTop + 'px';
-});
-
-document.addEventListener('mouseup', function() {
-  isDraggingPanel = false;
-  dragHandle.style.cursor = 'grab';
-});
-
-var resizeHandleAI = document.getElementById('resizeHandleAI');
-var isResizing = false;
-
-resizeHandleAI.addEventListener('mousedown', function(e) {
-  isResizing = true;
-  e.preventDefault();
-});
-
-document.addEventListener('mousemove', function(e) {
-  if (!isResizing) return;
-  var newHeight = e.clientY - panel.offsetTop;
-  if (newHeight < 150) newHeight = 150;
-  panel.style.height = newHeight + 'px';
-});
-
-document.addEventListener('mouseup', function() {
-  isResizing = false;
-});
+function closeAIPanel() { document.getElementById('floatingAI').style.display = 'none'; }
+var appBuilderTab = document.getElementById('appBuilderTab'), fileEditorTab = document.getElementById('fileEditorTab'), appBuilderPanel = document.getElementById('appBuilderPanel'), fileEditorPanel = document.getElementById('fileEditorPanel');
+function switchToAppBuilder() { appBuilderPanel.style.display = 'flex'; fileEditorPanel.style.display = 'none'; appBuilderTab.style.borderBottom = '3px solid #007bff'; appBuilderTab.style.fontWeight = 'bold'; appBuilderTab.style.color = '#007bff'; fileEditorTab.style.borderBottom = '3px solid transparent'; fileEditorTab.style.fontWeight = 'normal'; fileEditorTab.style.color = '#666'; }
+function switchToFileEditor() { appBuilderPanel.style.display = 'none'; fileEditorPanel.style.display = 'flex'; fileEditorTab.style.borderBottom = '3px solid #28a745'; fileEditorTab.style.fontWeight = 'bold'; fileEditorTab.style.color = '#28a745'; appBuilderTab.style.borderBottom = '3px solid transparent'; appBuilderTab.style.fontWeight = 'normal'; appBuilderTab.style.color = '#666'; }
+appBuilderTab.addEventListener('click', switchToAppBuilder); fileEditorTab.addEventListener('click', switchToFileEditor);
+var panel = document.getElementById('floatingAI'), dragHandle = document.getElementById('dragHandle'), isDraggingPanel = false, dragOffsetX = 0, dragOffsetY = 0;
+dragHandle.addEventListener('mousedown', function(e) { if (e.target.closest('.close-panel-btn')) return; isDraggingPanel = true; dragHandle.style.cursor = 'grabbing'; var r = panel.getBoundingClientRect(); panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px'; panel.style.right = 'auto'; dragOffsetX = e.clientX - r.left; dragOffsetY = e.clientY - r.top; e.preventDefault(); });
+dragHandle.addEventListener('touchstart', function(e) { if (e.target.closest('.close-panel-btn')) return; isDraggingPanel = true; var r = panel.getBoundingClientRect(); panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px'; panel.style.right = 'auto'; var t = e.touches[0]; dragOffsetX = t.clientX - r.left; dragOffsetY = t.clientY - r.top; e.preventDefault(); }, { passive: false });
+document.addEventListener('mousemove', function(e) { if (!isDraggingPanel) return; movePanel(e.clientX, e.clientY); });
+document.addEventListener('touchmove', function(e) { if (!isDraggingPanel) return; var t = e.touches[0]; movePanel(t.clientX, t.clientY); e.preventDefault(); }, { passive: false });
+function movePanel(cx, cy) { var nl = cx - dragOffsetX, nt = cy - dragOffsetY; var ml = window.innerWidth - panel.offsetWidth, mt = window.innerHeight - panel.offsetHeight; panel.style.left = Math.max(0, Math.min(nl, ml)) + 'px'; panel.style.top = Math.max(0, Math.min(nt, mt)) + 'px'; }
+document.addEventListener('mouseup', function() { isDraggingPanel = false; dragHandle.style.cursor = 'grab'; });
+document.addEventListener('touchend', function() { isDraggingPanel = false; });
+var resizeHandleAI = document.getElementById('resizeHandleAI'), isResizing = false;
+resizeHandleAI.addEventListener('mousedown', function(e) { isResizing = true; e.preventDefault(); });
+resizeHandleAI.addEventListener('touchstart', function(e) { isResizing = true; e.preventDefault(); }, { passive: false });
+document.addEventListener('mousemove', function(e) { if (!isResizing) return; resizePanel(e.clientY); });
+document.addEventListener('touchmove', function(e) { if (!isResizing) return; resizePanel(e.touches[0].clientY); e.preventDefault(); }, { passive: false });
+function resizePanel(cy) { var nh = cy - panel.offsetTop; if (nh < 150) nh = 150; panel.style.height = nh + 'px'; }
+document.addEventListener('mouseup', function() { isResizing = false; });
+document.addEventListener('touchend', function() { isResizing = false; });
 
 // ============================================
-// SIDEBAR RESIZE
+// TOGGLE EDITOR
 // ============================================
+function toggleEditor() {
+  const editorPanel = document.querySelector('.editor-panel'), editorLayout = document.getElementById('editorLayout'), toggleBtn = document.getElementById('toggleEditorBtn'), sidebar = document.querySelector('.sidebar');
+  if (!editorPanel) return;
+  const isHidden = editorPanel.classList.toggle('hidden'); editorLayout.classList.toggle('editor-hidden');
+  if (isHidden) { toggleBtn.innerHTML = '📝 Show Editor'; toggleBtn.style.background = '#3498db'; if (sidebar) { sidebar.style.width = '100%'; sidebar.style.maxWidth = '100%'; sidebar.style.flex = '1'; } showToast('Editor hidden', 'info'); }
+  else { toggleBtn.innerHTML = '✕ Hide Editor'; toggleBtn.style.background = '#2ecc71'; if (sidebar) { sidebar.style.width = ''; sidebar.style.maxWidth = ''; sidebar.style.flex = ''; } setTimeout(() => { if (editor && editor.layout) editor.layout(); }, 100); }
+}
 
+// ============================================
+// SIDEBAR RESIZE & INIT
+// ============================================
 document.addEventListener('DOMContentLoaded', function() {
-  var editorLayout = document.getElementById('editorLayout');
-  var toggleBtn = document.getElementById('toggleSidebarBtn');
-  var sidebar = document.querySelector('.sidebar');
-  var resizeHandle = document.createElement('div');
-  
+  var editorLayout = document.getElementById('editorLayout'), toggleBtn = document.getElementById('toggleSidebarBtn'), sidebar = document.querySelector('.sidebar');
   if (!sidebar) return;
-  
-  resizeHandle.className = 'resize-handle';
-  resizeHandle.style.cssText = `
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 5px;
-    cursor: col-resize;
-    background: transparent;
-    z-index: 10;
-    transition: background 0.2s;
-  `;
-  resizeHandle.onmouseenter = function() { resizeHandle.style.background = '#4fa'; };
-  resizeHandle.onmouseleave = function() { resizeHandle.style.background = 'transparent'; };
-  
-  sidebar.style.position = 'relative';
-  sidebar.appendChild(resizeHandle);
-
-  var isResizingSidebar = false;
-  var startX = 0;
-  var startWidth = 0;
-
-  resizeHandle.addEventListener('mousedown', function(e) {
-    isResizingSidebar = true;
-    startX = e.clientX;
-    startWidth = sidebar.offsetWidth;
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-    e.preventDefault();
-  });
-
-  document.addEventListener('mousemove', function(e) {
-    if (!isResizingSidebar) return;
-    
-    var width = startWidth + (e.clientX - startX);
-    var minWidth = 200;
-    var maxWidth = 950;
-    
-    if (width >= minWidth && width <= maxWidth) {
-      sidebar.style.width = width + 'px';
-      sidebar.style.flexBasis = width + 'px';
-      sidebar.style.minWidth = width + 'px';
-      
-      if (window.editor && window.editor.layout) {
-        window.editor.layout();
-      }
-    }
-  });
-
-  document.addEventListener('mouseup', function() {
-    if (isResizingSidebar) {
-      isResizingSidebar = false;
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      localStorage.setItem('sidebarWidth', sidebar.offsetWidth);
-    }
-  });
-
-  var savedWidth = localStorage.getItem('sidebarWidth');
-  if (savedWidth) {
-    sidebar.style.width = savedWidth + 'px';
-    sidebar.style.flexBasis = savedWidth + 'px';
-    sidebar.style.minWidth = savedWidth + 'px';
-  }
-
-  var updateToggleIcon = function(isCollapsed) {
-    if (!toggleBtn) return;
-    toggleBtn.innerHTML = isCollapsed 
-      ? '<span title="Open Sidebar">☰</span>' 
-      : '<span title="Close Sidebar">✖</span>';
-  };
-
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', function() {
-      var isCollapsed = editorLayout.classList.toggle('collapsed');
-      updateToggleIcon(isCollapsed);
-
-      setTimeout(function() {
-        if (window.editor && window.editor.layout) {
-          window.editor.layout();
-        }
-      }, 100);
-    });
-
-    updateToggleIcon(editorLayout.classList.contains('collapsed'));
-  }
+  var resizeHandleEl = document.createElement('div'); resizeHandleEl.className = 'resize-handle'; resizeHandleEl.style.cssText = 'position: absolute; right: 0; top: 0; bottom: 0; width: 5px; cursor: col-resize; background: transparent; z-index: 10; transition: background 0.2s;';
+  resizeHandleEl.onmouseenter = () => resizeHandleEl.style.background = '#4fa'; resizeHandleEl.onmouseleave = () => resizeHandleEl.style.background = 'transparent';
+  sidebar.style.position = 'relative'; sidebar.appendChild(resizeHandleEl);
+  var isResizingSidebar = false, startX = 0, startWidth = 0;
+  resizeHandleEl.addEventListener('mousedown', function(e) { isResizingSidebar = true; startX = e.clientX; startWidth = sidebar.offsetWidth; document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none'; e.preventDefault(); });
+  document.addEventListener('mousemove', function(e) { if (!isResizingSidebar) return; var w = startWidth + (e.clientX - startX); if (w >= 200 && w <= 950) { sidebar.style.width = w + 'px'; sidebar.style.flexBasis = w + 'px'; sidebar.style.minWidth = w + 'px'; if (editor && editor.layout) editor.layout(); } });
+  document.addEventListener('mouseup', function() { if (isResizingSidebar) { isResizingSidebar = false; document.body.style.cursor = ''; document.body.style.userSelect = ''; localStorage.setItem('sidebarWidth', sidebar.offsetWidth); } });
+  var savedWidth = localStorage.getItem('sidebarWidth'); if (savedWidth) { sidebar.style.width = savedWidth + 'px'; sidebar.style.flexBasis = savedWidth + 'px'; sidebar.style.minWidth = savedWidth + 'px'; }
+  if (toggleBtn) { toggleBtn.addEventListener('click', function() { var c = editorLayout.classList.toggle('collapsed'); toggleBtn.innerHTML = c ? '<span title="Open Sidebar">☰</span>' : '<span title="Close Sidebar">✖</span>'; setTimeout(() => { if (editor && editor.layout) editor.layout(); }, 100); }); toggleBtn.innerHTML = editorLayout.classList.contains('collapsed') ? '<span title="Open Sidebar">☰</span>' : '<span title="Close Sidebar">✖</span>'; }
+  const defaultTopicId = {{ current_topic_id|default:"null" }};
+  if (defaultTopicId) { const ti = document.getElementById('topic-item-' + defaultTopicId); if (ti) { const tl = ti.querySelector('.topic-toggle'); if (tl) toggleDesc('topic-' + defaultTopicId, tl, tl.getAttribute('data-lang') || 'python'); } }
+  loadQuizProgress();
+  if (window.innerWidth <= 768) { const at = document.getElementById("aiToolbar"); if (at) at.style.display = "none"; }
 });
 </script>
 

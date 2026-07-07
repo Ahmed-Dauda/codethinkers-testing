@@ -173,19 +173,32 @@ def delete_file_on_model_delete(sender, instance, **kwargs):
         os.remove(instance.file.path)
 
 
-# @receiver(pre_save, sender=Project)
-# def set_project_topic(sender, instance, **kwargs):
-#     if not instance.topic and instance.course:
-#         instance.topic = get_general_topic(instance.course)
+from django.db import models
+from django.conf import settings
+from sms.models import Courses
 
-
-# @receiver(pre_save, sender=Folder)
-# def set_folder_topic(sender, instance, **kwargs):
-#     if not instance.topic and instance.project:
-#         instance.topic = get_general_topic(instance.project.course)
-
-
-# @receiver(pre_save, sender=File)
-# def set_file_topic(sender, instance, **kwargs):
-#     if not instance.topic and instance.project and instance.project.course:
-#         instance.topic = get_general_topic(instance.project.course)
+class LeaderboardEntry(models.Model):
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='leaderboard_entries')
+    course = models.ForeignKey(Courses, on_delete=models.CASCADE, related_name='leaderboard_entries')
+    points = models.IntegerField(default=0)
+    completed_topics = models.IntegerField(default=0)
+    total_topics = models.IntegerField(default=0)
+    completion_percentage = models.FloatField(default=0.0)
+    last_updated = models.DateTimeField(auto_now=True)
+    rank = models.IntegerField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-points', 'completion_percentage']
+        unique_together = ['student', 'course']
+    
+    def __str__(self):
+        return f"{self.student.username} - {self.course.title}: {self.points} pts"
+    
+    def update_rank(self):
+        """Update the rank for this entry"""
+        entries = LeaderboardEntry.objects.filter(course=self.course).order_by('-points', 'completion_percentage')
+        for idx, entry in enumerate(entries, start=1):
+            if entry.id == self.id:
+                self.rank = idx
+                self.save(update_fields=['rank'])
+                break
