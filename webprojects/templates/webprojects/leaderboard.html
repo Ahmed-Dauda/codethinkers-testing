@@ -39,7 +39,6 @@
         padding: 40px 20px;
     }
 
-    /* Header Section */
     .leaderboard-header {
         text-align: center;
         margin-bottom: 40px;
@@ -101,7 +100,6 @@
         margin-top: 4px;
     }
 
-    /* Top 3 Podium */
     .podium-section {
         margin-bottom: 40px;
     }
@@ -205,7 +203,6 @@
         font-size: 36px;
     }
 
-    /* Full Leaderboard Table */
     .leaderboard-table-section {
         background: var(--bg-secondary);
         border: 1px solid var(--border-color);
@@ -388,7 +385,6 @@
         margin-bottom: 12px;
     }
 
-    /* Back Button */
     .back-btn {
         display: inline-flex;
         align-items: center;
@@ -407,82 +403,40 @@
         color: var(--text-primary);
     }
 
-    /* Responsive */
     @media (max-width: 768px) {
-        .leaderboard-header h1 {
-            font-size: 1.8em;
-        }
-
-        .podium {
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .podium-card {
-            order: unset !important;
-            min-width: 250px;
-        }
-
-        .podium-card.first {
-            transform: scale(1);
-        }
-
+        .leaderboard-header h1 { font-size: 1.8em; }
+        .podium { flex-direction: column; align-items: center; }
+        .podium-card { order: unset !important; min-width: 250px; }
+        .podium-card.first { transform: scale(1); }
         .leaderboard-table th:nth-child(5),
-        .leaderboard-table td:nth-child(5) {
-            display: none;
-        }
-
-        .stats-row {
-            gap: 12px;
-        }
-
-        .stat-item {
-            min-width: 90px;
-            padding: 12px 16px;
-        }
-
-        .stat-value {
-            font-size: 1.4em;
-        }
+        .leaderboard-table td:nth-child(5) { display: none; }
+        .stats-row { gap: 12px; }
+        .stat-item { min-width: 90px; padding: 12px 16px; }
+        .stat-value { font-size: 1.4em; }
     }
 
     @media (max-width: 480px) {
-        .leaderboard-container {
-            padding: 20px 10px;
-        }
-
+        .leaderboard-container { padding: 20px 10px; }
         .leaderboard-table th,
-        .leaderboard-table td {
-            padding: 10px 12px;
-            font-size: 0.85em;
-        }
-
-        .student-cell .mini-avatar {
-            width: 28px;
-            height: 28px;
-        }
-
+        .leaderboard-table td { padding: 10px 12px; font-size: 0.85em; }
+        .student-cell .mini-avatar { width: 28px; height: 28px; }
         .leaderboard-table th:nth-child(4),
-        .leaderboard-table td:nth-child(4) {
-            display: none;
-        }
+        .leaderboard-table td:nth-child(4) { display: none; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="leaderboard-container">
-    <!-- Back Button -->
-    <a href="javascript:history.back()" class="back-btn">
-        ← Back to Course
-    </a>
+
+    <a href="javascript:history.back()" class="back-btn">← Back to Course</a>
 
     <!-- Header -->
     <div class="leaderboard-header">
         <div class="trophy-icon">🏆</div>
         <h1>Leaderboard</h1>
         <p class="course-name">{{ course.title }}</p>
-        
+
         <div class="stats-row">
             <div class="stat-item">
                 <div class="stat-value">{{ total_students }}</div>
@@ -514,17 +468,17 @@
                 <div class="rank-medal">
                     {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}
                 </div>
-                
+
                 {% if entry.student.profile.avatar %}
-                <img src="{{ entry.student.profile.avatar.url }}" alt="{{ entry.student.username }}" class="student-avatar">
+                <img src="{{ entry.student.profile.avatar.url }}" alt="{{ entry.student.email }}" class="student-avatar">
                 {% else %}
                 <div class="student-avatar default-avatar" style="background: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; width: 70px; height: 70px; border-radius: 50%;">
-                    <span style="font-size: 1.8em; font-weight: 700; color: #fff;">{{ entry.student.username|slice:":1"|upper }}</span>
+                    <span style="font-size: 1.8em; font-weight: 700; color: #fff;">{{ entry.student.email|slice:":1"|upper }}</span>
                 </div>
                 {% endif %}
-                
+
                 <div class="student-name">
-                    {{ entry.student.get_full_name|default:entry.student.username }}
+                    {{ entry.student.get_full_name|default:entry.student.email }}
                     {% if entry.student == request.user %}
                     <span class="badge-you">You</span>
                     {% endif %}
@@ -539,63 +493,63 @@
     </div>
     {% endif %}
 
-    <!-- Full Leaderboard Table - Shows ALL Students -->
+    <!-- Full Leaderboard Table -->
     <div class="leaderboard-table-section">
         <h2>📋 All Rankings ({{ all_entries|length }} Students)</h2>
-        
+
         {% if all_entries %}
         <div class="table-wrapper">
-        <table class="leaderboard-table">
-            <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Student</th>
-                    <th>Points</th>
-                    <th>Completed</th>
-                    <th>Progress</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in all_entries %}
-                <tr class="{% if entry.student == request.user %}current-user{% endif %}">
-                    <td class="rank-cell {% if entry.rank <= 3 %}top-rank{% endif %}">
-                        {% if entry.rank == 1 %}🥇
-                        {% elif entry.rank == 2 %}🥈
-                        {% elif entry.rank == 3 %}🥉
-                        {% else %}#{{ entry.rank }}{% endif %}
-                    </td>
-                    <td>
-                        <div class="student-cell">
-                            {% if entry.student.profile.avatar %}
-                            <img src="{{ entry.student.profile.avatar.url }}" alt="{{ entry.student.username }}" class="mini-avatar">
-                            {% else %}
-                            <div class="mini-avatar default-avatar">
-                                {{ entry.student.username|slice:":1"|upper }}
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Student</th>
+                        <th>Points</th>
+                        <th>Completed</th>
+                        <th>Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in all_entries %}
+                    <tr class="{% if entry.student == request.user %}current-user{% endif %}">
+                        <td class="rank-cell {% if entry.rank <= 3 %}top-rank{% endif %}">
+                            {% if entry.rank == 1 %}🥇
+                            {% elif entry.rank == 2 %}🥈
+                            {% elif entry.rank == 3 %}🥉
+                            {% else %}#{{ entry.rank }}{% endif %}
+                        </td>
+                        <td>
+                            <div class="student-cell">
+                                {% if entry.student.profile.avatar %}
+                                <img src="{{ entry.student.profile.avatar.url }}" alt="{{ entry.student.email }}" class="mini-avatar">
+                                {% else %}
+                                <div class="mini-avatar default-avatar">
+                                    {{ entry.student.email|slice:":1"|upper }}
+                                </div>
+                                {% endif %}
+                                <div class="student-info">
+                                    <span class="name">
+                                        {{ entry.student.get_full_name|default:entry.student.email }}
+                                        {% if entry.student == request.user %}
+                                        <span class="badge-you">You</span>
+                                        {% endif %}
+                                    </span>
+                                    <span class="username">{{ entry.student.email }}</span>
+                                </div>
                             </div>
-                            {% endif %}
-                            <div class="student-info">
-                                <span class="name">
-                                    {{ entry.student.get_full_name|default:entry.student.username }}
-                                    {% if entry.student == request.user %}
-                                    <span class="badge-you">You</span>
-                                    {% endif %}
-                                </span>
-                                <span class="username">@{{ entry.student.username }}</span>
+                        </td>
+                        <td class="points-cell">{{ entry.points }} pts</td>
+                        <td class="completed-cell">{{ entry.completed_topics }}/{{ entry.total_topics }}</td>
+                        <td class="progress-cell">
+                            <div class="progress-bar-mini">
+                                <div class="fill" style="width: {% if entry.completion_percentage > 100 %}100{% else %}{{ entry.completion_percentage|default:0 }}{% endif %}%;"></div>
                             </div>
-                        </div>
-                    </td>
-                    <td class="points-cell">{{ entry.points }}</td>
-                    <td class="completed-cell">{{ entry.completed_topics }}/{{ entry.total_topics }}</td>
-                    <td class="progress-cell">
-                        <div class="progress-bar-mini">
-                            <div class="fill" style="width: {% if entry.completion_percentage > 100 %}100{% else %}{{ entry.completion_percentage|default:0 }}{% endif %}%;"></div>
-                        </div>
-                        {{ entry.completion_percentage|floatformat:1 }}%
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            {{ entry.completion_percentage|floatformat:1 }}%
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         {% else %}
         <div class="empty-state">
@@ -605,6 +559,7 @@
         </div>
         {% endif %}
     </div>
+
 </div>
 {% endblock %}
 
