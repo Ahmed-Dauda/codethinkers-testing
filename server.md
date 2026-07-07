@@ -4,6 +4,7 @@
 systemctl restart codethinkers
 ahmed.dr080@gmail.com
 admin0806
+git branch --show-current
 
 celery -A school worker --loglevel=info
 
