@@ -220,9 +220,14 @@
         color: var(--text-primary);
     }
 
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
     .leaderboard-table {
         width: 100%;
         border-collapse: collapse;
+        min-width: 600px;
     }
 
     .leaderboard-table th {
@@ -235,6 +240,7 @@
         letter-spacing: 0.05em;
         background: rgba(0, 0, 0, 0.2);
         border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
     }
 
     .leaderboard-table td {
@@ -269,6 +275,7 @@
         font-size: 1.1em;
         color: var(--text-secondary);
         width: 60px;
+        white-space: nowrap;
     }
 
     .rank-cell.top-rank {
@@ -287,6 +294,7 @@
         border-radius: 50%;
         object-fit: cover;
         border: 2px solid var(--border-color);
+        flex-shrink: 0;
     }
 
     .student-cell .mini-avatar.default-avatar {
@@ -297,21 +305,29 @@
         color: #fff;
         font-weight: 700;
         font-size: 0.9em;
+        flex-shrink: 0;
     }
 
     .student-cell .student-info {
         display: flex;
         flex-direction: column;
+        min-width: 0;
     }
 
     .student-cell .student-info .name {
         font-weight: 600;
         color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .student-cell .student-info .username {
         font-size: 0.8em;
         color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .points-cell {
@@ -320,8 +336,14 @@
         font-size: 1.05em;
     }
 
+    .completed-cell {
+        color: var(--text-secondary);
+        white-space: nowrap;
+    }
+
     .progress-cell {
         color: var(--text-secondary);
+        white-space: nowrap;
     }
 
     .progress-bar-mini {
@@ -352,6 +374,7 @@
         margin-left: 8px;
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        white-space: nowrap;
     }
 
     .empty-state {
@@ -404,8 +427,8 @@
             transform: scale(1);
         }
 
-        .leaderboard-table th:nth-child(4),
-        .leaderboard-table td:nth-child(4) {
+        .leaderboard-table th:nth-child(5),
+        .leaderboard-table td:nth-child(5) {
             display: none;
         }
 
@@ -437,6 +460,11 @@
         .student-cell .mini-avatar {
             width: 28px;
             height: 28px;
+        }
+
+        .leaderboard-table th:nth-child(4),
+        .leaderboard-table td:nth-child(4) {
+            display: none;
         }
     }
 </style>
@@ -490,7 +518,7 @@
                 {% if entry.student.profile.avatar %}
                 <img src="{{ entry.student.profile.avatar.url }}" alt="{{ entry.student.username }}" class="student-avatar">
                 {% else %}
-                <div class="student-avatar default-avatar" style="background: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                <div class="student-avatar default-avatar" style="background: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; width: 70px; height: 70px; border-radius: 50%;">
                     <span style="font-size: 1.8em; font-weight: 700; color: #fff;">{{ entry.student.username|slice:":1"|upper }}</span>
                 </div>
                 {% endif %}
@@ -511,22 +539,24 @@
     </div>
     {% endif %}
 
-    <!-- Full Leaderboard Table -->
+    <!-- Full Leaderboard Table - Shows ALL Students -->
     <div class="leaderboard-table-section">
-        <h2>📋 All Rankings</h2>
+        <h2>📋 All Rankings ({{ all_entries|length }} Students)</h2>
         
-        {% if leaderboard_entries %}
+        {% if all_entries %}
+        <div class="table-wrapper">
         <table class="leaderboard-table">
             <thead>
                 <tr>
                     <th>Rank</th>
                     <th>Student</th>
                     <th>Points</th>
+                    <th>Completed</th>
                     <th>Progress</th>
                 </tr>
             </thead>
             <tbody>
-                {% for entry in leaderboard_entries %}
+                {% for entry in all_entries %}
                 <tr class="{% if entry.student == request.user %}current-user{% endif %}">
                     <td class="rank-cell {% if entry.rank <= 3 %}top-rank{% endif %}">
                         {% if entry.rank == 1 %}🥇
@@ -555,9 +585,10 @@
                         </div>
                     </td>
                     <td class="points-cell">{{ entry.points }}</td>
+                    <td class="completed-cell">{{ entry.completed_topics }}/{{ entry.total_topics }}</td>
                     <td class="progress-cell">
                         <div class="progress-bar-mini">
-                            <div class="fill" style="width: {{ entry.completion_percentage|default:0 }}%;"></div>
+                            <div class="fill" style="width: {% if entry.completion_percentage > 100 %}100{% else %}{{ entry.completion_percentage|default:0 }}{% endif %}%;"></div>
                         </div>
                         {{ entry.completion_percentage|floatformat:1 }}%
                     </td>
@@ -565,6 +596,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        </div>
         {% else %}
         <div class="empty-state">
             <div class="icon">📭</div>
