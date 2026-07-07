@@ -210,25 +210,6 @@ from django.utils.text import slugify
 from urllib.parse import urlparse, parse_qs
 
 
-# class Topics(models.Model):
-#     categories = models.ForeignKey(Categories, on_delete=models.CASCADE, blank=True, null=True)
-#     courses = models.ForeignKey(Courses, on_delete=models.CASCADE, blank=True, null=True) 
-#     title = models.CharField(max_length=500, blank=True, null=True)  # Displays: "Introduction"
-#     slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)  # URL: "introduction-1"
-#     is_completed = models.BooleanField(default=False)
-#     completed_by = models.ManyToManyField('users.Profile', through='CompletedTopics')
-#     desc = HTMLField(null=True)
-#     transcript = models.TextField(blank=True, null=True)
-#     img_topic = CloudinaryField('topic image', blank=True, null=True)
-#     # video = EmbedVideoField(blank=True, null=True)
-#     video = models.CharField(max_length=500, blank=True, null=True)
-#     topics_url = models.CharField(max_length=500, blank=True, null=True)
-#     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-#     updated = models.DateTimeField(auto_now=True, blank=True, null=True) 
-#     id = models.BigAutoField(primary_key=True)
-#     hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk', related_query_name='hit_count_generic_relation')
-
-
 
 class Topics(models.Model):
     categories = models.ForeignKey(Categories, on_delete=models.CASCADE, blank=True, null=True)
