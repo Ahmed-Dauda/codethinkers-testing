@@ -3725,10 +3725,13 @@ Build to Vercel/Linear quality standards. Return ONLY JSON: {{"html": "...", "cs
         'user_rank': user_rank,
     })
 
+
+
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.db.models import Count, Avg, F
+from django.db.models import Count, Avg, F, Window
+from django.db.models.functions import Rank
 from .models import LeaderboardEntry, StudentProgress
 from sms.models import Courses, Topics
 
@@ -3741,24 +3744,43 @@ def course_leaderboard(request, course_id):
     # Get total topics for this course
     total_topics = Topics.objects.filter(courses=course).count()
     
-    # Get all leaderboard entries ordered by rank
+    # Get all leaderboard entries with proper rank handling using window function
     leaderboard_entries = LeaderboardEntry.objects.filter(
         course=course
-    ).select_related('student', 'student__profile').order_by('rank')
+    ).select_related('student', 'student__profile').annotate(
+        # Use Django's Rank window function - ties get SAME rank
+        calculated_rank=Window(
+            expression=Rank(),
+            order_by=[F('points').desc(), F('completion_percentage').desc()]
+        )
+    ).order_by('calculated_rank')
     
-    # Cap points, completed_topics, and completion percentage for each entry
+    # Update stored rank field and cap values for each entry
     for entry in leaderboard_entries:
+        # Update the stored rank to match calculated rank
+        if entry.rank != entry.calculated_rank:
+            entry.rank = entry.calculated_rank
+            entry.save(update_fields=['rank'])
+        
         # Cap completed_topics at total_topics
         if entry.completed_topics > total_topics:
             entry.completed_topics = total_topics
+            entry.save(update_fields=['completed_topics'])
         
         # Cap points at total_topics
         if entry.points > total_topics:
             entry.points = total_topics
+            entry.save(update_fields=['points'])
         
         # Cap completion percentage at 100%
         if entry.completion_percentage > 100:
             entry.completion_percentage = 100
+            entry.save(update_fields=['completion_percentage'])
+    
+    # Refresh entries after updates
+    leaderboard_entries = LeaderboardEntry.objects.filter(
+        course=course
+    ).select_related('student', 'student__profile').order_by('rank')
     
     # Get course statistics
     total_students = leaderboard_entries.count()
@@ -3767,11 +3789,17 @@ def course_leaderboard(request, course_id):
     user_entry = leaderboard_entries.filter(student=request.user).first()
     user_rank = user_entry.rank if user_entry else None
     
-    # Get top 3 for podium
-    top_performers = list(leaderboard_entries[:3])
-    
     # Get all entries for the full table
     all_entries = list(leaderboard_entries)
+    
+    # Get top performers for podium - all students with top 3 distinct ranks
+    # This ensures if multiple students are tied for rank 1, they all appear on podium
+    distinct_top_ranks = sorted(set(e.rank for e in all_entries))[:3]
+    top_performers = [e for e in all_entries if e.rank in distinct_top_ranks]
+    
+    # Limit to max 5 on podium to avoid overcrowding
+    if len(top_performers) > 5:
+        top_performers = top_performers[:5]
     
     context = {
         'course': course,
@@ -3810,7 +3838,10 @@ def update_leaderboard(request, course_id):
     # CAP values - points and completed_topics cannot exceed total_topics
     capped_completed = min(completed_topics, total_topics)
     capped_points = min(completed_topics, total_topics)  # Each completed topic = 1 point
-    capped_percentage = min((capped_completed / total_topics * 100) if total_topics > 0 else 0, 100)
+    capped_percentage = min(
+        (capped_completed / total_topics * 100) if total_topics > 0 else 0, 
+        100
+    )
     
     # Update or create leaderboard entry with capped values
     entry, created = LeaderboardEntry.objects.update_or_create(
@@ -3824,28 +3855,29 @@ def update_leaderboard(request, course_id):
         }
     )
     
-    # Update rank
-    entry.update_rank()
+    # Update ALL ranks using window function for proper tie handling
+    all_entries = LeaderboardEntry.objects.filter(course=course).annotate(
+        calculated_rank=Window(
+            expression=Rank(),
+            order_by=[F('points').desc(), F('completion_percentage').desc()]
+        )
+    )
     
-    # Get updated leaderboard ordered by points then completion percentage
-    leaderboard = LeaderboardEntry.objects.filter(
-        course=course
-    ).order_by('-points', '-completion_percentage')
+    # Save the new ranks
+    for e in all_entries:
+        if e.rank != e.calculated_rank:
+            e.rank = e.calculated_rank
+            e.save(update_fields=['rank'])
     
-    # Get user's rank
-    rank = leaderboard.filter(
-        points__gt=entry.points
-    ).count() + 1
-    
-    # If tied on points, check if anyone has higher completion percentage
-    same_points = leaderboard.filter(points=entry.points)
-    if same_points.count() > 1:
-        rank = same_points.filter(
-            completion_percentage__gt=entry.completion_percentage
-        ).count() + 1
+    # Get the user's new rank
+    user_entry = all_entries.filter(student=request.user).first()
+    user_rank = user_entry.calculated_rank if user_entry else None
     
     # Get total students
-    total_students = leaderboard.count()
+    total_students = all_entries.count()
+    
+    # Count how many students have the same rank (tied)
+    tied_count = all_entries.filter(calculated_rank=user_rank).count() if user_rank else 0
     
     return JsonResponse({
         'status': 'success',
@@ -3853,9 +3885,10 @@ def update_leaderboard(request, course_id):
         'points': capped_points,
         'completed_topics': capped_completed,
         'total_topics': total_topics,
-        'rank': rank,
+        'rank': user_rank,
         'total_students': total_students,
         'completion_percentage': capped_percentage,
+        'tied_count': tied_count,
     })
 
 
