@@ -572,8 +572,8 @@
         </p>
         <div class="recommended-grid">
             {% for rec_course in recommended_courses %}
-            <a href="{% url 'webprojects:create_project' %}?course={{ rec_course.id }}" 
-               class="recommended-card">
+            <a href="{% url 'webprojects:start_course' rec_course.id %}" 
+   class="recommended-card">
                 <div class="rec-icon">
                     {% if 'python' in rec_course.title|lower %}🐍
                     {% elif 'rust' in rec_course.title|lower %}🦀

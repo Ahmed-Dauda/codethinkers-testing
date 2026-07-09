@@ -51,6 +51,7 @@ git checkout staging
 git pull origin staging
 git merge development
 git push origin staging
+git checkout development
 ```
 
 After deployment:
