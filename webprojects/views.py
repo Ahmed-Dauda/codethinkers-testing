@@ -2209,6 +2209,7 @@ def file_detail(request, project_id, file_id):
 
         # ================= SCORE OUTPUT =================
         if data.get("action") == "score_output":
+            import re
             student_output = data.get("student_output", "").strip()
             topic_id = data.get("topic_id")
             
@@ -2224,23 +2225,68 @@ def file_detail(request, project_id, file_id):
             topic_title = topic.title or ""
             expected = topic.expected_output or ""
 
-            # ===== IF NO EXPECTED OUTPUT, USE AI TO GENERATE IT FIRST =====
+            # ===== STRIP HTML AND EXTRACT PLAIN CODE =====
+            import re
+            from html.parser import HTMLParser
+
+            class HTMLStripper(HTMLParser):
+                def __init__(self):
+                    super().__init__()
+                    self.text_parts = []
+                def handle_data(self, data):
+                    self.text_parts.append(data)
+                def get_text(self):
+                    return '\n'.join(part.strip() for part in self.text_parts if part.strip())
+
+            def strip_html(html_text):
+                stripper = HTMLStripper()
+                stripper.feed(html_text)
+                return stripper.get_text()
+
+            # Strip HTML from topic description to get plain code
+            plain_desc = strip_html(topic_desc)
+            print(f"🔍 plain_desc: {plain_desc}")
+
+            # Count print statements in plain description
+            print_count_in_desc = plain_desc.count('print(')
+            print(f"🔍 print_count_in_desc: {print_count_in_desc}")
+
+            # ===== CLEAR BAD CACHED EXPECTED OUTPUT =====
+            if expected:
+                expected_lines = len(expected.strip().splitlines())
+                if expected_lines < print_count_in_desc:
+                    print(f"⚠️ Cached expected has {expected_lines} lines but code has {print_count_in_desc} prints — regenerating")
+                    expected = ""
+                    topic.expected_output = ""
+                    topic.save(update_fields=['expected_output'])
+
+            # ===== IF NO EXPECTED OUTPUT, USE AI TO GENERATE IT =====
             if not expected:
-                expected_prompt = f"""Based on this Python topic, what should the correct program output?
+                # Try code blocks first, fall back to HTML-stripped plain text
+                code_blocks = re.findall(r'```python\n(.*?)```', topic_desc, re.DOTALL)
+                code_content = '\n'.join(code_blocks) if code_blocks else plain_desc
 
-## TOPIC
-Title: {topic_title}
-Description: {topic_desc[:500]}
+                print(f"🔍 code_content sent to AI: {code_content}")
 
-## INSTRUCTIONS
-Read the topic description carefully. Determine what the correct output should be.
-Return ONLY the expected output as plain text (no JSON, no explanation).
-If the topic asks to print something, return exactly what should be printed.
-If there are multiple lines, include all lines.
+                expected_prompt = f"""You are a Python interpreter. Execute this code mentally and return ONLY the output.
 
-Example: If topic says "print 2+3", return: 5
-Example: If topic says "print your name", return the expected text output."""
+            ## CODE TO EXECUTE:
+            {code_content}
 
+            ## STRICT RULES:
+            - Execute EVERY print() statement in order
+            - Return each print output on its own line
+            - Return ONLY the raw output — no explanation, no labels, no markdown
+            - If there are 2 print statements, return 2 lines
+
+            ## EXAMPLE:
+            Code:
+            print(3)
+            print(4)
+
+            Your response:
+            3
+            4"""
                 try:
                     if client is None:
                         return JsonResponse({"status": "error", "message": "OpenAI API is not configured"}, status=500)
@@ -2248,46 +2294,53 @@ Example: If topic says "print your name", return the expected text output."""
                     expected_response = client.chat.completions.create(
                         model="gpt-4o-mini",
                         messages=[
-                            {"role": "system", "content": "You determine the correct output for Python exercises. Return ONLY the expected output as plain text. No explanation, no markdown."},
+                            {"role": "system", "content": "You are a Python interpreter. Execute code mentally and return ONLY the raw output. No explanation, no markdown, no labels."},
                             {"role": "user", "content": expected_prompt},
                         ],
                         max_tokens=200,
                         temperature=0,
                     )
                     expected = expected_response.choices[0].message.content.strip()
+                    
+                    # Clean up any accidental labels like "Output:" the AI might add
+                    expected = re.sub(r'^(output|result|answer)\s*:\s*', '', expected, flags=re.IGNORECASE).strip()
+                    
                     print(f"🤖 AI Generated Expected Output: '{expected}'")
                     
                     # Save to database for future use
                     topic.expected_output = expected
                     topic.save(update_fields=['expected_output'])
+
                 except Exception as e:
                     print(f"⚠️ Failed to generate expected output: {e}")
                     expected = ""
 
-            # ===== NOW COMPARE STUDENT OUTPUT WITH EXPECTED =====
-            scoring_prompt = f"""Compare the student's program OUTPUT with the expected output.
+            # ===== SCORE WITH AI =====
+            scoring_prompt = f"""You are a Python output checker. Compare these two outputs.
 
-## TOPIC
-Title: {topic_title}
-
-## EXPECTED OUTPUT:
+EXPECTED (correct output):
+---
 {expected if expected else "Could not determine expected output"}
+---
 
-## STUDENT'S ACTUAL OUTPUT:
+STUDENT OUTPUT:
+---
 {student_output}
+---
 
-## STRICT SCORING RULES:
-- IGNORE the student's code - only compare the OUTPUT values
-- IGNORE spaces, tabs, newlines - strip whitespace before comparing
-- IGNORE case differences for text
-- score = 1 ONLY if the stripped outputs MATCH in value
-- score = 0 if outputs don't match
-- "correct": true ONLY if score is 1
-- NO partial credit
+COMPARISON RULES:
+1. Split both into individual lines
+2. Strip whitespace from each line
+3. Compare line by line in order
+4. ALL expected lines must match corresponding student lines
+5. Extra lines in student output = OK, do not penalize
+6. Missing lines in student output = WRONG
+7. Numeric exact match: 7.0 == 7.0, 20 == 20
+8. score = 1 if ALL expected lines match, else score = 0
 
-Return ONLY this JSON:
-{{"score": <0 or 1>, "max_score": 1, "feedback": "<brief reason>", "correct": <true/false>}}"""
-
+Return ONLY valid JSON:
+{{"score": 0, "max_score": 1, "feedback": "reason here", "correct": false}}"""
+            
             try:
                 if client is None:
                     return JsonResponse({"status": "error", "message": "OpenAI API is not configured"}, status=500)
@@ -2295,7 +2348,7 @@ Return ONLY this JSON:
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
-                        {"role": "system", "content": "You are a strict code evaluator. Compare outputs exactly. Score is 1 (correct) or 0 (wrong). Return ONLY valid JSON."},
+                        {"role": "system", "content": "You are a strict Python output checker. Compare outputs line by line. Return ONLY valid JSON with score 0 or 1."},
                         {"role": "user", "content": scoring_prompt},
                     ],
                     max_tokens=300,
@@ -2323,7 +2376,6 @@ Return ONLY this JSON:
                 print(f"DEBUG: topic_id={topic_id}, already_awarded={already_awarded}, earned_points={earned_points}, expected='{expected[:50] if expected else 'EMPTY'}'")
                 
                 if result.get('correct', False):
-                    
                     if not already_awarded:
                         # ===== FIRST TIME CORRECT =====
                         progress.completed_topics.add(topic)
@@ -2370,7 +2422,7 @@ Return ONLY this JSON:
                     "already_awarded": already_awarded,
                     "average_score": progress.get_average_score() if progress else 0,
                     "modules_completed": min(earned_points, total_topics),
-                    "expected_output": expected,  # ADD THIS LINE
+                    "expected_output": expected,
                 })
             except Exception as e:
                 return JsonResponse({"status": "error", "message": str(e)}, status=500)
@@ -2630,8 +2682,7 @@ Return ONLY JSON: {{"html": "...", "css": "...", "js": "..."}}"""
         'total_topics': total_topics,
         'user_rank': user_rank,
         'champion_xp': champion_xp,
-    })
-    
+    })    
 
 
 from django.shortcuts import render, get_object_or_404
@@ -3166,263 +3217,6 @@ def load_project_files(request, project_id):
         return JsonResponse({"status": "error", "message": "Project not found"}, status=404)
 
 
-# working before adding ai prompt    
-# def file_detail(request, project_id, file_id):
-#     file = get_object_or_404(File, id=file_id, project_id=project_id)
-#     files = file.project.files.all()
-#     project = get_object_or_404(Project, id=project_id)
-#     folders = Folder.objects.filter(project=file.project)
-
-#     # Sidebar file extensions
-#     exts = sorted({
-#         os.path.splitext(f.name)[1].lstrip('.').lower()
-#         for f in files if '.' in f.name
-#     })
-
-#     # Detect if file is an image
-#     is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
-
-#     # Full path to the file
-#     file_path = os.path.join(settings.MEDIA_ROOT, str(file.file))
-
-#     # ai prompts
-#     # end ai prompt
-
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body or "{}")
-#             new_content = data.get("content", "")
-#             run_plot = data.get("run_plot", False)
-#             run_table = data.get("run_table", False)
-
-#             # Prevent mismatched file updates
-#             if data.get("file_id") and data.get("file_id") != file.id:
-#                 return JsonResponse({"error": "Mismatched file ID"}, status=400)
-
-#             # Save content for text-based files
-#             if new_content:
-#                 file.content = new_content
-#                 file.save()
-
-#             ext = file.name.lower().split(".")[-1]
-#             response_table = ""
-#             images = []
-
-#             # Automatically load CSV/Excel as df
-#             df = None
-#             if ext in ["csv", "xls", "xlsx"]:
-#                 try:
-#                     if ext == "csv":
-#                         df = pd.read_csv(file_path)
-#                     else:
-#                         df = pd.read_excel(file_path)
-#                     if run_table:
-#                         response_table = df.head(20).to_html(
-#                             classes="table table-bordered table-sm",
-#                             index=False
-#                         )
-#                 except Exception as e:
-#                     return JsonResponse({"status": "error", "message": str(e)}, status=500)
-
-#             # Execute Python code (mini Jupyter)
-#             if run_plot or new_content.strip():
-#                 buffer_out = io.StringIO()
-#                 buffer_err = io.StringIO()
-#                 plt.clf()
-#                 plt.close('all')
-
-#                 # Save original pandas functions
-#                 # Save the original functions once
-#                 if not hasattr(pd, "_original_read_csv"):
-#                     pd._original_read_csv = pd.read_csv
-#                 if not hasattr(pd, "_original_read_excel"):
-#                     pd._original_read_excel = pd.read_excel
-
-#                 # Patch read_csv and read_excel
-#                 def patched_read_csv(name, *args, **kwargs):
-#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
-#                     return pd._original_read_csv(path, *args, **kwargs)
-
-#                 def patched_read_excel(name, *args, **kwargs):
-#                     path = os.path.join(settings.MEDIA_ROOT, 'uploads', name)
-#                     return pd._original_read_excel(path, *args, **kwargs)
-
-#                 # Use patched versions inside exec
-#                 local_vars = {"pd": pd}
-#                 pd.read_csv = patched_read_csv
-#                 pd.read_excel = patched_read_excel
-
-#                 # Monkeypatch plt.show to save plots
-#                 def fake_show(*args, **kwargs):
-#                     buf = io.BytesIO()
-#                     plt.savefig(buf, format="png", bbox_inches="tight")
-#                     buf.seek(0)
-#                     img_base64 = base64.b64encode(buf.read()).decode("utf-8")
-#                     images.append(f"data:image/png;base64,{img_base64}")
-#                     plt.close()
-
-#                 plt.show = fake_show
-
-#                 try:
-#                     with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
-#                         exec(new_content, local_vars)
-
-#                     printed_output = buffer_out.getvalue()
-#                     error_output = buffer_err.getvalue()
-
-#                     if error_output:
-#                         return JsonResponse({
-#                             "status": "error",
-#                             "message": error_output
-#                         }, status=500)
-
-#                     # Capture open matplotlib figures
-#                     for i in plt.get_fignums():
-#                         fig = plt.figure(i)
-#                         buf = io.BytesIO()
-#                         fig.savefig(buf, format="png", bbox_inches="tight")
-#                         buf.seek(0)
-#                         img_base64 = base64.b64encode(buf.read()).decode("utf-8")
-#                         images.append(f"data:image/png;base64,{img_base64}")
-#                         plt.close(fig)
-
-#                     return JsonResponse({
-#                         "status": "success",
-#                         "output": printed_output or "[No output]",
-#                         "table": response_table,
-#                         "images": images
-#                     })
-
-#                 except Exception:
-#                     return JsonResponse({
-#                         "status": "error",
-#                         "message": traceback.format_exc()
-#                     }, status=500)
-
-#             # Default response
-#             return JsonResponse({"status": "saved", "message": "File saved successfully."})
-
-#         except Exception:
-#             return JsonResponse({"status": "error", "message": traceback.format_exc()}, status=500)
-
-#     # GET request
-#     return render(request, 'webprojects/file_detail.html', {
-#         'file': file,
-#         'files': files,
-#         'folders': folders,
-#         'exts': exts,
-#         'project': project,
-#         'is_image': is_image,
-#     })
-
-
-# def file_detail(request, project_id, file_id):
-#     file = get_object_or_404(File, id=file_id, project_id=project_id)
-#     files = file.project.files.all()
-#     project = get_object_or_404(Project, id=project_id)
-#     folders = Folder.objects.filter(project=file.project)
-
-#     # Group file extensions for sidebar
-#     exts = sorted({
-#         os.path.splitext(f.name)[1].lstrip('.').lower()
-#         for f in files if '.' in f.name
-#     })
-
-#     # ✅ Detect if file is an image
-#     is_image = file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
-
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body)
-
-#             if data.get("file_id") and data.get("file_id") != file.id:
-#                 return JsonResponse({"error": "Mismatched file ID"}, status=400)
-
-#             new_content = data.get("content", "")
-#             updated_timestamp = data.get("timestamp")
-#             run_plot = data.get("run_plot", False)
-
-#             if updated_timestamp:
-#                 from django.utils.dateparse import parse_datetime
-#                 new_time = parse_datetime(updated_timestamp)
-#                 if new_time and new_time < file.updated:
-#                     return JsonResponse({
-#                         "status": "skipped",
-#                         "message": "Stale update ignored."
-#                     })
-
-#             file.content = new_content
-#             file.save()
-
-#             # ✅ Execute Python if requested
-#             if run_plot and file.name.lower().endswith(".py"):
-#                 buffer_out = io.StringIO()
-#                 buffer_err = io.StringIO()
-#                 plt.clf()
-#                 plt.close('all')
-
-#                 local_vars = {}
-
-#                 try:
-#                     with contextlib.redirect_stdout(buffer_out), contextlib.redirect_stderr(buffer_err):
-#                         exec(new_content, {}, local_vars)
-
-#                     printed_output = buffer_out.getvalue()
-#                     error_output = buffer_err.getvalue()
-
-#                     # Return error if there was stderr
-#                     if error_output:
-#                         return JsonResponse({
-#                             "status": "error",
-#                             "message": error_output
-#                         }, status=500)
-
-#                     # Capture DataFrame (if any)
-#                     table_html = ""
-#                     for var in local_vars.values():
-#                         if isinstance(var, pd.DataFrame):
-#                             table_html = var.to_html(classes="table table-bordered", index=False)
-#                             break
-
-#                     # Capture matplotlib plots
-#                     images = []
-#                     for i in plt.get_fignums():
-#                         fig = plt.figure(i)
-#                         buffer = io.BytesIO()
-#                         fig.savefig(buffer, format='png', bbox_inches='tight')
-#                         plt.close(fig)
-#                         buffer.seek(0)
-#                         img_base64 = base64.b64encode(buffer.read()).decode('utf-8')
-#                         images.append(f"data:image/png;base64,{img_base64}")
-
-#                     return JsonResponse({
-#                         "status": "plot_generated",
-#                         "images": images,
-#                         "output": printed_output or "[No output]",
-#                         "table": table_html
-#                     })
-
-#                 except Exception:
-#                     # Catch and return full traceback
-#                     traceback_output = traceback.format_exc()
-#                     return JsonResponse({
-#                         "status": "error",
-#                         "message": traceback_output
-#                     }, status=500)
-
-#             return JsonResponse({"status": "saved", "message": "File saved successfully."})
-
-#         except Exception as e:
-#             return JsonResponse({"status": "error", "message": str(e)}, status=400)
-
-#     return render(request, 'webprojects/file_detail.html', {
-#         'file': file,
-#         'files': files,
-#         'folders': folders,
-#         'exts': exts,
-#         'project': project,
-#         'is_image': is_image,
-#     })
 
 
 

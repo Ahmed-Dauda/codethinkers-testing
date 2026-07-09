@@ -714,6 +714,9 @@
     <a style="color: white;" href="{% url 'webprojects:create_project' %}">
         📁 {{ file.project.name }} — 📝 {{ file.name }}
     </a>
+    <span style="color: var(--text-secondary); font-size: 1.1em; white-space: nowrap; margin-left: 8px;">
+        👤 {{ request.user.first_name|default:request.user.username }} {{ request.user.last_name|default:'' }}
+    </span>
     <button id="toggleEditorBtn" onclick="toggleEditor()" style="
         background: #2ecc71;
         color: #fff;
@@ -778,9 +781,9 @@
             <a class="ums-item" href="{% url 'sms:myprofile' %}" role="menuitem">👤 Profile</a>
             <a class="ums-item" href="{% url 'account_change_password' %}" role="menuitem">🔑 Change Password</a>
             <a class="ums-item" href="{% url 'account_reset_password' %}" role="menuitem">🔒 Password Reset</a>
-            <a class="ums-item" href="{% url 'sms:homepage' %}" role="menuitem">🏠 go Home</a>
+            <a class="ums-item" href="{% url 'sms:homepage' %}" role="menuitem">🏠 Home</a>
             <div class="ums-divider"></div>
-            <a class="ums-item ums-item--danger" href="#" role="menuitem" data-toggle="modal" data-target="#logoutModal">🚪 Logout</a>
+            <a class="ums-item ums-item--danger" href="{% url 'account_logout' %}" role="menuitem" data-toggle="modal" data-target="#logoutModal">🚪 Logout</a>
         </div>
     </div>
 </div>

@@ -51,6 +51,70 @@
         }
         .back-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
 
+        /* Search Bar */
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.95em;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+        .search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        .search-wrapper {
+            position: relative;
+        }
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.1em;
+            pointer-events: none;
+        }
+        .search-clear {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.2em;
+            display: none;
+            padding: 4px;
+            line-height: 1;
+        }
+        .search-clear.visible { display: block; }
+        .search-clear:hover { color: var(--text-primary); }
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            display: none;
+        }
+        .no-results.visible { display: block; }
+        .highlight-name {
+            background: rgba(99, 102, 241, 0.3);
+            padding: 1px 3px;
+            border-radius: 3px;
+        }
+
         /* Champion Banner */
         .champion-banner {
             margin: 25px 0;
@@ -118,26 +182,10 @@
             border-color: var(--accent);
             transform: translateY(-2px);
         }
-        .rec-icon {
-            font-size: 2em;
-            margin-bottom: 8px;
-        }
-        .rec-title {
-            font-weight: 700;
-            color: var(--text-primary);
-            font-size: 1em;
-            margin-bottom: 4px;
-        }
-        .rec-meta {
-            color: var(--text-muted);
-            font-size: 0.8em;
-            margin-bottom: 8px;
-        }
-        .rec-arrow {
-            color: var(--accent);
-            font-weight: 600;
-            font-size: 0.85em;
-        }
+        .rec-icon { font-size: 2em; margin-bottom: 8px; }
+        .rec-title { font-weight: 700; color: var(--text-primary); font-size: 1em; margin-bottom: 4px; }
+        .rec-meta { color: var(--text-muted); font-size: 0.8em; margin-bottom: 8px; }
+        .rec-arrow { color: var(--accent); font-weight: 600; font-size: 0.85em; }
 
         /* Header */
         .leaderboard-header {
@@ -184,18 +232,8 @@
             text-align: center;
             min-width: 100px;
         }
-        .stat-value {
-            font-size: 1.5em;
-            font-weight: 700;
-            color: var(--accent);
-        }
-        .stat-label {
-            font-size: 0.75em;
-            color: var(--text-muted);
-            margin-top: 2px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+        .stat-value { font-size: 1.5em; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 0.75em; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
 
         /* Your Progress Card */
         .user-progress-card {
@@ -213,8 +251,6 @@
             align-items: center;
             gap: 8px;
         }
-
-        /* Course Progress Bar */
         .course-progress {
             height: 12px;
             background: #243244;
@@ -234,7 +270,6 @@
             margin-bottom: 20px;
             font-size: 0.85em;
         }
-
         .progress-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -246,25 +281,9 @@
             background: rgba(255,255,255,0.03);
             border-radius: 10px;
         }
-        .progress-item .value {
-            font-size: 1.3em;
-            font-weight: 700;
-            color: var(--accent);
-        }
-        .progress-item .label {
-            font-size: 0.7em;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 2px;
-        }
-        .badges-row {
-            display: flex;
-            gap: 8px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
+        .progress-item .value { font-size: 1.3em; font-weight: 700; color: var(--accent); }
+        .progress-item .label { font-size: 0.7em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+        .badges-row { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
         .badge-chip {
             display: inline-flex;
             align-items: center;
@@ -277,10 +296,7 @@
             cursor: help;
             transition: all 0.2s ease;
         }
-        .badge-chip:hover {
-            background: #3b4a5f;
-            transform: translateY(-1px);
-        }
+        .badge-chip:hover { background: #3b4a5f; transform: translateY(-1px); }
 
         /* Motivation Messages */
         .motivation-box {
@@ -290,32 +306,13 @@
             padding: 14px 18px;
             margin-bottom: 30px;
         }
-        .motivation-box h4 {
-            font-size: 0.95em;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-        .motivation-box .msg {
-            font-size: 0.9em;
-            color: var(--text-secondary);
-            padding: 4px 0;
-        }
+        .motivation-box h4 { font-size: 0.95em; color: var(--text-primary); margin-bottom: 8px; }
+        .motivation-box .msg { font-size: 0.9em; color: var(--text-secondary); padding: 4px 0; }
 
         /* Podium */
         .podium-section { margin-bottom: 30px; }
-        .podium-section h2 {
-            text-align: center;
-            font-size: 1.3em;
-            margin-bottom: 20px;
-            color: var(--text-secondary);
-        }
-        .podium {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+        .podium-section h2 { text-align: center; font-size: 1.3em; margin-bottom: 20px; color: var(--text-secondary); }
+        .podium { display: flex; justify-content: center; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
         .podium-card {
             background: var(--bg-secondary);
             border: 2px solid var(--border-color);
@@ -336,55 +333,23 @@
         .podium-card.second { order: 1; border-color: var(--silver); }
         .podium-card.third { order: 3; border-color: var(--bronze); }
         .podium-card .rank-medal { font-size: 36px; margin-bottom: 6px; }
-        .podium-card .crown {
-            position: absolute;
-            top: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 28px;
-        }
+        .podium-card .crown { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 28px; }
         .podium-card .student-avatar {
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin: 0 auto 8px;
-            border: 2px solid var(--accent);
+            width: 55px; height: 55px; border-radius: 50%; object-fit: cover;
+            margin: 0 auto 8px; border: 2px solid var(--accent);
         }
-        .podium-card.first .student-avatar {
-            width: 65px;
-            height: 65px;
-            border-color: var(--gold);
-        }
+        .podium-card.first .student-avatar { width: 65px; height: 65px; border-color: var(--gold); }
         .podium-card .student-name {
-            font-size: 0.95em;
-            font-weight: 700;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 0.95em; font-weight: 700; color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .podium-card .student-xp {
-            font-size: 1.2em;
-            font-weight: 700;
-            color: var(--accent);
-        }
+        .podium-card .student-xp { font-size: 1.2em; font-weight: 700; color: var(--accent); }
         .podium-card.first .student-xp { color: var(--gold); }
-        .podium-card .student-stats {
-            font-size: 0.8em;
-            color: var(--text-muted);
-            margin-top: 2px;
-            line-height: 1.5;
-        }
+        .podium-card .student-stats { font-size: 0.8em; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
         .badge-you {
-            background: var(--accent);
-            color: #fff;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.65em;
-            font-weight: 700;
-            margin-left: 4px;
-            text-transform: uppercase;
+            background: var(--accent); color: #fff; padding: 2px 6px;
+            border-radius: 10px; font-size: 0.65em; font-weight: 700;
+            margin-left: 4px; text-transform: uppercase;
         }
 
         /* Table */
@@ -399,96 +364,54 @@
             font-size: 1.2em;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .result-count {
+            font-size: 0.7em;
+            color: var(--text-muted);
+            font-weight: 400;
         }
         .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .leaderboard-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        .leaderboard-table { width: 100%; border-collapse: collapse; }
         .leaderboard-table th {
-            padding: 12px 16px;
-            text-align: left;
-            font-size: 0.7em;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid var(--border-color);
-            white-space: nowrap;
+            padding: 12px 16px; text-align: left; font-size: 0.7em; font-weight: 700;
+            color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;
+            background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border-color); white-space: nowrap;
         }
         .leaderboard-table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid rgba(51,65,85,0.4);
-            vertical-align: middle;
+            padding: 12px 16px; border-bottom: 1px solid rgba(51,65,85,0.4); vertical-align: middle;
         }
         .leaderboard-table tr:last-child td { border-bottom: none; }
         .leaderboard-table tbody tr { transition: background 0.2s ease; }
         .leaderboard-table tbody tr:hover { background: rgba(99,102,241,0.05); }
         .leaderboard-table tbody tr.current-user {
-            background: rgba(99,102,241,0.15);
-            border-left: 3px solid var(--accent);
+            background: rgba(99,102,241,0.15); border-left: 3px solid var(--accent);
         }
-        .rank-cell {
-            font-weight: 700;
-            font-size: 1em;
-            color: var(--text-secondary);
-            white-space: nowrap;
-        }
-        .student-cell {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .leaderboard-table tbody tr.hidden-row { display: none; }
+        .rank-cell { font-weight: 700; font-size: 1em; color: var(--text-secondary); white-space: nowrap; }
+        .student-cell { display: flex; align-items: center; gap: 10px; }
         .student-cell .mini-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--border-color);
-            flex-shrink: 0;
+            width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+            border: 2px solid var(--border-color); flex-shrink: 0;
         }
         .student-cell .mini-avatar.default-avatar {
-            background: var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: 700;
-            font-size: 0.8em;
-            flex-shrink: 0;
+            background: var(--accent); display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 700; font-size: 0.8em; flex-shrink: 0;
         }
         .student-cell .student-info .name {
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 0.9em;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 180px;
+            font-weight: 600; color: var(--text-primary); font-size: 0.9em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;
         }
-        .student-cell .student-info .username {
-            font-size: 0.7em;
-            color: var(--text-muted);
-        }
-        .xp-cell {
-            font-weight: 700;
-            color: var(--accent);
-            white-space: nowrap;
-        }
+        .student-cell .student-info .username { font-size: 0.7em; color: var(--text-muted); }
+        .xp-cell { font-weight: 700; color: var(--accent); white-space: nowrap; }
         .score-cell { color: var(--text-secondary); white-space: nowrap; }
-        .errors-cell {
-            font-weight: 600;
-            white-space: nowrap;
-        }
+        .errors-cell { font-weight: 600; white-space: nowrap; }
         .errors-cell.zero { color: var(--success); }
         .errors-cell.has-errors { color: var(--danger); }
 
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-muted);
-        }
+        .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
         .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
         .empty-state h3 { font-size: 1.2em; margin-bottom: 8px; }
 
@@ -497,16 +420,14 @@
             .podium { flex-direction: column; align-items: center; }
             .podium-card { order: unset !important; min-width: 220px; }
             .podium-card.first { transform: scale(1); }
-            .leaderboard-table th:nth-child(6),
-            .leaderboard-table td:nth-child(6) { display: none; }
+            .leaderboard-table th:nth-child(6), .leaderboard-table td:nth-child(6) { display: none; }
             .progress-grid { grid-template-columns: repeat(3, 1fr); }
             .recommended-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 480px) {
             .leaderboard-container { padding: 15px 10px; }
             .leaderboard-table th, .leaderboard-table td { padding: 8px 10px; font-size: 0.8em; }
-            .leaderboard-table th:nth-child(5),
-            .leaderboard-table td:nth-child(5) { display: none; }
+            .leaderboard-table th:nth-child(5), .leaderboard-table td:nth-child(5) { display: none; }
             .progress-grid { grid-template-columns: repeat(2, 1fr); }
             .stats-row { gap: 8px; }
             .stat-item { padding: 10px 14px; min-width: 80px; }
@@ -544,6 +465,8 @@
         </div>
     </div>
 
+    
+
     <!-- Champion Banner -->
     {% if user_entry and user_entry.rank == 1 %}
     <div class="champion-banner">
@@ -563,7 +486,7 @@
     </div>
     {% endif %}
 
-    <!-- ===== RECOMMENDED COURSES ===== -->
+    <!-- Recommended Courses -->
     {% if recommended_courses %}
     <div class="recommended-section">
         <h3>🚀 Continue Your Learning Journey</h3>
@@ -572,8 +495,7 @@
         </p>
         <div class="recommended-grid">
             {% for rec_course in recommended_courses %}
-            <a href="{% url 'webprojects:start_course' rec_course.id %}" 
-   class="recommended-card">
+            <a href="{% url 'webprojects:start_course' rec_course.id %}" class="recommended-card">
                 <div class="rec-icon">
                     {% if 'python' in rec_course.title|lower %}🐍
                     {% elif 'rust' in rec_course.title|lower %}🦀
@@ -598,15 +520,12 @@
     {% if user_entry and user_progress %}
     <div class="user-progress-card">
         <h3>📊 Your Progress</h3>
-        
-        <!-- Progress Bar -->
         <div class="course-progress">
             <div class="course-progress-bar" style="width: {% widthratio user_entry.modules_completed user_entry.total_modules 100 %}%"></div>
         </div>
         <p class="course-progress-text">
             {{ user_entry.modules_completed }} of {{ user_entry.total_modules }} modules completed
         </p>
-
         <div class="progress-grid">
             <div class="progress-item">
                 <div class="value">🏆 {{ user_entry.champion_xp }} XP</div>
@@ -662,7 +581,6 @@
                 <div class="rank-medal">
                     {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}
                 </div>
-
                 {% if entry.student.profile.avatar %}
                 <img src="{{ entry.student.profile.avatar.url }}" alt="" class="student-avatar">
                 {% else %}
@@ -670,7 +588,6 @@
                     <span style="font-size: 1.4em; font-weight: 700; color: #fff;">{{ entry.student.first_name|slice:":1"|upper }}</span>
                 </div>
                 {% endif %}
-
                 <div class="student-name">
                     {{ entry.student.first_name }} {{ entry.student.last_name }}
                     {% if entry.student == request.user %}<span class="badge-you">You</span>{% endif %}
@@ -689,11 +606,26 @@
 
     <!-- All Rankings Table -->
     <div class="leaderboard-table-section">
-        <h2>📋 All Rankings ({{ all_entries|length }} Students)</h2>
+        <h2>
+            📋 All Rankings
+            <span class="result-count" id="resultCount">{{ all_entries|length }} students</span>
+        </h2>
+
+        <!-- Search Bar -->
+    <div class="search-container">
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search students by name..." oninput="filterStudents()">
+            <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+        </div>
+        <div class="no-results" id="noResults">
+            No students found matching your search.
+        </div>
+    </div>
 
         {% if all_entries %}
         <div class="table-wrapper">
-            <table class="leaderboard-table">
+            <table class="leaderboard-table" id="leaderboardTable">
                 <thead>
                     <tr>
                         <th>Rank</th>
@@ -706,7 +638,8 @@
                 </thead>
                 <tbody>
                     {% for entry in all_entries %}
-                    <tr class="{% if entry.student == request.user %}current-user{% endif %}">
+                    <tr class="leaderboard-row {% if entry.student == request.user %}current-user{% endif %}" 
+                        data-student-name="{{ entry.student.first_name }} {{ entry.student.last_name }} {{ entry.student.username }}">
                         <td class="rank-cell">
                             {% if entry.rank == 1 %}🥇
                             {% elif entry.rank == 2 %}🥈
@@ -733,11 +666,7 @@
                         </td>
                         <td class="xp-cell">🏆 {{ entry.champion_xp }} XP</td>
                         <td class="errors-cell {% if entry.incorrect_code_attempts == 0 %}zero{% else %}has-errors{% endif %}">
-                            {% if entry.incorrect_code_attempts == 0 %}
-                            ✅ 0
-                            {% else %}
-                            ❌ {{ entry.incorrect_code_attempts }}
-                            {% endif %}
+                            {% if entry.incorrect_code_attempts == 0 %}✅ 0{% else %}❌ {{ entry.incorrect_code_attempts }}{% endif %}
                         </td>
                         <td class="score-cell">🎯 {{ entry.average_score|floatformat:1 }}%</td>
                         <td class="score-cell">📚 {{ entry.modules_completed }}/{{ entry.total_modules }}</td>
@@ -756,6 +685,110 @@
     </div>
 
 </div>
+
+<script>
+// ============================================
+// SEARCH FUNCTIONALITY
+// ============================================
+function filterStudents() {
+    const searchInput = document.getElementById('searchInput');
+    const searchClear = document.getElementById('searchClear');
+    const noResults = document.getElementById('noResults');
+    const resultCount = document.getElementById('resultCount');
+    const rows = document.querySelectorAll('.leaderboard-row');
+    const query = searchInput.value.toLowerCase().trim();
+    
+    // Show/hide clear button
+    if (query.length > 0) {
+        searchClear.classList.add('visible');
+    } else {
+        searchClear.classList.remove('visible');
+    }
+    
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const studentName = row.getAttribute('data-student-name').toLowerCase();
+        
+        if (query === '' || studentName.includes(query)) {
+            row.classList.remove('hidden-row');
+            visibleCount++;
+            
+            // Highlight matching text
+            if (query !== '') {
+                const nameCell = row.querySelector('.student-info .name');
+                const usernameCell = row.querySelector('.student-info .username');
+                
+                if (nameCell) {
+                    const originalName = nameCell.textContent.replace('You', '').trim();
+                    const highlighted = highlightMatch(originalName, query);
+                    const youBadge = row.querySelector('.badge-you');
+                    nameCell.innerHTML = highlighted + (youBadge ? ' <span class="badge-you">You</span>' : '');
+                }
+                
+                if (usernameCell) {
+                    const originalUsername = usernameCell.textContent;
+                    usernameCell.innerHTML = highlightMatch(originalUsername, query);
+                }
+            } else {
+                // Reset highlighting when search is empty
+                resetHighlights(row);
+            }
+        } else {
+            row.classList.add('hidden-row');
+        }
+    });
+    
+    // Update result count
+    resultCount.textContent = visibleCount + ' of ' + rows.length + ' students';
+    
+    // Show/hide no results message
+    if (visibleCount === 0 && query !== '') {
+        noResults.classList.add('visible');
+    } else {
+        noResults.classList.remove('visible');
+    }
+}
+
+function highlightMatch(text, query) {
+    if (!query) return text;
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return text.replace(regex, '<span class="highlight-name">$1</span>');
+}
+
+function resetHighlights(row) {
+    const nameCell = row.querySelector('.student-info .name');
+    const usernameCell = row.querySelector('.student-info .username');
+    const youBadge = row.querySelector('.badge-you');
+    
+    if (nameCell) {
+        const originalName = row.getAttribute('data-student-name');
+        const firstName = originalName.split(' ')[0] || '';
+        const lastName = originalName.split(' ').slice(1).join(' ') || '';
+        nameCell.innerHTML = firstName + ' ' + lastName + (youBadge ? ' <span class="badge-you">You</span>' : '');
+    }
+    
+    if (usernameCell) {
+        const username = usernameCell.textContent;
+        usernameCell.innerHTML = username;
+    }
+}
+
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.value = '';
+    filterStudents();
+    searchInput.focus();
+}
+
+// Keyboard shortcut: Ctrl+K or / to focus search
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && !e.target.closest('input, textarea'))) {
+        e.preventDefault();
+        document.getElementById('searchInput').focus();
+    }
+});
+</script>
 
 </body>
 </html>
