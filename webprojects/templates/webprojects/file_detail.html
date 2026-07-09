@@ -1478,8 +1478,14 @@ async function scoreOutput(studentOutput, topicId) {
                 scoreHTML += ` <span style="color:#f59e0b; font-size:0.8em;">⚠️ Already completed</span>`;
             }
             
+                        // Build feedback with expected output when wrong
+            let fullFeedback = feedback || '';
+            if (!correct && data.expected_output) {
+                fullFeedback += `\n\n📝 Expected Output:\n${data.expected_output}`;
+            }
+            
             scoreDisplay.innerHTML = scoreHTML;
-            scoreFeedback.textContent = feedback;
+            scoreFeedback.textContent = fullFeedback;
             scoreBarFill.style.background = color;
             scoreBarFill.style.width = pct + "%";
             

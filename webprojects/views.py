@@ -2019,416 +2019,6 @@ def get_xp_stats(request):
 # Initialize once when the module loads, not on every request
 
 
-# @login_required
-# @require_http_methods(["GET", "POST"])
-# def file_detail(request, project_id, file_id):
-#     # ================= PROJECT & FILE =================
-#     project = get_object_or_404(
-#         Project.objects.prefetch_related("files"),
-#         id=project_id,
-#         user=request.user
-#     )
-#     file = get_object_or_404(File, id=file_id, project=project)
-
-#     files = project.files.all()
-#     folders = Folder.objects.filter(project=project)
-
-#     # Fetch the course object by project name
-#     try:
-#         course = Courses.objects.get(title=file.project.name)
-#     except Courses.DoesNotExist:
-#         course = None
-
-#     # Find the exam tied to this course, if one exists
-#     from quiz.models import Course as ExamCourse
-#     exam = ExamCourse.objects.filter(course_name=course).first() if course else None
-
-#     # Fetch topics using the course object
-#     topics = Topics.objects.filter(courses=course).select_related("courses", "categories") if course else Topics.objects.none()
-    
-#     from .models import StudentProgress
-#     progress = StudentProgress.objects.filter(
-#         student=request.user,
-#         course=course
-#     ).prefetch_related('completed_topics').order_by('-last_updated').first()
-
-#     # Get only topic IDs that belong to THIS course
-#     course_topic_ids = set(topics.values_list('id', flat=True))
-
-#     completed_topic_ids = list(
-#         progress.completed_topics.filter(id__in=course_topic_ids).values_list('id', flat=True)
-#     ) if progress else []
-
-#     current_topic_id = (
-#         progress.current_topic.id
-#         if progress and progress.current_topic
-#         else None
-#     )
-
-#     # ================= SIDEBAR EXTENSIONS =================
-#     exts = sorted({
-#         os.path.splitext(f.name)[1].lstrip(".").lower()
-#         for f in files if "." in f.name
-#     })
-
-#     IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif")
-#     is_image = file.name.lower().endswith(IMAGE_EXTS)
-
-#     # ================= FILE TYPE =================
-#     ext = file.name.rsplit(".", 1)[-1].lower()
-#     is_python = ext == "py"
-
-#     # ================= POST =================
-#     if request.method == "POST":
-#         # ---------- Safe JSON parsing ----------
-#         try:
-#             data = json.loads(request.body.decode()) if request.body else {}
-#         except json.JSONDecodeError:
-#             data = {}
-
-#         new_content = data.get("content", "")
-#         run_plot = data.get("run_plot", False)
-#         run_table = data.get("run_table", False)
-#         prompt = data.get("prompt", "")
-#         ai_action = data.get("ai_action", "")
-
-#         # ================= AI PROMPT =================
-#         if prompt or ai_action == "build_project":
-#             # Check if OpenAI client is available
-#             if client is None:
-#                 return JsonResponse({
-#                     "status": "error",
-#                     "message": "🔑 OpenAI API is not configured. Please set your API key.",
-#                     "error_detail": "OPENAI_API_KEY is missing or invalid."
-#                 }, status=500)
-
-#             try:
-#                 with transaction.atomic():
-#                     # Get or create the three core files
-#                     html_file, html_created = File.objects.get_or_create(
-#                         project=project, 
-#                         name="index.html",
-#                         defaults={"content": "<!DOCTYPE html>\n<html>\n<head>\n    <title>Project</title>\n    <link rel='stylesheet' href='style.css'>\n</head>\n<body>\n    <script src='script.js'></script>\n</body>\n</html>"}
-#                     )
-#                     css_file, css_created = File.objects.get_or_create(
-#                         project=project, 
-#                         name="style.css",
-#                         defaults={"content": "/* Your styles here */\n"}
-#                     )
-#                     js_file, js_created = File.objects.get_or_create(
-#                         project=project, 
-#                         name="script.js",
-#                         defaults={"content": "// Your JavaScript here\n"}
-#                     )
-
-#                     # ================= ENHANCED AI SYSTEM PROMPT =================
-#                     system_message = """You are an elite UI/UX engineer and creative developer who builds stunning, modern web applications. Your code rivals the quality of Vercel, Linear, Stripe, and Apple design systems.
-
-# ## DESIGN PHILOSOPHY
-# - Clean, purposeful whitespace — never crowded
-# - Strong visual hierarchy with clear typographic scale
-# - Consistent 8px spacing grid (8, 16, 24, 32, 48, 64px)
-# - Subtle depth using shadows, not heavy borders
-# - Smooth micro-interactions and transitions (150-300ms)
-# - Mobile-first, fully responsive layouts
-
-# ## VISUAL STYLE DEFAULTS (use unless user specifies otherwise)
-# - Font: Inter or system-ui — never serif fonts
-# - Primary color: #6366f1 (indigo) with #4f46e5 dark variant
-# - Background: #ffffff or #f9fafb (light) / #0f172a (dark mode)
-# - Text: #0f172a primary, #64748b secondary, #94a3b8 muted
-# - Border: #e2e8f0 — use sparingly
-# - Border radius: 8px cards, 6px buttons, 12px modals
-# - Shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06)
-
-# ## CSS REQUIREMENTS (mandatory every response)
-# - CSS custom properties (variables) for all colors, spacing, radii at :root
-# - Flexbox and CSS Grid for all layouts
-# - transition: all 0.2s ease on every interactive element
-# - :hover and :focus states on every button, link, input
-# - box-sizing: border-box on *, *::before, *::after
-# - scroll-behavior: smooth on html element
-# - NO inline styles — everything goes in CSS file
-
-# ## BUTTON STANDARD
-# background: #6366f1; color: #fff; padding: 10px 20px;
-# border-radius: 6px; font-weight: 600; font-size: 15px;
-# border: none; cursor: pointer; transition: all 0.2s ease;
-# Hover: background: #4f46e5; transform: translateY(-1px);
-# box-shadow: 0 4px 12px rgba(99,102,241,0.3);
-
-# ## CARD STANDARD
-# background: #fff; border-radius: 12px; padding: 24px;
-# border: 1px solid #e2e8f0;
-# box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-# Hover: transform: translateY(-2px);
-# box-shadow: 0 8px 24px rgba(0,0,0,0.10);
-
-# ## INPUT STANDARD
-# width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0;
-# border-radius: 6px; font-size: 15px; outline: none;
-# transition: border-color 0.2s;
-# Focus: border-color: #6366f1;
-# box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
-
-# ## HTML REQUIREMENTS (mandatory)
-# - Semantic tags: <header>, <main>, <nav>, <section>, <footer>, <article>
-# - lang="en" on <html>
-# - <meta name="viewport" content="width=device-width, initial-scale=1.0">
-# - <meta charset="UTF-8">
-# - Descriptive alt on all images
-# - aria-label on icon-only buttons
-# - Link style.css in <head>, script.js before </body>
-
-# ## JS REQUIREMENTS
-# - Vanilla JS, ES6+ only (const/let, arrow functions, async/await)
-# - All DOM code inside DOMContentLoaded
-# - Animate with CSS class toggling, not inline style manipulation
-# - Handle loading/error states on all async operations
-
-# ## GREAT UI CHECKLIST — include these in every build
-# [x] Sticky nav with logo left, links right
-# [x] Hero section: big headline + subtext + primary CTA + optional secondary CTA
-# [x] Section padding: 80px top/bottom, max-width 1200px centered
-# [x] Card grid with hover lift effect
-# [x] Footer with links and copyright
-# [x] Responsive: single column on mobile (<768px)
-# [x] Button loading state (disabled + spinner while fetching)
-# [x] Smooth scroll to sections on nav click
-# [x] Subtle gradient or pattern on hero background
-# [x] Consistent icon style (use emoji or Unicode symbols — no external icon libs)
-
-# ## RESPONSE FORMAT — CRITICAL
-# Return ONLY a raw JSON object. No markdown. No code fences. No explanation. No text before or after.
-# Exactly: {"html": "...", "css": "...", "js": "..."}"""
-
-#                     user_message = f"""## Current Project Files
-
-# **index.html:**
-# {html_file.content if html_file.content.strip() else "<!-- Empty -->"}
-
-# **style.css:**
-# {css_file.content if css_file.content.strip() else "/* Empty */"}
-
-# **script.js:**
-# {js_file.content if js_file.content.strip() else "// Empty"}
-
-# ---
-
-# ## User Request
-# {prompt}
-
-# ---
-
-# ## Quality Bar
-# Build this to the standard of Vercel, Linear, or Stripe landing pages.
-# - If building from scratch: include nav, hero, features/content section, footer
-# - Use the design system from the system prompt (indigo primary, clean cards, smooth transitions)
-# - Every interactive element must have a hover state
-# - Must look great on both desktop and mobile
-
-# Return ONLY the JSON object: {{"html": "...", "css": "...", "js": "..."}}
-# No markdown. No explanation. Raw JSON only."""
-
-#                     try:
-#                         response = client.chat.completions.create(
-#                             model="gpt-4o-mini",
-#                             messages=[
-#                                 {"role": "system", "content": system_message},
-#                                 {"role": "user", "content": user_message},
-#                             ],
-#                             max_tokens=6000,
-#                             temperature=0.4,
-#                             response_format={"type": "json_object"}
-#                         )
-                        
-#                         ai_text = response.choices[0].message.content.strip()
-#                         print(f"✅ AI Response received: {len(ai_text)} chars")
-                        
-#                     except Exception as api_error:
-#                         error_msg = str(api_error)
-
-#                         # Check for common API errors
-#                         if "rate_limit" in error_msg.lower():
-#                             return JsonResponse({
-#                                 "status": "error",
-#                                 "message": "⏳ Rate limit reached. Please wait a moment and try again.",
-#                                 "error_detail": error_msg
-#                             }, status=429)
-#                         elif "api_key" in error_msg.lower() or "authentication" in error_msg.lower():
-#                             return JsonResponse({
-#                                 "status": "error",
-#                                 "message": "🔑 API authentication failed. Please check your API key configuration.",
-#                                 "error_detail": error_msg
-#                             }, status=500)
-#                         elif "timeout" in error_msg.lower():
-#                             return JsonResponse({
-#                                 "status": "error",
-#                                 "message": "⏱️ Request timed out. Please try again.",
-#                                 "error_detail": error_msg
-#                             }, status=504)
-#                         elif "quota" in error_msg.lower() or "insufficient" in error_msg.lower():
-#                             return JsonResponse({
-#                                 "status": "error",
-#                                 "message": "💳 API quota exceeded. Please check your OpenAI account.",
-#                                 "error_detail": error_msg
-#                             }, status=402)
-#                         else:
-#                             return JsonResponse({
-#                                 "status": "error",
-#                                 "message": f"🚫 AI service failed: {error_msg}",
-#                                 "error_detail": error_msg
-#                             }, status=500)
-
-#                     # ================= PARSE AI RESPONSE =================
-#                     try:
-#                         ai_generated = json.loads(ai_text)
-#                     except json.JSONDecodeError as json_error:
-#                         start = ai_text.find("{")
-#                         end = ai_text.rfind("}") + 1
-#                         if start != -1 and end > start:
-#                             ai_text_cleaned = ai_text[start:end]
-#                             try:
-#                                 ai_generated = json.loads(ai_text_cleaned)
-#                             except json.JSONDecodeError:
-#                                 return JsonResponse({
-#                                     "status": "error",
-#                                     "message": "Failed to parse AI response as JSON. The AI may have returned an invalid format.",
-#                                     "error_detail": f"Could not parse: {ai_text[:200]}..."
-#                                 }, status=500)
-#                         else:
-#                             return JsonResponse({
-#                                 "status": "error",
-#                                 "message": "AI response does not contain valid JSON.",
-#                                 "error_detail": f"Response preview: {ai_text[:200]}..."
-#                             }, status=500)
-
-#                     # ================= VALIDATE RESPONSE =================
-#                     if not isinstance(ai_generated, dict):
-#                         return JsonResponse({
-#                             "status": "error",
-#                             "message": "AI response is not a valid JSON object.",
-#                             "error_detail": f"Type: {type(ai_generated)}"
-#                         }, status=500)
-                    
-#                     # Check if at least one file key exists
-#                     if not any(key in ai_generated for key in ["html", "css", "js"]):
-#                         return JsonResponse({
-#                             "status": "error",
-#                             "message": "AI response missing required keys (html, css, or js).",
-#                             "error_detail": f"Keys found: {list(ai_generated.keys())}"
-#                         }, status=500)
-                    
-#                     updates_made = []
-
-#                     # ================= UPDATE FILES =================
-#                     if "html" in ai_generated and ai_generated["html"].strip():
-#                         html_content = ai_generated["html"].strip()
-#                         if not html_content.startswith("<!DOCTYPE"):
-#                             html_content = f"<!DOCTYPE html>\n{html_content}"
-#                         html_file.content = html_content
-#                         html_file.save(update_fields=["content"])
-#                         updates_made.append("HTML")
-#                         print(f"✅ Updated index.html ({len(html_content)} chars)")
-
-#                     if "css" in ai_generated and ai_generated["css"].strip():
-#                         css_file.content = ai_generated["css"].strip()
-#                         css_file.save(update_fields=["content"])
-#                         updates_made.append("CSS")
-#                         print(f"✅ Updated style.css ({len(css_file.content)} chars)")
-
-#                     if "js" in ai_generated and ai_generated["js"].strip():
-#                         js_file.content = ai_generated["js"].strip()
-#                         js_file.save(update_fields=["content"])
-#                         updates_made.append("JavaScript")
-#                         print(f"✅ Updated script.js ({len(js_file.content)} chars)")
-
-#                     if not updates_made:
-#                         return JsonResponse({
-#                             "status": "warning",
-#                             "message": "No files were updated. AI may not have understood the request.",
-#                             "ai_response": ai_generated
-#                         }, status=200)
-
-#                     # ================= SUCCESS RESPONSE =================
-#                     return JsonResponse({
-#                         "status": "success",
-#                         "ai_content": ai_generated,
-#                         "message": f"✨ Successfully updated: {', '.join(updates_made)}",
-#                         "files_updated": updates_made,
-#                         "prompt": prompt[:100] + "..." if len(prompt) > 100 else prompt
-#                     })
-
-#             except Exception as e:
-#                 print(f"❌ Unexpected Error in AI Processing: {traceback.format_exc()}")
-#                 return JsonResponse({
-#                     "status": "error",
-#                     "message": f"An unexpected error occurred: {str(e)}",
-#                     "error_detail": traceback.format_exc()
-#                 }, status=500)
-
-#         # ================= FILE SAVE =================
-#         if new_content and new_content != file.content:
-#             file.content = new_content
-#             file.save(update_fields=["content"])
-#             print(f"💾 Saved {file.name} ({len(new_content)} chars)")
-
-#         response_table = ""
-
-#         # ================= CSV / EXCEL PREVIEW =================
-#         if ext in {"csv", "xls", "xlsx"} and file.file:
-#             try:
-#                 if ext == "csv":
-#                     df = pd.read_csv(file.file.path)
-#                 else:
-#                     df = pd.read_excel(file.file.path)
-
-#                 if run_table:
-#                     response_table = df.head(20).to_html(
-#                         classes="table table-bordered table-sm",
-#                         index=False
-#                     )
-#             except Exception as e:
-#                 return JsonResponse({
-#                     "status": "error",
-#                     "message": f"Failed to read file: {str(e)}"
-#                 }, status=400)
-
-#         # ================= SAFE PYTHON RUNNER =================
-#         if is_python and (run_plot or new_content.strip()):
-#             result = run_code(new_content)
-            
-#             # Add table data if available
-#             result["table"] = response_table
-            
-#             # Return error response if execution failed
-#             if result["status"] == "error":
-#                 return JsonResponse(result, status=500)
-            
-#             return JsonResponse(result)
-
-#         return JsonResponse({
-#             "status": "saved",
-#             "message": "✓ File saved successfully"
-#         })
-
-#     # ================= GET =================
-#     print('completed_topic_ids:', completed_topic_ids)
-#     return render(request, "webprojects/file_detail.html", {
-#         "file": file,
-#         "files": files,
-#         "folders": folders,
-#         "exts": exts,
-#         "project": project,
-#         "is_image": is_image,
-#         'completed_topic_ids': completed_topic_ids,
-#         'current_topic_id': current_topic_id,
-#         "topics": topics,
-#         "course": course,
-#         'course_id': course.id if course else None,
-#         'exam_id': exam.id if exam else None,
-#     })
-
 
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -2510,649 +2100,6 @@ if hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
         client = None
 
 
-
-# @login_required
-# @require_http_methods(["GET", "POST"])
-# def file_detail(request, project_id, file_id):
-#     # ================= PROJECT & FILE =================
-#     project = get_object_or_404(
-#         Project.objects.prefetch_related("files"),
-#         id=project_id,
-#         user=request.user
-#     )
-#     file = get_object_or_404(File, id=file_id, project=project)
-
-#     files = project.files.all()
-#     folders = Folder.objects.filter(project=project)
-
-#     # Fetch the course object by project name
-#     try:
-#         course = Courses.objects.get(title=file.project.name)
-#     except Courses.DoesNotExist:
-#         course = None
-
-#     # Find the exam tied to this course, if one exists
-#     exam = ExamCourse.objects.filter(course_name=course).first() if course else None
-
-#     # Fetch topics using the course object
-#     topics = Topics.objects.filter(courses=course).select_related("courses", "categories") if course else Topics.objects.none()
-    
-#     # Get or create StudentProgress
-#     progress = StudentProgress.objects.filter(
-#         student=request.user,
-#         course=course
-#     ).prefetch_related('completed_topics').order_by('-last_updated').first()
-
-#     # Get only topic IDs that belong to THIS course
-#     course_topic_ids = set(topics.values_list('id', flat=True))
-
-#     completed_topic_ids = list(
-#         progress.completed_topics.filter(id__in=course_topic_ids).values_list('id', flat=True)
-#     ) if progress else []
-
-#     # ===== CALCULATE POINTS =====
-#     total_topics = topics.count()
-#     earned_points = len(completed_topic_ids)
-    
-#     # ===== USE STORED CURRENT_TOPIC FROM PROGRESS =====
-#     current_topic_id = None
-#     if progress and progress.current_topic:
-#         # Use the stored current_topic
-#         current_topic_id = progress.current_topic.id
-#         print(f"📖 Using stored current_topic from progress: {current_topic_id}")
-#     elif topics.exists():
-#         # Fall back to first uncompleted topic if no stored current_topic
-#         completed_ids = set(completed_topic_ids)
-#         for topic in topics:
-#             if topic.id not in completed_ids:
-#                 current_topic_id = topic.id
-#                 break
-#         # If all completed use last topic
-#         if not current_topic_id and topics.exists():
-#             current_topic_id = topics.last().id
-        
-#         # Save the fallback to progress if progress exists
-#         if progress and current_topic_id:
-#             try:
-#                 progress.current_topic = Topics.objects.get(id=current_topic_id)
-#                 progress.save(update_fields=['current_topic'])
-#                 print(f"💾 Saved fallback current_topic: {current_topic_id}")
-#             except Topics.DoesNotExist:
-#                 pass
-
-#     # ================= SIDEBAR EXTENSIONS =================
-#     exts = sorted({
-#         os.path.splitext(f.name)[1].lstrip(".").lower()
-#         for f in files if "." in f.name
-#     })
-
-#     IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif")
-#     is_image = file.name.lower().endswith(IMAGE_EXTS)
-
-#     # ================= FILE TYPE =================
-#     ext = file.name.rsplit(".", 1)[-1].lower()
-#     is_python = ext == "py"
-
-#     # ================= GET USER RANK FOR LEADERBOARD =================
-#     user_rank = None
-#     if course:
-#         leaderboard_entry = LeaderboardEntry.objects.filter(
-#             student=request.user,
-#             course=course
-#         ).first()
-#         user_rank = leaderboard_entry.rank if leaderboard_entry else None
-
-#     # ================= POST =================
-#     if request.method == "POST":
-#         # ---------- Safe JSON parsing ----------
-#         try:
-#             data = json.loads(request.body.decode()) if request.body else {}
-#         except json.JSONDecodeError:
-#             data = {}
-
-#         new_content = data.get("content", "")
-#         run_plot = data.get("run_plot", False)
-#         run_table = data.get("run_table", False)
-#         prompt = data.get("prompt", "")
-#         ai_action = data.get("ai_action", "")
-#         topic_id = data.get("topic_id")  # For scoring
-
-#         # ================= SCORE OUTPUT =================
-#         if data.get("action") == "score_output":
-#             student_output = data.get("student_output", "").strip()
-#             topic_id = data.get("topic_id")
-            
-#             if not topic_id:
-#                 return JsonResponse({
-#                     "status": "error", 
-#                     "message": "No topic ID provided for scoring"
-#                 }, status=400)
-
-#             try:
-#                 topic = Topics.objects.get(id=topic_id)
-#             except Topics.DoesNotExist:
-#                 return JsonResponse({
-#                     "status": "error", 
-#                     "message": "Topic not found"
-#                 }, status=404)
-
-#             topic_desc = topic.desc or ""
-#             topic_title = topic.title or ""
-#             expected = topic.expected_output or ""
-
-#             scoring_prompt = f"""
-# You are a Python coding exercise evaluator.
-
-# Topic Title: {topic_title}
-# Topic Description: {topic_desc}
-# Expected Output (if set): {expected}
-
-# Student Output:
-# {student_output}
-
-# Your job:
-# 1. Read the topic description and understand what the exercise requires
-# 2. Check if the student output matches what is expected
-# 3. Give a score out of 5 based on correctness
-# 4. Give a short friendly feedback message
-
-# Return ONLY a JSON object like this:
-# {{"score": 4, "max_score": 5, "feedback": "Great job! Your output is correct.", "correct": true}}
-# """
-
-#             try:
-#                 if client is None:
-#                     return JsonResponse({
-#                         "status": "error",
-#                         "message": "OpenAI API is not configured"
-#                     }, status=500)
-                    
-#                 response = client.chat.completions.create(
-#                     model="gpt-4o-mini",
-#                     messages=[
-#                         {"role": "system", "content": "You are a coding exercise evaluator. Return only valid JSON."},
-#                         {"role": "user", "content": scoring_prompt},
-#                     ],
-#                     max_tokens=300,
-#                     temperature=0,
-#                     response_format={"type": "json_object"}
-#                 )
-#                 result = json.loads(response.choices[0].message.content)
-                
-#                 # ===== IF CORRECT, MARK TOPIC AS COMPLETED AND UPDATE LEADERBOARD =====
-#                 if result.get('correct', False):
-#                     # Get or create progress
-#                     if not progress:
-#                         progress, created = StudentProgress.objects.get_or_create(
-#                             student=request.user,
-#                             course=course
-#                         )
-                    
-#                     # Add topic to completed topics if not already there
-#                     if topic_id not in completed_topic_ids:
-#                         progress.completed_topics.add(topic)
-#                         completed_topic_ids.append(topic_id)
-#                         earned_points = len(completed_topic_ids)
-#                         print(f"✅ Topic {topic_id} completed! Points: {earned_points}/{total_topics}")
-                        
-#                         # ===== UPDATE LEADERBOARD =====
-#                         try:
-#                             # Update or create leaderboard entry
-#                             entry, created = LeaderboardEntry.objects.update_or_create(
-#                                 student=request.user,
-#                                 course=course,
-#                                 defaults={
-#                                     'points': earned_points,
-#                                     'completed_topics': earned_points,
-#                                     'total_topics': total_topics,
-#                                     'completion_percentage': (earned_points / total_topics * 100) if total_topics > 0 else 0,
-#                                 }
-#                             )
-#                             # Update rank
-#                             entry.update_rank()
-#                             print(f"🏆 Leaderboard updated for {request.user.username}: {earned_points} pts")
-                            
-#                             # Get updated rank
-#                             updated_entry = LeaderboardEntry.objects.filter(
-#                                 student=request.user,
-#                                 course=course
-#                             ).first()
-#                             new_rank = updated_entry.rank if updated_entry else None
-                            
-#                         except Exception as e:
-#                             print(f"⚠️ Failed to update leaderboard: {e}")
-#                             new_rank = None
-#                     else:
-#                         new_rank = user_rank
-#                 else:
-#                     new_rank = user_rank
-                
-#                 return JsonResponse({
-#                     "status": "success", 
-#                     "result": result,
-#                     "points": earned_points if 'earned_points' in locals() else len(completed_topic_ids),
-#                     "total_topics": total_topics,
-#                     "rank": new_rank if 'new_rank' in locals() else user_rank
-#                 })
-#             except Exception as e:
-#                 return JsonResponse({
-#                     "status": "error", 
-#                     "message": str(e)
-#                 }, status=500)
-
-#         # ================= UPDATE ACTIVE TOPIC =================
-#         if data.get("action") == "update_active_topic":
-#             topic_id = data.get("topic_id")
-#             course_id = data.get("course_id")
-            
-#             if not course_id:
-#                 return JsonResponse({
-#                     "status": "error", 
-#                     "message": "Course ID is required"
-#                 }, status=400)
-            
-#             # Get the course
-#             try:
-#                 course_obj = Courses.objects.get(id=course_id)
-#             except Courses.DoesNotExist:
-#                 return JsonResponse({
-#                     "status": "error", 
-#                     "message": "Course not found"
-#                 }, status=404)
-            
-#             # Get or create student progress
-#             progress_obj, created = StudentProgress.objects.get_or_create(
-#                 student=request.user,
-#                 course=course_obj
-#             )
-            
-#             # Update the current topic
-#             if topic_id:
-#                 try:
-#                     topic = Topics.objects.get(id=topic_id)
-#                     progress_obj.current_topic = topic
-#                     progress_obj.save(update_fields=['current_topic', 'last_updated'])
-#                     print(f"✅ Updated active topic to: {topic_id} for user {request.user.username}")
-#                 except Topics.DoesNotExist:
-#                     return JsonResponse({
-#                         "status": "error", 
-#                         "message": "Topic not found"
-#                     }, status=404)
-#             else:
-#                 progress_obj.current_topic = None
-#                 progress_obj.save(update_fields=['current_topic', 'last_updated'])
-#                 print(f"✅ Cleared active topic for user {request.user.username}")
-            
-#             # Get updated completed topics
-#             completed_ids = list(
-#                 progress_obj.completed_topics.filter(id__in=course_topic_ids).values_list('id', flat=True)
-#             ) if progress_obj else []
-            
-#             # Get leaderboard rank
-#             leaderboard_entry = LeaderboardEntry.objects.filter(
-#                 student=request.user,
-#                 course=course_obj
-#             ).first()
-#             rank = leaderboard_entry.rank if leaderboard_entry else None
-            
-#             return JsonResponse({
-#                 "status": "success",
-#                 "message": "Active topic updated",
-#                 "current_topic_id": topic_id,
-#                 "points": len(completed_ids),
-#                 "total_topics": total_topics,
-#                 "rank": rank
-#             })
-
-#         # ================= AI PROMPT =================
-#         if prompt or ai_action == "build_project":
-#             # Check if OpenAI client is available
-#             if client is None:
-#                 return JsonResponse({
-#                     "status": "error",
-#                     "message": "🔑 OpenAI API is not configured. Please set your API key.",
-#                     "error_detail": "OPENAI_API_KEY is missing or invalid."
-#                 }, status=500)
-
-#             try:
-#                 with transaction.atomic():
-#                     # Get or create the three core files
-#                     html_file, html_created = File.objects.get_or_create(
-#                         project=project, 
-#                         name="index.html",
-#                         defaults={"content": "<!DOCTYPE html>\n<html>\n<head>\n    <title>Project</title>\n    <link rel='stylesheet' href='style.css'>\n</head>\n<body>\n    <script src='script.js'></script>\n</body>\n</html>"}
-#                     )
-#                     css_file, css_created = File.objects.get_or_create(
-#                         project=project, 
-#                         name="style.css",
-#                         defaults={"content": "/* Your styles here */\n"}
-#                     )
-#                     js_file, js_created = File.objects.get_or_create(
-#                         project=project, 
-#                         name="script.js",
-#                         defaults={"content": "// Your JavaScript here\n"}
-#                     )
-
-#                     # ================= ENHANCED AI SYSTEM PROMPT =================
-#                     system_message = """You are an elite UI/UX engineer and creative developer who builds stunning, modern web applications. Your code rivals the quality of Vercel, Linear, Stripe, and Apple design systems.
-
-# ## DESIGN PHILOSOPHY
-# - Clean, purposeful whitespace — never crowded
-# - Strong visual hierarchy with clear typographic scale
-# - Consistent 8px spacing grid (8, 16, 24, 32, 48, 64px)
-# - Subtle depth using shadows, not heavy borders
-# - Smooth micro-interactions and transitions (150-300ms)
-# - Mobile-first, fully responsive layouts
-
-# ## VISUAL STYLE DEFAULTS (use unless user specifies otherwise)
-# - Font: Inter or system-ui — never serif fonts
-# - Primary color: #6366f1 (indigo) with #4f46e5 dark variant
-# - Background: #ffffff or #f9fafb (light) / #0f172a (dark mode)
-# - Text: #0f172a primary, #64748b secondary, #94a3b8 muted
-# - Border: #e2e8f0 — use sparingly
-# - Border radius: 8px cards, 6px buttons, 12px modals
-# - Shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06)
-
-# ## CSS REQUIREMENTS (mandatory every response)
-# - CSS custom properties (variables) for all colors, spacing, radii at :root
-# - Flexbox and CSS Grid for all layouts
-# - transition: all 0.2s ease on every interactive element
-# - :hover and :focus states on every button, link, input
-# - box-sizing: border-box on *, *::before, *::after
-# - scroll-behavior: smooth on html element
-# - NO inline styles — everything goes in CSS file
-
-# ## BUTTON STANDARD
-# background: #6366f1; color: #fff; padding: 10px 20px;
-# border-radius: 6px; font-weight: 600; font-size: 15px;
-# border: none; cursor: pointer; transition: all 0.2s ease;
-# Hover: background: #4f46e5; transform: translateY(-1px);
-# box-shadow: 0 4px 12px rgba(99,102,241,0.3);
-
-# ## CARD STANDARD
-# background: #fff; border-radius: 12px; padding: 24px;
-# border: 1px solid #e2e8f0;
-# box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-# Hover: transform: translateY(-2px);
-# box-shadow: 0 8px 24px rgba(0,0,0,0.10);
-
-# ## INPUT STANDARD
-# width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0;
-# border-radius: 6px; font-size: 15px; outline: none;
-# transition: border-color 0.2s;
-# Focus: border-color: #6366f1;
-# box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
-
-# ## HTML REQUIREMENTS (mandatory)
-# - Semantic tags: <header>, <main>, <nav>, <section>, <footer>, <article>
-# - lang="en" on <html>
-# - <meta name="viewport" content="width=device-width, initial-scale=1.0">
-# - <meta charset="UTF-8">
-# - Descriptive alt on all images
-# - aria-label on icon-only buttons
-# - Link style.css in <head>, script.js before </body>
-
-# ## JS REQUIREMENTS
-# - Vanilla JS, ES6+ only (const/let, arrow functions, async/await)
-# - All DOM code inside DOMContentLoaded
-# - Animate with CSS class toggling, not inline style manipulation
-# - Handle loading/error states on all async operations
-
-# ## GREAT UI CHECKLIST — include these in every build
-# [x] Sticky nav with logo left, links right
-# [x] Hero section: big headline + subtext + primary CTA + optional secondary CTA
-# [x] Section padding: 80px top/bottom, max-width 1200px centered
-# [x] Card grid with hover lift effect
-# [x] Footer with links and copyright
-# [x] Responsive: single column on mobile (<768px)
-# [x] Button loading state (disabled + spinner while fetching)
-# [x] Smooth scroll to sections on nav click
-# [x] Subtle gradient or pattern on hero background
-# [x] Consistent icon style (use emoji or Unicode symbols — no external icon libs)
-
-# ## RESPONSE FORMAT — CRITICAL
-# Return ONLY a raw JSON object. No markdown. No code fences. No explanation. No text before or after.
-# Exactly: {"html": "...", "css": "...", "js": "..."}"""
-
-#                     user_message = f"""## Current Project Files
-
-# **index.html:**
-# {html_file.content if html_file.content.strip() else "<!-- Empty -->"}
-
-# **style.css:**
-# {css_file.content if css_file.content.strip() else "/* Empty */"}
-
-# **script.js:**
-# {js_file.content if js_file.content.strip() else "// Empty"}
-
-# ---
-
-# ## User Request
-# {prompt}
-
-# ---
-
-# ## Quality Bar
-# Build this to the standard of Vercel, Linear, or Stripe landing pages.
-# - If building from scratch: include nav, hero, features/content section, footer
-# - Use the design system from the system prompt (indigo primary, clean cards, smooth transitions)
-# - Every interactive element must have a hover state
-# - Must look great on both desktop and mobile
-
-# Return ONLY the JSON object: {{"html": "...", "css": "...", "js": "..."}}
-# No markdown. No explanation. Raw JSON only."""
-
-#                     try:
-#                         response = client.chat.completions.create(
-#                             model="gpt-4o-mini",
-#                             messages=[
-#                                 {"role": "system", "content": system_message},
-#                                 {"role": "user", "content": user_message},
-#                             ],
-#                             max_tokens=6000,
-#                             temperature=0.4,
-#                             response_format={"type": "json_object"}
-#                         )
-                        
-#                         ai_text = response.choices[0].message.content.strip()
-#                         print(f"✅ AI Response received: {len(ai_text)} chars")
-                        
-#                     except Exception as api_error:
-#                         error_msg = str(api_error)
-
-#                         # Check for common API errors
-#                         if "rate_limit" in error_msg.lower():
-#                             return JsonResponse({
-#                                 "status": "error",
-#                                 "message": "⏳ Rate limit reached. Please wait a moment and try again.",
-#                                 "error_detail": error_msg
-#                             }, status=429)
-#                         elif "api_key" in error_msg.lower() or "authentication" in error_msg.lower():
-#                             return JsonResponse({
-#                                 "status": "error",
-#                                 "message": "🔑 API authentication failed. Please check your API key configuration.",
-#                                 "error_detail": error_msg
-#                             }, status=500)
-#                         elif "timeout" in error_msg.lower():
-#                             return JsonResponse({
-#                                 "status": "error",
-#                                 "message": "⏱️ Request timed out. Please try again.",
-#                                 "error_detail": error_msg
-#                             }, status=504)
-#                         elif "quota" in error_msg.lower() or "insufficient" in error_msg.lower():
-#                             return JsonResponse({
-#                                 "status": "error",
-#                                 "message": "💳 API quota exceeded. Please check your OpenAI account.",
-#                                 "error_detail": error_msg
-#                             }, status=402)
-#                         else:
-#                             return JsonResponse({
-#                                 "status": "error",
-#                                 "message": f"🚫 AI service failed: {error_msg}",
-#                                 "error_detail": error_msg
-#                             }, status=500)
-
-#                     # ================= PARSE AI RESPONSE =================
-#                     try:
-#                         ai_generated = json.loads(ai_text)
-#                     except json.JSONDecodeError as json_error:
-#                         start = ai_text.find("{")
-#                         end = ai_text.rfind("}") + 1
-#                         if start != -1 and end > start:
-#                             ai_text_cleaned = ai_text[start:end]
-#                             try:
-#                                 ai_generated = json.loads(ai_text_cleaned)
-#                             except json.JSONDecodeError:
-#                                 return JsonResponse({
-#                                     "status": "error",
-#                                     "message": "Failed to parse AI response as JSON. The AI may have returned an invalid format.",
-#                                     "error_detail": f"Could not parse: {ai_text[:200]}..."
-#                                 }, status=500)
-#                         else:
-#                             return JsonResponse({
-#                                 "status": "error",
-#                                 "message": "AI response does not contain valid JSON.",
-#                                 "error_detail": f"Response preview: {ai_text[:200]}..."
-#                             }, status=500)
-
-#                     # ================= VALIDATE RESPONSE =================
-#                     if not isinstance(ai_generated, dict):
-#                         return JsonResponse({
-#                             "status": "error",
-#                             "message": "AI response is not a valid JSON object.",
-#                             "error_detail": f"Type: {type(ai_generated)}"
-#                         }, status=500)
-                    
-#                     # Check if at least one file key exists
-#                     if not any(key in ai_generated for key in ["html", "css", "js"]):
-#                         return JsonResponse({
-#                             "status": "error",
-#                             "message": "AI response missing required keys (html, css, or js).",
-#                             "error_detail": f"Keys found: {list(ai_generated.keys())}"
-#                         }, status=500)
-                    
-#                     updates_made = []
-
-#                     # ================= UPDATE FILES =================
-#                     if "html" in ai_generated and ai_generated["html"].strip():
-#                         html_content = ai_generated["html"].strip()
-#                         if not html_content.startswith("<!DOCTYPE"):
-#                             html_content = f"<!DOCTYPE html>\n{html_content}"
-#                         html_file.content = html_content
-#                         html_file.save(update_fields=["content"])
-#                         updates_made.append("HTML")
-#                         print(f"✅ Updated index.html ({len(html_content)} chars)")
-
-#                     if "css" in ai_generated and ai_generated["css"].strip():
-#                         css_file.content = ai_generated["css"].strip()
-#                         css_file.save(update_fields=["content"])
-#                         updates_made.append("CSS")
-#                         print(f"✅ Updated style.css ({len(css_file.content)} chars)")
-
-#                     if "js" in ai_generated and ai_generated["js"].strip():
-#                         js_file.content = ai_generated["js"].strip()
-#                         js_file.save(update_fields=["content"])
-#                         updates_made.append("JavaScript")
-#                         print(f"✅ Updated script.js ({len(js_file.content)} chars)")
-
-#                     if not updates_made:
-#                         return JsonResponse({
-#                             "status": "warning",
-#                             "message": "No files were updated. AI may not have understood the request.",
-#                             "ai_response": ai_generated
-#                         }, status=200)
-
-#                     # ================= SUCCESS RESPONSE =================
-#                     return JsonResponse({
-#                         "status": "success",
-#                         "ai_content": ai_generated,
-#                         "message": f"✨ Successfully updated: {', '.join(updates_made)}",
-#                         "files_updated": updates_made,
-#                         "prompt": prompt[:100] + "..." if len(prompt) > 100 else prompt
-#                     })
-
-#             except Exception as e:
-#                 print(f"❌ Unexpected Error in AI Processing: {traceback.format_exc()}")
-#                 return JsonResponse({
-#                     "status": "error",
-#                     "message": f"An unexpected error occurred: {str(e)}",
-#                     "error_detail": traceback.format_exc()
-#                 }, status=500)
-
-#         # ================= FILE SAVE =================
-#         if new_content and new_content != file.content:
-#             file.content = new_content
-#             file.save(update_fields=["content"])
-#             print(f"💾 Saved {file.name} ({len(new_content)} chars)")
-
-#         response_table = ""
-
-#         # ================= CSV / EXCEL PREVIEW =================
-#         if ext in {"csv", "xls", "xlsx"} and file.file:
-#             try:
-#                 if ext == "csv":
-#                     df = pd.read_csv(file.file.path)
-#                 else:
-#                     df = pd.read_excel(file.file.path)
-
-#                 if run_table:
-#                     response_table = df.head(20).to_html(
-#                         classes="table table-bordered table-sm",
-#                         index=False
-#                     )
-#             except Exception as e:
-#                 return JsonResponse({
-#                     "status": "error",
-#                     "message": f"Failed to read file: {str(e)}"
-#                 }, status=400)
-
-#         # ================= SAFE PYTHON RUNNER =================
-#         if is_python and (run_plot or new_content.strip()):
-#             result = run_code(new_content)
-            
-#             # Add table data if available
-#             result["table"] = response_table
-            
-#             # Return error response if execution failed
-#             if result["status"] == "error":
-#                 return JsonResponse(result, status=500)
-            
-#             return JsonResponse(result)
-
-#         return JsonResponse({
-#             "status": "saved",
-#             "message": "✓ File saved successfully"
-#         })
-
-#     # ================= GET =================
-#     # Debug output
-#     print('=' * 50)
-#     print('📊 FILE DETAIL DEBUG:')
-#     print(f'  - current_topic_id: {current_topic_id}')
-#     print(f'  - progress: {progress}')
-#     print(f'  - course: {course}')
-#     print(f'  - completed_topic_ids: {completed_topic_ids}')
-#     print(f'  - Points: {earned_points}/{total_topics}')
-#     print(f'  - User Rank: {user_rank}')
-#     print('=' * 50)
-    
-#     return render(request, "webprojects/file_detail.html", {
-#         "file": file,
-#         "files": files,
-#         "folders": folders,
-#         "exts": exts,
-#         "project": project,
-#         "is_image": is_image,
-#         'completed_topic_ids': completed_topic_ids,
-#         'current_topic_id': current_topic_id,
-#         "topics": topics,
-#         "course": course,
-#         'course_id': course.id if course else None,
-#         'exam_id': exam.id if exam else None,
-#         'earned_points': earned_points,
-#         'total_topics': total_topics,
-#         'user_rank': user_rank,
-#     })
 
 @login_required
 @require_http_methods(["GET", "POST"])
@@ -3259,7 +2206,6 @@ def file_detail(request, project_id, file_id):
         topic_id = data.get("topic_id")
 
         # ================= SCORE OUTPUT =================
-                # ================= SCORE OUTPUT =================
         if data.get("action") == "score_output":
             student_output = data.get("student_output", "").strip()
             topic_id = data.get("topic_id")
@@ -3276,37 +2222,69 @@ def file_detail(request, project_id, file_id):
             topic_title = topic.title or ""
             expected = topic.expected_output or ""
 
-            scoring_prompt = f"""You are a strict Python code evaluator. Your ONLY job is to compare the student's program OUTPUT with the expected output. IGNORE the code itself - only look at what the program prints/returns.
+            # ===== IF NO EXPECTED OUTPUT, USE AI TO GENERATE IT FIRST =====
+            if not expected:
+                expected_prompt = f"""Based on this Python topic, what should the correct program output?
 
 ## TOPIC
 Title: {topic_title}
-Description: {topic_desc[:300]}
+Description: {topic_desc[:500]}
 
-## EXPECTED OUTPUT (what the correct program should print/return):
-{expected if expected else "No expected output specified - evaluate based on topic requirements"}
+## INSTRUCTIONS
+Read the topic description carefully. Determine what the correct output should be.
+Return ONLY the expected output as plain text (no JSON, no explanation).
+If the topic asks to print something, return exactly what should be printed.
+If there are multiple lines, include all lines.
 
-## STUDENT'S ACTUAL OUTPUT (what their program printed/returned):
+Example: If topic says "print 2+3", return: 5
+Example: If topic says "print your name", return the expected text output."""
+
+                try:
+                    if client is None:
+                        return JsonResponse({"status": "error", "message": "OpenAI API is not configured"}, status=500)
+                    
+                    expected_response = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {"role": "system", "content": "You determine the correct output for Python exercises. Return ONLY the expected output as plain text. No explanation, no markdown."},
+                            {"role": "user", "content": expected_prompt},
+                        ],
+                        max_tokens=200,
+                        temperature=0,
+                    )
+                    expected = expected_response.choices[0].message.content.strip()
+                    print(f"🤖 AI Generated Expected Output: '{expected}'")
+                    
+                    # Save to database for future use
+                    topic.expected_output = expected
+                    topic.save(update_fields=['expected_output'])
+                except Exception as e:
+                    print(f"⚠️ Failed to generate expected output: {e}")
+                    expected = ""
+
+            # ===== NOW COMPARE STUDENT OUTPUT WITH EXPECTED =====
+            scoring_prompt = f"""Compare the student's program OUTPUT with the expected output.
+
+## TOPIC
+Title: {topic_title}
+
+## EXPECTED OUTPUT:
+{expected if expected else "Could not determine expected output"}
+
+## STUDENT'S ACTUAL OUTPUT:
 {student_output}
 
-## IMPORTANT RULES:
-- IGNORE the student's code completely - only compare the OUTPUT
+## STRICT SCORING RULES:
+- IGNORE the student's code - only compare the OUTPUT values
 - IGNORE spaces, tabs, newlines - strip whitespace before comparing
-- IGNORE case differences for text strings
-- IGNORE comments in code - they don't affect output
-- score = 1 ONLY if the stripped outputs MATCH
-- score = 0 if outputs don't match, are wrong, or empty
+- IGNORE case differences for text
+- score = 1 ONLY if the stripped outputs MATCH in value
+- score = 0 if outputs don't match
 - "correct": true ONLY if score is 1
-- NO partial credit - it's either right (1) or wrong (0)
+- NO partial credit
 
-## EXAMPLES:
-- Expected output="3", Student output="3" → score=1, correct=true
-- Expected output="3", Student output=" 3 " → score=1, correct=true (spaces ignored)
-- Expected output="Hello", Student output="hello" → score=1, correct=true (case ignored)
-- Expected output="3", Student output="34" → score=0, correct=false
-- Expected output="3", Student output="Hello" → score=0, correct=false
-
-Return ONLY this JSON (no markdown, no explanation):
-{{"score": <0 or 1>, "max_score": 1, "feedback": "<brief 1-2 sentence reason>", "correct": <true/false>}}"""
+Return ONLY this JSON:
+{{"score": <0 or 1>, "max_score": 1, "feedback": "<brief reason>", "correct": <true/false>}}"""
 
             try:
                 if client is None:
@@ -3315,7 +2293,7 @@ Return ONLY this JSON (no markdown, no explanation):
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
-                        {"role": "system", "content": "You are a strict code evaluator. Compare outputs exactly. Score is 1 (correct match) or 0 (wrong). Return ONLY valid JSON. No partial credit."},
+                        {"role": "system", "content": "You are a strict code evaluator. Compare outputs exactly. Score is 1 (correct) or 0 (wrong). Return ONLY valid JSON."},
                         {"role": "user", "content": scoring_prompt},
                     ],
                     max_tokens=300,
@@ -3340,7 +2318,7 @@ Return ONLY this JSON (no markdown, no explanation):
                 earned_points = progress.completed_topics.filter(id__in=course_topic_ids).count()
                 display_score = earned_points
                 
-                print(f"DEBUG: topic_id={topic_id}, already_awarded={already_awarded}, earned_points={earned_points}")
+                print(f"DEBUG: topic_id={topic_id}, already_awarded={already_awarded}, earned_points={earned_points}, expected='{expected[:50] if expected else 'EMPTY'}'")
                 
                 if result.get('correct', False):
                     
@@ -3349,7 +2327,6 @@ Return ONLY this JSON (no markdown, no explanation):
                         progress.completed_topics.add(topic)
                         progress.add_assessment_score(100, topic_id, first_attempt=True)
                         
-                        # Refresh count from DB
                         earned_points = progress.completed_topics.filter(id__in=course_topic_ids).count()
                         display_score = earned_points
                         
@@ -3366,13 +2343,11 @@ Return ONLY this JSON (no markdown, no explanation):
                         except Exception as e:
                             print(f"⚠️ Failed to update leaderboard: {e}")
                     else:
-                        # ===== ALREADY COMPLETED =====
                         display_score = earned_points
                         xp_earned = 0
                         result['feedback'] = (result.get('feedback', '') + 
                             '\n\n📌 Module already completed - no additional XP.')
                 else:
-                    # ===== INCORRECT =====
                     progress.incorrect_code_attempts += 1
                     progress.save(update_fields=['incorrect_code_attempts'])
                     display_score = earned_points
@@ -3393,10 +2368,12 @@ Return ONLY this JSON (no markdown, no explanation):
                     "already_awarded": already_awarded,
                     "average_score": progress.get_average_score() if progress else 0,
                     "modules_completed": min(earned_points, total_topics),
+                    "expected_output": expected,  # ADD THIS LINE
                 })
             except Exception as e:
                 return JsonResponse({"status": "error", "message": str(e)}, status=500)
-            
+
+        # ================= UPDATE ACTIVE TOPIC =================
         if data.get("action") == "update_active_topic":
             topic_id = data.get("topic_id")
             course_id = data.get("course_id")
@@ -3845,7 +2822,6 @@ def check_badges(student, course, progress):
     
     return badges_awarded
 
-
 def get_motivation_message(entry, progress, total_students):
     """Generate motivation messages"""
     if not entry:
@@ -3870,12 +2846,12 @@ def get_motivation_message(entry, progress, total_students):
             name = next_entry.student.get_full_name() or next_entry.student.username
             messages.append(f"🎯 Earn {xp_needed} more XP to overtake {name}!")
     
-    # Assessment motivation
-    if progress and progress.get_average_score() < 90:
-        messages.append(f"🎯 Score 90%+ in your next assessment for bonus XP!")
+    # Assessment motivation - only if not already at 100%
+    if progress and progress.get_average_score() < 100 and progress.total_assessments_taken > 0:
+        messages.append(f"🎯 Aim for 100% in your next assessment for bonus XP!")
     
-    # Coding challenge motivation
-    if entry.coding_challenges_passed < entry.total_modules:
+    # Coding challenge motivation - only if there are remaining modules
+    if entry.total_modules > 0 and entry.coding_challenges_passed < entry.total_modules:
         needed = entry.total_modules - entry.coding_challenges_passed
         messages.append(f"💻 Solve {needed} more coding challenge(s) for +{needed * 5} XP!")
     
@@ -3886,7 +2862,12 @@ def get_motivation_message(entry, progress, total_students):
         else:
             messages.append("🔥 Start a learning streak by completing a module today!")
     
+    # Course completed - celebration message
+    if entry.modules_completed >= entry.total_modules and entry.total_modules > 0:
+        messages.insert(0, f"🎉 Congratulations! You've completed all {entry.total_modules} modules!")
+    
     return messages[:3]  # Limit to 3 messages
+
 
 
 def update_leaderboard_entry(student, course):
@@ -3933,7 +2914,6 @@ def update_leaderboard_entry(student, course):
 # ============================================
 # VIEWS
 # ============================================
-
 @login_required
 def course_leaderboard(request, course_id):
     """Display the leaderboard for a specific course"""
@@ -3953,6 +2933,12 @@ def course_leaderboard(request, course_id):
     leaderboard_entries = LeaderboardEntry.objects.filter(
         course=course
     ).select_related('student', 'student__profile').order_by('rank')
+    
+    # Fix entries with total_modules = 0
+    for entry in leaderboard_entries:
+        if entry.total_modules == 0 or entry.total_modules != total_topics:
+            entry.total_modules = total_topics
+            entry.save(update_fields=['total_modules'])
     
     total_students = leaderboard_entries.count()
     
@@ -4704,6 +3690,7 @@ def validate_topic_completion(request):
         print(f'[validate] topic.desc={repr(topic.desc)}')
         print(f'[validate] student_code={repr(student_code[:120])}')
         print(f'[validate] student_output={repr(student_output)}')
+        
 
         attempt_key = f'topic_{topic_id}_attempts'
         attempts = request.session.get(attempt_key, 0)
