@@ -84,6 +84,61 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
+        /* Recommended Courses */
+        .recommended-section {
+            margin: 25px 0 30px 0;
+            padding: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+        }
+        .recommended-section h3 {
+            font-size: 1.2em;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .recommended-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+        .recommended-card {
+            display: block;
+            padding: 18px;
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .recommended-card:hover {
+            background: rgba(99, 102, 241, 0.12);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .rec-icon {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+        .rec-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1em;
+            margin-bottom: 4px;
+        }
+        .rec-meta {
+            color: var(--text-muted);
+            font-size: 0.8em;
+            margin-bottom: 8px;
+        }
+        .rec-arrow {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
         /* Header */
         .leaderboard-header {
             text-align: center;
@@ -445,6 +500,7 @@
             .leaderboard-table th:nth-child(6),
             .leaderboard-table td:nth-child(6) { display: none; }
             .progress-grid { grid-template-columns: repeat(3, 1fr); }
+            .recommended-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 480px) {
             .leaderboard-container { padding: 15px 10px; }
@@ -454,6 +510,7 @@
             .progress-grid { grid-template-columns: repeat(2, 1fr); }
             .stats-row { gap: 8px; }
             .stat-item { padding: 10px 14px; min-width: 80px; }
+            .recommended-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -506,6 +563,37 @@
     </div>
     {% endif %}
 
+    <!-- ===== RECOMMENDED COURSES ===== -->
+    {% if recommended_courses %}
+    <div class="recommended-section">
+        <h3>🚀 Continue Your Learning Journey</h3>
+        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9em;">
+            You've mastered <strong>{{ course.title }}</strong>! Here are some courses to explore next:
+        </p>
+        <div class="recommended-grid">
+            {% for rec_course in recommended_courses %}
+            <a href="{% url 'webprojects:start_course' rec_course.id %}" 
+   class="recommended-card">
+                <div class="rec-icon">
+                    {% if 'python' in rec_course.title|lower %}🐍
+                    {% elif 'rust' in rec_course.title|lower %}🦀
+                    {% elif 'javascript' in rec_course.title|lower %}📜
+                    {% elif 'html' in rec_course.title|lower %}🌐
+                    {% elif 'data' in rec_course.title|lower %}📊
+                    {% elif 'web' in rec_course.title|lower %}💻
+                    {% elif 'css' in rec_course.title|lower %}🎨
+                    {% elif 'java' in rec_course.title|lower %}☕
+                    {% else %}📚{% endif %}
+                </div>
+                <div class="rec-title">{{ rec_course.title }}</div>
+                <div class="rec-meta">{{ rec_course.topic_count }} modules</div>
+                <div class="rec-arrow">Start Learning →</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Your Progress Card -->
     {% if user_entry and user_progress %}
     <div class="user-progress-card">
@@ -532,7 +620,6 @@
                 <div class="value">🎯 {{ user_entry.average_score|floatformat:1 }}%</div>
                 <div class="label">Avg Score</div>
             </div>
-
             <div class="progress-item">
                 <div class="value">❌ {{ user_entry.incorrect_code_attempts }}</div>
                 <div class="label">Failed Code Attempts</div>
@@ -580,12 +667,12 @@
                 <img src="{{ entry.student.profile.avatar.url }}" alt="" class="student-avatar">
                 {% else %}
                 <div class="student-avatar default-avatar" style="background: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
-                    <span style="font-size: 1.4em; font-weight: 700; color: #fff;">{{ entry.student.username|slice:":1"|upper }}</span>
+                    <span style="font-size: 1.4em; font-weight: 700; color: #fff;">{{ entry.student.first_name|slice:":1"|upper }}</span>
                 </div>
                 {% endif %}
 
                 <div class="student-name">
-                    {{ entry.student.first_name|default:entry.student.username }} {{ entry.student.last_name|default:entry.student.username }}
+                    {{ entry.student.first_name }} {{ entry.student.last_name }}
                     {% if entry.student == request.user %}<span class="badge-you">You</span>{% endif %}
                 </div>
                 <div class="student-xp">🏆 {{ entry.champion_xp }} XP</div>
@@ -637,7 +724,7 @@
                                 {% endif %}
                                 <div class="student-info">
                                     <span class="name">
-                                      {{entry.student.first_name}}  {{ entry.student.last_name|default:entry.student.last_name }}
+                                        {{ entry.student.first_name }} {{ entry.student.last_name }}
                                         {% if entry.student == request.user %}<span class="badge-you">You</span>{% endif %}
                                     </span>
                                     <span class="username">@{{ entry.student.username }}</span>

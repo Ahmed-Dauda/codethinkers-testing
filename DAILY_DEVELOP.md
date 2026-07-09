@@ -51,6 +51,7 @@ git checkout staging
 git pull origin staging
 git merge development
 git push origin staging
+git checkout development
 ```
 
 After deployment:
@@ -87,6 +88,7 @@ Merge tested and reviewed code from `staging` into `main`.
 ```bash
 git merge staging --no-ff -m "deploy: describe what you are releasing"
 git push origin main
+git checkout development
 ```
 
 Wait for deployment to complete, then verify production:

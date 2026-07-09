@@ -1,13 +1,19 @@
 {% extends "webprojects/base_editor.html" %}
 {% load file_filters %}
 
-
-{% block title %}{{ file.name }} | {{ file.project.name }} 777 {% endblock %}
+{% block title %}{{ file.name }} | {{ file.project.name }}  {% endblock %}
 
 {% block extra_head %}
 <meta name="csrf-token" content="{{ csrf_token }}">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-html.min.js"></script>
+
 <style>
   html, body {
     height: 100%;
@@ -23,6 +29,84 @@
     display: flex;
     height: calc(100vh - 48px);
     transition: all 0.3s ease;
+  }
+
+  .editor-layout.editor-hidden .sidebar {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 !important;
+    border-right: none;
+    height: calc(100vh - 48px);
+  }
+
+  .editor-layout.editor-hidden .editor-panel {
+    display: none !important;
+  }
+
+  .editor-toggle-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    background: #2ecc71;
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+    display: none;
+  }
+
+  .editor-toggle-btn:hover {
+    background: #27ae60;
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px rgba(46, 204, 113, 0.4);
+  }
+
+  .editor-toggle-btn.show {
+    display: block;
+  }
+
+  .editor-close-btn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 22px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 100;
+    padding: 4px 8px;
+    border-radius: 4px;
+    line-height: 1;
+  }
+
+  .editor-close-btn:hover {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.15);
+  }
+
+  .editor-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .editor-wrapper.hidden {
+    display: none;
+  }
+
+  .editor-panel.hidden {
+    display: none !important;
   }
 
   .toolbar {
@@ -53,12 +137,13 @@
   }
 
   .sidebar {
-    width: 250px;
+    width: 450px;
     background-color: #252526;
     padding: 10px;
     border-right: 1px solid #444;
     overflow-y: auto;
     transition: all 0.3s ease;
+    flex-shrink: 0;
   }
 
   .folder-toggle {
@@ -126,6 +211,25 @@
     font-family: monospace;
     font-size: 0.9em;
     border-top: 1px solid #444;
+    transition: height 0.1s ease;
+  }
+
+  #resizeHandle {
+    height: 20px;
+    cursor: row-resize;
+    background: #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  #resizeHandle:hover,
+  #resizeHandle:active {
+    background: #4fa;
   }
 
   ::-webkit-scrollbar {
@@ -141,12 +245,10 @@
     background: #2c2c2c;
   }
 
-  /* Responsive adjustments */
   @media (max-width: 768px) {
     .editor-layout {
       flex-direction: column;
     }
-
     .sidebar {
       width: 100%;
       border-right: none;
@@ -154,18 +256,25 @@
       max-height: 200px;
       overflow-y: auto;
     }
-
     .toolbar {
       flex-direction: column;
       align-items: stretch;
     }
-
     .editor-panel {
       height: auto;
+      flex: 1;
     }
-
     #outputPanel {
-      height: 140px;
+      min-height: 60px;
+      max-height: 70vh;
+      transition: height 0.2s ease;
+    }
+    #container {
+      min-height: 100px;
+      flex: 1;
+    }
+    #resizeHandle {
+      height: 24px;
     }
   }
 
@@ -175,17 +284,14 @@
       width: 100%;
       font-size: 0.9em;
     }
-
     .folder-toggle {
       font-size: 0.9em;
     }
-
     .file-item a {
       font-size: 0.85em;
     }
   }
 
-  /* Spinner animation */
   .spinner {
     display: inline-block;
     width: 18px;
@@ -203,7 +309,6 @@
     100% { transform: rotate(360deg); }
   }
 
-  /* Sidebar collapse toggle for mobile */
   .editor-layout.collapsed .sidebar {
     display: none;
   }
@@ -211,256 +316,622 @@
   .editor-layout.collapsed .editor-panel {
     width: 100% !important;
   }
-#toastMessage {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  max-width: 600px;
-  background: #333;
-  color: #fff;
-  padding: 12px 16px;
-  font-size: 0.95em;
-  display: none;
-  opacity: 0;
-  z-index: 9999;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  transition: opacity 0.3s ease;
-}
 
-</style>
-<<<<<<< HEAD
-<style>
-/* Folder toggle header */
-.folder-toggle {
-    background-color: #2b2b2b;
+  #toastMessage {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 600px;
+    background: #333;
     color: #fff;
-    padding: 10px 15px;
-    margin-top: 10px;
-    cursor: pointer;
-    border-radius: 6px;
-    display: flex;
-    justify-content: space-between;
+    padding: 12px 16px;
+    font-size: 0.95em;
+    display: none;
+    opacity: 0;
+    z-index: 9999;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: opacity 0.3s ease;
+  }
+
+  #quizModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 10001;
     align-items: center;
-    font-weight: bold;
-    transition: background 0.3s;
-}
+    justify-content: center;
+  }
 
-.folder-toggle:hover {
-    background-color: #444;
-}
+  #quizModal .modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 520px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+  }
 
-/* File group container */
-.file-group {
-    padding-left: 20px;
-    margin-bottom: 10px;
-    display: none; /* Hidden by default, toggle with JS */
-}
+  #quizModal .close-btn {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #888;
+  }
 
-/* Individual file item */
-.file-item {
+  #quizModal h3 {
+    margin-top: 0;
+    color: #222;
+  }
+
+  .quiz-option {
+    display: block;
     padding: 6px 10px;
     margin-bottom: 4px;
-    border-radius: 5px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #333;
+  }
+
+  .quiz-option:hover {
+    background: #e8e8e8;
+  }
+
+  .quiz-option input[type="radio"] {
+    margin-right: 8px;
+  }
+
+  .quiz-btn {
+    padding: 4px 10px;
+    font-size: 0.8em;
+    border: none;
+    border-radius: 4px;
+    background: #3498db;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .quiz-btn:hover {
+    background: #2980b9;
+  }
+
+  .quiz-passed-badge {
+    color: #28a745;
+    font-size: 0.8em;
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+
+  .topic-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background-color: #fafafa;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    font-size: 0.95rem;
+  }
+
+  .topic-item:hover {
+    background-color: #f0f8ff;
+  }
+
+  .topic-toggle {
+    font-weight: 600;
+    color: #333;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .toggle-icon {
+    transition: transform 0.3s ease;
+    font-weight: bold;
+  }
+
+  .topic-desc {
+    overflow: auto;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    margin-top: 6px;
+    padding: 8px;
+    border-radius: 6px;
+    max-height: 300px;
+    font-size: 0.9rem;
+  }
+
+  .topic-desc-readable {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 16px 20px;
+    border-radius: 8px;
+    line-height: 1.8;
+    font-size: 15px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 500px;
+    overflow-y: auto;
+    border-left: 3px solid #4fa;
+  }
+
+  .topic-desc-readable h1, .topic-desc-readable h2, .topic-desc-readable h3 {
+    color: #fff;
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+
+  .topic-desc-readable ul, .topic-desc-readable ol {
+    padding-left: 24px;
+    margin: 8px 0;
+  }
+
+  .topic-desc-readable li {
+    margin: 4px 0;
+  }
+
+  .topic-desc-readable p {
+    margin: 8px 0;
+  }
+
+  .topic-desc-readable strong {
+    color: #4fa;
+  }
+
+  .topic-desc-readable code {
+    background: #2d2d2d;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #f8f8f2;
+  }
+
+  .topic-desc-readable pre {
+    background: #2d2d2d;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 8px 0;
+  }
+
+  .topic-desc-readable a {
+    color: #4fa;
+    text-decoration: underline;
+  }
+
+  .topic-desc-readable blockquote {
+    border-left: 3px solid #4fa;
+    padding-left: 16px;
+    margin: 8px 0;
+    color: #aaa;
+  }
+
+  .topic-media {
+    margin: 12px 0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .topic-media img {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 8px;
+    display: block;
+    border: 1px solid #333;
+  }
+
+  .topic-media video {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 8px;
+    display: block;
+    border: 1px solid #333;
+  }
+
+  .topic-media iframe {
+    max-width: 100%;
+    width: 100%;
+    height: 315px;
+    border-radius: 8px;
+    border: 1px solid #333;
+  }
+
+  .topic-media-caption {
+    color: #888;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  #quizProgressWrap {
+    margin: 10px 0 16px;
+  }
+
+  #quizProgressWrap .progress-bar {
+    background: #e0e0e0;
+    border-radius: 6px;
+    height: 10px;
+    overflow: hidden;
+  }
+
+  #quizProgressWrap .progress-fill {
+    background: #28a745;
+    height: 100%;
+    transition: width 0.4s ease;
+  }
+
+  .resize-handle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    cursor: col-resize;
+    background: transparent;
+    z-index: 10;
+    transition: background 0.2s;
+  }
+
+  .resize-handle:hover {
+    background: #4fa !important;
+  }
+
+  .resize-handle::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+  }
+
+  .ums-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .ums-trigger {
+    background: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
-    background-color: #f5f5f5;
-    transition: background 0.3s;
-}
-
-.file-item a {
+    justify-content: center;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+  }
+  .ums-trigger:hover { border-color: #1A56DB; }
+  .ums-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .ums-panel {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    min-width: 200px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    padding: 6px;
+    z-index: 9999;
+    animation: umsFadeIn 0.15s ease;
+  }
+  .ums-panel.ums-open { display: block; }
+  @keyframes umsFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .ums-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #0f172a;
     text-decoration: none;
-    color: #333;
-    flex-grow: 1;
-}
-
-.file-item a:hover {
-    text-decoration: underline;
-    color: #007bff;
-}
-
-/* Buttons */
-.btn {
-    padding: 2px 6px;
-    font-size: 0.8rem;
-    border-radius: 4px;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+  }
+  .ums-item:hover {
+    background: #f1f5f9;
+    color: #1A56DB;
     text-decoration: none;
-    border: none;
-    cursor: pointer;
-    transition: background 0.3s;
-}
+  }
+  .ums-item--danger { color: #dc2626; }
+  .ums-item--danger:hover { background: #fef2f2; color: #dc2626; }
+  .ums-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 6px 4px;
+  }
 
-.btn-sm {
-    font-size: 0.75rem;
-    padding: 2px 5px;
-}
+  .studying-indicator {
+    color: #6366f1;
+    font-size: 0.8em;
+    margin-left: 8px;
+    font-weight: 500;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
 
-.btn-primary {
-    background-color: #007bff;
-    color: #fff;
-}
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
 
-.btn-primary:hover {
-    background-color: #0056b3;
-}
+  .topic-item.active-topic {
+    border-color: #6366f1;
+    background-color: #f0f4ff;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  }
 
-.btn-danger {
-    background-color: #dc3545;
-    color: #fff;
-}
+  .xp-updated {
+    animation: xpPop 0.5s ease;
+  }
 
-.btn-danger:hover {
-    background-color: #b02a37;
-}
+  @keyframes xpPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); color: #fbbf24; }
+    100% { transform: scale(1); }
+  }
 
-/* Highlight selected file */
-.file-item a[style*="font-weight:bold"] {
-    background-color: #007bff;
-    color: #fff !important;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
+  .badge-appear {
+    animation: badgeIn 0.4s ease;
+  }
 
-/* Image file color */
-.file-item a[onclick*="showImageModal"] {
-    color: #4fa;
-    font-weight: bold;
-}
+  @keyframes badgeIn {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
 </style>
-
-<!-- roller -->
- <style>
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* prompts css */
-
-
-</style>
-=======
->>>>>>> heroku/main
 
 {% endblock %}
 
 {% block header %}
-<a style="color: white;" href="{% url 'create_project' %}">
-  📁 {{ file.project.name }} — 📝 {{ file.name }}
-</a>  
-
+<div style="display: flex; gap: 16px; align-items: center; width: 100%;">
+    <a style="color: white;" href="{% url 'webprojects:create_project' %}">
+        📁 {{ file.project.name }} — 📝 {{ file.name }}
+    </a>
+    <button id="toggleEditorBtn" onclick="toggleEditor()" style="
+        background: #2ecc71;
+        color: #fff;
+        border: none;
+        border-radius: 20px;
+        padding: 4px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-left: auto;
+    " onmouseover="this.style.background='#27ae60'" onmouseout="this.style.background='#2ecc71'">
+        ✕ Hide Editor
+    </button>
+    
+    <!-- ===== CHAMPION XP DISPLAY ===== -->
+    <div id="xpDisplay" style="
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        background: #2a2d2e;
+        border-radius: 20px;
+        border: 1px solid #3c3c3c;
+        font-size: 14px;
+        font-weight: 500;
+        color: #e0e0e0;
+        margin-left: 16px;
+    ">
+        <span>🏆</span>
+        <span>Champion XP:</span>
+        <span id="xpValue" style="color: #4ade80; font-weight: 700;">
+            {{ champion_xp|default:"0" }} XP
+        </span>
+        <span id="completionBadge" style="color: #fbbf24; font-size: 12px; {% if earned_points != total_topics or total_topics == 0 %}display:none;{% endif %}">🌟 Complete!</span>
+    </div>
+    
+    {% if user_rank %}
+    <div id="rankDisplay" style="
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: #2a2d2e;
+        border-radius: 20px;
+        border: 1px solid #3c3c3c;
+        font-size: 13px;
+        color: #9cdcfe;
+        margin-left: 8px;
+    ">
+        <span>🏅</span>
+        <span>Rank:</span>
+        <span id="rankValue" style="color: #4ade80; font-weight: 700;">#{{ user_rank }}</span>
+    </div>
+    {% endif %}
+    
+    <div class="ums-wrap" id="umsWrap">
+        <button class="ums-trigger" id="umsTrigger" aria-haspopup="true" aria-expanded="false" aria-label="User menu">
+            <img class="ums-avatar" src="/static/sms/dashboard/img/undraw_profile.svg" alt="Profile">
+        </button>
+        <div class="ums-panel" id="umsPanel" role="menu">
+            <a class="ums-item" href="{% url 'sms:myprofile' %}" role="menuitem">👤 Profile</a>
+            <a class="ums-item" href="{% url 'account_change_password' %}" role="menuitem">🔑 Change Password</a>
+            <a class="ums-item" href="{% url 'account_reset_password' %}" role="menuitem">🔒 Password Reset</a>
+            <a class="ums-item" href="{% url 'sms:homepage' %}" role="menuitem">🏠 go Home</a>
+            <div class="ums-divider"></div>
+            <a class="ums-item ums-item--danger" href="#" role="menuitem" data-toggle="modal" data-target="#logoutModal">🚪 Logout</a>
+        </div>
+    </div>
+</div>
 {% endblock %}
-
 
 {% block sidebar %}
 
-<<<<<<< HEAD
+<!-- ===== QUIZ MODAL ===== -->
+<div id="quizModal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeQuizModal()">&times;</span>
+    <h3 id="quizModalTitle">Quiz</h3>
+    <div id="quizModalBody"></div>
+    <div id="quizModalFooter" style="margin-top:16px; text-align:right; display:none;">
+      <button id="quizSubmitBtn" onclick="submitQuiz()" style="padding:8px 18px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer;">Submit Quiz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DROP ZONE ===== -->
 <div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
   Drop File Here or 
   <label for="fileInput" style="color: #4fa; cursor:pointer;">Browse</label>
-  <input type="file" id="fileInput" 
-         accept=".png,.jpg,.jpeg,.gif,.xls,.xlsx,.csv" 
-         style="display:none;">
+  <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.gif,.xls,.xlsx,.csv" style="display:none;">
 </div>
 <small style="color: #888;">Images and Excel files will be added to your files</small>
 
-<!-- Global Upload Spinner -->
-<!-- 🔄 Upload Loader -->
-<div id="upload-loader" style="
-  display:none;
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,0.4);
-  z-index:9999;
-  justify-content:center;
-  align-items:center;
-">
-  <div style="
-    width:50px; height:50px;
-    border:5px solid #f3f3f3;
-    border-top:5px solid #3498db;
-    border-radius:50%;
-    animation: spin 1s linear infinite;
-  "></div>
+<div id="upload-loader" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:9999; justify-content:center; align-items:center;">
+  <div style="width:50px; height:50px; border:5px solid #f3f3f3; border-top:5px solid #3498db; border-radius:50%; animation: spin 1s linear infinite;"></div>
 </div>
-
-
-<div style="margin-bottom: 20px;">
-  <input type="text" id="newFileName" placeholder="📝 New file name (e.g., index.ht4ml)" style="width: 100%; padding: 5px; margin-bottom: 5px; font-size: 0.9em;">
-=======
-
-<!-- <h4 style="color: #ccc;">📤 Upload Image</h4> -->
-<div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
-  Drop Image Here or <label for="imageInput" style="color: #4fa;">Browse</label>
-  <input type="file" id="imageInput" accept="image/*" style="display:none;">
-</div>
-<small style="color: #888;">Image will be added to your files</small>
 
 <div style="margin-bottom: 20px;">
   <input type="text" id="newFileName" placeholder="📝 New file name (e.g., index.html)" style="width: 100%; padding: 5px; margin-bottom: 5px; font-size: 0.9em;">
->>>>>>> heroku/main
   <button onclick="createNewFile()" style="width: 100%; background: #3498db; color: white; padding: 6px 10px; border: none; border-radius: 4px;">➕ Create File</button>
 </div>
 
 <hr>
 
+<!-- ===== EXAM SECTION ===== -->
+{% if not exam_id %}
+    <span style="color: #666;" title="No exam configured for this course">🎓 No Exam Available</span>
+{% elif topics and completed_topic_ids|length == topics|length %}
+    <a style="color: white;" href="{% url 'student:start-exam' pk=exam_id %}">🎓 Take Exam</a>
+{% else %}
+    <a id="examLockLink" href="{% url 'student:start-exam' pk=exam_id %}?next={{ request.path|urlencode }}" style="color: #aaa;" title="Complete all module quizzes to unlock the exam">
+        🔒 Take Exam (<span id="examProgressCount">{{ completed_topic_ids|length }}</span>/{{ topics|length }} modules)
+    </a>
+{% endif %}
+
+<!-- ===== PROGRESS BAR ===== -->
+<div id="quizProgressWrap">
+  <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#555; margin-bottom:4px;">
+    <span>Module Progress</span>
+    <span id="quizProgressLabel">{% if topics %}{% widthratio completed_topic_ids|length topics|length 100 %}{% else %}0{% endif %}%</span>
+  </div>
+  <div class="progress-bar">
+    <div id="quizProgressFill" class="progress-fill" style="width:{% if topics %}{% widthratio completed_topic_ids|length topics|length 100 %}{% else %}0{% endif %}%;"></div>
+  </div>
+</div>
+
+<!-- Leaderboard Link -->
+{% if course %}
+<a href="{% url 'webprojects:course_leaderboard' course.id %}?project_id={{ project.id }}&file_id={{ file.id }}" 
+   style="display: block; padding: 8px 12px; color: #9cdcfe; text-decoration: none; border: 1px solid #3c3c3c; border-radius: 6px; margin-bottom: 12px; transition: all 0.2s ease;"
+   onmouseover="this.style.background='#2a2d2e'; this.style.borderColor='#4fa';"
+   onmouseout="this.style.background=''; this.style.borderColor='#3c3c3c';">
+    🏆 Course Champions
+    {% if user_rank %}<span style="float:right; color: #4ade80; font-weight:600;" id="leaderboardRank">#{{ user_rank }}</span>{% endif %}
+</a>
+{% endif %}
+
+<!-- ===== TOPICS ===== -->
+<div class="topics-container" style='user-select: None'>
+  {% for topic in topics %}
+    <div class="topic-item" data-topic-id="{{ topic.id }}" id="topic-item-{{ topic.id }}">
+      <a href="javascript:void(0);" class="topic-toggle d-flex justify-content-between align-items-center"
+         onclick="toggleDesc('topic-{{ topic.id }}', this, '{{ topic.language|default:"python" }}')">
+        <span>{{ topic.title }}</span>
+        <span class="toggle-icon">➕</span>
+      </a>
+      <span id="studying-{{ topic.id }}" class="studying-indicator" style="display:none;">📖 Studying...</span>
+
+      <div id="topic-{{ topic.id }}" class="topic-desc language-{{ topic.language|default:'python' }}" style="display:none; background:#ffffff; color:#000000; padding:12px; border-radius:6px;">
+        {% if topic.img_topic %}
+          <div style="margin-bottom:12px;"><img src="{{ topic.img_topic.url }}" alt="{{ topic.title }}" style="max-width:100%; border-radius:6px; display:block;"></div>
+        {% endif %}
+        {% if topic.video %}
+          <div style="margin-bottom:12px;"><video controls style="max-width:100%; border-radius:6px; display:block;"><source src="{{ topic.video.url }}"></video></div>
+        {% endif %}
+        {% if topic.topics_url %}
+          <div style="margin-bottom:12px;"><iframe src="{{ topic.topics_url }}" frameborder="0" allowfullscreen style="width:100%; min-height:250px; border-radius:6px;"></iframe></div>
+        {% endif %}
+        {% if topic.language|default:'python' in 'python,javascript,html,css,java,cpp,csharp,php,ruby,go,rust,sql' %}
+          <p class="language-{{ topic.language|default:'python' }}" style="background:#ffffff !important; color:#000000 !important;">{{ topic.desc|safe|escape }}</p>
+        {% else %}
+          {% with topic.desc|safe as desc %}
+            {% if '<img' in desc or '<video' in desc or '<iframe' in desc %}
+              <div style="background:#ffffff; color:#000000; padding:16px; border-radius:6px; border:1px solid #e5e5e5; white-space:normal; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size:15px; line-height:1.6; max-width:100%;">{{ desc|safe }}</div>
+            {% else %}
+              <div style="background:#ffffff; color:#000000; padding:16px; border-radius:6px; border:1px solid #e5e5e5; white-space:normal; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size:15px; line-height:1.6; max-width:100%;">{{ desc|linebreaks|safe }}</div>
+            {% endif %}
+          {% endwith %}
+        {% endif %}
+      </div>
+
+      <!-- ===== QUIZ BUTTON & PASSED BADGE ===== -->
+      <div class="quiz-action-row" style="margin-top:6px; display:flex; align-items:center; gap:8px;">
+        {% with course_title=course.title|lower %}
+        {% if 'python' not in course_title and 'rust' not in course_title %}
+          <button class="quiz-btn" data-topic-id="{{ topic.id }}" data-topic-title="{{ topic.title|escapejs }}"
+                  onclick="openQuizModal({{ topic.id }}, this)">
+            {% if topic.id in completed_topic_ids %}🔁 Retake Quiz{% else %}📝 Take Quiz{% endif %}
+          </button>
+        {% endif %}
+        {% endwith %}
+        <span class="quiz-passed-badge" data-topic-id="{{ topic.id }}" style="{% if topic.id in completed_topic_ids %}display:inline;{% else %}display:none;{% endif %}">✅ Passed</span>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-muted">No content found for this course.</p>
+  {% endfor %}
+</div>
+
+<!-- ===== FILE LIST ===== -->
+<div id="fileListContainer">
 {% for ext in exts %}
   {% with files|dictsort:"name" as sorted_files %}
-    <div class="folder-toggle" data-ext="{{ ext }}">
-<<<<<<< HEAD
-      📁 {{ ext|upper }} Files <span>⮟</span>
-=======
-   📁 {{ ext|upper }} Files <span>⮟</span>
->>>>>>> heroku/main
+    <div class="folder-toggle" data-ext="{{ ext }}" style="display: flex; justify-content: space-between; align-items: center; background: #2a2d2e; border: 1px solid #3c3c3c; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px; cursor: pointer; font-size: 12.5px; font-weight: 600; color: #cccccc; letter-spacing: 0.03em; user-select: none; transition: background 0.15s ease;" onmouseover="this.style.background='#333638'" onmouseout="this.style.background='#2a2d2e'">
+        <span>📁 {{ ext|upper }} Files</span>
+        <span class="folder-arrow" style="font-size:11px; color:#666; transition: transform 0.2s;">▶</span>
     </div>
-    <div class="file-group">
+    <div class="file-group" data-ext="{{ ext }}" style="margin: 0 0 8px 0; border-left: 2px solid #3c3c3c; margin-left: 6px; padding-left: 8px; display: none;">
       {% for f in sorted_files %}
         {% if f.name|has_ext:ext %}
           {% with f.name|lower as fname %}
-            <div class="file-item">
-<<<<<<< HEAD
-
+            <div class="file-item" data-file-id="{{ f.id }}" style="display: flex; align-items: center; gap: 6px; padding: 5px 8px; margin-bottom: 3px; border-radius: 5px; background: {% if f.id == file.id %}#094771{% else %}#1e1e1e{% endif %}; border: 1px solid {% if f.id == file.id %}#1177bb{% else %}#2d2d2d{% endif %}; transition: background 0.15s ease;" onmouseover="if('{{ f.id }}' !== '{{ file.id }}') this.style.background='#2a2d2e'" onmouseout="if('{{ f.id }}' !== '{{ file.id }}') this.style.background='#1e1e1e'">
               {% if fname|slice:"-4:" == ".png" or fname|slice:"-4:" == ".jpg" or fname|slice:"-5:" == ".jpeg" or fname|slice:"-4:" == ".gif" %}
-                <!-- 👇 Image File: Open Modal -->
-                <a href="javascript:void(0);" onclick="showImageModal('{{ f.image.url }}')" style="color:#4fa;">🖼️ {{ f.name }}</a>
-
+                <a href="javascript:void(0);" onclick="showImageModal('{{ f.image.url }}')" title="{{ f.name }}" style="flex: 1; color: #4ec9b0; text-decoration: none; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🖼️ {{ f.name }}</a>
               {% else %}
-                <!-- 👇 Normal File: Go to Editor -->
-                <a href="{% url 'file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
-
+                <a href="{% url 'webprojects:file_detail' f.project.id f.id %}" title="{{ f.name }}" style="flex: 1; color: {% if f.id == file.id %}#ffffff{% else %}#9cdcfe{% endif %}; text-decoration: none; font-size: 12px; font-weight: {% if f.id == file.id %}600{% else %}400{% endif %}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" onclick="event.preventDefault(); window.location.href=this.href;">📝 {{ f.name }}</a>
                 {% if ".html" in f.name|lower %}
-                  <a href="{% url 'share_preview' f.project.id f.id %}" target="_blank" style="color: green;">publish</a>
+                <a href="{% url 'webprojects:share_preview' f.project.id f.id %}" target="_blank" title="Publish" style="flex-shrink: 0; font-size: 10.5px; font-weight: 600; color: #4caf50; text-decoration: none; background: rgba(76,175,80,0.12); border: 1px solid rgba(76,175,80,0.3); border-radius: 3px; padding: 2px 6px; white-space: nowrap;">↗ Publish</a>
                 {% endif %}
-
                 {% if f.is_excel %}
-                  <!-- 👇 Excel/CSV Preview Button -->
-                  <a href="{% url 'file_preview' f.project.id f.id %}" class="btn btn-sm ">View</a>
+                <a href="{% url 'webprojects:file_preview' f.project.id f.id %}" title="Preview spreadsheet" style="flex-shrink: 0; font-size: 10.5px; font-weight: 600; color: #569cd6; text-decoration: none; background: rgba(86,156,214,0.1); border: 1px solid rgba(86,156,214,0.3); border-radius: 3px; padding: 2px 6px; white-space: nowrap;">👁 View</a>
                 {% endif %}
-
               {% endif %}
-
-              <!-- 👇 Delete Button for all files -->
-              <form method="POST" action="{% url 'file_delete' f.project.id f.id %}" class="delete-file-form d-inline">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
+              <form method="POST" action="{% url 'webprojects:file_delete' f.project.id f.id %}" class="delete-file-form" style="flex-shrink: 0; margin: 0; padding: 0;" onsubmit="return confirm('Are you sure you want to delete this file?');">
+                {% csrf_token %}
+                <button type="submit" title="Delete {{ f.name }}" style="background: transparent; border: 1px solid transparent; border-radius: 4px; color: #666; font-size: 13px; padding: 2px 5px; cursor: pointer; line-height: 1; transition: all 0.15s ease;" onmouseover="this.style.background='rgba(220,53,69,0.15)'; this.style.borderColor='rgba(220,53,69,0.4)'; this.style.color='#f47983';" onmouseout="this.style.background='transparent'; this.style.borderColor='transparent'; this.style.color='#666';">🗑</button>
               </form>
-
-=======
-              {% if fname|slice:"-4:" == ".png" or fname|slice:"-4:" == ".jpg" or fname|slice:"-5:" == ".jpeg" or fname|slice:"-4:" == ".gif" %}
-                <!-- 👇 Image File: Open Modal -->
-                <a href="javascript:void(0);" onclick="showImageModal('{{ f.image.url }}')" style="color:#4fa;">🖼️ {{ f.name }}</a>
-              {% else %}
-                <!-- 👇 Normal File: Go to Editor -->
-                <a href="{% url 'file_detail' f.project.id f.id %}" {% if f.id == file.id %}style="font-weight:bold;color:#fff;"{% endif %}>📝 {{ f.name }}</a>
-                {% if ".html" in f.name|lower %}
-                  <a href="{% url 'share_preview' f.project.id f.id %}" target="_blank">🔗Share Preview</a>
-                {% endif %}
-              {% endif %}
->>>>>>> heroku/main
             </div>
           {% endwith %}
         {% endif %}
@@ -468,9 +939,9 @@
     </div>
   {% endwith %}
 {% endfor %}
+</div>
 
-
-<!-- 🖼️ Image Popup Modal -->
+<!-- ===== IMAGE POPUP ===== -->
 <div id="imagePopupModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000;">
   <span onclick="closeImageModal()" style="position:absolute; top:20px; right:30px; font-size:32px; color:white; cursor:pointer;">&times;</span>
   <div style="display:flex; align-items:center; justify-content:center; height:100%;">
@@ -478,1943 +949,793 @@
   </div>
 </div>
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> heroku/main
 {% endblock %}
 
-
 {% block content %}
-
-<div style="display: none;" class="preview-section"> 
-  <h4>Preview</h4>
-  <iframe id="preview" style="width:100%; height:400px; border:1px solid #ccc;"></iframe>
-</div>
-
-<!-- end -->
-
+<!-- ===== TOOLBAR ===== -->
 <div style="padding: 8px 12px; background: #222; border-bottom: 1px solid #444; text-align: right;">
- <button id="runBtnCode" onclick="runCode()" style="background:#2ecc71; color:white;">▶ Run Code</button> 
-  <button id="toggleAI" onclick="toggleAITools()" style="background: #444; color: #fff; padding: 6px 12px; border: none; border-radius: 4px;">
-    🔧 Show AI Tools
-  </button>
+  <button id="runBtnCode" onclick="runCode()" style="background:#2ecc71; color:white;">▶ Run Code</button> 
 </div>
 
-<div id="aiToolbar" class="toolbar">
-  
-  <span id="aiLoading" style="display:none;">⏳</span>
-  <button id="aiBtn" onclick="getAISuggestion()">💡 AI Suggest</button>
-  <button id="explainBtn" onclick="explainCode()">💬 Explain Code</button>
-  <select id="aiAction">
-    <option value="complete">🔧 Complete</option>
-    <option value="explain">💬 Explain</option>
-    <option value="optimize">⚡ Optimize</option>
-    <option value="comment">📝 Add Comments</option>
-    <option value="fix">🐞 Fix Bugs</option>
-  </select>
-  <button id="runBtn" onclick="runAIAction()">🚀 Run AI Action</button>
-</div>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const deleteForms = document.querySelectorAll('.delete-file-form');
-
-    deleteForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();  // prevent normal form submission
-
-            if (!confirm("Are you sure you want to delete this file?")) return;
-
-            const url = form.getAttribute('action');
-            const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Remove file item from DOM
-                    form.closest('.file-item').remove();
-                } else {
-                    alert(data.message || 'Failed to delete file.');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert('Error deleting file.');
-            });
-        });
-    });
-});
-</script>
-
-
-
-
-<<<<<<< HEAD
+<!-- ===== EDITOR PANEL ===== -->
 <div class="editor-panel" style="display: flex; flex-direction: column; height: 10%;">
-  <!-- Code Editor -->
-  <div id="container" style="flex-grow: 1; min-height: 10px;"></div>
-
-  <!-- Resize handle for code editor -->
-  <div id="resizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
+  <div class="editor-wrapper">
+    <button class="editor-close-btn" onclick="toggleEditor()" title="Close Editor">✕</button>
+    <div id="container" style="flex-grow: 1; min-height: 10px;"></div>
+    <div id="resizeHandle" style="height: 20px; cursor: row-resize; background: #444;">
+      <div style="width: 40px; height: 4px; background: #666; border-radius: 2px; pointer-events: none;"></div>
+    </div>
+  </div>
 </div>
 
-<!-- Floating AI Panel -->
-<div id="floatingAI" style="
-  position: fixed;
-  top: 100px;
-  right: 30px;
-  width: 400px;
-  height: 300px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  display: flex;
-  flex-direction: column;
-  z-index: 9999;
-">
-
-  <!-- Drag handle -->
-  <div id="dragHandle" style="cursor: grab; padding: 8px; background: #f1f1f1; border-bottom: 1px solid #ccc;">🖐️ Drag Me</div>
-
-  <!-- Tab Headers -->
-  <div style="display:flex; border-bottom:2px solid #eee; background:#f9f9f9;">
-    <button 
-      id="appBuilderTab" 
-      class="ai-tab" 
-      style="flex:1; padding:12px 20px; border:none; background:none; cursor:pointer; border-bottom:3px solid #007bff; font-weight:bold; font-size:15px; color:#007bff; transition:all 0.2s;"
-    >
-      🏗️ Build Project
-    </button>
-    <button 
-      id="fileEditorTab" 
-      class="ai-tab" 
-      style="flex:1; padding:12px 20px; border:none; background:none; cursor:pointer; border-bottom:3px solid transparent; font-size:15px; color:#666; transition:all 0.2s;"
-    >
-      📝 Edit Current File
-    </button>
+<!-- ===== OUTPUT PANEL ===== -->
+<div id="outputPanel" style="height: 150px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
+  <strong>🔽 Output:</strong>
+  <pre id="outputText" style="white-space: pre-wrap;"></pre>
+  <div id="tablePreview" style="margin-top: 15px; display: none;"></div>
+  <div id="plotPreview" style="display: none;"></div>
+  <div id="scorePanel" style="display:none; margin-top:10px; padding:10px; background:#2d2d2d; border-radius:6px; border-left: 3px solid #6366f1;">
+    <div id="scoreDisplay" style="font-size:1.1em; font-weight:bold; color:#fff;"></div>
+    <div id="scoreFeedback" style="color:#94a3b8; margin-top:4px; font-size:0.9em;"></div>
+    <div id="scoreBar" style="margin-top:8px; background:#444; border-radius:4px; height:6px;">
+      <div id="scoreBarFill" style="height:6px; border-radius:4px; background:#6366f1; width:0%; transition: width 0.5s ease;"></div>
+    </div>
   </div>
+</div>
 
-  <!-- App Builder Panel -->
+<!-- ===== FLOATING AI PANEL ===== -->
+<div id="floatingAI" style="position: fixed; top: 100px; right: 30px; width: 400px; height: 300px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: flex; flex-direction: column; z-index: 9999;">
+  <div id="dragHandle" style="cursor: grab; padding: 8px; background: #f1f1f1; border-bottom: 1px solid #ccc; display:flex; align-items:center; justify-content:space-between;">
+    <span>🖐️ Drag Me</span>
+    <button class="close-panel-btn" onclick="closeAIPanel()" title="Close" style="background: none; border: none; font-size: 18px; line-height: 1; color: #555; cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: background 0.2s, color 0.2s;" onmouseover="this.style.background='#e74c3c'; this.style.color='#fff';" onmouseout="this.style.background='none'; this.style.color='#555';">&times;</button>
+  </div>
+  <div style="display:flex; border-bottom:2px solid #eee; background:#f9f9f9;">
+    <button id="appBuilderTab" class="ai-tab" style="flex:1; padding:12px 20px; border:none; background:none; cursor:pointer; border-bottom:3px solid #007bff; font-weight:bold; font-size:15px; color:#007bff; transition:all 0.2s;">🏗️ Build Project</button>
+    <button id="fileEditorTab" class="ai-tab" style="flex:1; padding:12px 20px; border:none; background:none; cursor:pointer; border-bottom:3px solid transparent; font-size:15px; color:#666; transition:all 0.2s;">Edit 📝 {{ file.name }}</button>
+  </div>
   <div id="appBuilderPanel" style="padding:10px; flex:1; display:flex; flex-direction:column;">
     <div style="display:flex; gap:10px; margin-bottom:6px;">
-      <input
-        type="text"
-        id="aiPrompt"
-        placeholder="Ask AI to generate a project (e.g., 'Create a bouncing ball game')"
-        style="flex:1; padding:10px 12px; font-size:15px; border:1px solid #ccc; border-radius:4px;"
-      />
-      <button
-        id="runAIPrompt"
-        style="padding:10px 18px; background:#007bff; color:#fff; font-size:15px; border:none; border-radius:6px; cursor:pointer; transition:background 0.2s, transform 0.1s; white-space:nowrap;"
-        onmouseover="this.style.background='#0056b3'"
-        onmouseout="this.style.background='#007bff'"
-        onmousedown="this.style.transform='scale(0.96)'"
-        onmouseup="this.style.transform='scale(1)'"
-      >
-        Run AI
-      </button>
+      <input type="text" id="aiPrompt" placeholder="Ask AI to generate a project..." style="flex:1; padding:10px 12px; font-size:15px; border:1px solid #ccc; border-radius:4px;" />
+      <button id="runAIPrompt" onclick="runAIBuild()" style="padding:10px 18px; background:#007bff; color:#fff; font-size:15px; border:none; border-radius:6px; cursor:pointer; transition:background 0.2s, transform 0.1s; white-space:nowrap;" onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'">Run AI</button>
     </div>
-    <pre id="appBuilderOutput" 
-     style="background:#f5f5f5; padding:10px; border-radius:4px; margin-top:10px; height:200px; overflow-y:auto; white-space:pre-wrap; display:none;">
-</pre>
-
+    <pre id="appBuilderOutput" style="background:#f5f5f5; padding:10px; border-radius:4px; margin-top:10px; height:200px; overflow-y:auto; white-space:pre-wrap; display:none;"></pre>
   </div>
-
-  <!-- File Editor Panel -->
   <div id="fileEditorPanel" style="padding:10px; flex:1; display:none; flex-direction:column;">
     <div style="display:flex; gap:10px; margin-bottom:6px;">
-      <input 
-        id="fileChatPrompt" 
-        placeholder="Describe changes to apply to current file..." 
-        style="flex:1; padding:10px 12px; font-size:15px; border:1px solid #ccc; border-radius:4px;"
-      />
-      <button 
-        id="applyBtn" 
-        style="padding:10px 18px; background:#28a745; color:white; font-size:15px; border:none; border-radius:6px; cursor:pointer; transition:background 0.2s, transform 0.1s; white-space:nowrap;"
-        onmouseover="this.style.background='#218838'"
-        onmouseout="this.style.background='#28a745'"
-        onmousedown="this.style.transform='scale(0.96)'"
-        onmouseup="this.style.transform='scale(1)'"
-      >
-        Apply Changes
-      </button>
+      <input id="fileChatPrompt" placeholder="Describe changes to apply..." style="flex:1; padding:10px 12px; font-size:15px; border:1px solid #ccc; border-radius:4px;" />
+      <button id="applyBtn" onclick="applyChanges()" style="padding:10px 18px; background:#28a745; color:white; font-size:15px; border:none; border-radius:6px; cursor:pointer; transition:background 0.2s, transform 0.1s; white-space:nowrap;" onmouseover="this.style.background='#218838'" onmouseout="this.style.background='#28a745'" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'">Apply Changes</button>
     </div>
     <pre id="fileChatOutput" style="background:#f5f5f5; flex:1; overflow-y:auto; padding:10px; border-radius:4px; white-space:pre-wrap;"></pre>
   </div>
-
-  <!-- Resize handle for floating AI panel -->
   <div id="resizeHandleAI" style="height:6px; cursor: row-resize; background:#ccc;"></div>
 </div>
 
+<!-- ===== TOAST MESSAGE ===== -->
+<div id="toastMessage"></div>
+
 <script>
-// --- Tab Switching Logic ---
-const appBuilderTab = document.getElementById('appBuilderTab');
-const fileEditorTab = document.getElementById('fileEditorTab');
-const appBuilderPanel = document.getElementById('appBuilderPanel');
-const fileEditorPanel = document.getElementById('fileEditorPanel');
-
-function switchToAppBuilder() {
-  appBuilderPanel.style.display = 'flex';
-  fileEditorPanel.style.display = 'none';
-  
-  appBuilderTab.style.borderBottom = '3px solid #007bff';
-  appBuilderTab.style.fontWeight = 'bold';
-  appBuilderTab.style.color = '#007bff';
-  
-  fileEditorTab.style.borderBottom = '3px solid transparent';
-  fileEditorTab.style.fontWeight = 'normal';
-  fileEditorTab.style.color = '#666';
-}
-
-function switchToFileEditor() {
-  appBuilderPanel.style.display = 'none';
-  fileEditorPanel.style.display = 'flex';
-  
-  fileEditorTab.style.borderBottom = '3px solid #28a745';
-  fileEditorTab.style.fontWeight = 'bold';
-  fileEditorTab.style.color = '#28a745';
-  
-  appBuilderTab.style.borderBottom = '3px solid transparent';
-  appBuilderTab.style.fontWeight = 'normal';
-  appBuilderTab.style.color = '#666';
-}
-
-appBuilderTab.onclick = switchToAppBuilder;
-fileEditorTab.onclick = switchToFileEditor;
-
-// --- Floating drag ---
-const panel = document.getElementById('floatingAI');
-const dragHandle = document.getElementById('dragHandle');
-let isDraggingPanel = false;
-let dragOffsetY = 0;
-
-dragHandle.addEventListener('mousedown', e => {
-  isDraggingPanel = true;
-  dragOffsetY = e.clientY - panel.offsetTop;
-  dragHandle.style.cursor = 'grabbing';
-});
-
-document.addEventListener('mousemove', e => {
-  if(!isDraggingPanel) return;
-  panel.style.top = (e.clientY - dragOffsetY) + 'px';
-});
-
-document.addEventListener('mouseup', () => {
-  isDraggingPanel = false;
-  dragHandle.style.cursor = 'grab';
-});
-
-// --- Resize vertically ---
-const resizeHandleAI = document.getElementById('resizeHandleAI');
-let isResizing = false;
-
-resizeHandleAI.addEventListener('mousedown', e => {
-  isResizing = true;
-  e.preventDefault();
-});
-
-document.addEventListener('mousemove', e => {
-  if(!isResizing) return;
-  let newHeight = e.clientY - panel.offsetTop;
-  if(newHeight < 150) newHeight = 150; // minimum height
-  panel.style.height = newHeight + 'px';
-});
-
-document.addEventListener('mouseup', () => { isResizing = false; });
-
-// --- Apply Changes ---
-const PROJECT_ID = {{ project.id }};
-const FILE_ID = {{ file.id }};
-
-function getCsrfToken() {
-    return document.querySelector('[name=csrfmiddlewaretoken]')?.value 
-        || document.querySelector('meta[name="csrf-token"]')?.content
-        || '';
-}
-
-async function applyChanges() {
-    const prompt = document.getElementById('fileChatPrompt').value.trim();
-    
-    if (!prompt) {
-        alert('Please describe the changes you want to make');
-        return;
-    }
-
-    const outputEl = document.getElementById('fileChatOutput');
-    const applyBtn = document.getElementById('applyBtn');
-    const inputField = document.getElementById('fileChatPrompt');
-    
-    applyBtn.disabled = true;
-    applyBtn.textContent = 'Applying...';
-    outputEl.textContent += `\n⏳ Applying: "${prompt}"\n`;
-    outputEl.style.display = 'block';
-
-    try {
-        const res = await fetch(`/webprojects/project/${PROJECT_ID}/file/${FILE_ID}/chat/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCsrfToken()
-            },
-            body: JSON.stringify({ 
-                prompt: prompt, 
-                apply: true
-            })
-        });
-
-        const data = await res.json();
-
-        if (data.status === "success" && data.code) {
-            if (typeof editor !== 'undefined') {
-                if (editor.setValue) {
-                    editor.setValue(data.code);
-                } else if (editor.getModel) {
-                    editor.getModel().setValue(data.code);
-                }
+// ============================================
+// FOLDER TOGGLE FUNCTIONALITY
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.folder-toggle').forEach(function(toggle) {
+        const ext = toggle.dataset.ext;
+        const fileGroup = document.querySelector(`.file-group[data-ext="${ext}"]`);
+        const arrow = toggle.querySelector('.folder-arrow');
+        const storedState = localStorage.getItem('folder_' + ext);
+        if (storedState === 'open' && fileGroup) { fileGroup.style.display = 'block'; if (arrow) arrow.textContent = '▼'; toggle.classList.add('open'); }
+        toggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const group = this.nextElementSibling;
+            const arrowIcon = this.querySelector('.folder-arrow');
+            if (group && group.classList.contains('file-group')) {
+                const isOpen = group.style.display === 'block';
+                if (isOpen) { group.style.display = 'none'; if (arrowIcon) arrowIcon.textContent = '▶'; this.classList.remove('open'); localStorage.setItem('folder_' + ext, 'closed'); }
+                else { group.style.display = 'block'; if (arrowIcon) arrowIcon.textContent = '▼'; this.classList.add('open'); localStorage.setItem('folder_' + ext, 'open'); }
             }
-            
-            outputEl.textContent += `✅ Changes applied and saved!\n`;
-            outputEl.textContent += `   Prompt: "${prompt}"\n`;
-            outputEl.textContent += `   File ID: ${data.file_id}\n\n`;
-            
-            inputField.value = "";
-        } else {
-            outputEl.textContent += `❌ Error: ${data.message || 'Failed to apply changes'}\n\n`;
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        outputEl.textContent += `❌ Request failed: ${error.message}\n\n`;
-    } finally {
-        applyBtn.disabled = false;
-        applyBtn.textContent = 'Apply Changes';
-    }
-}
+        });
+    });
+});
 
-document.getElementById('applyBtn').onclick = applyChanges;
-
-document.getElementById('fileChatPrompt').onkeypress = function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        applyChanges();
-    }
-};
-</script>
-
-  <!-- <div class="ai-prompt-container" style="display: flex; gap: 10px; padding: 10px; border-top: 1px solid #ccc; background: #f9f9f9;">
-    <input
-      type="text"
-      id="aiPrompt"
-      placeholder="Ask AI to generate a project (e.g., 'Create a bouncing ball game')"
-      style="flex: 1; padding: 10px 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 2px;"
-    />
-    
-    <button
-      id="runAIPrompt"
-      style="padding: 10px 18px; background: #007bff; color: #fff; font-size: 15px; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s, transform 0.1s;"
-      onmouseover="this.style.background='#0056b3'"
-      onmouseout="this.style.background='#007bff'"
-      onmousedown="this.style.transform='scale(0.96)'"
-      onmouseup="this.style.transform='scale(1)'"
-    >
-      Run AI
-    </button>
-  </div>
-</div>
-
-<div style="display:flex; gap:8px; margin-top:10px;">
-  <input id="fileChatPrompt" placeholder="Describe changes to apply..." style="flex:1;padding:8px;">
-  <button id="applyBtn" style="background:#28a745;color:white;padding:8px 20px;border:none;border-radius:4px;cursor:pointer;">Apply Changes</button>
-</div>
-
-<pre id="fileChatOutput" style="background:#f5f5f5;padding:10px;border-radius:4px;max-height:300px;overflow-y:auto;white-space:pre-wrap;"></pre>
-
-<script>
-const PROJECT_ID = {{ project.id }};
-const FILE_ID = {{ file.id }};
-
-function getCsrfToken() {
-    return document.querySelector('[name=csrfmiddlewaretoken]')?.value 
-        || document.querySelector('meta[name="csrf-token"]')?.content
-        || '';
-}
-
-async function applyChanges() {
-    const prompt = document.getElementById('fileChatPrompt').value.trim();
-    
-    if (!prompt) {
-        alert('Please describe the changes you want to make');
-        return;
-    }
-
-    const outputEl = document.getElementById('fileChatOutput');
-    const applyBtn = document.getElementById('applyBtn');
-    const inputField = document.getElementById('fileChatPrompt');
-    
-    // Disable button and show loading
-    applyBtn.disabled = true;
-    applyBtn.textContent = 'Applying...';
-    outputEl.textContent += `\n⏳ Applying: "${prompt}"\n`;
-
+async function refreshFileList() {
     try {
-        const res = await fetch(`/webprojects/project/${PROJECT_ID}/file/${FILE_ID}/chat/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCsrfToken()
-            },
-            body: JSON.stringify({ 
-                prompt: prompt, 
-                apply: true  // Always apply changes
-            })
-        });
-
-        const data = await res.json();
-
-        if (data.status === "success" && data.code) {
-            // Update editor if it exists
-            if (typeof editor !== 'undefined') {
-                if (editor.setValue) {
-                    editor.setValue(data.code);
-                } else if (editor.getModel) {
-                    editor.getModel().setValue(data.code);
-                }
-            }
-            
-            // Show success message
-            outputEl.textContent += `✅ Changes applied and saved!\n`;
-            outputEl.textContent += `   Prompt: "${prompt}"\n`;
-            outputEl.textContent += `   File ID: ${data.file_id}\n\n`;
-            
-            // Clear input
-            inputField.value = "";
-        } else {
-            outputEl.textContent += `❌ Error: ${data.message || 'Failed to apply changes'}\n\n`;
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        outputEl.textContent += `❌ Request failed: ${error.message}\n\n`;
-    } finally {
-        // Re-enable button
-        applyBtn.disabled = false;
-        applyBtn.textContent = 'Apply Changes';
-    }
+        const res = await fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCsrfToken() } });
+        if (!res.ok) throw new Error('Failed to fetch file list');
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newFileList = doc.querySelector('#fileListContainer');
+        if (newFileList) { document.getElementById('fileListContainer').innerHTML = newFileList.innerHTML; reattachFolderListeners(); showToast('✅ Files updated!', 'success'); }
+    } catch (err) { console.error('Error refreshing file list:', err); setTimeout(() => window.location.reload(), 1500); }
 }
 
-// Attach click handler
-document.getElementById('applyBtn').onclick = applyChanges;
-
-// Allow Enter key to apply changes
-document.getElementById('fileChatPrompt').onkeypress = function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        applyChanges();
-    }
-};
-</script> -->
-
-
-  <!-- Output panel -->
-  <div id="outputPanel" style="height: 100px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
-    <strong>🔽 Output:2</strong>
-=======
-<div class="editor-panel" style="display: flex; flex-direction: column; height: 100%;">
-  <div id="container" style="flex-grow: 1; min-height: 10px;"></div>
-
-  <!-- Resize handle -->
-  <div id="resizeHandle" style="height: 6px; cursor: row-resize; background: #444;"></div>
-
-  <!-- Output panel -->
-  <div id="outputPanel" style="height: 160px; background: #1e1e1e; color: #dcdcdc; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9em; border-top: 1px solid #444;">
-    <strong>🔽 Output:</strong>
->>>>>>> heroku/main
-    <pre id="outputText" style="white-space: pre-wrap;"></pre>
-    <div id="tablePreview" style="margin-top: 15px;display: none;"></div>
-    <div id="plotPreview" style="display: none;"></div>
-  </div>
-</div>
-
-<<<<<<< HEAD
-
-
-=======
->>>>>>> heroku/main
-    <!-- AI Suggestion Preview Modal -->
-<div id="aiModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%);
-  background:#2d2d2d; color:#fff; padding:20px; border-radius:8px; z-index:1000; max-width:80%; box-shadow:0 0 10px #000;">
-  <h3>💡 AI Suggestion Preview</h3>
-  <pre id="aiModalContent" style="max-height:400px; overflow-y:auto; white-space:pre-wrap; background:#1e1e1e; padding:10px; border:1px solid #444;"></pre>
-  <div style="text-align:right; margin-top:10px;">
-    <button onclick="insertSuggestionFromModal()" style="background:#2ecc71; color:white; padding:6px 12px; border:none; border-radius:4px;">Insert</button>
-    <button onclick="closeAIModal()" style="background:#e74c3c; color:white; padding:6px 12px; border:none; border-radius:4px; margin-left:8px;">Cancel</button>
-  </div>
-</div>
-
-  </div>
-</div>
-
-<div id="toastMessage" style="
-  display: none;
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #222;
-  color: #fff;
-  padding: 10px 18px;
-  border-radius: 6px;
-  z-index: 9999;
-  font-size: 0.9em;
-  max-width: 90%;
-  text-align: left;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-"></div>
-
-
-<!-- js section -->
-<<<<<<< HEAD
-
-<!-- prompts js -->
-
-<script>
-  document.addEventListener("DOMContentLoaded", async () => {
-    const runButton = document.getElementById("runAIPrompt");
-    const aiPrompt = document.getElementById("aiPrompt");
-    const preview = document.getElementById("preview");
-
-    const FILE_ID = {{ file.id }};
-    const PROJECT_ID = {{ project.id }};
-    const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-    // ✅ Helper: Render into iframe
-    function renderPreview(html, css, js) {
-      preview.srcdoc = `
-        <html>
-          <head>
-            <style>${css || ""}</style>
-          </head>
-          <body>
-            ${html || ""}
-            <script>${js || ""}<\/script>
-          </body>
-        </html>`;
-    }
-
-    // ✅ Load saved project files on page load
-    async function loadSavedProject() {
-      try {
-        const res = await fetch(`/webprojects/${PROJECT_ID}/load-files/`);
-        const data = await res.json();
-        if (data.status === "success") {
-          renderPreview(data.html, data.css, data.js);
-        } else {
-          console.warn("No saved project files found");
-        }
-      } catch (err) {
-        console.error("Error loading saved project:", err);
-      }
-    }
-
-    // ✅ Run AI and update project
-    runButton.addEventListener("click", async () => {
-      const promptText = aiPrompt.value.trim();
-      if (!promptText) return alert("Enter a prompt");
-
-      runButton.disabled = true;
-      runButton.textContent = "Generating...";
-
-      try {
-        const res = await fetch(`/webprojects/${PROJECT_ID}/file/${FILE_ID}/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken
-          },
-          body: JSON.stringify({ file_id: FILE_ID, prompt: promptText })
-        });
-
-        const data = await res.json();
-        console.log("AI Response:", data);
-
-        if (data.status === "success" && data.ai_content) {
-          // ✅ Render new AI output immediately
-          renderPreview(
-            data.ai_content.html,
-            data.ai_content.css,
-            data.ai_content.js
-          );
-        } else {
-          alert("AI generation failed: " + (data.message || JSON.stringify(data)));
-        }
-
-      } catch (err) {
-        console.error(err);
-        alert("Error contacting AI backend: " + err.message);
-      } finally {
-        runButton.disabled = false;
-        runButton.textContent = "✨ Generate";
-      }
+function reattachFolderListeners() {
+    document.querySelectorAll('.folder-toggle').forEach(function(toggle) {
+        const ext = toggle.dataset.ext;
+        const storedState = localStorage.getItem('folder_' + ext);
+        if (storedState === 'open') { toggle.classList.add('open'); if (toggle.nextElementSibling) toggle.nextElementSibling.style.display = 'block'; }
+        toggle.addEventListener('click', function() { const group = this.nextElementSibling; const isOpen = this.classList.toggle('open'); if (group) group.style.display = isOpen ? 'block' : 'none'; localStorage.setItem('folder_' + ext, isOpen ? 'open' : 'closed'); });
     });
+}
 
-    // ✅ Initial load
-    loadSavedProject();
-  });
-</script>
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
+let activeTopicId = {{ current_topic_id|default:"null" }};
+let editor = null;
+let currentQuizTopicId = null;
+let currentQuizQuestions = [];
+const COURSE_ID = {{ course_id|default:"null" }};
+const TOTAL_TOPICS = {{ total_topics|default:0 }};
 
+// ============================================
+// TOPIC TOGGLE
+// ============================================
+function toggleDesc(id, el, lang) {
+  const desc = document.getElementById(id);
+  const topicId = id.replace('topic-', '');
+  if (desc.style.display === "none") {
+    desc.style.display = "block"; el.querySelector(".toggle-icon").textContent = "➖";
+    activeTopicId = topicId; updateActiveTopic(topicId);
+    document.querySelectorAll('[id^="studying-"]').forEach(s => s.style.display = 'none');
+    const studying = document.getElementById('studying-' + topicId); if (studying) studying.style.display = 'inline';
+    document.querySelectorAll('.topic-item').forEach(item => item.classList.remove('active-topic'));
+    const topicItem = document.getElementById('topic-item-' + topicId); if (topicItem) topicItem.classList.add('active-topic');
+  } else {
+    desc.style.display = "none"; el.querySelector(".toggle-icon").textContent = "➕"; desc.className = 'topic-desc language-' + lang;
+    activeTopicId = null; updateActiveTopic(null);
+    const studying = document.getElementById('studying-' + topicId); if (studying) studying.style.display = 'none';
+    const topicItem = document.getElementById('topic-item-' + topicId); if (topicItem) topicItem.classList.remove('active-topic');
+  }
+}
 
+// ============================================
+// USER MENU TOGGLE
+// ============================================
+(function () {
+    const trigger = document.getElementById('umsTrigger'), panel = document.getElementById('umsPanel');
+    if (!trigger || !panel) return;
+    trigger.addEventListener('click', function (e) { e.stopPropagation(); const isOpen = panel.classList.toggle('ums-open'); trigger.setAttribute('aria-expanded', isOpen); });
+    document.addEventListener('click', function (e) { if (!panel.contains(e.target) && e.target !== trigger) { panel.classList.remove('ums-open'); trigger.setAttribute('aria-expanded', 'false'); } });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { panel.classList.remove('ums-open'); trigger.setAttribute('aria-expanded', 'false'); trigger.focus(); } });
+}());
 
-=======
->>>>>>> heroku/main
-<!-- your sidebar content below... -->
- <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const editorLayout = document.getElementById('editorLayout');
-    const toggleBtn = document.getElementById('toggleSidebarBtn');
+function getCsrfToken() { return document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.querySelector('meta[name="csrf-token"]')?.content || ''; }
 
-    const updateToggleIcon = (isCollapsed) => {
-      toggleBtn.innerHTML = isCollapsed 
-        ? '<span title="Open Sidebar">☰</span>' 
-        : '<span title="Close Sidebar">✖</span>';
-    };
+function showToast(message, type = 'info') {
+  const toast = document.getElementById("toastMessage"); if (!toast) return;
+  const colors = { success: '#28a745', error: '#dc3545', info: '#007bff', warning: '#ffc107' };
+  toast.innerHTML = `<span>${message}</span><button onclick="hideToast()" style="background: none; border: none; color: #fff; font-size: 22px; position: absolute; right: 12px; top: 8px; cursor: pointer;">&times;</button>`;
+  toast.style.backgroundColor = colors[type] || '#222'; toast.style.display = "block"; toast.style.opacity = "1";
+  clearTimeout(toast._timeout); toast._timeout = setTimeout(() => { toast.style.opacity = "0"; setTimeout(() => toast.style.display = "none", 500); }, 3000);
+}
+function hideToast() { const toast = document.getElementById("toastMessage"); if (toast) { toast.style.opacity = "0"; setTimeout(() => toast.style.display = "none", 500); } }
+function escapeHTML(str) { return String(str).replace(/[&<>"']/g, tag => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[tag])); }
 
-    toggleBtn.addEventListener('click', () => {
-      const isCollapsed = editorLayout.classList.toggle('collapsed');
-      updateToggleIcon(isCollapsed);
+// ============================================
+// FILE MANAGEMENT
+// ============================================
+const CREATE_FILE_URL = "{% url 'webprojects:create_file' project.id %}";
+async function createNewFile() {
+  const input = document.getElementById('newFileName'); const name = input.value.trim();
+  if (!name) { showToast('Please enter a file name', 'warning'); return; }
+  try {
+    const res = await fetch(CREATE_FILE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }, body: JSON.stringify({ name: name, folder_id: null }) });
+    const data = await res.json();
+    if (data.status === 'success') { showToast(`Created ${data.file_name}`, 'success'); input.value = ''; await refreshFileList(); window.location.href = `/webprojects/{{ project.id }}/file/${data.file_id}/`; }
+    else { showToast(data.message || 'Failed to create file', 'error'); }
+  } catch (err) { console.error(err); showToast('Request failed while creating file', 'error'); }
+}
 
-      // Relayout Monaco Editor
-      setTimeout(() => {
-        if (window.editor?.layout) {
-          window.editor.layout();
-        }
-      }, 100);
+// ============================================
+// QUIZ PROGRESS LOAD
+// ============================================
+async function loadQuizProgress() {
+  try {
+    const url = COURSE_ID ? `/webprojects/progress/?course_id=${COURSE_ID}` : '/webprojects/progress/';
+    const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    const data = await res.json();
+    if (data.status === 'success') { updateProgressUI(data.overall_pct, data.completed_topic_ids || [], data.champion_xp || 0); }
+  } catch (err) { console.error('Failed to load progress', err); }
+}
+
+// ============================================
+// REAL-TIME XP UPDATE
+// ============================================
+function updateXPDisplay(xp) {
+    const xpValue = document.getElementById('xpValue');
+    const completionBadge = document.getElementById('completionBadge');
+    if (xpValue) { xpValue.textContent = xp + ' XP'; xpValue.classList.remove('xp-updated'); void xpValue.offsetWidth; xpValue.classList.add('xp-updated'); }
+}
+
+// ============================================
+// REAL-TIME PROGRESS UI UPDATE
+// ============================================
+function updateProgressUI(pct, completedIds, xp) {
+    const fill = document.getElementById('quizProgressFill');
+    const label = document.getElementById('quizProgressLabel');
+    const rankValue = document.getElementById('rankValue');
+    const leaderboardRank = document.getElementById('leaderboardRank');
+    if (fill) { fill.style.transition = 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'; fill.style.width = pct + '%'; }
+    if (label) label.textContent = pct + '%';
+    if (xp !== undefined) updateXPDisplay(xp);
+    
+    // Update badges and buttons for ALL topics
+    document.querySelectorAll('.quiz-passed-badge').forEach(badge => {
+        const tId = parseInt(badge.dataset.topicId);
+        const btn = document.querySelector(`.quiz-btn[data-topic-id="${tId}"]`);
+        const isDone = completedIds.includes(tId);
+        if (isDone) {
+            badge.style.display = 'inline';
+            badge.classList.remove('badge-appear'); void badge.offsetWidth; badge.classList.add('badge-appear');
+        } else { badge.style.display = 'none'; }
+        if (btn) { btn.textContent = isDone ? '🔁 Retake Quiz' : '📝 Take Quiz'; btn.style.background = isDone ? '#28a745' : '#3498db'; }
     });
-
-    // Initial state
-    updateToggleIcon(editorLayout.classList.contains('collapsed'));
-  });
-</script>
-
-<script>
-  function showImageModal(imgUrl) {
-    document.getElementById('popupImage').src = imgUrl;
-    document.getElementById('imagePopupModal').style.display = 'block';
-  }
-
-  function closeImageModal() {
-    document.getElementById('imagePopupModal').style.display = 'none';
-    document.getElementById('popupImage').src = "";
-  }
-</script>
-
-<script>
-function getAISuggestion() {
-  alert("AI Suggestion not implemented yet.");
+    
+    // Update exam link
+    const examLockLink = document.getElementById('examLockLink');
+    const examProgressCount = document.getElementById('examProgressCount');
+    if (examLockLink && examProgressCount) {
+        examProgressCount.textContent = completedIds.length;
+        if (completedIds.length >= TOTAL_TOPICS && TOTAL_TOPICS > 0) {
+            examLockLink.innerHTML = '🎓 Take Exam';
+            examLockLink.style.color = 'white';
+            examLockLink.removeAttribute('title');
+        }
+    }
+    
+    // Update completion badge
+    const completionBadge = document.getElementById('completionBadge');
+    if (completionBadge) {
+        if (completedIds.length >= TOTAL_TOPICS && TOTAL_TOPICS > 0) {
+            completionBadge.style.display = 'inline';
+            completionBadge.classList.remove('badge-appear');
+            void completionBadge.offsetWidth;
+            completionBadge.classList.add('badge-appear');
+            showCompletionCelebration();
+        } else {
+            completionBadge.style.display = 'none';
+        }
+    }
+    
+    if (window._lastRank !== undefined && rankValue) { rankValue.textContent = '#' + window._lastRank; rankValue.classList.remove('xp-updated'); void rankValue.offsetWidth; rankValue.classList.add('xp-updated'); }
+    if (window._lastRank !== undefined && leaderboardRank) leaderboardRank.textContent = '#' + window._lastRank;
 }
-function explainCode() {
-  alert("Explain Code not implemented yet.");
+
+// ============================================
+// COMPLETION CELEBRATION
+// ============================================
+function showCompletionCelebration() {
+    const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd'];
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.cssText = `position: fixed; width: 10px; height: 10px; background: ${colors[Math.floor(Math.random() * colors.length)]}; left: ${Math.random() * 100}vw; top: -10px; border-radius: ${Math.random() > 0.5 ? '50%' : '2px'}; pointer-events: none; z-index: 99999; animation: confettiFall ${2 + Math.random() * 2}s linear forwards; animation-delay: ${Math.random() * 0.5}s; transform: rotate(${Math.random() * 360}deg);`;
+        document.body.appendChild(confetti);
+        setTimeout(() => { if (confetti.parentNode) confetti.remove(); }, 4000);
+    }
+    showToast('🎉 Congratulations! You completed all modules!', 'success');
 }
-function runAIAction() {
-  const action = document.getElementById("aiAction").value;
-  alert("Run AI Action (" + action + ") not implemented yet.");
+const styleSheet = document.createElement("style");
+styleSheet.textContent = `@keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; } }`;
+document.head.appendChild(styleSheet);
+
+// ============================================
+// QUIZ MODAL
+// ============================================
+async function openQuizModal(topicId, btnEl) {
+  currentQuizTopicId = topicId; currentQuizQuestions = [];
+  const modal = document.getElementById('quizModal'); if (!modal) return;
+  document.getElementById('quizModalTitle').textContent = `Quiz: ${btnEl?.dataset.topicTitle || ''}`;
+  document.getElementById('quizModalBody').innerHTML = '<div style="text-align:center; padding:30px;">⏳ Generating questions...</div>';
+  document.getElementById('quizModalFooter').style.display = 'none'; modal.style.display = 'flex';
+  try {
+    const res = await fetch(`/webprojects/topic/${topicId}/quiz/generate/`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() } });
+    const data = await res.json();
+    if (data.status !== 'success') { document.getElementById('quizModalBody').innerHTML = `<div style="color:#dc3545; padding:20px;">❌ ${data.message || 'Failed to generate quiz'}</div>`; return; }
+    currentQuizQuestions = data.questions; renderQuizQuestions(); document.getElementById('quizModalFooter').style.display = 'block';
+  } catch (err) { document.getElementById('quizModalBody').innerHTML = `<div style="color:#dc3545; padding:20px;">❌ Request failed: ${err.message}</div>`; }
 }
-</script>
 
-<script>
-let editor;
-require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' } });
-require(['vs/editor/editor.main'], function () {
-  editor = monaco.editor.create(document.getElementById('container'), {
-    value: `{{ file.content|escapejs }}`,
-    language: getLanguage("{{ file.name }}"),
-    theme: 'vs-dark',
-    automaticLayout: true,
-    readOnly: false
-  });
+function renderQuizQuestions() {
+  const body = document.getElementById('quizModalBody'); if (!body) return;
+  body.innerHTML = currentQuizQuestions.map((q, qi) => `
+    <div style="margin-bottom:18px;"><p style="font-weight:600; margin-bottom:8px; color:#222;">${qi + 1}. ${escapeHTML(q.question)}</p>
+      ${q.options.map((opt, oi) => `<label style="display:block; padding:6px 10px; margin-bottom:4px; background:#f5f5f5; border-radius:6px; cursor:pointer; color:#333;"><input type="radio" name="quiz-q-${qi}" value="${oi}" style="margin-right:8px;">${escapeHTML(opt)}</label>`).join('')}
+    </div>`).join('');
+}
 
-  // Auto-save every 3s
-
-let autoSaveInterval = setInterval(() => {
-  fetch("{% url 'file_autosave' %}", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": "{{ csrf_token }}"
-    },
-    body: JSON.stringify({
-      file_id: {{ file.id }},
-      content: editor.getValue()
-    })
-  }).then(response => {
-    if (!response.ok) {
-      console.error("❌ Auto-save failed.");
+async function submitQuiz() {
+  const answers = [];
+  for (let qi = 0; qi < currentQuizQuestions.length; qi++) { const selected = document.querySelector(`input[name="quiz-q-${qi}"]:checked`); if (!selected) { showToast('Please answer all questions', 'warning'); return; } answers.push(parseInt(selected.value)); }
+  const submitBtn = document.getElementById('quizSubmitBtn'); if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
+  try {
+    const res = await fetch(`/webprojects/topic/${currentQuizTopicId}/quiz/submit/`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }, body: JSON.stringify({ answers, course_id: COURSE_ID }) });
+    const data = await res.json();
+    if (data.status !== 'success') { showToast(data.message || 'Submission failed', 'error'); return; }
+    const body = document.getElementById('quizModalBody'); const footer = document.getElementById('quizModalFooter'); if (footer) footer.style.display = 'none';
+    if (data.passed) {
+      if (body) body.innerHTML = `<div style="text-align:center; padding:20px;"><div style="font-size:40px;">🎉</div><p style="font-weight:bold; color:#28a745;">Passed! ${data.score}/${data.total} correct</p></div>`;
+      showToast('Quiz passed! Module marked complete.', 'success');
+      if (data.overall_pct !== undefined && data.completed_topic_ids) updateProgressUI(data.overall_pct, data.completed_topic_ids, data.champion_xp || data.points);
+      if (data.rank !== undefined) window._lastRank = data.rank;
     } else {
-      console.log("✅ Auto-saved at", new Date().toLocaleTimeString());
+      if (body) body.innerHTML = `<div style="text-align:center; padding:20px;"><div style="font-size:40px;">😕</div><p style="font-weight:bold; color:#dc3545;">${data.score}/${data.total} correct — try again</p><button class="quiz-btn" onclick="openQuizModal(${currentQuizTopicId}, document.querySelector('.quiz-btn[data-topic-id=&quot;${currentQuizTopicId}&quot;]'))">🔁 Retry</button></div>`;
     }
-  }).catch(err => {
-    console.error("❌ Auto-save error:", err);
-  });
-}, 3000);
+  } catch (err) { showToast('Request failed: ' + err.message, 'error'); }
+  finally { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Quiz'; } }
+}
+function closeQuizModal() { const modal = document.getElementById('quizModal'); if (modal) modal.style.display = 'none'; }
 
-  // === HTML Snippet Completions ===
-monaco.languages.registerCompletionItemProvider('html', {
-  triggerCharacters: ['<', '"', "'", ' ', ':', '.', '{'],
-  provideCompletionItems: function (model, position) {
-    const textUntilPosition = model.getValueInRange({
-      startLineNumber: 1,
-      startColumn: 1,
-      endLineNumber: position.lineNumber,
-      endColumn: position.column
-    });
+// ============================================
+// IMAGE MODAL
+// ============================================
+function showImageModal(imgUrl) { const modal = document.getElementById('imagePopupModal'), img = document.getElementById('popupImage'); if (modal && img) { img.src = imgUrl; modal.style.display = 'block'; } }
+function closeImageModal() { const modal = document.getElementById('imagePopupModal'), img = document.getElementById('popupImage'); if (modal) { modal.style.display = 'none'; if (img) img.src = ""; } }
 
-    const cssProperties = [
-      "color", "background", "background-color", "font-size", "font-weight", "font-family",
-      "margin", "padding", "border", "border-radius", "width", "height", "display", "position",
-      "top", "left", "right", "bottom", "z-index", "overflow", "opacity", "flex", "justify-content",
-      "align-items", "gap", "grid", "box-shadow", "transition", "animation", "text-align",
-      "line-height", "letter-spacing", "visibility"
-    ];
-
-    const cssColors = [
-      "red", "green", "blue", "black", "white", "gray", "grey", "yellow", "orange", "pink", "purple",
-      "brown", "cyan", "magenta", "lime", "teal", "navy", "gold", "silver", "maroon", "aqua",
-      "chocolate", "coral", "crimson", "indigo", "khaki", "lavender", "plum", "salmon", "tan", "violet"
-    ];
-
-    const htmlTags = [
-      'html', 'head', 'body', 'title', 'meta', 'link', 'style', 'script',
-      'header', 'nav', 'main', 'footer', 'section', 'article', 'aside',
-      'div', 'span', 'p', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'ul', 'ol', 'li', 'strong', 'em', 'br', 'hr', 'mark', 'abbr', 'cite',
-      'form', 'input', 'textarea', 'label', 'button', 'select', 'option',
-      'fieldset', 'legend', 'output', 'progress', 'meter',
-      'img', 'video', 'audio', 'source', 'canvas', 'iframe',
-      'details', 'summary', 'dialog', 'template',
-      'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td',
-      'code', 'pre', 'blockquote', 'figure', 'figcaption',
-      'b', 'i', 'u', 'small', 'big', 'sub', 'sup', 'kbd', 'samp'
-    ];
-
-    const voidTags = [
-      'meta', 'link', 'br', 'hr', 'img', 'input', 'source', 'area', 'base', 'col', 'embed', 'track', 'wbr'
-    ];
-
-    const jsSnippets = [
-      {
-        label: 'console.log',
-        insertText: `console.log($1);`,
-        documentation: 'Log output to the console'
-      },
-      {
-        label: 'function',
-        insertText: `function $1() {\n\t$2\n}`,
-        documentation: 'Function declaration'
-      },
-      {
-        label: 'addEventListener',
-        insertText: `document.querySelector('$1').addEventListener('$2', function(e) {\n\t$3\n});`,
-        documentation: 'Attach event listener'
-      },
-      {
-        label: 'fetch',
-        insertText: `fetch('$1')\n\t.then(res => res.json())\n\t.then(data => {\n\t\t$2\n});`,
-        documentation: 'Fetch API example'
-      }
-    ];
-
-    const tagSuggestions = htmlTags.map(tag => {
-      const isVoid = voidTags.includes(tag);
-      return {
-        label: tag,
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: isVoid ? `<${tag} $1>` : `<${tag}>$1</${tag}>`,
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: isVoid
-          ? `Insert <${tag}> tag (self-closing)`
-          : `Insert <${tag}>...</${tag}>`
-      };
-    });
-
-    const cssPropertySuggestions = cssProperties.map(prop => ({
-      label: prop,
-      kind: monaco.languages.CompletionItemKind.Property,
-      insertText: `${prop}: $1;`,
-      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-      documentation: `CSS property: ${prop}`
-    }));
-
-    const cssColorSuggestions = cssColors.map(color => ({
-      label: color,
-      kind: monaco.languages.CompletionItemKind.Color,
-      insertText: color,
-      documentation: `CSS color: ${color}`
-    }));
-
-    const jsSuggestions = jsSnippets.map(snip => ({
-      label: snip.label,
-      kind: monaco.languages.CompletionItemKind.Snippet,
-      insertText: snip.insertText,
-      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-      documentation: snip.documentation
-    }));
-
-    const insideStyle = /<style[\s\S]*?>[\s\S]*$/i.test(textUntilPosition);
-    const insideScript = /<script[\s\S]*?>[\s\S]*$/i.test(textUntilPosition);
-    const insideInlineStyle = /style\s*=\s*["'][^"']*$/i.test(textUntilPosition);
-
-    if (insideStyle || insideInlineStyle) {
-      return {
-        suggestions: [...cssPropertySuggestions, ...cssColorSuggestions]
-      };
-    }
-
-    if (insideScript) {
-      return {
-        suggestions: jsSuggestions
-      };
-    }
-
-    return {
-      suggestions: [...tagSuggestions]
-    };
-  }
-});
-
-  // === JavaScript Snippets ===
-monaco.languages.registerCompletionItemProvider('javascript', {
-  triggerCharacters: ['.', '(', ' '],
-  provideCompletionItems: () => ({
-    suggestions: [
-      {
-        label: 'for loop',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: [
-          'for (let ${1:i} = 0; ${1:i} < ${2:array}.length; ${1:i}++) {',
-          '\t${3:// code}',
-          '}'
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'A basic for loop over an array'
-      },
-      {
-        label: 'for...of loop',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: [
-          'for (const ${1:item} of ${2:array}) {',
-          '\t${3:// code}',
-          '}'
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Iterates over iterable objects like arrays'
-      },
-      {
-        label: 'if statement',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: [
-          'if (${1:condition}) {',
-          '\t${2:// code}',
-          '}'
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Basic if condition'
-      },
-      {
-        label: 'console.log',
-        kind: monaco.languages.CompletionItemKind.Function,
-        insertText: 'console.log(${1:message});',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Prints a message to the console'
-      },
-      {
-        label: 'addEventListener',
-        kind: monaco.languages.CompletionItemKind.Function,
-        insertText: "document.querySelector('${1:selector}').addEventListener('${2:event}', function(e) {\n\t$3\n});",
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Attaches an event listener to an element'
-      },
-      {
-        label: 'setTimeout',
-        kind: monaco.languages.CompletionItemKind.Function,
-        insertText: 'setTimeout(() => {\n\t$1\n}, ${2:1000});',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Delays execution of code'
-      },
-      {
-        label: 'fetch',
-        kind: monaco.languages.CompletionItemKind.Function,
-        insertText: [
-          "fetch('${1:url}')",
-          "  .then(response => response.json())",
-          "  .then(data => {",
-          "    ${2:// process data}",
-          "  })",
-          "  .catch(error => console.error(error));"
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Makes a network request using fetch API'
-      }
-    ]
-  })
-});
-
-monaco.languages.registerHoverProvider('javascript', {
-  provideHover: function(model, position) {
-    const word = model.getWordAtPosition(position);
-    if (!word) return;
-
-    const docs = {
-      'console': {
-        value: '**console.log()**\n\nOutputs messages to the browser console.\nUseful for debugging.'
-      },
-      'fetch': {
-        value: '**fetch()**\n\nPerforms a network request and returns a Promise.\nUsed for AJAX and API calls.'
-      },
-      'setTimeout': {
-        value: '**setTimeout()**\n\nExecutes a function after a specified delay (in milliseconds).'
-      }
-    };
-
-    const doc = docs[word.word];
-    if (doc) {
-      return {
-        contents: [{ value: doc.value }]
-      };
-    }
-
-    return null;
-  }
-});
-
-
- // === Python Snippets ===
-const staticCompletions = {
-  python: {
-    keywords: [
-      "False", "None", "True", "and", "as", "assert", "async", "await", "break", "class",
-      "continue", "def", "del", "elif", "else", "except", "finally", "for", "from", "global",
-      "if", "import", "in", "is", "lambda", "match", "nonlocal", "not", "or", "pass", "raise",
-      "return", "try", "while", "with", "yield", "case"
-    ],
-    functions: [
-      "abs", "aiter", "all", "any", "anext", "ascii", "bin", "bool", "breakpoint", "bytearray", "bytes",
-      "callable", "chr", "classmethod", "compile", "complex", "delattr", "dict", "dir", "divmod", "enumerate",
-      "eval", "exec", "filter", "float", "format", "frozenset", "getattr", "globals", "hasattr", "hash",
-      "help", "hex", "id", "input", "int", "isinstance", "issubclass", "iter", "len", "list", "locals", "map",
-      "max", "memoryview", "min", "next", "object", "oct", "open", "ord", "pow", "print", "property", "range",
-      "repr", "reversed", "round", "set", "setattr", "slice", "sorted", "staticmethod", "str", "sum", "super",
-      "tuple", "type", "vars", "zip", "__import__"
-    ],
-    classes: [
-      "int", "float", "str", "list", "dict", "set", "tuple", "object", "bool", "bytes", "bytearray",
-      "complex", "frozenset", "memoryview"
-    ],
-    exceptions: [
-      "ArithmeticError", "AssertionError", "AttributeError", "BaseException", "BlockingIOError", "BrokenPipeError",
-      "BufferError", "BytesWarning", "ChildProcessError", "ConnectionAbortedError", "ConnectionError",
-      "ConnectionRefusedError", "ConnectionResetError", "DeprecationWarning", "EOFError", "EnvironmentError",
-      "Exception", "FileExistsError", "FileNotFoundError", "FloatingPointError", "FutureWarning", "GeneratorExit",
-      "ImportError", "ImportWarning", "IndentationError", "IndexError", "InterruptedError", "IsADirectoryError",
-      "KeyError", "KeyboardInterrupt", "LookupError", "MemoryError", "ModuleNotFoundError", "NameError",
-      "NotADirectoryError", "NotImplemented", "NotImplementedError", "OSError", "OverflowError",
-      "PendingDeprecationWarning", "PermissionError", "ProcessLookupError", "RecursionError", "ReferenceError",
-      "ResourceWarning", "RuntimeError", "RuntimeWarning", "StopAsyncIteration", "StopIteration", "SyntaxError",
-      "SyntaxWarning", "SystemError", "SystemExit", "TabError", "TimeoutError", "TypeError", "UnboundLocalError",
-      "UnicodeDecodeError", "UnicodeEncodeError", "UnicodeError", "UnicodeTranslateError", "UnicodeWarning",
-      "UserWarning", "ValueError", "Warning", "ZeroDivisionError"
-    ],
-    modules: [
-      "os", "sys", "math", "random", "datetime", "time", "json", "re", "statistics", "itertools", "functools",
-      "collections", "pathlib", "shutil", "subprocess", "glob", "logging", "decimal", "fractions", "pprint",
-      "typing", "traceback", "urllib", "http", "argparse", "getopt", "enum", "dataclasses", "asyncio", "threading",
-      "multiprocessing", "platform", "socket", "email", "copy", "inspect", "pickle", "csv", "heapq", "uuid",
-      "base64", "hashlib", "html", "xml", "webbrowser", "sqlite3"
-    ]
-  },
-    np: [
-    "array", "arange", "linspace", "logspace", "zeros", "ones", "full", "eye", "identity", "diag", "empty",
-    "reshape", "transpose", "flatten", "ravel", "squeeze", "expand_dims",
-    "dot", "matmul", "tensordot", "inner", "outer", "cross",
-    "mean", "median", "std", "var", "sum", "cumsum", "prod", "max", "min", "argmax", "argmin", "where",
-    "unique", "sort", "argsort", "clip",
-    "concatenate", "stack", "vstack", "hstack", "dstack", "column_stack", "split", "hsplit", "vsplit", "array_split",
-    "random", "load", "save", "frombuffer", "fromfile", "fromiter", "fromfunction", "vectorize"
-  ],
-
-  pd: [
-    "DataFrame", "Series", "read_csv", "read_excel", "read_json", "read_sql", "read_html", "read_parquet", "read_feather",
-    "to_csv", "to_excel", "to_json", "to_sql", "to_parquet",
-    "head", "tail", "sample", "shape", "columns", "index", "dtypes", "axes",
-    "describe", "info", "memory_usage", "isnull", "notnull", "dropna", "fillna", "interpolate",
-    "groupby", "pivot", "pivot_table", "melt", "stack", "unstack", "merge", "join", "concat", "append",
-    "sort_values", "sort_index", "drop", "rename", "set_index", "reset_index",
-    "loc", "iloc", "at", "iat", "ix", "astype", "apply", "map", "applymap", "transform", "agg", "duplicated", "nunique", "value_counts"
-  ],
-
-  plt: [
-    "figure", "subplot", "subplots", "plot", "scatter", "bar", "barh", "hist", "pie", "boxplot", "violinplot", "stem",
-    "imshow", "matshow", "contour", "contourf", "pcolor", "quiver", "streamplot",
-    "xlabel", "ylabel", "title", "legend", "colorbar", "grid", "axis", "xlim", "ylim", "xticks", "yticks",
-    "tight_layout", "savefig", "show", "clf", "cla", "close"
-  ],
-
-  sns: [
-    "load_dataset", "scatterplot", "lineplot", "barplot", "boxplot", "histplot", "kdeplot", "violinplot", "stripplot",
-    "swarmplot", "countplot", "catplot", "pairplot", "heatmap", "clustermap", "jointplot",
-    "set", "set_theme", "set_style", "set_context", "color_palette", "despine"
-  ],
-
-  cv2: [
-    "imread", "imwrite", "imshow", "waitKey", "destroyAllWindows",
-    "cvtColor", "resize", "flip", "rotate", "GaussianBlur", "medianBlur", "threshold", "adaptiveThreshold",
-    "Canny", "VideoCapture", "VideoWriter", "findContours", "drawContours", "rectangle", "circle", "line", "putText",
-    "bitwise_and", "bitwise_or", "bitwise_not", "bitwise_xor", "add", "addWeighted", "subtract", "erode", "dilate",
-    "morphologyEx"
-  ]
-
+// ============================================
+// AI BUILD
+// ============================================
+window.runAIBuild = async function() {
+  const promptInput = document.getElementById('aiPrompt'), outputEl = document.getElementById('appBuilderOutput'), runBtn = document.getElementById('runAIPrompt'), prompt = promptInput.value.trim();
+  if (!prompt) { showToast('Please enter a prompt', 'warning'); return; }
+  runBtn.disabled = true; runBtn.textContent = '⏳ Generating...'; outputEl.style.display = 'block'; outputEl.textContent = '⏳ Generating project from AI...\n';
+  try {
+    const res = await fetch("{% url 'webprojects:file_detail' project.id file.id %}", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }, body: JSON.stringify({ file_id: {{ file.id }}, prompt: prompt, ai_action: 'build_project' }) });
+    const data = await res.json();
+    if (data.status === 'success' && data.ai_content) { outputEl.textContent = '✅ Project generated!\n\n📄 HTML:\n' + (data.ai_content.html || '') + '\n\n🎨 CSS:\n' + (data.ai_content.css || '') + '\n\n⚡ JS:\n' + (data.ai_content.js || ''); await refreshFileList(); showToast('✅ Project generated!', 'success'); }
+    else { outputEl.textContent = `❌ ${data.message || 'Generation failed'}`; showToast(data.message || 'Generation failed', 'error'); }
+  } catch (err) { outputEl.textContent = `❌ ${err.message}`; showToast('Error: ' + err.message, 'error'); }
+  finally { runBtn.disabled = false; runBtn.textContent = 'Run AI'; }
 };
 
-monaco.languages.registerCompletionItemProvider('python', {
-  triggerCharacters: ['.', ...'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'],
-  provideCompletionItems: async function (model, position) {
-    const lineUntilCursor = model.getValueInRange({
-      startLineNumber: position.lineNumber,
-      startColumn: 1,
-      endLineNumber: position.lineNumber,
-      endColumn: position.column
-    });
+// ============================================
+// AI APPLY CHANGES
+// ============================================
+window.applyChanges = async function() {
+  const promptInput = document.getElementById('fileChatPrompt'), outputEl = document.getElementById('fileChatOutput'), applyBtn = document.getElementById('applyBtn'), prompt = promptInput.value.trim();
+  if (!prompt) { showToast('Please describe the changes', 'warning'); return; }
+  applyBtn.disabled = true; applyBtn.textContent = '⏳ Applying...'; outputEl.style.display = 'block'; outputEl.textContent = `⏳ Applying: "${prompt}"\n`;
+  try {
+    const PROJECT_ID = {{ project.id }}, FILE_ID = {{ file.id }};
+    const res = await fetch(`/webprojects/project/${PROJECT_ID}/file/${FILE_ID}/chat/`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }, body: JSON.stringify({ prompt: prompt, apply: true, file_id: FILE_ID }) });
+    const data = await res.json();
+    if (data.status === 'success' && data.code) { if (editor) { if (editor.setValue) editor.setValue(data.code); else if (editor.getModel) editor.getModel().setValue(data.code); } outputEl.textContent += '✅ Changes applied!\n'; promptInput.value = ''; showToast('✅ Changes applied!', 'success'); }
+    else { outputEl.textContent += `❌ Error: ${data.message || 'Failed'}\n`; showToast('Error: ' + (data.message || 'Failed'), 'error'); }
+  } catch (err) { outputEl.textContent += `❌ ${err.message}\n`; showToast('Error: ' + err.message, 'error'); }
+  finally { applyBtn.disabled = false; applyBtn.textContent = 'Apply Changes'; }
+};
 
-    // Dot notation (e.g., np.)
-    const dotMatch = lineUntilCursor.match(/(\w+)\.$/);
-    if (dotMatch) {
-      const prefix = dotMatch[1];
-      const completions = staticCompletions[prefix] || [];
-      return {
-        suggestions: completions.map(item => ({
-          label: item,
-          kind: monaco.languages.CompletionItemKind.Method,
-          insertText: item,
-          documentation: `${prefix}.${item}`
-        }))
-      };
-    }
-
-    // General Python typing (e.g., print, for, True, etc.)
-    const wordMatch = lineUntilCursor.match(/(\w+)$/);
-    if (wordMatch) {
-      const prefix = wordMatch[1].toLowerCase();
-      const python = staticCompletions.python;
-
-      const suggestions = [
-        ...python.keywords.filter(k => k.startsWith(prefix)).map(k => ({
-          label: k,
-          kind: monaco.languages.CompletionItemKind.Keyword,
-          insertText: k,
-          documentation: `Python keyword: ${k}`
-        })),
-        ...python.functions.filter(f => f.startsWith(prefix)).map(f => ({
-          label: f,
-          kind: monaco.languages.CompletionItemKind.Function,
-          insertText: f,
-          documentation: `Built-in function: ${f}`
-        })),
-        ...python.classes.filter(c => c.startsWith(prefix)).map(c => ({
-          label: c,
-          kind: monaco.languages.CompletionItemKind.Class,
-          insertText: c,
-          documentation: `Built-in class: ${c}`
-        })),
-        ...python.exceptions.filter(e => e.toLowerCase().startsWith(prefix)).map(e => ({
-          label: e,
-          kind: monaco.languages.CompletionItemKind.Class,
-          insertText: e,
-          documentation: `Exception: ${e}`
-        })),
-        ...python.modules.filter(m => m.startsWith(prefix)).map(m => ({
-          label: m,
-          kind: monaco.languages.CompletionItemKind.Module,
-          insertText: m,
-          documentation: `Python module: ${m}`
-        }))
-      ];
-
-      return { suggestions };
-    }
-
-    // Optional fallback to AI suggestions
-    try {
-      const res = await fetch("/ai-python-completion/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
-        },
-        body: JSON.stringify({ prefix: lineUntilCursor.trim() })
-      });
-
-      const data = await res.json();
-      if (data.completions) {
-        return {
-          suggestions: data.completions.map(item => ({
-            label: item,
-            kind: monaco.languages.CompletionItemKind.Function,
-            insertText: item,
-            documentation: `AI: ${item}`
-          }))
-        };
-      }
-    } catch (err) {
-      console.warn("AI fallback failed", err);
-    }
-
-    return { suggestions: [] };
-  }
-});
-
-
-});
-
-
-// === CSS Snippets ===
-monaco.languages.registerCompletionItemProvider('css', {
-  provideCompletionItems: () => ({
-    suggestions: [
-      // === Layout & Box Model ===
-      {
-        label: 'display: flex',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'display: flex;',
-        documentation: 'Set display mode to flex'
-      },
-      {
-        label: 'display: grid',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'display: grid;',
-        documentation: 'Set display mode to grid'
-      },
-      {
-        label: 'flex-center',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: [
-          'display: flex;',
-          'justify-content: center;',
-          'align-items: center;'
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Center content using flex'
-      },
-      {
-        label: 'margin',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'margin: ${1:0};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set margin'
-      },
-      {
-        label: 'padding',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'padding: ${1:0};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set padding'
-      },
-      {
-        label: 'box-sizing',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'box-sizing: border-box;',
-        documentation: 'Include padding and border in element width and height'
-      },
-      {
-        label: 'gap',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'gap: ${1:1rem};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Spacing between grid/flex items'
-      },
-
-      // === Dimensions ===
-      {
-        label: 'width',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'width: ${1:100%};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set width'
-      },
-      {
-        label: 'height',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'height: ${1:auto};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set height'
-      },
-
-      // === Positioning ===
-      {
-        label: 'position',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'position: ${1:relative};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set positioning method'
-      },
-      {
-        label: 'top',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'top: ${1:0};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set top offset'
-      },
-      {
-        label: 'left',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'left: ${1:0};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set left offset'
-      },
-
-      // === Typography ===
-      {
-        label: 'font-size',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'font-size: ${1:16px};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set font size'
-      },
-      {
-        label: 'font-weight',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'font-weight: ${1:bold};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set font weight'
-      },
-      {
-        label: 'line-height',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'line-height: ${1:1.5};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Set line height'
-      },
-
-      // === Colors ===
-      {
-        label: 'color',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'color: ${1:#000};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Text color'
-      },
-      {
-        label: 'background-color',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'background-color: ${1:#fff};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Background color'
-      },
-      {
-        label: 'primary-color',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'color: ${1:#3498db};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Primary brand color'
-      },
-      {
-        label: 'named-color',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'color: ${1:red};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Use named color like red, blue, green, etc.'
-      },
-
-      // === Effects ===
-      {
-        label: 'transition',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'transition: ${1:all} ${2:0.3s} ease-in-out;',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Smooth transition'
-      },
-      {
-        label: 'box-shadow',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'box-shadow: ${1:0 2px 4px rgba(0,0,0,0.1)};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Shadow effect'
-      },
-      {
-        label: 'border-radius',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'border-radius: ${1:4px};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Rounded corners'
-      },
-
-      // === Animation ===
-      {
-        label: '@keyframes',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: [
-          '@keyframes ${1:fadeIn} {',
-          '  0% { opacity: 0; }',
-          '  100% { opacity: 1; }',
-          '}'
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Define keyframes'
-      },
-      {
-        label: 'animation',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: 'animation: ${1:fadeIn} ${2:1s} ${3:ease-in-out};',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Apply animation'
-      },
-
-      // === Media Query ===
-      {
-        label: '@media',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: [
-          '@media (max-width: ${1:768px}) {',
-          '\t${2:selector} {',
-          '\t\t${3:property}: ${4:value};',
-          '\t}',
-          '}'
-        ].join('\n'),
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: 'Media query block'
-      },
-
-      // === Utility Reminder (Tailwind etc.) ===
-      {
-        label: 'tw-bg-blue-500',
-        kind: monaco.languages.CompletionItemKind.Text,
-        insertText: 'bg-blue-500',
-        documentation: 'Tailwind class (remember: this is not native CSS)'
-      }
-    ]
-  })
-});
-
-
-
-function getLanguage(fileName) {
-  const ext = fileName.split('.').pop().toLowerCase();
-  switch (ext) {
-    case "py": return "python";
-    case "js": return "javascript";
-    case "html": return "html";
-    case "css": return "css";
-    case "json": return "json";
-    default: return "plaintext";
-  }
-}
+// ============================================
+// RUN CODE
+// ============================================
 
 function runCode() {
+  const code = editor.getValue(), 
+        output = document.getElementById("outputText"), 
+        tablePreview = document.getElementById("tablePreview"), 
+        plotPreview = document.getElementById("plotPreview"), 
+        scorePanel = document.getElementById("scorePanel");
 
-    const code = editor.getValue();
-    const output = document.getElementById("outputText");
-    const tablePreview = document.getElementById("tablePreview");
-    const plotPreview = document.getElementById("plotPreview");
+  output.innerHTML = `⏳ Running... <span class="spinner"></span>`; 
+  tablePreview.innerHTML = ""; 
+  plotPreview.innerHTML = ""; 
+  scorePanel.style.display = "none";
 
-    // Show spinner
-    output.innerHTML = `⏳ Running... <span class="spinner"></span>`;
-    tablePreview.innerHTML = "";
-    plotPreview.innerHTML = "";
+  fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { 
+    method: "POST", 
+    headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" }, 
+    body: JSON.stringify({ content: code, run_plot: true, run_table: true, topic_id: activeTopicId }) 
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.status === "error") { 
+      output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`; 
+    } else {
+      output.textContent = data.output || "[No output]";
 
-    fetch("{% url 'file_detail' file.project.id file.id %}", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: JSON.stringify({ 
-            content: code,
-            run_plot: true,
-            run_table: true
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === "error") {
-            output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`;
-        } else {
-            // Text output
-            output.textContent = data.output || "[No output]";
+      // ── Handle auto-score from successful code run ──────────
+      if (data.code_passed && activeTopicId) {
+        const scorePanel = document.getElementById("scorePanel");
+        const scoreDisplay = document.getElementById("scoreDisplay");
+        const scoreFeedback = document.getElementById("scoreFeedback");
+        const scoreBarFill = document.getElementById("scoreBarFill");
 
-            // Table preview (first 20 rows of CSV or resulting DataFrame)
-            if (data.table) {
-                tablePreview.innerHTML = data.table;
-                tablePreview.style.display = "block";
-            } else {
-                tablePreview.style.display = "none";
-            }
+        scorePanel.style.display = "block";
 
-            // Plot preview
-            plotPreview.innerHTML = "";
-            if (Array.isArray(data.images) && data.images.length > 0) {
-                data.images.forEach(src => {
-                    const img = document.createElement("img");
-                    img.src = src;
-                    img.style.maxWidth = "100%";
-                    img.style.marginBottom = "10px";
-                    plotPreview.appendChild(img);
-                });
-                plotPreview.style.display = "block";
-            } else {
-                plotPreview.style.display = "none";
-            }
+        let scoreHTML = `✅ Code ran successfully! Score: <span style="color:#22c55e">${data.score}</span>`;
+        if (data.xp_earned > 0) {
+          scoreHTML += ` <span style="color:#fbbf24; font-size:0.9em;">(+${data.xp_earned} XP 🏆)</span>`;
         }
-    })
-    .catch(err => {
-        output.innerHTML = `<span style="color:red;">❌ Request Failed: ${escapeHTML(err.message)}</span>`;
-    });
-=======
-  const code = editor.getValue();
-  const output = document.getElementById("outputText");
-  const tablePreview = document.getElementById("tablePreview");
-  const plotPreview = document.getElementById("plotPreview");
-  const ext = "{{ file.name|lower }}".split('.').pop();
+        if (data.already_awarded) {
+          scoreHTML += ` <span style="color:#f59e0b; font-size:0.8em;">⚠️ Already completed</span>`;
+        }
 
-  output.innerHTML = `⏳ Running... <span class="spinner"></span>`;
-  tablePreview.innerHTML = "";
-  plotPreview.innerHTML = "";
+        scoreDisplay.innerHTML = scoreHTML;
+        scoreFeedback.textContent = "Great job! Your code executed without errors.";
+        scoreBarFill.style.background = "#22c55e";
+        scoreBarFill.style.width = "100%";
 
-  if (ext === "js") {
-    try {
-      const logs = [];
-      const originalLog = console.log;
-      console.log = function (...args) {
-        logs.push(args.join(" "));
-      };
+        // Update XP & rank
+        if (data.champion_xp !== undefined) {
+          updateXPDisplay(data.champion_xp);
+          if (data.rank !== undefined) {
+            window._lastRank = data.rank;
+            const rv = document.getElementById('rankValue');
+            const lr = document.getElementById('leaderboardRank');
+            if (rv) { rv.textContent = '#' + data.rank; rv.classList.remove('xp-updated'); void rv.offsetWidth; rv.classList.add('xp-updated'); }
+            if (lr) lr.textContent = '#' + data.rank;
+          }
+        }
 
-      const result = eval(code);
-      console.log = originalLog;
+        // Update progress bar & badges
+        if (data.points !== undefined && data.total_topics !== undefined) {
+          const newPct = Math.round((data.points / data.total_topics) * 100);
+          const completedIds = [];
 
-      let outputText = logs.join("\n");
-      if (result !== undefined) {
-        outputText += "\n➡️ Result: " + result;
-      }
+          if (!data.already_awarded) completedIds.push(parseInt(activeTopicId));
 
-      // output.textContent = outputText || "[No output]";
-      output.textContent = outputText;
-    } catch (err) {
-      output.innerHTML = `<span style="color:red;">❌ JavaScript Error: ${escapeHTML(err.message)}</span>`;
-    }
-  }
+          document.querySelectorAll('.quiz-passed-badge').forEach(badge => {
+            const tId = parseInt(badge.dataset.topicId);
+            if (tId !== parseInt(activeTopicId) && badge.style.display === 'inline') completedIds.push(tId);
+          });
 
-  else if (ext === "py") {
-    fetch("{% url 'file_detail' file.project.id file.id %}", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token }}"
-      },
-      body: JSON.stringify({
-        content: code,
-        run_plot: true
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === "error") {
-        output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`;
+          if (data.already_awarded && !completedIds.includes(parseInt(activeTopicId))) {
+            completedIds.push(parseInt(activeTopicId));
+          }
+
+          updateProgressUI(newPct, completedIds, data.champion_xp);
+
+          // Show passed badge
+          const badge = document.querySelector(`.quiz-passed-badge[data-topic-id="${activeTopicId}"]`);
+          if (badge) { badge.style.display = 'inline'; badge.classList.remove('badge-appear'); void badge.offsetWidth; badge.classList.add('badge-appear'); }
+
+          // Update exam link
+          const examLockLink = document.getElementById('examLockLink');
+          const examProgressCount = document.getElementById('examProgressCount');
+          if (examLockLink && examProgressCount) {
+            examProgressCount.textContent = data.points;
+            if (data.points >= data.total_topics && data.total_topics > 0) {
+              examLockLink.innerHTML = '🎓 Take Exam';
+              examLockLink.style.color = 'white';
+              examLockLink.removeAttribute('title');
+            }
+          }
+
+          // Completion celebration
+          const completionBadge = document.getElementById('completionBadge');
+          if (completionBadge && data.points >= data.total_topics && data.total_topics > 0) {
+            completionBadge.style.display = 'inline';
+            completionBadge.classList.remove('badge-appear');
+            void completionBadge.offsetWidth;
+            completionBadge.classList.add('badge-appear');
+            showCompletionCelebration();
+          }
+        }
+      } else if (activeTopicId) {
+        // Fall back to AI scoring for non-programming courses
+        scoreOutput(data.output || "[No output]", activeTopicId);
       } else {
-        const textOut = data.output || data.error || "[No output]";
-        output.textContent = textOut;
+        scorePanel.style.display = "none";
       }
 
-      // Table
-      if (data.table) {
-        tablePreview.innerHTML = data.table;
-        tablePreview.style.display = "block";
-      } else {
-        tablePreview.style.display = "none";
-      }
+      if (data.table) { tablePreview.innerHTML = data.table; tablePreview.style.display = "block"; } 
+      else tablePreview.style.display = "none";
 
-      // Plot
       plotPreview.innerHTML = "";
-      if (Array.isArray(data.images) && data.images.length > 0) {
-        data.images.forEach(src => {
-          const img = document.createElement("img");
-          img.src = src;
-          img.style.maxWidth = "100%";
-          img.style.marginBottom = "10px";
-          plotPreview.appendChild(img);
+      if (Array.isArray(data.images)) { 
+        data.images.forEach(src => { 
+          const img = document.createElement("img"); 
+          img.src = src; 
+          img.style.maxWidth = "100%"; 
+          img.style.marginBottom = "10px"; 
+          plotPreview.appendChild(img); 
+        }); 
+        plotPreview.style.display = "block"; 
+      } else plotPreview.style.display = "none";
+    }
+  })
+  .catch(err => { output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(err.message)}</span>`; });
+}
+// ============================================
+// AI SCORE OUTPUT WITH REAL-TIME UPDATES
+// ============================================
+// AI SCORE OUTPUT WITH REAL-TIME UPDATES
+// ============================================
+async function scoreOutput(studentOutput, topicId) {
+    const scorePanel = document.getElementById("scorePanel"), 
+          scoreDisplay = document.getElementById("scoreDisplay"), 
+          scoreFeedback = document.getElementById("scoreFeedback"), 
+          scoreBarFill = document.getElementById("scoreBarFill");
+    
+    scorePanel.style.display = "block"; 
+    scoreDisplay.textContent = "🤖 AI is scoring..."; 
+    scoreFeedback.textContent = ""; 
+    scoreBarFill.style.width = "0%";
+    
+    try {
+        const res = await fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { 
+            method: "POST", 
+            headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" }, 
+            body: JSON.stringify({ action: "score_output", student_output: studentOutput, topic_id: topicId }) 
         });
-        plotPreview.style.display = "block";
-      } else {
-        plotPreview.style.display = "none";
-      }
-    })
-    .catch(err => {
-      output.innerHTML = `<span style="color:red;">❌ Request Failed: ${escapeHTML(err.message)}</span>`;
-    });
-  }
-
-  else {
-    output.innerHTML = `<span style="color:orange;">⚠️ Unsupported file type: ${escapeHTML(ext)}</span>`;
-  }
->>>>>>> heroku/main
-}
-
-function escapeHTML(str) {
-  return String(str).replace(/[&<>"']/g, tag => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[tag]));
-}
-
-<<<<<<< HEAD
-=======
-
->>>>>>> heroku/main
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const toggles = document.querySelectorAll('.folder-toggle');
-
-  toggles.forEach(toggle => {
-    const ext = toggle.dataset.ext;
-    const storedState = localStorage.getItem('folder_' + ext);
-
-    if (storedState === 'open') {
-      toggle.classList.add('open');
-      toggle.nextElementSibling.style.display = 'block';
+        const data = await res.json();
+        
+        // DEBUG - moved AFTER data is defined
+        console.log('Score data:', data.result?.score, '/', data.result?.max_score, 'Points:', data.points);
+        
+        if (data.status === "success") {
+            const { score, max_score, feedback, correct } = data.result;
+            const pct = (score / max_score) * 100;
+            const color = score >= max_score * 0.8 ? "#22c55e" : score >= max_score * 0.5 ? "#f59e0b" : "#ef4444";
+            
+            let scoreHTML = `${correct ? "✅" : "❌"} Score: <span style="color:${color}">${score}/${max_score}</span>`;
+            
+            if (data.xp_earned > 0) {
+                scoreHTML += ` <span style="color:#fbbf24; font-size:0.9em;">(+${data.xp_earned} XP 🏆)</span>`;
+            }
+            
+            if (data.already_awarded) {
+                scoreHTML += ` <span style="color:#f59e0b; font-size:0.8em;">⚠️ Already completed</span>`;
+            }
+            
+                        // Build feedback with expected output when wrong
+            let fullFeedback = feedback || '';
+            if (!correct && data.expected_output) {
+                fullFeedback += `\n\n📝 Expected Output:\n${data.expected_output}`;
+            }
+            
+            scoreDisplay.innerHTML = scoreHTML;
+            scoreFeedback.textContent = fullFeedback;
+            scoreBarFill.style.background = color;
+            scoreBarFill.style.width = pct + "%";
+            
+            if (data.champion_xp !== undefined) {
+                updateXPDisplay(data.champion_xp);
+                
+                if (data.rank !== undefined) { 
+                    window._lastRank = data.rank; 
+                    const rv = document.getElementById('rankValue'); 
+                    const lr = document.getElementById('leaderboardRank'); 
+                    if (rv) { 
+                        rv.textContent = '#' + data.rank; 
+                        rv.classList.remove('xp-updated'); 
+                        void rv.offsetWidth; 
+                        rv.classList.add('xp-updated'); 
+                    } 
+                    if (lr) lr.textContent = '#' + data.rank; 
+                }
+            }
+            
+            if (data.points !== undefined && data.total_topics !== undefined) {
+                const newPct = Math.round((data.points / data.total_topics) * 100);
+                const completedIds = [];
+                
+                if (correct && !data.already_awarded) {
+                    completedIds.push(parseInt(topicId));
+                }
+                
+                document.querySelectorAll('.quiz-passed-badge').forEach(badge => {
+                    const tId = parseInt(badge.dataset.topicId);
+                    if (tId !== parseInt(topicId) && badge.style.display === 'inline') {
+                        completedIds.push(tId);
+                    }
+                });
+                
+                if (data.already_awarded && !completedIds.includes(parseInt(topicId))) {
+                    completedIds.push(parseInt(topicId));
+                }
+                
+                updateProgressUI(newPct, completedIds, data.champion_xp);
+                
+                const badge = document.querySelector(`.quiz-passed-badge[data-topic-id="${topicId}"]`);
+                if (badge && correct) {
+                    badge.style.display = 'inline';
+                    badge.classList.remove('badge-appear');
+                    void badge.offsetWidth;
+                    badge.classList.add('badge-appear');
+                }
+                
+                const btn = document.querySelector(`.quiz-btn[data-topic-id="${topicId}"]`);
+                if (btn && correct) {
+                    btn.textContent = '🔁 Retake Quiz';
+                    btn.style.background = '#28a745';
+                }
+                
+                const examLockLink = document.getElementById('examLockLink');
+                const examProgressCount = document.getElementById('examProgressCount');
+                if (examLockLink && examProgressCount) {
+                    examProgressCount.textContent = data.points;
+                    if (data.points >= data.total_topics && data.total_topics > 0) {
+                        examLockLink.innerHTML = '🎓 Take Exam';
+                        examLockLink.style.color = 'white';
+                        examLockLink.removeAttribute('title');
+                    }
+                }
+                
+                const completionBadge = document.getElementById('completionBadge');
+                if (completionBadge && data.points >= data.total_topics && data.total_topics > 0) {
+                    completionBadge.style.display = 'inline';
+                    completionBadge.classList.remove('badge-appear');
+                    void completionBadge.offsetWidth;
+                    completionBadge.classList.add('badge-appear');
+                    showCompletionCelebration();
+                }
+            }
+        } else { 
+            scoreDisplay.textContent = "⚠️ Could not score"; 
+            scoreFeedback.textContent = data.message || ""; 
+        }
+    } catch (err) { 
+        scoreDisplay.textContent = "⚠️ Scoring failed"; 
+        scoreFeedback.textContent = err.message; 
     }
-
-    toggle.addEventListener('click', () => {
-      const group = toggle.nextElementSibling;
-      const isOpen = toggle.classList.toggle('open');
-      group.style.display = isOpen ? 'block' : 'none';
-      localStorage.setItem('folder_' + ext, isOpen ? 'open' : 'closed');
-    });
-  });
-});
-
-function getSelectedText() {
-  return editor.getModel().getValueInRange(editor.getSelection());
 }
 
-function insertAfterSelection(original, insertion) {
-  const range = editor.getSelection();
-  editor.executeEdits(null, [{
-    range: range,
-    text: original + "\n\n" + insertion,
-    forceMoveMarkers: true
-  }]);
-}
-
-function cleanAIResponse(text) {
-  if (text.includes("```")) {
-    const parts = text.split("```");
-    if (parts.length >= 2) {
-      return parts[1].replace(/^(\w+\n)?/, "").trim();
+// ============================================
+// MONACO EDITOR
+// ============================================
+require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' } });
+require(['vs/editor/editor.main'], function () {
+    editor = monaco.editor.create(document.getElementById('container'), { value: `{{ file.content|escapejs }}`, language: getLanguage("{{ file.name }}"), theme: 'vs-dark', automaticLayout: true, readOnly: false });
+    const saveIndicator = document.createElement('div'); saveIndicator.id = 'saveIndicator';
+    saveIndicator.style.cssText = `position: fixed; bottom: 16px; right: 20px; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 20px; background: #1e1e1e; border: 1px solid #3c3c3c; color: #888; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none;`;
+    document.body.appendChild(saveIndicator);
+    function showSaveStatus(msg, color = '#888') { saveIndicator.textContent = msg; saveIndicator.style.color = color; saveIndicator.style.opacity = '1'; clearTimeout(saveIndicator._hide); saveIndicator._hide = setTimeout(() => { saveIndicator.style.opacity = '0'; }, 2500); }
+    let lastSavedContent = editor.getValue(), isSaving = false, autosaveTimer = null;
+    async function autosave() {
+        const content = editor.getValue(); if (content === lastSavedContent || isSaving) return;
+        isSaving = true; showSaveStatus('⏳ Saving...', '#888');
+        try {
+            const res = await fetch("{% url 'webprojects:file_autosave' %}", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, body: JSON.stringify({ file_id: {{ file.id }}, content: content }) });
+            if (res.status === 503) { showSaveStatus('⚠️ Busy...', '#f59e0b'); return; }
+            const data = await res.json();
+            if (res.ok && data.status === 'success') { lastSavedContent = content; showSaveStatus('✅ Saved', '#4ade80'); }
+            else showSaveStatus('❌ Save failed', '#f87171');
+        } catch (err) { showSaveStatus('❌ Network error', '#f87171'); }
+        finally { isSaving = false; }
     }
-  }
-  return text.trim();
-}
+    editor.onDidChangeModelContent(() => { clearTimeout(autosaveTimer); autosaveTimer = setTimeout(autosave, 2000); });
+    setInterval(autosave, 30000);
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => { clearTimeout(autosaveTimer); autosave(); });
+    window.addEventListener('beforeunload', (e) => { const content = editor.getValue(); if (content !== lastSavedContent) { navigator.sendBeacon("{% url 'webprojects:file_autosave' %}", new Blob([JSON.stringify({ file_id: {{ file.id }}, content: content })], { type: 'application/json' })); e.preventDefault(); e.returnValue = ''; } });
+});
 
-function getAISuggestion() {
-  const selectedText = getSelectedText();
-  const btn = document.getElementById("aiBtn");
-  const loader = document.getElementById("aiLoading");
+function getLanguage(fileName) { const ext = fileName.split('.').pop().toLowerCase(); switch (ext) { case "py": return "python"; case "js": return "javascript"; case "html": return "html"; case "css": return "css"; case "json": return "json"; default: return "plaintext"; } }
 
-  if (!selectedText.trim()) return alert("⚠️ Please select some code first.");
-
-  btn.disabled = true;
-  loader.style.display = "inline";
-
-  fetch("{% url 'ai_suggest_code' %}", {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': '{{ csrf_token }}'
-    },
-    body: JSON.stringify({ prompt: selectedText })
-  })
-  .then(res => res.json())
-  .then(data => {
-    const suggestion = cleanAIResponse(data.suggestion || "");
-    insertAfterSelection(selectedText, suggestion);
-  })
-  .catch(err => alert("AI Suggestion Failed: " + err))
-  .finally(() => {
-    btn.disabled = false;
-    loader.style.display = "none";
-  });
-}
-function showToast(message) {
-  const toast = document.getElementById("toastMessage");
-  toast.innerHTML = `
-    <span>${message}</span>
-    <button onclick="hideToast()" style="
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 22px;
-      position: absolute;
-      right: 12px;
-      top: 8px;
-      cursor: pointer;
-    ">&times;</button>
-  `;
-  toast.style.display = "block";
-  toast.style.opacity = "1";
-}
-
-function hideToast() {
-  const toast = document.getElementById("toastMessage");
-  toast.style.opacity = "0";
-  setTimeout(() => (toast.style.display = "none"), 500);
-}
-
-function explainCode() {
-  const code = getSelectedText();
-  const btn = document.getElementById("explainBtn");
-
-  if (!code.trim()) {
-    showToast("⚠️ Please select code to explain.");
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = "💬 Explaining...";
-
-  fetch("{% url 'explain_code' %}", {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': '{{ csrf_token }}'
-    },
-    body: JSON.stringify({ code: code })
-  })
-  .then(res => res.json())
-  .then(data => {
-    showToast("📘 AI Explanation:\n" + data.explanation);
-  })
-  .catch(err => {
-    showToast("⚠️ AI Explanation Error: " + err.message);
-  })
-  .finally(() => {
-    btn.disabled = false;
-    btn.textContent = "💬 Explain Code";
-  });
-}
-
-
-function runAIAction() {
-  const selectedText = getSelectedText();
-  const action = document.getElementById("aiAction").value;
-  const loadingIndicator = document.getElementById("aiLoading");
-  const runBtn = document.getElementById("runBtn");
-
-  if (!selectedText.trim()) {
-    return alert("⚠️ Please select code first.");
-  }
-
-  const instructions = {
-    complete: "Complete the following code:",
-    explain: "Explain what this code does:",
-    optimize: "Optimize this code for performance or readability:",
-    comment: "Add detailed comments to the following code:",
-    fix: "Fix any bugs or issues in this code:"
-  };
-
-  const prompt = instructions[action] + "\n\n" + selectedText;
-
-  // Show loading
-  loadingIndicator.style.display = "inline";
-  runBtn.disabled = true;
-  runBtn.textContent = "⏳ Running...";
-
-  fetch("{% url 'ai_suggest_code' %}", {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': '{{ csrf_token }}'
-    },
-    body: JSON.stringify({ prompt: prompt })
-  })
-  .then(res => res.json())
-  .then(data => {
-    const output = cleanAIResponse(data.suggestion || "");
-    insertAfterSelection(selectedText, output);
-  })
-  .catch(err => {
-    alert("AI Action Failed: " + err);
-  })
-  .finally(() => {
-    // Hide loading
-    loadingIndicator.style.display = "none";
-    runBtn.disabled = false;
-    runBtn.textContent = "🚀 Run AI Action";
-  });
-}
-
-
-function createNewFolder() {
-  const name = document.getElementById("newFolderName").value.trim();
-  const projectId = {{ file.project.id }};
-
-  if (!name) return alert("⚠️ Please enter a folder name");
-
-  fetch(`/webprojects/${projectId}/create-folder/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": "{{ csrf_token }}"
-    },
-    body: JSON.stringify({ name })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === "success") {
-      alert("✅ Folder created!");
-      location.reload(); // refresh to show the new folder
-    } else {
-      alert("❌ " + data.message);
+// ============================================
+// UPDATE ACTIVE TOPIC
+// ============================================
+async function updateActiveTopic(topicId) {
+    try {
+        const res = await fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }, 
+            body: JSON.stringify({ action: 'update_active_topic', topic_id: topicId, course_id: COURSE_ID }) 
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            // Only redirect if the file ID is DIFFERENT from current file
+            if (data.auto_created_file_id && data.auto_created_file_id !== {{ file.id }}) {
+                window.location.href = `/webprojects/{{ project.id }}/file/${data.auto_created_file_id}/`;
+                return;
+            }
+            
+            // Update XP display
+            if (data.champion_xp !== undefined) updateXPDisplay(data.champion_xp);
+        }
+    } catch (err) { 
+        console.error('Failed to update active topic:', err); 
     }
-  })
-  .catch(err => alert("❌ Request failed: " + err));
 }
 
-function createNewFile() {
-  const name = document.getElementById("newFileName").value.trim();
-  const projectId = {{ file.project.id }};
-
-  if (!name) return alert("⚠️ Please enter a file name");
-
-  fetch(`/webprojects/${projectId}/create-file/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": "{{ csrf_token }}"
-    },
-    body: JSON.stringify({ name })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === "success") {
-      alert("✅ File created!");
-      window.location.href = `/webprojects/${projectId}/file/${data.file_id}/`;
-    } else {
-      alert("❌ " + data.message);
-    }
-  })
-  .catch(err => alert("❌ Request failed: " + err));
-}
-
-<<<<<<< HEAD
-</script>
-
-<!-- uppload file js  -->
-<script>
-const dropZone = document.getElementById('dropZone');
-const fileInput = document.getElementById('fileInput');
-=======
-
-</script>
-
-<script>
-const dropZone = document.getElementById('dropZone');
-const imageInput = document.getElementById('imageInput');
->>>>>>> heroku/main
-
-dropZone.addEventListener('dragover', e => {
-  e.preventDefault();
-  dropZone.style.backgroundColor = '#333';
+// ============================================
+// OUTPUT PANEL RESIZE
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+  var container = document.getElementById("container"), outputPanel = document.getElementById("outputPanel"), resizeHandle = document.getElementById("resizeHandle");
+  if (!outputPanel || !resizeHandle) return;
+  var isDragging = false, startY = 0, startHeight = 0, MIN_HEIGHT = 60, MAX_HEIGHT_PERCENT = 70;
+  function getMaxHeight() { return window.innerHeight * (MAX_HEIGHT_PERCENT / 100); }
+  function startDrag(clientY) { isDragging = true; startY = clientY; startHeight = outputPanel.offsetHeight; document.body.style.userSelect = "none"; document.body.style.cursor = "row-resize"; resizeHandle.style.background = "#4fa"; resizeHandle.style.transition = "none"; }
+  function doDrag(clientY) { if (!isDragging) return; var dy = clientY - startY; var newHeight = Math.max(MIN_HEIGHT, Math.min(startHeight - dy, getMaxHeight())); outputPanel.style.height = newHeight + "px"; if (container) { var th = outputPanel.parentElement.offsetHeight; var eh = th - newHeight - resizeHandle.offsetHeight; if (eh > 100) container.style.height = eh + "px"; } if (editor && editor.layout) editor.layout(); }
+  function endDrag() { if (isDragging) { isDragging = false; document.body.style.userSelect = ""; document.body.style.cursor = ""; resizeHandle.style.background = "#444"; resizeHandle.style.transition = "background 0.2s"; localStorage.setItem('outputPanelHeight', outputPanel.style.height); } }
+  resizeHandle.addEventListener("mousedown", function(e) { startDrag(e.clientY); e.preventDefault(); });
+  document.addEventListener("mousemove", function(e) { doDrag(e.clientY); });
+  document.addEventListener("mouseup", endDrag);
+  resizeHandle.addEventListener("touchstart", function(e) { startDrag(e.touches[0].clientY); e.preventDefault(); }, { passive: false });
+  document.addEventListener("touchmove", function(e) { if (!isDragging) return; doDrag(e.touches[0].clientY); e.preventDefault(); }, { passive: false });
+  document.addEventListener("touchend", endDrag); document.addEventListener("touchcancel", endDrag);
+  resizeHandle.addEventListener("mouseenter", function() { if (!isDragging) { resizeHandle.style.background = "#4fa"; resizeHandle.style.cursor = "row-resize"; } });
+  resizeHandle.addEventListener("mouseleave", function() { if (!isDragging) resizeHandle.style.background = "#444"; });
+  var savedHeight = localStorage.getItem('outputPanelHeight'); if (savedHeight && window.innerWidth <= 768) outputPanel.style.height = savedHeight;
 });
 
-dropZone.addEventListener('dragleave', e => {
-  e.preventDefault();
-  dropZone.style.backgroundColor = '';
+// ============================================
+// FILE UPLOAD
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+  var dropZone = document.getElementById('dropZone'), fileInput = document.getElementById('fileInput');
+  if (dropZone) { dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.style.backgroundColor = '#333'; }); dropZone.addEventListener('dragleave', function(e) { e.preventDefault(); dropZone.style.backgroundColor = ''; }); dropZone.addEventListener('drop', function(e) { e.preventDefault(); dropZone.style.backgroundColor = ''; var file = e.dataTransfer.files[0]; if (file) uploadFile(file); }); }
+  if (fileInput) fileInput.addEventListener('change', function() { var file = fileInput.files[0]; if (file) uploadFile(file); });
 });
-
-dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.style.backgroundColor = '';
-  const file = e.dataTransfer.files[0];
-<<<<<<< HEAD
-  if (file) uploadFile(file);
-});
-
-fileInput.addEventListener('change', () => {
-  const file = fileInput.files[0];
-  if (file) uploadFile(file);
-});
-
 function uploadFile(file) {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('name', file.name);
+  var formData = new FormData(); formData.append('file', file); formData.append('name', file.name);
+  var loader = document.getElementById("upload-loader"); if (loader) loader.style.display = "flex";
+  fetch("{% url 'webprojects:upload_file_ajax' project.id %}", { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' }, body: formData })
+  .then(r => r.json()).then(d => { if (d.success) { showToast('✅ Uploaded: ' + file.name, 'success'); setTimeout(refreshFileList, 500); } else showToast('❌ Upload failed: ' + (d.error || ''), 'error'); })
+  .catch(() => showToast('⚠️ Upload error', 'error')).finally(() => { if (loader) loader.style.display = "none"; });
+}
 
-  const loader = document.getElementById("upload-loader");
-  loader.style.display = "flex"; // show loader
-
-  fetch("{% url 'upload_file_ajax' project.id %}", {
-    method: 'POST',
-    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-=======
-  if (file && file.type.startsWith('image/')) {
-    uploadImage(file);
-  }
+// ============================================
+// DELETE FILE
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.delete-file-form').forEach(form => {
+    form.addEventListener('submit', function(e) { e.preventDefault(); if (!confirm("Delete this file?")) return;
+      fetch(form.getAttribute('action'), { method: 'POST', headers: { 'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value, 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(r => r.json()).then(d => { if (d.status === 'success') { form.closest('.file-item').remove(); showToast('File deleted', 'success'); refreshFileList(); } else showToast(d.message || 'Failed', 'error'); })
+      .catch(() => showToast('Error deleting file.', 'error'));
+    });
+  });
 });
 
-imageInput.addEventListener('change', () => {
-  const file = imageInput.files[0];
-  if (file && file.type.startsWith('image/')) {
-    uploadImage(file);
-  }
+// ============================================
+// FLOATING AI PANEL DRAG & RESIZE
+// ============================================
+function closeAIPanel() { document.getElementById('floatingAI').style.display = 'none'; }
+var appBuilderTab = document.getElementById('appBuilderTab'), fileEditorTab = document.getElementById('fileEditorTab'), appBuilderPanel = document.getElementById('appBuilderPanel'), fileEditorPanel = document.getElementById('fileEditorPanel');
+function switchToAppBuilder() { appBuilderPanel.style.display = 'flex'; fileEditorPanel.style.display = 'none'; appBuilderTab.style.borderBottom = '3px solid #007bff'; appBuilderTab.style.fontWeight = 'bold'; appBuilderTab.style.color = '#007bff'; fileEditorTab.style.borderBottom = '3px solid transparent'; fileEditorTab.style.fontWeight = 'normal'; fileEditorTab.style.color = '#666'; }
+function switchToFileEditor() { appBuilderPanel.style.display = 'none'; fileEditorPanel.style.display = 'flex'; fileEditorTab.style.borderBottom = '3px solid #28a745'; fileEditorTab.style.fontWeight = 'bold'; fileEditorTab.style.color = '#28a745'; appBuilderTab.style.borderBottom = '3px solid transparent'; appBuilderTab.style.fontWeight = 'normal'; appBuilderTab.style.color = '#666'; }
+appBuilderTab.addEventListener('click', switchToAppBuilder); fileEditorTab.addEventListener('click', switchToFileEditor);
+var panel = document.getElementById('floatingAI'), dragHandle = document.getElementById('dragHandle'), isDraggingPanel = false, dragOffsetX = 0, dragOffsetY = 0;
+dragHandle.addEventListener('mousedown', function(e) { if (e.target.closest('.close-panel-btn')) return; isDraggingPanel = true; dragHandle.style.cursor = 'grabbing'; var r = panel.getBoundingClientRect(); panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px'; panel.style.right = 'auto'; dragOffsetX = e.clientX - r.left; dragOffsetY = e.clientY - r.top; e.preventDefault(); });
+dragHandle.addEventListener('touchstart', function(e) { if (e.target.closest('.close-panel-btn')) return; isDraggingPanel = true; var r = panel.getBoundingClientRect(); panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px'; panel.style.right = 'auto'; var t = e.touches[0]; dragOffsetX = t.clientX - r.left; dragOffsetY = t.clientY - r.top; e.preventDefault(); }, { passive: false });
+document.addEventListener('mousemove', function(e) { if (!isDraggingPanel) return; movePanel(e.clientX, e.clientY); });
+document.addEventListener('touchmove', function(e) { if (!isDraggingPanel) return; var t = e.touches[0]; movePanel(t.clientX, t.clientY); e.preventDefault(); }, { passive: false });
+function movePanel(cx, cy) { var nl = cx - dragOffsetX, nt = cy - dragOffsetY; var ml = window.innerWidth - panel.offsetWidth, mt = window.innerHeight - panel.offsetHeight; panel.style.left = Math.max(0, Math.min(nl, ml)) + 'px'; panel.style.top = Math.max(0, Math.min(nt, mt)) + 'px'; }
+document.addEventListener('mouseup', function() { isDraggingPanel = false; dragHandle.style.cursor = 'grab'; });
+document.addEventListener('touchend', function() { isDraggingPanel = false; });
+var resizeHandleAI = document.getElementById('resizeHandleAI'), isResizing = false;
+resizeHandleAI.addEventListener('mousedown', function(e) { isResizing = true; e.preventDefault(); });
+resizeHandleAI.addEventListener('touchstart', function(e) { isResizing = true; e.preventDefault(); }, { passive: false });
+document.addEventListener('mousemove', function(e) { if (!isResizing) return; resizePanel(e.clientY); });
+document.addEventListener('touchmove', function(e) { if (!isResizing) return; resizePanel(e.touches[0].clientY); e.preventDefault(); }, { passive: false });
+function resizePanel(cy) { var nh = cy - panel.offsetTop; if (nh < 150) nh = 150; panel.style.height = nh + 'px'; }
+document.addEventListener('mouseup', function() { isResizing = false; });
+document.addEventListener('touchend', function() { isResizing = false; });
+
+// ============================================
+// TOGGLE EDITOR
+// ============================================
+function toggleEditor() {
+  const editorPanel = document.querySelector('.editor-panel'), editorLayout = document.getElementById('editorLayout'), toggleBtn = document.getElementById('toggleEditorBtn'), sidebar = document.querySelector('.sidebar');
+  if (!editorPanel) return;
+  const isHidden = editorPanel.classList.toggle('hidden'); editorLayout.classList.toggle('editor-hidden');
+  if (isHidden) { toggleBtn.innerHTML = '📝 Show Editor'; toggleBtn.style.background = '#3498db'; if (sidebar) { sidebar.style.width = '100%'; sidebar.style.maxWidth = '100%'; sidebar.style.flex = '1'; } showToast('Editor hidden', 'info'); }
+  else { toggleBtn.innerHTML = '✕ Hide Editor'; toggleBtn.style.background = '#2ecc71'; if (sidebar) { sidebar.style.width = ''; sidebar.style.maxWidth = ''; sidebar.style.flex = ''; } setTimeout(() => { if (editor && editor.layout) editor.layout(); }, 100); }
+}
+
+// ============================================
+// SIDEBAR RESIZE & INIT
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+  var editorLayout = document.getElementById('editorLayout'), toggleBtn = document.getElementById('toggleSidebarBtn'), sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+  var resizeHandleEl = document.createElement('div'); resizeHandleEl.className = 'resize-handle'; resizeHandleEl.style.cssText = 'position: absolute; right: 0; top: 0; bottom: 0; width: 5px; cursor: col-resize; background: transparent; z-index: 10; transition: background 0.2s;';
+  resizeHandleEl.onmouseenter = () => resizeHandleEl.style.background = '#4fa'; resizeHandleEl.onmouseleave = () => resizeHandleEl.style.background = 'transparent';
+  sidebar.style.position = 'relative'; sidebar.appendChild(resizeHandleEl);
+  var isResizingSidebar = false, startX = 0, startWidth = 0;
+  resizeHandleEl.addEventListener('mousedown', function(e) { isResizingSidebar = true; startX = e.clientX; startWidth = sidebar.offsetWidth; document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none'; e.preventDefault(); });
+  document.addEventListener('mousemove', function(e) { if (!isResizingSidebar) return; var w = startWidth + (e.clientX - startX); if (w >= 200 && w <= 950) { sidebar.style.width = w + 'px'; sidebar.style.flexBasis = w + 'px'; sidebar.style.minWidth = w + 'px'; if (editor && editor.layout) editor.layout(); } });
+  document.addEventListener('mouseup', function() { if (isResizingSidebar) { isResizingSidebar = false; document.body.style.cursor = ''; document.body.style.userSelect = ''; localStorage.setItem('sidebarWidth', sidebar.offsetWidth); } });
+  var savedWidth = localStorage.getItem('sidebarWidth'); if (savedWidth) { sidebar.style.width = savedWidth + 'px'; sidebar.style.flexBasis = savedWidth + 'px'; sidebar.style.minWidth = savedWidth + 'px'; }
+  if (toggleBtn) { toggleBtn.addEventListener('click', function() { var c = editorLayout.classList.toggle('collapsed'); toggleBtn.innerHTML = c ? '<span title="Open Sidebar">☰</span>' : '<span title="Close Sidebar">✖</span>'; setTimeout(() => { if (editor && editor.layout) editor.layout(); }, 100); }); toggleBtn.innerHTML = editorLayout.classList.contains('collapsed') ? '<span title="Open Sidebar">☰</span>' : '<span title="Close Sidebar">✖</span>'; }
+  const defaultTopicId = {{ current_topic_id|default:"null" }};
+  if (defaultTopicId) { const ti = document.getElementById('topic-item-' + defaultTopicId); if (ti) { const tl = ti.querySelector('.topic-toggle'); if (tl) toggleDesc('topic-' + defaultTopicId, tl, tl.getAttribute('data-lang') || 'python'); } }
+  loadQuizProgress();
+  if (window.innerWidth <= 768) { const at = document.getElementById("aiToolbar"); if (at) at.style.display = "none"; }
 });
-
-function uploadImage(file) {
-  const formData = new FormData();
-  formData.append('image', file);
-  formData.append('name', file.name);
-
-  fetch("{% url 'upload_image_ajax' project.id %}", {
-    method: 'POST',
-    headers: {
-      'X-CSRFToken': '{{ csrf_token }}'
-    },
->>>>>>> heroku/main
-    body: formData
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-<<<<<<< HEAD
-      showToast(`✅ Uploaded: ${file.name}`);
-      addFileToList(data.file_id, file.name, data.file_url || "");
-
-      // ✅ reload after 1.5 seconds
-      setTimeout(() => {
-        location.reload();
-      }, 1500);
-    } else {
-      showToast(`❌ Upload failed: ${data.error || ''}`);
-    }
-  })
-  .catch(() => showToast("⚠️ Upload error"))
-  .finally(() => {
-    loader.style.display = "none"; // hide loader
-  });
-}
-
-
-function addFileToList(fileId, fileName, fileUrl) {
-  const ext = fileName.split('.').pop().toLowerCase();
-  const groups = document.querySelectorAll('.file-group');
-
-  groups.forEach(group => {
-    if (group.previousElementSibling.dataset.ext === ext) {
-      const div = document.createElement('div');
-      div.classList.add('file-item');
-
-      if (["png", "jpg", "jpeg", "gif", "svg", "webp"].includes(ext)) {
-        div.innerHTML = `<a href="javascript:void(0);" onclick="showImageModal('${fileUrl}')" style="color:#4fa;">🖼️ ${fileName}</a>`;
-      } 
-      else if (["xls", "xlsx", "csv"].includes(ext)) {
-        div.innerHTML = `<a href="${fileUrl}" target="_blank" style="color:#f1c40f;">📊 ${fileName}</a>`;
-      } 
-      else if (["pdf"].includes(ext)) {
-        div.innerHTML = `<a href="${fileUrl}" target="_blank" style="color:#e74c3c;">📄 ${fileName}</a>`;
-      } 
-      else if (["doc", "docx"].includes(ext)) {
-        div.innerHTML = `<a href="${fileUrl}" target="_blank" style="color:#3498db;">📑 ${fileName}</a>`;
-      } 
-      else if (["txt", "md"].includes(ext)) {
-        div.innerHTML = `<a href="${fileUrl}" target="_blank" style="color:#9b59b6;">📝 ${fileName}</a>`;
-      } 
-      else {
-        div.innerHTML = `<a href="/file/${fileId}/" style="color:#fff;">📦 ${fileName}</a>`;
-      }
-
-      group.appendChild(div);
-    }
-  });
-}
-
-function showToast(message) {
-  const toast = document.getElementById("toastMessage");
-  toast.textContent = message;
-  toast.style.display = "block";
-  setTimeout(() => { toast.style.display = "none"; }, 2500);
-=======
-      alert("✅ Image uploaded!");
-      location.reload();  // or dynamically add the file to the sidebar
-    } else {
-      alert("❌ Upload failed.");
-    }
-  })
-  .catch(() => alert("❌ Upload error"));
->>>>>>> heroku/main
-}
 </script>
 
-
-<!-- dragging output area js -->
- <script>
-  const container = document.getElementById("container");
-  const outputPanel = document.getElementById("outputPanel");
-  const resizeHandle = document.getElementById("resizeHandle");
-
-  let isDragging = false;
-  let startY = 0;
-  let startHeight = 0;
-
-  resizeHandle.addEventListener("mousedown", (e) => {
-    isDragging = true;
-    startY = e.clientY;
-    startHeight = outputPanel.offsetHeight;
-    document.body.style.userSelect = "none"; // Prevent text selection
-  });
-
-  document.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    const dy = e.clientY - startY;
-    const newHeight = Math.max(startHeight - dy, 100); // Minimum height
-    outputPanel.style.height = `${newHeight}px`;
-  });
-
-  document.addEventListener("mouseup", () => {
-    isDragging = false;
-    document.body.style.userSelect = "";
-  });
-
-  // Touch support for mobile
-  resizeHandle.addEventListener("touchstart", (e) => {
-    isDragging = true;
-    startY = e.touches[0].clientY;
-    startHeight = outputPanel.offsetHeight;
-  });
-
-  document.addEventListener("touchmove", (e) => {
-    if (!isDragging) return;
-    const dy = e.touches[0].clientY - startY;
-    const newHeight = Math.max(startHeight - dy, 100);
-    outputPanel.style.height = `${newHeight}px`;
-  });
-
-  document.addEventListener("touchend", () => {
-    isDragging = false;
-  });
-</script>
-
-
-<<<<<<< HEAD
 {% endblock %}
-=======
-{% endblock %}
->>>>>>> heroku/main

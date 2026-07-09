@@ -1,8 +1,10 @@
 import datetime
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import redirect, render, get_object_or_404
 from django.http import JsonResponse
 from .models import Project, File, StudentProgress, StudentXP
 import json
+from django.db.models import Count, Q
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, render
 from .models import Folder, File
 from django.views.decorators.csrf import csrf_exempt
@@ -2959,6 +2961,86 @@ def course_leaderboard(request, course_id):
     if len(top_performers) > 5:
         top_performers = top_performers[:5]
     
+    # ===== GET SMART COURSE RECOMMENDATIONS =====
+        # ===== GET SMART COURSE RECOMMENDATIONS =====
+    recommended_courses = []
+    if user_entry and user_entry.modules_completed >= user_entry.total_modules and user_entry.total_modules > 0:
+        # Get courses the student has already completed
+        completed_course_ids = list(StudentProgress.objects.filter(
+            student=request.user,
+            course_completed=True
+        ).values_list('course_id', flat=True))
+        completed_course_ids.append(course.id)
+        
+        course_title_lower = course.title.lower()
+        
+        # Determine the primary language/technology of the completed course
+        primary_tech = None
+        tech_keywords = {
+            'python': ['python', 'py'],
+            'rust': ['rust', 'rs'],
+            'javascript': ['javascript', 'js', 'node'],
+            'html/css': ['html', 'css', 'web design'],
+            'java': ['java'],
+            'data science': ['data', 'pandas', 'numpy', 'machine learning', 'ai'],
+        }
+        
+        for tech, keywords in tech_keywords.items():
+            if any(kw in course_title_lower for kw in keywords):
+                primary_tech = tech
+                break
+        
+        if primary_tech:
+            tech_keywords_list = tech_keywords.get(primary_tech, [])
+            query = Q()
+            for keyword in tech_keywords_list:
+                query |= Q(title__icontains=keyword)
+            
+            # Get similar courses ordered by most recently created
+            similar_courses = Courses.objects.filter(
+                query
+            ).exclude(
+                id__in=completed_course_ids
+            ).annotate(
+                topic_count=Count('topics')
+            ).distinct().order_by('-created', 'title')[:4]  # ORDER BY NEWEST FIRST
+            
+            recommended_courses = list(similar_courses)
+            
+            # If not enough, look for next level/related courses (also ordered by date)
+            if len(recommended_courses) < 4:
+                level_keywords = ['level 2', 'level 3', 'advanced', 'project', 'master', 'expert']
+                for lk in level_keywords:
+                    if len(recommended_courses) >= 4:
+                        break
+                    more_courses = Courses.objects.filter(
+                        Q(title__icontains=tech_keywords_list[0]) & Q(title__icontains=lk)
+                    ).exclude(
+                        id__in=completed_course_ids + [c.id for c in recommended_courses]
+                    ).annotate(
+                        topic_count=Count('topics')
+                    ).order_by('-created')[:4 - len(recommended_courses)]
+                    recommended_courses.extend(list(more_courses))
+            
+            # If still not enough, get remaining same-tech courses
+            if len(recommended_courses) < 4:
+                remaining = Courses.objects.filter(
+                    Q(title__icontains=tech_keywords_list[0])
+                ).exclude(
+                    id__in=completed_course_ids + [c.id for c in recommended_courses]
+                ).annotate(
+                    topic_count=Count('topics')
+                ).order_by('-created')[:4 - len(recommended_courses)]
+                recommended_courses.extend(list(remaining))
+        
+        # Fallback: newest courses available
+        if not recommended_courses:
+            recommended_courses = list(Courses.objects.exclude(
+                id__in=completed_course_ids
+            ).annotate(
+                topic_count=Count('topics')
+            ).order_by('-created')[:4])  # NEWEST FIRST
+    
     context = {
         'course': course,
         'all_entries': all_entries,
@@ -2970,9 +3052,57 @@ def course_leaderboard(request, course_id):
         'motivation_messages': motivation_messages,
         'total_students': total_students,
         'total_topics': total_topics,
+        'recommended_courses': recommended_courses,
     }
     
     return render(request, 'webprojects/leaderboard.html', context)
+
+
+@login_required
+def start_course(request, course_id):
+    """Start a new course - creates project and redirects to editor"""
+    course = get_object_or_404(Courses, id=course_id)
+    
+    # Check if student already has a project for this course
+    existing_project = Project.objects.filter(
+        user=request.user,
+        name=course.title
+    ).first()
+    
+    if existing_project:
+        # Get the first code file or create one
+        first_file = File.objects.filter(project=existing_project).first()
+        if first_file:
+            return redirect('webprojects:file_detail', project_id=existing_project.id, file_id=first_file.id)
+    
+    # Create new project for this course
+    project = Project.objects.create(
+        user=request.user,
+        name=course.title
+    )
+    
+    # Create a default Python file
+    is_python = 'python' in course.title.lower()
+    is_rust = 'rust' in course.title.lower()
+    
+    if is_python:
+        file_name = 'main.py'
+        content = ''
+    elif is_rust:
+        file_name = 'main.rs'
+        content = ''
+    else:
+        file_name = 'index.html'
+        content = '<!DOCTYPE html>\n<html>\n<head>\n    <title>Project</title>\n</head>\n<body>\n\n</body>\n</html>'
+    
+    new_file = File.objects.create(
+        project=project,
+        name=file_name,
+        content=content
+    )
+    
+    return redirect('webprojects:file_detail', project_id=project.id, file_id=new_file.id)
+
 
 
 @login_required
