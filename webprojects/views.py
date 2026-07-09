@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from .models import Project, File, StudentProgress, StudentXP
 import json
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, render
 from .models import Folder, File
 from django.views.decorators.csrf import csrf_exempt
@@ -2959,6 +2960,22 @@ def course_leaderboard(request, course_id):
     if len(top_performers) > 5:
         top_performers = top_performers[:5]
     
+    # ===== GET COURSE RECOMMENDATIONS =====
+    recommended_courses = []
+    if user_entry and user_entry.modules_completed >= user_entry.total_modules and user_entry.total_modules > 0:
+        # Get courses the student has already completed
+        completed_course_ids = StudentProgress.objects.filter(
+            student=request.user,
+            course_completed=True
+        ).values_list('course_id', flat=True)
+        
+        # Get available courses excluding current and completed ones
+        recommended_courses = Courses.objects.exclude(
+            id__in=list(completed_course_ids) + [course.id]
+        ).annotate(
+            topic_count=Count('topics')
+        ).order_by('?')[:4]  # Random 4 recommendations
+    
     context = {
         'course': course,
         'all_entries': all_entries,
@@ -2970,9 +2987,11 @@ def course_leaderboard(request, course_id):
         'motivation_messages': motivation_messages,
         'total_students': total_students,
         'total_topics': total_topics,
+        'recommended_courses': recommended_courses,
     }
     
     return render(request, 'webprojects/leaderboard.html', context)
+
 
 
 @login_required
