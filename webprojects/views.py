@@ -2368,6 +2368,7 @@ Return ONLY this JSON:
                     "already_awarded": already_awarded,
                     "average_score": progress.get_average_score() if progress else 0,
                     "modules_completed": min(earned_points, total_topics),
+                    "expected_output": expected,  # ADD THIS LINE
                 })
             except Exception as e:
                 return JsonResponse({"status": "error", "message": str(e)}, status=500)

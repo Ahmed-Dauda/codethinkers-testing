@@ -17,7 +17,6 @@ Maintain these branches at all times:
 Always begin new work on the `development` branch.
 
 ```bash
-git branch
 git branch --show-current
 git checkout development
 git pull origin development
