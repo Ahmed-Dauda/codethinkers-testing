@@ -194,7 +194,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='studentprogress',
             name='course',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='student_progress', to='sms.courses'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='student_progress',
+                to='sms.courses',
+                null=True,
+                blank=True,
+            ),
         ),
         migrations.AlterField(
             model_name='studentprogress',
