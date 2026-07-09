@@ -208,6 +208,8 @@ class StudentProgress(models.Model):
     
     # Assessment attempt tracking
     first_attempt_topics = models.JSONField(default=list)
+    total_time_spent_seconds = models.IntegerField(default=0, null=True, blank=True)  # Total active time
+    module_start_time = models.DateTimeField(null=True, blank=True)  # When current module was opened
     
     # Timestamps
     created_at = models.DateTimeField(default=timezone.now)
