@@ -3197,29 +3197,37 @@ def file_detail(request, project_id, file_id):
     total_topics = topics.count()
     earned_points = len(completed_topic_ids)
     
+    # ===== GET CHAMPION XP & RANK ON PAGE LOAD (READ ONLY) =====
+    champion_xp = 0
+    user_rank = None
+    if course:
+        leaderboard_entry = LeaderboardEntry.objects.filter(
+            student=request.user, course=course
+        ).first()
+        if leaderboard_entry:
+            champion_xp = leaderboard_entry.champion_xp
+            user_rank = leaderboard_entry.rank
+    
     # ===== USE STORED CURRENT_TOPIC FROM PROGRESS =====
     current_topic_id = None
+    current_topic = None
     if progress and progress.current_topic:
-        # Use the stored current_topic
         current_topic_id = progress.current_topic.id
-        print(f"📖 Using stored current_topic from progress: {current_topic_id}")
+        current_topic = progress.current_topic
     elif topics.exists():
-        # Fall back to first uncompleted topic if no stored current_topic
         completed_ids = set(completed_topic_ids)
         for topic in topics:
             if topic.id not in completed_ids:
                 current_topic_id = topic.id
+                current_topic = topic
                 break
-        # If all completed use last topic
         if not current_topic_id and topics.exists():
-            current_topic_id = topics.last().id
-        
-        # Save the fallback to progress if progress exists
+            current_topic = topics.last()
+            current_topic_id = current_topic.id
         if progress and current_topic_id:
             try:
                 progress.current_topic = Topics.objects.get(id=current_topic_id)
                 progress.save(update_fields=['current_topic'])
-                print(f"💾 Saved fallback current_topic: {current_topic_id}")
             except Topics.DoesNotExist:
                 pass
 
@@ -3233,21 +3241,11 @@ def file_detail(request, project_id, file_id):
     is_image = file.name.lower().endswith(IMAGE_EXTS)
 
     # ================= FILE TYPE =================
-    ext = file.name.rsplit(".", 1)[-1].lower()
+    ext = file.name.rsplit(".", 1)[-1].lower() if "." in file.name else ""
     is_python = ext == "py"
-
-    # ================= GET USER RANK FOR LEADERBOARD =================
-    user_rank = None
-    if course:
-        leaderboard_entry = LeaderboardEntry.objects.filter(
-            student=request.user,
-            course=course
-        ).first()
-        user_rank = leaderboard_entry.rank if leaderboard_entry else None
 
     # ================= POST =================
     if request.method == "POST":
-        # ---------- Safe JSON parsing ----------
         try:
             data = json.loads(request.body.decode()) if request.body else {}
         except json.JSONDecodeError:
@@ -3258,50 +3256,66 @@ def file_detail(request, project_id, file_id):
         run_table = data.get("run_table", False)
         prompt = data.get("prompt", "")
         ai_action = data.get("ai_action", "")
-        topic_id = data.get("topic_id")  # For scoring
+        topic_id = data.get("topic_id")
 
         # ================= SCORE OUTPUT =================
+                # ================= SCORE OUTPUT =================
         if data.get("action") == "score_output":
             student_output = data.get("student_output", "").strip()
             topic_id = data.get("topic_id")
             
             if not topic_id:
-                return JsonResponse({
-                    "status": "error", 
-                    "message": "No topic ID provided for scoring"
-                }, status=400)
+                return JsonResponse({"status": "error", "message": "No topic ID provided"}, status=400)
 
             try:
                 topic = Topics.objects.get(id=topic_id)
             except Topics.DoesNotExist:
-                return JsonResponse({
-                    "status": "error", 
-                    "message": "Topic not found"
-                }, status=404)
+                return JsonResponse({"status": "error", "message": "Topic not found"}, status=404)
 
             topic_desc = topic.desc or ""
             topic_title = topic.title or ""
             expected = topic.expected_output or ""
 
-            # Optimized scoring prompt
-            scoring_prompt = f"""Evaluate this Python exercise.
-Topic: {topic_title}
-Description: {topic_desc[:200]}
-Expected: {expected[:100]}
-Student Output: {student_output[:500]}
-Return ONLY JSON: {{"score": 4, "max_score": 5, "feedback": "...", "correct": true/false}}"""
+            scoring_prompt = f"""You are a strict Python code evaluator. Your ONLY job is to compare the student's program OUTPUT with the expected output. IGNORE the code itself - only look at what the program prints/returns.
+
+## TOPIC
+Title: {topic_title}
+Description: {topic_desc[:300]}
+
+## EXPECTED OUTPUT (what the correct program should print/return):
+{expected if expected else "No expected output specified - evaluate based on topic requirements"}
+
+## STUDENT'S ACTUAL OUTPUT (what their program printed/returned):
+{student_output}
+
+## IMPORTANT RULES:
+- IGNORE the student's code completely - only compare the OUTPUT
+- IGNORE spaces, tabs, newlines - strip whitespace before comparing
+- IGNORE case differences for text strings
+- IGNORE comments in code - they don't affect output
+- score = 1 ONLY if the stripped outputs MATCH
+- score = 0 if outputs don't match, are wrong, or empty
+- "correct": true ONLY if score is 1
+- NO partial credit - it's either right (1) or wrong (0)
+
+## EXAMPLES:
+- Expected output="3", Student output="3" → score=1, correct=true
+- Expected output="3", Student output=" 3 " → score=1, correct=true (spaces ignored)
+- Expected output="Hello", Student output="hello" → score=1, correct=true (case ignored)
+- Expected output="3", Student output="34" → score=0, correct=false
+- Expected output="3", Student output="Hello" → score=0, correct=false
+
+Return ONLY this JSON (no markdown, no explanation):
+{{"score": <0 or 1>, "max_score": 1, "feedback": "<brief 1-2 sentence reason>", "correct": <true/false>}}"""
 
             try:
                 if client is None:
-                    return JsonResponse({
-                        "status": "error",
-                        "message": "OpenAI API is not configured"
-                    }, status=500)
+                    return JsonResponse({"status": "error", "message": "OpenAI API is not configured"}, status=500)
                     
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
-                        {"role": "system", "content": "You are a coding evaluator. Return only valid JSON."},
+                        {"role": "system", "content": "You are a strict code evaluator. Compare outputs exactly. Score is 1 (correct match) or 0 (wrong). Return ONLY valid JSON. No partial credit."},
                         {"role": "user", "content": scoring_prompt},
                     ],
                     max_tokens=300,
@@ -3310,86 +3324,93 @@ Return ONLY JSON: {{"score": 4, "max_score": 5, "feedback": "...", "correct": tr
                 )
                 result = json.loads(response.choices[0].message.content)
                 
-                # ===== IF CORRECT, MARK TOPIC AS COMPLETED AND UPDATE LEADERBOARD =====
+                new_rank = user_rank
+                new_xp = champion_xp
+                xp_earned = 0
+                
+                if not progress:
+                    progress, _ = StudentProgress.objects.get_or_create(
+                        student=request.user, course=course
+                    )
+                
+                xp_before = champion_xp
+                
+                # ===== ALWAYS GET CURRENT COUNT FROM DATABASE =====
+                already_awarded = progress.completed_topics.filter(id=topic_id).exists()
+                earned_points = progress.completed_topics.filter(id__in=course_topic_ids).count()
+                display_score = earned_points
+                
+                print(f"DEBUG: topic_id={topic_id}, already_awarded={already_awarded}, earned_points={earned_points}")
+                
                 if result.get('correct', False):
-                    # Get or create progress
-                    if not progress:
-                        progress, created = StudentProgress.objects.get_or_create(
-                            student=request.user,
-                            course=course
-                        )
                     
-                    # Add topic to completed topics if not already there
-                    if topic_id not in completed_topic_ids:
+                    if not already_awarded:
+                        # ===== FIRST TIME CORRECT =====
                         progress.completed_topics.add(topic)
-                        completed_topic_ids.append(topic_id)
-                        earned_points = len(completed_topic_ids)
-                        print(f"✅ Topic {topic_id} completed! Points: {earned_points}/{total_topics}")
+                        progress.add_assessment_score(100, topic_id, first_attempt=True)
                         
-                        # ===== UPDATE LEADERBOARD =====
+                        # Refresh count from DB
+                        earned_points = progress.completed_topics.filter(id__in=course_topic_ids).count()
+                        display_score = earned_points
+                        
                         try:
-                            entry, created = LeaderboardEntry.objects.update_or_create(
-                                student=request.user,
-                                course=course,
-                                defaults={
-                                    'points': earned_points,
-                                    'completed_topics': earned_points,
-                                    'total_topics': total_topics,
-                                    'completion_percentage': (earned_points / total_topics * 100) if total_topics > 0 else 0,
-                                }
-                            )
-                            entry.update_rank()
-                            print(f"🏆 Leaderboard updated for {request.user.username}: {earned_points} pts")
+                            update_streak(request.user, course)
+                            entry = update_leaderboard_entry(request.user, course)
+                            check_badges(request.user, course, progress)
                             
-                            updated_entry = LeaderboardEntry.objects.filter(
-                                student=request.user,
-                                course=course
-                            ).first()
-                            new_rank = updated_entry.rank if updated_entry else None
-                            
+                            if entry:
+                                new_rank = entry.rank
+                                new_xp = entry.champion_xp
+                                xp_earned = new_xp - xp_before
+                                print(f"🏆 Topic {topic_id} completed! XP: {new_xp} (+{xp_earned}), Rank: #{new_rank}")
                         except Exception as e:
                             print(f"⚠️ Failed to update leaderboard: {e}")
-                            new_rank = None
                     else:
-                        new_rank = user_rank
+                        # ===== ALREADY COMPLETED =====
+                        display_score = earned_points
+                        xp_earned = 0
+                        result['feedback'] = (result.get('feedback', '') + 
+                            '\n\n📌 Module already completed - no additional XP.')
                 else:
-                    new_rank = user_rank
+                    # ===== INCORRECT =====
+                    progress.incorrect_code_attempts += 1
+                    progress.save(update_fields=['incorrect_code_attempts'])
+                    display_score = earned_points
                 
                 return JsonResponse({
-                    "status": "success", 
-                    "result": result,
-                    "points": earned_points if 'earned_points' in locals() else len(completed_topic_ids),
+                    "status": "success",
+                    "result": {
+                        "score": display_score,
+                        "max_score": total_topics,
+                        "feedback": result.get('feedback', ''),
+                        "correct": result.get('correct', False)
+                    },
+                    "points": earned_points,
                     "total_topics": total_topics,
-                    "rank": new_rank if 'new_rank' in locals() else user_rank
+                    "rank": new_rank,
+                    "champion_xp": new_xp,
+                    "xp_earned": xp_earned,
+                    "already_awarded": already_awarded,
+                    "average_score": progress.get_average_score() if progress else 0,
+                    "modules_completed": min(earned_points, total_topics),
                 })
             except Exception as e:
-                return JsonResponse({
-                    "status": "error", 
-                    "message": str(e)
-                }, status=500)
-
-        # ================= UPDATE ACTIVE TOPIC =================
+                return JsonResponse({"status": "error", "message": str(e)}, status=500)
+            
         if data.get("action") == "update_active_topic":
             topic_id = data.get("topic_id")
             course_id = data.get("course_id")
             
             if not course_id:
-                return JsonResponse({
-                    "status": "error", 
-                    "message": "Course ID is required"
-                }, status=400)
+                return JsonResponse({"status": "error", "message": "Course ID is required"}, status=400)
             
             try:
                 course_obj = Courses.objects.get(id=course_id)
             except Courses.DoesNotExist:
-                return JsonResponse({
-                    "status": "error", 
-                    "message": "Course not found"
-                }, status=404)
+                return JsonResponse({"status": "error", "message": "Course not found"}, status=404)
             
-            progress_obj, created = StudentProgress.objects.get_or_create(
-                student=request.user,
-                course=course_obj
+            progress_obj, _ = StudentProgress.objects.get_or_create(
+                student=request.user, course=course_obj
             )
             
             if topic_id:
@@ -3397,26 +3418,54 @@ Return ONLY JSON: {{"score": 4, "max_score": 5, "feedback": "...", "correct": tr
                     topic = Topics.objects.get(id=topic_id)
                     progress_obj.current_topic = topic
                     progress_obj.save(update_fields=['current_topic', 'last_updated'])
-                    print(f"✅ Updated active topic to: {topic_id} for user {request.user.username}")
                 except Topics.DoesNotExist:
-                    return JsonResponse({
-                        "status": "error", 
-                        "message": "Topic not found"
-                    }, status=404)
+                    return JsonResponse({"status": "error", "message": "Topic not found"}, status=404)
             else:
                 progress_obj.current_topic = None
                 progress_obj.save(update_fields=['current_topic', 'last_updated'])
-                print(f"✅ Cleared active topic for user {request.user.username}")
+            
+            leaderboard_entry = LeaderboardEntry.objects.filter(
+                student=request.user, course=course_obj
+            ).first()
+            new_xp = leaderboard_entry.champion_xp if leaderboard_entry else 0
+            new_rank = leaderboard_entry.rank if leaderboard_entry else None
             
             completed_ids = list(
                 progress_obj.completed_topics.filter(id__in=course_topic_ids).values_list('id', flat=True)
             ) if progress_obj else []
             
-            leaderboard_entry = LeaderboardEntry.objects.filter(
-                student=request.user,
-                course=course_obj
-            ).first()
-            rank = leaderboard_entry.rank if leaderboard_entry else None
+            # ===== AUTO-CREATE FILE =====
+            auto_created_file_id = None
+            if topic_id and course_obj:
+                course_title_lower = course_obj.title.lower()
+                is_programming = 'python' in course_title_lower or 'rust' in course_title_lower
+                
+                if is_programming:
+                    try:
+                        new_topic = Topics.objects.get(id=topic_id)
+                        file_extension = 'py' if 'python' in course_title_lower else 'rs'
+                        
+                        import re
+                        safe_title = re.sub(r'[^a-zA-Z0-9_\s]', '', new_topic.title)
+                        safe_title = safe_title.strip().replace(' ', '_').lower()
+                        file_name = f"{safe_title}.{file_extension}"
+                        
+                        existing_file = File.objects.filter(
+                            project=project,
+                            name__iexact=file_name
+                        ).first()
+                        
+                        if not existing_file:
+                            new_file = File.objects.create(
+                                project=project,
+                                name=file_name,
+                                content=''
+                            )
+                            auto_created_file_id = new_file.id
+                        else:
+                            auto_created_file_id = existing_file.id
+                    except Exception as e:
+                        print(f"⚠️ Failed to auto-create file: {e}")
             
             return JsonResponse({
                 "status": "success",
@@ -3424,91 +3473,70 @@ Return ONLY JSON: {{"score": 4, "max_score": 5, "feedback": "...", "correct": tr
                 "current_topic_id": topic_id,
                 "points": len(completed_ids),
                 "total_topics": total_topics,
-                "rank": rank
+                "rank": new_rank,
+                "champion_xp": new_xp,
+                "auto_created_file_id": auto_created_file_id,
             })
 
         # ================= AI PROMPT =================
         if prompt or ai_action == "build_project":
             if client is None:
-                return JsonResponse({
-                    "status": "error",
-                    "message": "🔑 OpenAI API is not configured. Please set your API key.",
-                    "error_detail": "OPENAI_API_KEY is missing or invalid."
-                }, status=500)
+                return JsonResponse({"status": "error", "message": "🔑 OpenAI API is not configured."}, status=500)
 
             try:
                 with transaction.atomic():
-                    html_file, html_created = File.objects.get_or_create(
-                        project=project, 
-                        name="index.html",
+                    html_file, _ = File.objects.get_or_create(
+                        project=project, name="index.html",
                         defaults={"content": "<!DOCTYPE html>\n<html>\n<head>\n    <title>Project</title>\n    <link rel='stylesheet' href='style.css'>\n</head>\n<body>\n    <script src='script.js'></script>\n</body>\n</html>"}
                     )
-                    css_file, css_created = File.objects.get_or_create(
-                        project=project, 
-                        name="style.css",
+                    css_file, _ = File.objects.get_or_create(
+                        project=project, name="style.css",
                         defaults={"content": "/* Your styles here */\n"}
                     )
-                    js_file, js_created = File.objects.get_or_create(
-                        project=project, 
-                        name="script.js",
+                    js_file, _ = File.objects.get_or_create(
+                        project=project, name="script.js",
                         defaults={"content": "// Your JavaScript here\n"}
                     )
 
-                    # ================= OPTIMIZED AI SYSTEM PROMPT =================
-                    system_message = """You are an elite UI/UX engineer who builds stunning, modern web applications. Your code rivals the quality of Vercel, Linear, Stripe, and Apple design systems.
+                    system_message = """You are an elite UI/UX engineer who builds stunning, modern web applications.
 
 ## DESIGN PHILOSOPHY
-- Clean, purposeful whitespace — never crowded
-- Strong visual hierarchy with clear typographic scale
-- Consistent 8px spacing grid
-- Subtle depth using shadows, not heavy borders
-- Smooth micro-interactions and transitions (200ms)
-- Mobile-first, fully responsive layouts
+- Clean whitespace, strong visual hierarchy, consistent 8px grid
+- Subtle depth with shadows, smooth 200ms transitions
+- Mobile-first, fully responsive
 
 ## VISUAL DEFAULTS
-- Font: Inter or system-ui
-- Primary: #6366f1 indigo, hover: #4f46e5
-- Light bg: #ffffff or #f9fafb, Dark bg: #0f172a
-- Text: #0f172a primary, #64748b secondary, #94a3b8 muted
-- Border: #e2e8f0, radius: 8px cards, 6px buttons, 12px modals
-- Shadow: 0 1px 3px rgba(0,0,0,0.08), hover: 0 8px 24px rgba(0,0,0,0.10)
+- Font: Inter/system-ui, Primary: #6366f1, hover: #4f46e5
+- Light bg: #fff/#f9fafb, Dark bg: #0f172a
+- Text: #0f172a primary, #64748b secondary
+- Border: #e2e8f0, radius: 8px cards, 6px buttons
 
-## CSS RULES (mandatory)
-- CSS custom properties at :root for colors/spacing
-- Flexbox and Grid for layouts
+## CSS RULES
+- CSS variables at :root, Flexbox/Grid layouts
 - transition: all 0.2s ease on interactive elements
-- :hover and :focus states on buttons, links, inputs
-- box-sizing: border-box on *, scroll-behavior: smooth on html
-- NO inline styles — everything in CSS file
+- :hover/:focus states, box-sizing: border-box
+- NO inline styles
 
-## COMPONENT STANDARDS
-Button: bg #6366f1, padding 10px 20px, radius 6px, font 600 15px, border none. Hover: bg #4f46e5, translateY(-1px), shadow 0 4px 12px rgba(99,102,241,0.3)
-Card: bg #fff, radius 12px, padding 24px, border 1px #e2e8f0. Hover: translateY(-2px), shadow boost
-Input: full width, padding 10px 14px, border 1px #e2e8f0, radius 6px. Focus: border #6366f1, shadow 0 0 0 3px rgba(99,102,241,0.12)
+## COMPONENTS
+Button: bg #6366f1, padding 10px 20px, radius 6px, font 600 15px
+Card: bg #fff, radius 12px, padding 24px, hover lift
+Input: full width, padding 10px 14px, focus ring #6366f1
 
-## HTML (mandatory)
-- Semantic: header, main, nav, section, footer, article
-- lang="en", viewport meta, charset UTF-8
-- Alt on images, aria-label on icon buttons
-- CSS linked in head, JS before /body
+## HTML
+- Semantic tags, lang="en", viewport meta, charset UTF-8
+- Alt text, aria-labels, CSS in head, JS before /body
 
-## JS (mandatory)
-- Vanilla ES6+ only (const/let, arrows, async/await)
-- DOMContentLoaded wrapper, CSS class toggling for animations
-- Loading/error states on async operations
+## JS
+- Vanilla ES6+, DOMContentLoaded, CSS class toggling
+- Loading/error states
 
-## PAGE STRUCTURE (include all)
-- Sticky nav: logo left, links right
-- Hero: headline + subtext + CTA button(s)
-- Content/features section with card grid
-- Footer with links
-- Sections: 80px padding top/bottom, max-width 1200px centered
-- Mobile: single column below 768px
-- Smooth scroll on nav clicks
+## PAGE STRUCTURE
+- Sticky nav, Hero with CTA, Content grid, Footer
+- 80px sections, max-width 1200px, mobile <768px single column
 
-## RESPONSE FORMAT
+## RESPONSE
 Return ONLY: {"html": "...", "css": "...", "js": "..."}
-No markdown, no code fences, no explanation. Raw JSON only."""
+No markdown, raw JSON only."""
 
                     user_message = f"""Current Files:
 HTML: {html_file.content[:300] if html_file.content.strip() else "Empty"}
@@ -3517,7 +3545,7 @@ JS: {js_file.content[:200] if js_file.content.strip() else "Empty"}
 
 Request: {prompt}
 
-Build to Vercel/Linear quality standards. Return ONLY JSON: {{"html": "...", "css": "...", "js": "..."}}"""
+Return ONLY JSON: {{"html": "...", "css": "...", "js": "..."}}"""
 
                     try:
                         response = client.chat.completions.create(
@@ -3530,183 +3558,82 @@ Build to Vercel/Linear quality standards. Return ONLY JSON: {{"html": "...", "cs
                             temperature=0.4,
                             response_format={"type": "json_object"}
                         )
-                        
                         ai_text = response.choices[0].message.content.strip()
-                        print(f"✅ AI Response received: {len(ai_text)} chars")
-                        
                     except Exception as api_error:
                         error_msg = str(api_error)
-
                         if "rate_limit" in error_msg.lower():
-                            return JsonResponse({
-                                "status": "error",
-                                "message": "⏳ Rate limit reached. Please wait a moment and try again.",
-                                "error_detail": error_msg
-                            }, status=429)
-                        elif "api_key" in error_msg.lower() or "authentication" in error_msg.lower():
-                            return JsonResponse({
-                                "status": "error",
-                                "message": "🔑 API authentication failed. Please check your API key configuration.",
-                                "error_detail": error_msg
-                            }, status=500)
-                        elif "timeout" in error_msg.lower():
-                            return JsonResponse({
-                                "status": "error",
-                                "message": "⏱️ Request timed out. Please try again.",
-                                "error_detail": error_msg
-                            }, status=504)
-                        elif "quota" in error_msg.lower() or "insufficient" in error_msg.lower():
-                            return JsonResponse({
-                                "status": "error",
-                                "message": "💳 API quota exceeded. Please check your OpenAI account.",
-                                "error_detail": error_msg
-                            }, status=402)
+                            return JsonResponse({"status": "error", "message": "⏳ Rate limit reached."}, status=429)
+                        elif "api_key" in error_msg.lower():
+                            return JsonResponse({"status": "error", "message": "🔑 API auth failed."}, status=500)
+                        elif "quota" in error_msg.lower():
+                            return JsonResponse({"status": "error", "message": "💳 Quota exceeded."}, status=402)
                         else:
-                            return JsonResponse({
-                                "status": "error",
-                                "message": f"🚫 AI service failed: {error_msg}",
-                                "error_detail": error_msg
-                            }, status=500)
+                            return JsonResponse({"status": "error", "message": f"🚫 AI failed: {error_msg}"}, status=500)
 
-                    # ================= PARSE AI RESPONSE =================
                     try:
                         ai_generated = json.loads(ai_text)
-                    except json.JSONDecodeError as json_error:
+                    except json.JSONDecodeError:
                         start = ai_text.find("{")
                         end = ai_text.rfind("}") + 1
                         if start != -1 and end > start:
-                            ai_text_cleaned = ai_text[start:end]
                             try:
-                                ai_generated = json.loads(ai_text_cleaned)
+                                ai_generated = json.loads(ai_text[start:end])
                             except json.JSONDecodeError:
-                                return JsonResponse({
-                                    "status": "error",
-                                    "message": "Failed to parse AI response as JSON. The AI may have returned an invalid format.",
-                                    "error_detail": f"Could not parse: {ai_text[:200]}..."
-                                }, status=500)
+                                return JsonResponse({"status": "error", "message": "Failed to parse AI response"}, status=500)
                         else:
-                            return JsonResponse({
-                                "status": "error",
-                                "message": "AI response does not contain valid JSON.",
-                                "error_detail": f"Response preview: {ai_text[:200]}..."
-                            }, status=500)
+                            return JsonResponse({"status": "error", "message": "No valid JSON in response"}, status=500)
 
-                    # ================= VALIDATE RESPONSE =================
-                    if not isinstance(ai_generated, dict):
-                        return JsonResponse({
-                            "status": "error",
-                            "message": "AI response is not a valid JSON object.",
-                            "error_detail": f"Type: {type(ai_generated)}"
-                        }, status=500)
-                    
-                    if not any(key in ai_generated for key in ["html", "css", "js"]):
-                        return JsonResponse({
-                            "status": "error",
-                            "message": "AI response missing required keys (html, css, or js).",
-                            "error_detail": f"Keys found: {list(ai_generated.keys())}"
-                        }, status=500)
+                    if not isinstance(ai_generated, dict) or not any(k in ai_generated for k in ["html", "css", "js"]):
+                        return JsonResponse({"status": "error", "message": "Invalid response format"}, status=500)
                     
                     updates_made = []
-
-                    # ================= UPDATE FILES =================
-                    if "html" in ai_generated and ai_generated["html"].strip():
-                        html_content = ai_generated["html"].strip()
-                        if not html_content.startswith("<!DOCTYPE"):
-                            html_content = f"<!DOCTYPE html>\n{html_content}"
-                        html_file.content = html_content
-                        html_file.save(update_fields=["content"])
-                        updates_made.append("HTML")
-                        print(f"✅ Updated index.html ({len(html_content)} chars)")
-
-                    if "css" in ai_generated and ai_generated["css"].strip():
-                        css_file.content = ai_generated["css"].strip()
-                        css_file.save(update_fields=["content"])
-                        updates_made.append("CSS")
-                        print(f"✅ Updated style.css ({len(css_file.content)} chars)")
-
-                    if "js" in ai_generated and ai_generated["js"].strip():
-                        js_file.content = ai_generated["js"].strip()
-                        js_file.save(update_fields=["content"])
-                        updates_made.append("JavaScript")
-                        print(f"✅ Updated script.js ({len(js_file.content)} chars)")
+                    for key, file_obj in [("html", html_file), ("css", css_file), ("js", js_file)]:
+                        if key in ai_generated and ai_generated[key].strip():
+                            content = ai_generated[key].strip()
+                            if key == "html" and not content.startswith("<!DOCTYPE"):
+                                content = f"<!DOCTYPE html>\n{content}"
+                            file_obj.content = content
+                            file_obj.save(update_fields=["content"])
+                            updates_made.append(key.upper())
 
                     if not updates_made:
-                        return JsonResponse({
-                            "status": "warning",
-                            "message": "No files were updated. AI may not have understood the request.",
-                            "ai_response": ai_generated
-                        }, status=200)
+                        return JsonResponse({"status": "warning", "message": "No files updated"}, status=200)
 
                     return JsonResponse({
                         "status": "success",
                         "ai_content": ai_generated,
-                        "message": f"✨ Successfully updated: {', '.join(updates_made)}",
+                        "message": f"✨ Updated: {', '.join(updates_made)}",
                         "files_updated": updates_made,
-                        "prompt": prompt[:100] + "..." if len(prompt) > 100 else prompt
                     })
 
             except Exception as e:
-                print(f"❌ Unexpected Error in AI Processing: {traceback.format_exc()}")
-                return JsonResponse({
-                    "status": "error",
-                    "message": f"An unexpected error occurred: {str(e)}",
-                    "error_detail": traceback.format_exc()
-                }, status=500)
+                print(f"❌ AI Error: {traceback.format_exc()}")
+                return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
         # ================= FILE SAVE =================
         if new_content and new_content != file.content:
             file.content = new_content
             file.save(update_fields=["content"])
-            print(f"💾 Saved {file.name} ({len(new_content)} chars)")
 
         response_table = ""
-
-        # ================= CSV / EXCEL PREVIEW =================
         if ext in {"csv", "xls", "xlsx"} and file.file:
             try:
-                if ext == "csv":
-                    df = pd.read_csv(file.file.path)
-                else:
-                    df = pd.read_excel(file.file.path)
-
+                df = pd.read_csv(file.file.path) if ext == "csv" else pd.read_excel(file.file.path)
                 if run_table:
-                    response_table = df.head(20).to_html(
-                        classes="table table-bordered table-sm",
-                        index=False
-                    )
+                    response_table = df.head(20).to_html(classes="table table-bordered table-sm", index=False)
             except Exception as e:
-                return JsonResponse({
-                    "status": "error",
-                    "message": f"Failed to read file: {str(e)}"
-                }, status=400)
+                return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
-        # ================= SAFE PYTHON RUNNER =================
         if is_python and (run_plot or new_content.strip()):
             result = run_code(new_content)
-            
             result["table"] = response_table
-            
             if result["status"] == "error":
                 return JsonResponse(result, status=500)
-            
             return JsonResponse(result)
 
-        return JsonResponse({
-            "status": "saved",
-            "message": "✓ File saved successfully"
-        })
+        return JsonResponse({"status": "saved", "message": "✓ File saved successfully"})
 
     # ================= GET =================
-    print('=' * 50)
-    print('📊 FILE DETAIL DEBUG:')
-    print(f'  - current_topic_id: {current_topic_id}')
-    print(f'  - progress: {progress}')
-    print(f'  - course: {course}')
-    print(f'  - completed_topic_ids: {completed_topic_ids}')
-    print(f'  - Points: {earned_points}/{total_topics}')
-    print(f'  - User Rank: {user_rank}')
-    print('=' * 50)
-    
     return render(request, "webprojects/file_detail.html", {
         "file": file,
         "files": files,
@@ -3723,8 +3650,9 @@ Build to Vercel/Linear quality standards. Return ONLY JSON: {{"html": "...", "cs
         'earned_points': earned_points,
         'total_topics': total_topics,
         'user_rank': user_rank,
+        'champion_xp': champion_xp,
     })
-
+    
 
 
 from django.shortcuts import render, get_object_or_404
@@ -3736,68 +3664,312 @@ from .models import LeaderboardEntry, StudentProgress
 from sms.models import Courses, Topics
 
 
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.db.models import Window, F, Sum, Avg, Count
+from django.db.models.functions import Rank
+from django.utils import timezone
+from datetime import timedelta
+from .models import LeaderboardEntry, StudentProgress, StudentXP, Badge, StudentBadge, LearningStreak
+from sms.models import Courses, Topics
+
+
+# ============================================
+# XP CALCULATION HELPERS
+# ============================================
+
+def calculate_champion_xp(progress, total_topics):
+    """Calculate Champion XP for a student"""
+    xp = 0
+    
+    # Module completion: +10 XP per module (capped at total_topics)
+    completed = min(progress.completed_topics.filter(courses=progress.course).count(), total_topics)
+    xp += completed * 10
+    
+    # Assessment performance XP - ONLY count unique topics (no duplicates)
+    # Get unique completed topic IDs
+    completed_topic_ids = list(progress.completed_topics.filter(courses=progress.course).values_list('id', flat=True))
+    
+    # Only count assessment scores up to the number of completed topics
+    # This prevents duplicate scores from inflating XP
+    unique_scores = progress.assessment_scores[:len(completed_topic_ids)] if len(progress.assessment_scores) > len(completed_topic_ids) else progress.assessment_scores
+    
+    for score in unique_scores:
+        if score >= 90:
+            xp += 10
+        elif score >= 80:
+            xp += 8
+        elif score >= 70:
+            xp += 6
+        elif score >= 60:
+            xp += 4
+    
+    # Coding challenges: +5 XP each (capped at total_topics)
+    coding_xp = min(progress.coding_challenges_passed, total_topics) * 5
+    xp += coding_xp
+    
+    # Course completion: +100 XP (only if all modules completed)
+    if progress.course_completed and completed >= total_topics:
+        xp += 100
+    
+    # First attempt bonuses: +5 XP each (capped at total_topics)
+    first_attempt_count = min(len(progress.first_attempt_topics), total_topics)
+    xp += first_attempt_count * 5
+    
+    # Learning streak XP (only count the highest tier achieved)
+    if progress.current_streak >= 30:
+        xp += 50
+    elif progress.current_streak >= 14:
+        xp += 30
+    elif progress.current_streak >= 7:
+        xp += 15
+    elif progress.current_streak >= 3:
+        xp += 5
+    
+    return xp
+
+
+def update_streak(student, course):
+    """Update learning streak for a student"""
+    today = timezone.now().date()
+    
+    # Record today's activity
+    LearningStreak.objects.get_or_create(
+        student=student,
+        course=course,
+        date=today
+    )
+    
+    # Get or create progress
+    progress, _ = StudentProgress.objects.get_or_create(
+        student=student,
+        course=course
+    )
+    
+    # Calculate current streak
+    streak_dates = LearningStreak.objects.filter(
+        student=student,
+        course=course
+    ).values_list('date', flat=True).order_by('-date')
+    
+    current_streak = 0
+    if streak_dates:
+        current_streak = 1
+        for i in range(1, len(streak_dates)):
+            if streak_dates[i-1] - streak_dates[i] == timedelta(days=1):
+                current_streak += 1
+            else:
+                break
+    
+    progress.current_streak = current_streak
+    if current_streak > progress.longest_streak:
+        progress.longest_streak = current_streak
+    progress.last_activity_date = today
+    progress.save(update_fields=['current_streak', 'longest_streak', 'last_activity_date'])
+    
+    return current_streak
+
+
+def check_badges(student, course, progress):
+    """Check and award badges"""
+    total_topics = Topics.objects.filter(courses=course).count()
+    
+    badges_awarded = []
+    
+    # First to Finish
+    if progress.course_completed and progress.first_to_complete:
+        badge, _ = Badge.objects.get_or_create(
+            name='first_to_finish',
+            defaults={'description': 'First student to complete the course', 'icon': '🥇', 'xp_reward': 50}
+        )
+        _, created = StudentBadge.objects.get_or_create(student=student, badge=badge, course=course)
+        if created:
+            badges_awarded.append(badge)
+    
+    # Fast Learner - completed within 7 days
+    if progress.course_completed and progress.completion_date:
+        first_activity = LearningStreak.objects.filter(
+            student=student, course=course
+        ).order_by('date').first()
+        if first_activity:
+            days = (progress.completion_date.date() - first_activity.date).days
+            if days <= 7:
+                badge, _ = Badge.objects.get_or_create(
+                    name='fast_learner',
+                    defaults={'description': 'Completed course within 7 days', 'icon': '⚡', 'xp_reward': 30}
+                )
+                _, created = StudentBadge.objects.get_or_create(student=student, badge=badge, course=course)
+                if created:
+                    badges_awarded.append(badge)
+    
+    # Perfect Score - average >= 90%
+    if progress.get_average_score() >= 90 and progress.total_assessments_taken > 0:
+        badge, _ = Badge.objects.get_or_create(
+            name='perfect_score',
+            defaults={'description': 'Average assessment score ≥ 90%', 'icon': '🎯', 'xp_reward': 40}
+        )
+        _, created = StudentBadge.objects.get_or_create(student=student, badge=badge, course=course)
+        if created:
+            badges_awarded.append(badge)
+    
+    # Code Master - passed all coding challenges
+    if progress.coding_challenges_passed >= total_topics and total_topics > 0:
+        badge, _ = Badge.objects.get_or_create(
+            name='code_master',
+            defaults={'description': 'Passed every coding challenge', 'icon': '💻', 'xp_reward': 40}
+        )
+        _, created = StudentBadge.objects.get_or_create(student=student, badge=badge, course=course)
+        if created:
+            badges_awarded.append(badge)
+    
+    # AI Champion - passed all assessments on first attempt
+    if len(progress.first_attempt_topics) >= progress.total_assessments_taken and progress.total_assessments_taken > 0:
+        badge, _ = Badge.objects.get_or_create(
+            name='ai_champion',
+            defaults={'description': 'Passed every AI assessment on first attempt', 'icon': '🧠', 'xp_reward': 50}
+        )
+        _, created = StudentBadge.objects.get_or_create(student=student, badge=badge, course=course)
+        if created:
+            badges_awarded.append(badge)
+    
+    # Consistent Learner - 7-day streak
+    if progress.current_streak >= 7:
+        badge, _ = Badge.objects.get_or_create(
+            name='consistent',
+            defaults={'description': 'Maintained a 7-day learning streak', 'icon': '🔥', 'xp_reward': 25}
+        )
+        _, created = StudentBadge.objects.get_or_create(student=student, badge=badge, course=course)
+        if created:
+            badges_awarded.append(badge)
+    
+    return badges_awarded
+
+
+def get_motivation_message(entry, progress, total_students):
+    """Generate motivation messages"""
+    if not entry:
+        return []
+    
+    messages = []
+    
+    # Near top 20
+    if entry.rank and entry.rank > 20 and entry.rank <= 25:
+        modules_needed = max(1, (entry.total_modules - entry.modules_completed))
+        messages.append(f"🚀 Complete {modules_needed} more module(s) to enter the Top 20!")
+    
+    # Close to overtaking
+    next_entry = LeaderboardEntry.objects.filter(
+        course=entry.course,
+        rank__lt=entry.rank
+    ).order_by('-rank').first()
+    
+    if next_entry:
+        xp_needed = next_entry.champion_xp - entry.champion_xp
+        if xp_needed <= 20 and xp_needed > 0:
+            name = next_entry.student.get_full_name() or next_entry.student.username
+            messages.append(f"🎯 Earn {xp_needed} more XP to overtake {name}!")
+    
+    # Assessment motivation
+    if progress and progress.get_average_score() < 90:
+        messages.append(f"🎯 Score 90%+ in your next assessment for bonus XP!")
+    
+    # Coding challenge motivation
+    if entry.coding_challenges_passed < entry.total_modules:
+        needed = entry.total_modules - entry.coding_challenges_passed
+        messages.append(f"💻 Solve {needed} more coding challenge(s) for +{needed * 5} XP!")
+    
+    # Streak motivation
+    if progress:
+        if progress.current_streak > 0:
+            messages.append(f"🔥 Keep your streak alive tomorrow! ({progress.current_streak} days)")
+        else:
+            messages.append("🔥 Start a learning streak by completing a module today!")
+    
+    return messages[:3]  # Limit to 3 messages
+
+
+def update_leaderboard_entry(student, course):
+    """Update a single student's leaderboard entry"""
+    total_topics = Topics.objects.filter(courses=course).count()
+    progress = StudentProgress.objects.filter(student=student, course=course).first()
+    
+    if not progress:
+        return None
+    
+    xp = calculate_champion_xp(progress, total_topics)
+    
+    # Calculate completion time
+    completion_time_days = None
+    if progress.course_completed and progress.completion_date:
+        first_activity = LearningStreak.objects.filter(
+            student=student, course=course
+        ).order_by('date').first()
+        if first_activity:
+            completion_time_days = (progress.completion_date.date() - first_activity.date).days
+    
+    entry, created = LeaderboardEntry.objects.update_or_create(
+        student=student,
+        course=course,
+        defaults={
+            'champion_xp': xp,
+            'modules_completed': min(progress.completed_topics.filter(courses=course).count(), total_topics),
+            'total_modules': total_topics,
+            'average_score': progress.get_average_score(),
+            'coding_challenges_passed': progress.coding_challenges_passed,
+            'incorrect_code_attempts': progress.incorrect_code_attempts,
+            'completion_time_days': completion_time_days,
+            'completion_date': progress.completion_date,
+            'learning_streak': progress.current_streak,
+        }
+    )
+    
+    # Update ranks
+    entry.update_rank()
+    
+    return entry
+
+
+# ============================================
+# VIEWS
+# ============================================
+
 @login_required
 def course_leaderboard(request, course_id):
     """Display the leaderboard for a specific course"""
     course = get_object_or_404(Courses, id=course_id)
-    
-    # Get total topics for this course
     total_topics = Topics.objects.filter(courses=course).count()
     
-    # Get all leaderboard entries with proper rank handling using window function
-    leaderboard_entries = LeaderboardEntry.objects.filter(
-        course=course
-    ).select_related('student', 'student__profile').annotate(
-        # Use Django's Rank window function - ties get SAME rank
-        calculated_rank=Window(
-            expression=Rank(),
-            order_by=[F('points').desc(), F('completion_percentage').desc()]
-        )
-    ).order_by('calculated_rank')
+    # Update current user's entry first
+    update_leaderboard_entry(request.user, course)
     
-    # Update stored rank field and cap values for each entry
-    for entry in leaderboard_entries:
-        # Update the stored rank to match calculated rank
-        if entry.rank != entry.calculated_rank:
-            entry.rank = entry.calculated_rank
-            entry.save(update_fields=['rank'])
-        
-        # Cap completed_topics at total_topics
-        if entry.completed_topics > total_topics:
-            entry.completed_topics = total_topics
-            entry.save(update_fields=['completed_topics'])
-        
-        # Cap points at total_topics
-        if entry.points > total_topics:
-            entry.points = total_topics
-            entry.save(update_fields=['points'])
-        
-        # Cap completion percentage at 100%
-        if entry.completion_percentage > 100:
-            entry.completion_percentage = 100
-            entry.save(update_fields=['completion_percentage'])
+    # Check badges
+    progress = StudentProgress.objects.filter(student=request.user, course=course).first()
+    if progress:
+        check_badges(request.user, course, progress)
+        update_streak(request.user, course)
     
-    # Refresh entries after updates
+    # Get all entries
     leaderboard_entries = LeaderboardEntry.objects.filter(
         course=course
     ).select_related('student', 'student__profile').order_by('rank')
     
-    # Get course statistics
     total_students = leaderboard_entries.count()
     
-    # Get the current user's entry
+    # Current user
     user_entry = leaderboard_entries.filter(student=request.user).first()
     user_rank = user_entry.rank if user_entry else None
+    user_badges = StudentBadge.objects.filter(student=request.user, course=course).select_related('badge')
     
-    # Get all entries for the full table
+    # Motivation messages
+    motivation_messages = get_motivation_message(user_entry, progress, total_students) if user_entry else []
+    
+    # All entries
     all_entries = list(leaderboard_entries)
     
-    # Get top performers for podium - all students with top 3 distinct ranks
-    # This ensures if multiple students are tied for rank 1, they all appear on podium
-    distinct_top_ranks = sorted(set(e.rank for e in all_entries))[:3]
+    # Top performers - all with top 3 distinct ranks
+    distinct_top_ranks = sorted(set(e.rank for e in all_entries if e.rank))[:3]
     top_performers = [e for e in all_entries if e.rank in distinct_top_ranks]
-    
-    # Limit to max 5 on podium to avoid overcrowding
     if len(top_performers) > 5:
         top_performers = top_performers[:5]
     
@@ -3807,6 +3979,9 @@ def course_leaderboard(request, course_id):
         'top_performers': top_performers,
         'user_entry': user_entry,
         'user_rank': user_rank,
+        'user_progress': progress,
+        'user_badges': user_badges,
+        'motivation_messages': motivation_messages,
         'total_students': total_students,
         'total_topics': total_topics,
     }
@@ -3816,79 +3991,43 @@ def course_leaderboard(request, course_id):
 
 @login_required
 def update_leaderboard(request, course_id):
-    """Update the leaderboard for a course (called when a topic is completed)"""
+    """API endpoint to update leaderboard"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     
     course = get_object_or_404(Courses, id=course_id)
     
-    # Get the student's progress
-    progress = StudentProgress.objects.filter(
-        student=request.user,
-        course=course
-    ).first()
+    # Update streak
+    current_streak = update_streak(request.user, course)
     
-    if not progress:
+    # Update entry
+    entry = update_leaderboard_entry(request.user, course)
+    
+    if not entry:
         return JsonResponse({'error': 'No progress found'}, status=404)
     
-    # Get completed topics count and total topics
-    completed_topics = progress.completed_topics.filter(courses=course).count()
-    total_topics = Topics.objects.filter(courses=course).count()
+    # Check badges
+    progress = StudentProgress.objects.get(student=request.user, course=course)
+    new_badges = check_badges(request.user, course, progress)
     
-    # CAP values - points and completed_topics cannot exceed total_topics
-    capped_completed = min(completed_topics, total_topics)
-    capped_points = min(completed_topics, total_topics)  # Each completed topic = 1 point
-    capped_percentage = min(
-        (capped_completed / total_topics * 100) if total_topics > 0 else 0, 
-        100
-    )
-    
-    # Update or create leaderboard entry with capped values
-    entry, created = LeaderboardEntry.objects.update_or_create(
-        student=request.user,
-        course=course,
-        defaults={
-            'points': capped_points,
-            'completed_topics': capped_completed,
-            'total_topics': total_topics,
-            'completion_percentage': capped_percentage,
-        }
-    )
-    
-    # Update ALL ranks using window function for proper tie handling
-    all_entries = LeaderboardEntry.objects.filter(course=course).annotate(
-        calculated_rank=Window(
-            expression=Rank(),
-            order_by=[F('points').desc(), F('completion_percentage').desc()]
-        )
-    )
-    
-    # Save the new ranks
-    for e in all_entries:
-        if e.rank != e.calculated_rank:
-            e.rank = e.calculated_rank
-            e.save(update_fields=['rank'])
-    
-    # Get the user's new rank
-    user_entry = all_entries.filter(student=request.user).first()
-    user_rank = user_entry.calculated_rank if user_entry else None
-    
-    # Get total students
-    total_students = all_entries.count()
-    
-    # Count how many students have the same rank (tied)
-    tied_count = all_entries.filter(calculated_rank=user_rank).count() if user_rank else 0
+    # Motivation messages
+    total_students = LeaderboardEntry.objects.filter(course=course).count()
+    motivation = get_motivation_message(entry, progress, total_students)
     
     return JsonResponse({
         'status': 'success',
-        'message': 'Leaderboard updated',
-        'points': capped_points,
-        'completed_topics': capped_completed,
-        'total_topics': total_topics,
-        'rank': user_rank,
+        'champion_xp': entry.champion_xp,
+        'rank': entry.rank,
         'total_students': total_students,
-        'completion_percentage': capped_percentage,
-        'tied_count': tied_count,
+        'average_score': entry.average_score,
+        'modules_completed': entry.modules_completed,
+        'total_modules': entry.total_modules,
+        'coding_challenges_passed': entry.coding_challenges_passed,
+        'incorrect_code_attempts': entry.incorrect_code_attempts,
+        'learning_streak': entry.learning_streak,
+        'completion_time_days': entry.completion_time_days,
+        'new_badges': [b.get_name_display() for b in new_badges] if new_badges else [],
+        'motivation_messages': motivation,
     })
 
 

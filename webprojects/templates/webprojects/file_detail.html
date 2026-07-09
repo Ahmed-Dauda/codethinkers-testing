@@ -7,7 +7,6 @@
 <meta name="csrf-token" content="{{ csrf_token }}">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
-<!-- ===== PRISM STYLES & SCRIPTS ===== -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-python.min.js"></script>
@@ -687,11 +686,11 @@
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
   }
 
-  .points-updated {
-    animation: pointsPop 0.5s ease;
+  .xp-updated {
+    animation: xpPop 0.5s ease;
   }
 
-  @keyframes pointsPop {
+  @keyframes xpPop {
     0% { transform: scale(1); }
     50% { transform: scale(1.3); color: #fbbf24; }
     100% { transform: scale(1); }
@@ -730,7 +729,8 @@
         ✕ Hide Editor
     </button>
     
-    <div id="pointsDisplay" style="
+    <!-- ===== CHAMPION XP DISPLAY ===== -->
+    <div id="xpDisplay" style="
         display: inline-flex;
         align-items: center;
         gap: 8px;
@@ -744,9 +744,9 @@
         margin-left: 16px;
     ">
         <span>🏆</span>
-        <span>Points:</span>
-        <span id="pointsValue" style="color: #4ade80; font-weight: 700;">
-            {{ earned_points|default:"0" }}/{{ total_topics|default:"0" }}
+        <span>Champion XP:</span>
+        <span id="xpValue" style="color: #4ade80; font-weight: 700;">
+            {{ champion_xp|default:"0" }} XP
         </span>
         <span id="completionBadge" style="color: #fbbf24; font-size: 12px; {% if earned_points != total_topics or total_topics == 0 %}display:none;{% endif %}">🌟 Complete!</span>
     </div>
@@ -847,7 +847,7 @@
    style="display: block; padding: 8px 12px; color: #9cdcfe; text-decoration: none; border: 1px solid #3c3c3c; border-radius: 6px; margin-bottom: 12px; transition: all 0.2s ease;"
    onmouseover="this.style.background='#2a2d2e'; this.style.borderColor='#4fa';"
    onmouseout="this.style.background=''; this.style.borderColor='#3c3c3c';">
-    🏆 Leaderboard
+    🏆 Course Champions
     {% if user_rank %}<span style="float:right; color: #4ade80; font-weight:600;" id="leaderboardRank">#{{ user_rank }}</span>{% endif %}
 </a>
 {% endif %}
@@ -886,19 +886,16 @@
         {% endif %}
       </div>
 
-      <!-- ===== QUIZ BUTTON & PASSED BADGE - SHOWN FOR ALL COURSES ===== -->
-            <!-- ===== QUIZ BUTTON & PASSED BADGE ===== -->
+      <!-- ===== QUIZ BUTTON & PASSED BADGE ===== -->
       <div class="quiz-action-row" style="margin-top:6px; display:flex; align-items:center; gap:8px;">
         {% with course_title=course.title|lower %}
         {% if 'python' not in course_title and 'rust' not in course_title %}
-          <!-- Non-coding course: show quiz button + passed badge -->
           <button class="quiz-btn" data-topic-id="{{ topic.id }}" data-topic-title="{{ topic.title|escapejs }}"
                   onclick="openQuizModal({{ topic.id }}, this)">
             {% if topic.id in completed_topic_ids %}🔁 Retake Quiz{% else %}📝 Take Quiz{% endif %}
           </button>
         {% endif %}
         {% endwith %}
-        <!-- Show passed badge for ALL courses (coding & non-coding) -->
         <span class="quiz-passed-badge" data-topic-id="{{ topic.id }}" style="{% if topic.id in completed_topic_ids %}display:inline;{% else %}display:none;{% endif %}">✅ Passed</span>
       </div>
     </div>
@@ -1138,37 +1135,30 @@ async function loadQuizProgress() {
     const url = COURSE_ID ? `/webprojects/progress/?course_id=${COURSE_ID}` : '/webprojects/progress/';
     const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     const data = await res.json();
-    if (data.status === 'success') { updateProgressUI(data.overall_pct, data.completed_topic_ids || [], data.points || 0); }
+    if (data.status === 'success') { updateProgressUI(data.overall_pct, data.completed_topic_ids || [], data.champion_xp || 0); }
   } catch (err) { console.error('Failed to load progress', err); }
 }
 
 // ============================================
-// REAL-TIME POINTS UPDATE
+// REAL-TIME XP UPDATE
 // ============================================
-function updatePointsDisplay(points, total) {
-    const pointsValue = document.getElementById('pointsValue');
+function updateXPDisplay(xp) {
+    const xpValue = document.getElementById('xpValue');
     const completionBadge = document.getElementById('completionBadge');
-    if (pointsValue) { pointsValue.textContent = `${points}/${total}`; pointsValue.classList.remove('points-updated'); void pointsValue.offsetWidth; pointsValue.classList.add('points-updated'); }
-    if (completionBadge) {
-        if (points === total && total > 0) { completionBadge.style.display = 'inline'; completionBadge.classList.remove('badge-appear'); void completionBadge.offsetWidth; completionBadge.classList.add('badge-appear'); showCompletionCelebration(); }
-        else { completionBadge.style.display = 'none'; }
-    }
-    const examLockLink = document.getElementById('examLockLink'); const examProgressCount = document.getElementById('examProgressCount');
-    if (examLockLink && examProgressCount) { examProgressCount.textContent = points; if (points === total && total > 0) { examLockLink.innerHTML = '🎓 Take Exam'; examLockLink.style.color = 'white'; examLockLink.removeAttribute('title'); } }
+    if (xpValue) { xpValue.textContent = xp + ' XP'; xpValue.classList.remove('xp-updated'); void xpValue.offsetWidth; xpValue.classList.add('xp-updated'); }
 }
 
 // ============================================
 // REAL-TIME PROGRESS UI UPDATE
 // ============================================
-function updateProgressUI(pct, completedIds, points) {
+function updateProgressUI(pct, completedIds, xp) {
     const fill = document.getElementById('quizProgressFill');
     const label = document.getElementById('quizProgressLabel');
-    const pointsValue = document.getElementById('pointsValue');
     const rankValue = document.getElementById('rankValue');
     const leaderboardRank = document.getElementById('leaderboardRank');
     if (fill) { fill.style.transition = 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'; fill.style.width = pct + '%'; }
     if (label) label.textContent = pct + '%';
-    if (points !== undefined && pointsValue) updatePointsDisplay(points, TOTAL_TOPICS);
+    if (xp !== undefined) updateXPDisplay(xp);
     
     // Update badges and buttons for ALL topics
     document.querySelectorAll('.quiz-passed-badge').forEach(badge => {
@@ -1182,7 +1172,33 @@ function updateProgressUI(pct, completedIds, points) {
         if (btn) { btn.textContent = isDone ? '🔁 Retake Quiz' : '📝 Take Quiz'; btn.style.background = isDone ? '#28a745' : '#3498db'; }
     });
     
-    if (window._lastRank !== undefined && rankValue) { rankValue.textContent = '#' + window._lastRank; rankValue.classList.remove('points-updated'); void rankValue.offsetWidth; rankValue.classList.add('points-updated'); }
+    // Update exam link
+    const examLockLink = document.getElementById('examLockLink');
+    const examProgressCount = document.getElementById('examProgressCount');
+    if (examLockLink && examProgressCount) {
+        examProgressCount.textContent = completedIds.length;
+        if (completedIds.length >= TOTAL_TOPICS && TOTAL_TOPICS > 0) {
+            examLockLink.innerHTML = '🎓 Take Exam';
+            examLockLink.style.color = 'white';
+            examLockLink.removeAttribute('title');
+        }
+    }
+    
+    // Update completion badge
+    const completionBadge = document.getElementById('completionBadge');
+    if (completionBadge) {
+        if (completedIds.length >= TOTAL_TOPICS && TOTAL_TOPICS > 0) {
+            completionBadge.style.display = 'inline';
+            completionBadge.classList.remove('badge-appear');
+            void completionBadge.offsetWidth;
+            completionBadge.classList.add('badge-appear');
+            showCompletionCelebration();
+        } else {
+            completionBadge.style.display = 'none';
+        }
+    }
+    
+    if (window._lastRank !== undefined && rankValue) { rankValue.textContent = '#' + window._lastRank; rankValue.classList.remove('xp-updated'); void rankValue.offsetWidth; rankValue.classList.add('xp-updated'); }
     if (window._lastRank !== undefined && leaderboardRank) leaderboardRank.textContent = '#' + window._lastRank;
 }
 
@@ -1240,7 +1256,7 @@ async function submitQuiz() {
     if (data.passed) {
       if (body) body.innerHTML = `<div style="text-align:center; padding:20px;"><div style="font-size:40px;">🎉</div><p style="font-weight:bold; color:#28a745;">Passed! ${data.score}/${data.total} correct</p></div>`;
       showToast('Quiz passed! Module marked complete.', 'success');
-      if (data.overall_pct !== undefined && data.completed_topic_ids) updateProgressUI(data.overall_pct, data.completed_topic_ids, data.points);
+      if (data.overall_pct !== undefined && data.completed_topic_ids) updateProgressUI(data.overall_pct, data.completed_topic_ids, data.champion_xp || data.points);
       if (data.rank !== undefined) window._lastRank = data.rank;
     } else {
       if (body) body.innerHTML = `<div style="text-align:center; padding:20px;"><div style="font-size:40px;">😕</div><p style="font-weight:bold; color:#dc3545;">${data.score}/${data.total} correct — try again</p><button class="quiz-btn" onclick="openQuizModal(${currentQuizTopicId}, document.querySelector('.quiz-btn[data-topic-id=&quot;${currentQuizTopicId}&quot;]'))">🔁 Retry</button></div>`;
@@ -1292,50 +1308,261 @@ window.applyChanges = async function() {
 // ============================================
 // RUN CODE
 // ============================================
+
 function runCode() {
-  const code = editor.getValue(), output = document.getElementById("outputText"), tablePreview = document.getElementById("tablePreview"), plotPreview = document.getElementById("plotPreview"), scorePanel = document.getElementById("scorePanel");
-  output.innerHTML = `⏳ Running... <span class="spinner"></span>`; tablePreview.innerHTML = ""; plotPreview.innerHTML = ""; scorePanel.style.display = "none";
-  fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" }, body: JSON.stringify({ content: code, run_plot: true, run_table: true }) })
+  const code = editor.getValue(), 
+        output = document.getElementById("outputText"), 
+        tablePreview = document.getElementById("tablePreview"), 
+        plotPreview = document.getElementById("plotPreview"), 
+        scorePanel = document.getElementById("scorePanel");
+
+  output.innerHTML = `⏳ Running... <span class="spinner"></span>`; 
+  tablePreview.innerHTML = ""; 
+  plotPreview.innerHTML = ""; 
+  scorePanel.style.display = "none";
+
+  fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { 
+    method: "POST", 
+    headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" }, 
+    body: JSON.stringify({ content: code, run_plot: true, run_table: true, topic_id: activeTopicId }) 
+  })
   .then(r => r.json())
   .then(data => {
-    if (data.status === "error") { output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`; }
-    else {
+    if (data.status === "error") { 
+      output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`; 
+    } else {
       output.textContent = data.output || "[No output]";
-      if (activeTopicId) scoreOutput(data.output || "[No output]", activeTopicId); else scorePanel.style.display = "none";
-      if (data.table) { tablePreview.innerHTML = data.table; tablePreview.style.display = "block"; } else tablePreview.style.display = "none";
+
+      // ── Handle auto-score from successful code run ──────────
+      if (data.code_passed && activeTopicId) {
+        const scorePanel = document.getElementById("scorePanel");
+        const scoreDisplay = document.getElementById("scoreDisplay");
+        const scoreFeedback = document.getElementById("scoreFeedback");
+        const scoreBarFill = document.getElementById("scoreBarFill");
+
+        scorePanel.style.display = "block";
+
+        let scoreHTML = `✅ Code ran successfully! Score: <span style="color:#22c55e">${data.score}</span>`;
+        if (data.xp_earned > 0) {
+          scoreHTML += ` <span style="color:#fbbf24; font-size:0.9em;">(+${data.xp_earned} XP 🏆)</span>`;
+        }
+        if (data.already_awarded) {
+          scoreHTML += ` <span style="color:#f59e0b; font-size:0.8em;">⚠️ Already completed</span>`;
+        }
+
+        scoreDisplay.innerHTML = scoreHTML;
+        scoreFeedback.textContent = "Great job! Your code executed without errors.";
+        scoreBarFill.style.background = "#22c55e";
+        scoreBarFill.style.width = "100%";
+
+        // Update XP & rank
+        if (data.champion_xp !== undefined) {
+          updateXPDisplay(data.champion_xp);
+          if (data.rank !== undefined) {
+            window._lastRank = data.rank;
+            const rv = document.getElementById('rankValue');
+            const lr = document.getElementById('leaderboardRank');
+            if (rv) { rv.textContent = '#' + data.rank; rv.classList.remove('xp-updated'); void rv.offsetWidth; rv.classList.add('xp-updated'); }
+            if (lr) lr.textContent = '#' + data.rank;
+          }
+        }
+
+        // Update progress bar & badges
+        if (data.points !== undefined && data.total_topics !== undefined) {
+          const newPct = Math.round((data.points / data.total_topics) * 100);
+          const completedIds = [];
+
+          if (!data.already_awarded) completedIds.push(parseInt(activeTopicId));
+
+          document.querySelectorAll('.quiz-passed-badge').forEach(badge => {
+            const tId = parseInt(badge.dataset.topicId);
+            if (tId !== parseInt(activeTopicId) && badge.style.display === 'inline') completedIds.push(tId);
+          });
+
+          if (data.already_awarded && !completedIds.includes(parseInt(activeTopicId))) {
+            completedIds.push(parseInt(activeTopicId));
+          }
+
+          updateProgressUI(newPct, completedIds, data.champion_xp);
+
+          // Show passed badge
+          const badge = document.querySelector(`.quiz-passed-badge[data-topic-id="${activeTopicId}"]`);
+          if (badge) { badge.style.display = 'inline'; badge.classList.remove('badge-appear'); void badge.offsetWidth; badge.classList.add('badge-appear'); }
+
+          // Update exam link
+          const examLockLink = document.getElementById('examLockLink');
+          const examProgressCount = document.getElementById('examProgressCount');
+          if (examLockLink && examProgressCount) {
+            examProgressCount.textContent = data.points;
+            if (data.points >= data.total_topics && data.total_topics > 0) {
+              examLockLink.innerHTML = '🎓 Take Exam';
+              examLockLink.style.color = 'white';
+              examLockLink.removeAttribute('title');
+            }
+          }
+
+          // Completion celebration
+          const completionBadge = document.getElementById('completionBadge');
+          if (completionBadge && data.points >= data.total_topics && data.total_topics > 0) {
+            completionBadge.style.display = 'inline';
+            completionBadge.classList.remove('badge-appear');
+            void completionBadge.offsetWidth;
+            completionBadge.classList.add('badge-appear');
+            showCompletionCelebration();
+          }
+        }
+      } else if (activeTopicId) {
+        // Fall back to AI scoring for non-programming courses
+        scoreOutput(data.output || "[No output]", activeTopicId);
+      } else {
+        scorePanel.style.display = "none";
+      }
+
+      if (data.table) { tablePreview.innerHTML = data.table; tablePreview.style.display = "block"; } 
+      else tablePreview.style.display = "none";
+
       plotPreview.innerHTML = "";
-      if (Array.isArray(data.images)) { data.images.forEach(src => { const img = document.createElement("img"); img.src = src; img.style.maxWidth = "100%"; img.style.marginBottom = "10px"; plotPreview.appendChild(img); }); plotPreview.style.display = "block"; }
-      else plotPreview.style.display = "none";
+      if (Array.isArray(data.images)) { 
+        data.images.forEach(src => { 
+          const img = document.createElement("img"); 
+          img.src = src; 
+          img.style.maxWidth = "100%"; 
+          img.style.marginBottom = "10px"; 
+          plotPreview.appendChild(img); 
+        }); 
+        plotPreview.style.display = "block"; 
+      } else plotPreview.style.display = "none";
     }
   })
   .catch(err => { output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(err.message)}</span>`; });
 }
-
+// ============================================
+// AI SCORE OUTPUT WITH REAL-TIME UPDATES
 // ============================================
 // AI SCORE OUTPUT WITH REAL-TIME UPDATES
 // ============================================
 async function scoreOutput(studentOutput, topicId) {
-    const scorePanel = document.getElementById("scorePanel"), scoreDisplay = document.getElementById("scoreDisplay"), scoreFeedback = document.getElementById("scoreFeedback"), scoreBarFill = document.getElementById("scoreBarFill");
-    scorePanel.style.display = "block"; scoreDisplay.textContent = "🤖 AI is scoring..."; scoreFeedback.textContent = ""; scoreBarFill.style.width = "0%";
+    const scorePanel = document.getElementById("scorePanel"), 
+          scoreDisplay = document.getElementById("scoreDisplay"), 
+          scoreFeedback = document.getElementById("scoreFeedback"), 
+          scoreBarFill = document.getElementById("scoreBarFill");
+    
+    scorePanel.style.display = "block"; 
+    scoreDisplay.textContent = "🤖 AI is scoring..."; 
+    scoreFeedback.textContent = ""; 
+    scoreBarFill.style.width = "0%";
+    
     try {
-        const res = await fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" }, body: JSON.stringify({ action: "score_output", student_output: studentOutput, topic_id: topicId }) });
+        const res = await fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { 
+            method: "POST", 
+            headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" }, 
+            body: JSON.stringify({ action: "score_output", student_output: studentOutput, topic_id: topicId }) 
+        });
         const data = await res.json();
+        
+        // DEBUG - moved AFTER data is defined
+        console.log('Score data:', data.result?.score, '/', data.result?.max_score, 'Points:', data.points);
+        
         if (data.status === "success") {
             const { score, max_score, feedback, correct } = data.result;
-            const pct = (score / max_score) * 100, color = score >= max_score * 0.8 ? "#22c55e" : score >= max_score * 0.5 ? "#f59e0b" : "#ef4444";
-            scoreDisplay.innerHTML = `${correct ? "✅" : "❌"} Score: <span style="color:${color}">${score}/${max_score}</span>`;
-            scoreFeedback.textContent = feedback; scoreBarFill.style.background = color; scoreBarFill.style.width = pct + "%";
-            if (correct && data.points !== undefined && data.total_topics !== undefined) {
-                updatePointsDisplay(data.points, data.total_topics);
+            const pct = (score / max_score) * 100;
+            const color = score >= max_score * 0.8 ? "#22c55e" : score >= max_score * 0.5 ? "#f59e0b" : "#ef4444";
+            
+            let scoreHTML = `${correct ? "✅" : "❌"} Score: <span style="color:${color}">${score}/${max_score}</span>`;
+            
+            if (data.xp_earned > 0) {
+                scoreHTML += ` <span style="color:#fbbf24; font-size:0.9em;">(+${data.xp_earned} XP 🏆)</span>`;
+            }
+            
+            if (data.already_awarded) {
+                scoreHTML += ` <span style="color:#f59e0b; font-size:0.8em;">⚠️ Already completed</span>`;
+            }
+            
+            scoreDisplay.innerHTML = scoreHTML;
+            scoreFeedback.textContent = feedback;
+            scoreBarFill.style.background = color;
+            scoreBarFill.style.width = pct + "%";
+            
+            if (data.champion_xp !== undefined) {
+                updateXPDisplay(data.champion_xp);
+                
+                if (data.rank !== undefined) { 
+                    window._lastRank = data.rank; 
+                    const rv = document.getElementById('rankValue'); 
+                    const lr = document.getElementById('leaderboardRank'); 
+                    if (rv) { 
+                        rv.textContent = '#' + data.rank; 
+                        rv.classList.remove('xp-updated'); 
+                        void rv.offsetWidth; 
+                        rv.classList.add('xp-updated'); 
+                    } 
+                    if (lr) lr.textContent = '#' + data.rank; 
+                }
+            }
+            
+            if (data.points !== undefined && data.total_topics !== undefined) {
                 const newPct = Math.round((data.points / data.total_topics) * 100);
                 const completedIds = [];
-                document.querySelectorAll('.quiz-passed-badge').forEach(badge => { if (badge.style.display === 'inline') completedIds.push(parseInt(badge.dataset.topicId)); });
-                if (!completedIds.includes(parseInt(topicId))) completedIds.push(parseInt(topicId));
-                updateProgressUI(newPct, completedIds, data.points);
-                if (data.rank !== undefined) { window._lastRank = data.rank; const rv = document.getElementById('rankValue'), lr = document.getElementById('leaderboardRank'); if (rv) { rv.textContent = '#' + data.rank; rv.classList.add('points-updated'); } if (lr) lr.textContent = '#' + data.rank; }
+                
+                if (correct && !data.already_awarded) {
+                    completedIds.push(parseInt(topicId));
+                }
+                
+                document.querySelectorAll('.quiz-passed-badge').forEach(badge => {
+                    const tId = parseInt(badge.dataset.topicId);
+                    if (tId !== parseInt(topicId) && badge.style.display === 'inline') {
+                        completedIds.push(tId);
+                    }
+                });
+                
+                if (data.already_awarded && !completedIds.includes(parseInt(topicId))) {
+                    completedIds.push(parseInt(topicId));
+                }
+                
+                updateProgressUI(newPct, completedIds, data.champion_xp);
+                
+                const badge = document.querySelector(`.quiz-passed-badge[data-topic-id="${topicId}"]`);
+                if (badge && correct) {
+                    badge.style.display = 'inline';
+                    badge.classList.remove('badge-appear');
+                    void badge.offsetWidth;
+                    badge.classList.add('badge-appear');
+                }
+                
+                const btn = document.querySelector(`.quiz-btn[data-topic-id="${topicId}"]`);
+                if (btn && correct) {
+                    btn.textContent = '🔁 Retake Quiz';
+                    btn.style.background = '#28a745';
+                }
+                
+                const examLockLink = document.getElementById('examLockLink');
+                const examProgressCount = document.getElementById('examProgressCount');
+                if (examLockLink && examProgressCount) {
+                    examProgressCount.textContent = data.points;
+                    if (data.points >= data.total_topics && data.total_topics > 0) {
+                        examLockLink.innerHTML = '🎓 Take Exam';
+                        examLockLink.style.color = 'white';
+                        examLockLink.removeAttribute('title');
+                    }
+                }
+                
+                const completionBadge = document.getElementById('completionBadge');
+                if (completionBadge && data.points >= data.total_topics && data.total_topics > 0) {
+                    completionBadge.style.display = 'inline';
+                    completionBadge.classList.remove('badge-appear');
+                    void completionBadge.offsetWidth;
+                    completionBadge.classList.add('badge-appear');
+                    showCompletionCelebration();
+                }
             }
-        } else { scoreDisplay.textContent = "⚠️ Could not score"; scoreFeedback.textContent = data.message || ""; }
-    } catch (err) { scoreDisplay.textContent = "⚠️ Scoring failed"; scoreFeedback.textContent = err.message; }
+        } else { 
+            scoreDisplay.textContent = "⚠️ Could not score"; 
+            scoreFeedback.textContent = data.message || ""; 
+        }
+    } catch (err) { 
+        scoreDisplay.textContent = "⚠️ Scoring failed"; 
+        scoreFeedback.textContent = err.message; 
+    }
 }
 
 // ============================================
@@ -1366,6 +1593,7 @@ require(['vs/editor/editor.main'], function () {
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => { clearTimeout(autosaveTimer); autosave(); });
     window.addEventListener('beforeunload', (e) => { const content = editor.getValue(); if (content !== lastSavedContent) { navigator.sendBeacon("{% url 'webprojects:file_autosave' %}", new Blob([JSON.stringify({ file_id: {{ file.id }}, content: content })], { type: 'application/json' })); e.preventDefault(); e.returnValue = ''; } });
 });
+
 function getLanguage(fileName) { const ext = fileName.split('.').pop().toLowerCase(); switch (ext) { case "py": return "python"; case "js": return "javascript"; case "html": return "html"; case "css": return "css"; case "json": return "json"; default: return "plaintext"; } }
 
 // ============================================
@@ -1373,10 +1601,26 @@ function getLanguage(fileName) { const ext = fileName.split('.').pop().toLowerCa
 // ============================================
 async function updateActiveTopic(topicId) {
     try {
-        const res = await fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }, body: JSON.stringify({ action: 'update_active_topic', topic_id: topicId, course_id: COURSE_ID }) });
+        const res = await fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }, 
+            body: JSON.stringify({ action: 'update_active_topic', topic_id: topicId, course_id: COURSE_ID }) 
+        });
         const data = await res.json();
-        if (data.status === 'success' && data.points !== undefined) updatePointsDisplay(data.points, data.total_topics);
-    } catch (err) { console.error('Failed to update active topic:', err); }
+        
+        if (data.status === 'success') {
+            // Only redirect if the file ID is DIFFERENT from current file
+            if (data.auto_created_file_id && data.auto_created_file_id !== {{ file.id }}) {
+                window.location.href = `/webprojects/{{ project.id }}/file/${data.auto_created_file_id}/`;
+                return;
+            }
+            
+            // Update XP display
+            if (data.champion_xp !== undefined) updateXPDisplay(data.champion_xp);
+        }
+    } catch (err) { 
+        console.error('Failed to update active topic:', err); 
+    }
 }
 
 // ============================================

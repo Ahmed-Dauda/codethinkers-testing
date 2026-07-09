@@ -5,21 +5,18 @@ from cloudinary.models import CloudinaryField
 import os
 from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
+from django.db import models
+from django.contrib.auth import get_user_model
+from django.db.models import Window, F
+from django.db.models.functions import Rank
+from sms.models import Courses, Topics
+from django.db import models
+from django.contrib.auth import get_user_model
+from django.db.models import Window, F
+from django.db.models.functions import Rank
+from sms.models import Courses, Topics
 
-
-# ---------------- Helper ----------------
-# def get_general_topic(course):
-#     if not course:
-#         return None
-
-#     general_topic, _ = Topics.objects.get_or_create(
-#         title="General",
-#         courses=course,
-#         defaults={
-#             "categories": course.categories if course.categories else None
-#         }
-#     )
-#     return general_topic
+User = get_user_model()
 
 
 # ---------------- Project ----------------
@@ -135,70 +132,260 @@ class File(models.Model):
         if self.file:  return self.file.url
         return ""
 
-
-# ---------------- XP & Progress ----------------
-
-class StudentXP(models.Model):
-    student     = models.OneToOneField(User, on_delete=models.CASCADE)
-    total_xp    = models.IntegerField(default=0)
-    streak_days = models.IntegerField(default=0)
-    last_active = models.DateField(null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.student.username} — {self.total_xp}XP"
-
-
-
-class StudentProgress(models.Model):
-    student          = models.ForeignKey(User, on_delete=models.CASCADE)
-    course           = models.ForeignKey('sms.Courses', on_delete=models.CASCADE, null=True, blank=True)
-    current_topic    = models.ForeignKey('sms.Topics', on_delete=models.SET_NULL, null=True, blank=True)
-    completed_topics = models.ManyToManyField('sms.Topics', related_name='completed_by_students', blank=True)
-    last_updated     = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ('student', 'course')
-
-    @classmethod
-    def get_for_student(cls, user):
-        progress, _ = cls.objects.get_or_create(student=user, course=None)
-        return progress
-
-
-# ---------------- Signals ----------------
-
-@receiver(post_delete, sender=File)
-def delete_file_on_model_delete(sender, instance, **kwargs):
-    if instance.file and os.path.isfile(instance.file.path):
-        os.remove(instance.file.path)
-
-
 from django.db import models
 from django.conf import settings
-from sms.models import Courses
+from django.contrib.auth import get_user_model
+from django.db.models import Window, F
+from django.db.models.functions import Rank
+from django.utils import timezone
+from sms.models import Courses, Topics
 
-class LeaderboardEntry(models.Model):
-    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='leaderboard_entries')
-    course = models.ForeignKey(Courses, on_delete=models.CASCADE, related_name='leaderboard_entries')
-    points = models.IntegerField(default=0)
-    completed_topics = models.IntegerField(default=0)
-    total_topics = models.IntegerField(default=0)
-    completion_percentage = models.FloatField(default=0.0)
-    last_updated = models.DateTimeField(auto_now=True)
-    rank = models.IntegerField(null=True, blank=True)
+User = get_user_model()
+
+
+# ============================================
+# STUDENT XP (GLOBAL)
+# ============================================
+
+class StudentXP(models.Model):
+    """Global XP tracking across all courses"""
+    student = models.OneToOneField(User, on_delete=models.CASCADE, related_name='xp_profile')
+    total_xp = models.IntegerField(default=0)
+    streak_days = models.IntegerField(default=0)
+    last_active = models.DateField(null=True, blank=True)
     
     class Meta:
-        ordering = ['-points', 'completion_percentage']
-        unique_together = ['student', 'course']
+        verbose_name = 'Student XP'
+        verbose_name_plural = 'Student XP'
     
     def __str__(self):
-        return f"{self.student.username} - {self.course.title}: {self.points} pts"
+        return f"{self.student.username} — {self.total_xp}XP"
+    
+    def add_xp(self, amount):
+        """Add XP and update total"""
+        self.total_xp += amount
+        self.save(update_fields=['total_xp'])
+
+
+# ============================================
+# STUDENT PROGRESS (PER COURSE)
+# ============================================
+
+class StudentProgress(models.Model):
+    """Tracks student progress through a course"""
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_progress')
+    course = models.ForeignKey(Courses, on_delete=models.CASCADE, related_name='student_progress')
+    completed_topics = models.ManyToManyField(
+        Topics, 
+        blank=True, 
+        related_name='completed_by_students'
+    )
+    current_topic = models.ForeignKey(
+        Topics, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='current_for_students'
+    )
+    
+    # Assessment tracking
+    assessment_scores = models.JSONField(default=list)
+    total_assessments_taken = models.IntegerField(default=0)
+    
+    # Code challenge tracking
+    coding_challenges_passed = models.IntegerField(default=0)
+    incorrect_code_attempts = models.IntegerField(default=0)
+    
+    # Learning streaks
+    last_activity_date = models.DateField(null=True, blank=True)
+    current_streak = models.IntegerField(default=0)
+    longest_streak = models.IntegerField(default=0)
+    
+    # Completion tracking
+    course_completed = models.BooleanField(default=False)
+    completion_date = models.DateTimeField(null=True, blank=True)
+    first_to_complete = models.BooleanField(default=False)
+    
+    # Assessment attempt tracking
+    first_attempt_topics = models.JSONField(default=list)
+    
+    # Timestamps
+    created_at = models.DateTimeField(default=timezone.now)
+    last_updated = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['student', 'course']
+        ordering = ['-last_updated']
+        verbose_name = 'Student Progress'
+        verbose_name_plural = 'Student Progress'
+        indexes = [
+            models.Index(fields=['student', 'course']),
+            models.Index(fields=['course', '-current_streak']),
+        ]
+    
+    def __str__(self):
+        return f"{self.student.username} — {self.course.title}"
+    
+    def get_average_score(self):
+        """Calculate average assessment score"""
+        if not self.assessment_scores:
+            return 0.0
+        return round(sum(self.assessment_scores) / len(self.assessment_scores), 1)
+    
+    def add_assessment_score(self, score, topic_id, first_attempt=False):
+        """Add an assessment score and track first attempts"""
+        if not isinstance(self.assessment_scores, list):
+            self.assessment_scores = []
+        self.assessment_scores.append(score)
+        self.total_assessments_taken += 1
+        
+        if first_attempt and topic_id not in self.first_attempt_topics:
+            if not isinstance(self.first_attempt_topics, list):
+                self.first_attempt_topics = []
+            self.first_attempt_topics.append(topic_id)
+        
+        self.save(update_fields=['assessment_scores', 'total_assessments_taken', 'first_attempt_topics'])
+    
+    def get_completion_percentage(self, total_topics):
+        """Get completion percentage capped at 100"""
+        if total_topics == 0:
+            return 0.0
+        completed = self.completed_topics.count()
+        return min(round((completed / total_topics) * 100, 1), 100.0)
+
+
+# ============================================
+# BADGES
+# ============================================
+
+class Badge(models.Model):
+    """Badges that can be earned"""
+    BADGE_TYPES = [
+        ('first_to_finish', '🥇 First to Finish'),
+        ('fast_learner', '⚡ Fast Learner'),
+        ('perfect_score', '🎯 Perfect Score'),
+        ('code_master', '💻 Code Master'),
+        ('ai_champion', '🧠 AI Champion'),
+        ('consistent', '🔥 Consistent Learner'),
+    ]
+    
+    name = models.CharField(max_length=50, choices=BADGE_TYPES, unique=True)
+    description = models.TextField()
+    icon = models.CharField(max_length=10)
+    xp_reward = models.IntegerField(default=0)
+    
+    class Meta:
+        verbose_name = 'Badge'
+        verbose_name_plural = 'Badges'
+    
+    def __str__(self):
+        return self.get_name_display()
+
+
+class StudentBadge(models.Model):
+    """Badges earned by students"""
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='earned_badges')
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE, related_name='awarded_to')
+    course = models.ForeignKey(Courses, on_delete=models.CASCADE, null=True, blank=True, related_name='badges_awarded')
+    earned_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['student', 'badge', 'course']
+        ordering = ['-earned_at']
+        verbose_name = 'Student Badge'
+        verbose_name_plural = 'Student Badges'
+    
+    def __str__(self):
+        return f"{self.student.username} — {self.badge.get_name_display()}"
+
+
+# ============================================
+# LEARNING STREAKS
+# ============================================
+
+class LearningStreak(models.Model):
+    """Tracks daily learning streaks"""
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='learning_streaks')
+    course = models.ForeignKey(Courses, on_delete=models.CASCADE, null=True, blank=True, related_name='student_streaks')
+    date = models.DateField()
+    
+    class Meta:
+        unique_together = ['student', 'course', 'date']
+        ordering = ['-date']
+        verbose_name = 'Learning Streak'
+        verbose_name_plural = 'Learning Streaks'
+        indexes = [
+            models.Index(fields=['student', 'course', '-date']),
+        ]
+    
+    def __str__(self):
+        return f"{self.student.username} — {self.date}"
+
+
+# ============================================
+# LEADERBOARD
+# ============================================
+
+class LeaderboardEntry(models.Model):
+    """Course leaderboard with Champion XP system"""
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leaderboard_entries')
+    course = models.ForeignKey(Courses, on_delete=models.CASCADE, related_name='leaderboard')
+    
+    # Champion XP
+    champion_xp = models.IntegerField(default=0)
+    
+    # Stats
+    modules_completed = models.IntegerField(default=0)
+    total_modules = models.IntegerField(default=0)
+    average_score = models.FloatField(default=0.0)
+    coding_challenges_passed = models.IntegerField(default=0)
+    incorrect_code_attempts = models.IntegerField(default=0)
+    completion_time_days = models.IntegerField(null=True, blank=True)
+    completion_date = models.DateTimeField(null=True, blank=True)
+    learning_streak = models.IntegerField(default=0)
+    
+    # Rank
+    rank = models.IntegerField(null=True, blank=True)
+    
+    # Timestamp
+    last_updated = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['student', 'course']
+        ordering = ['rank']
+        verbose_name = 'Leaderboard Entry'
+        verbose_name_plural = 'Leaderboard Entries'
+        indexes = [
+            models.Index(fields=['course', 'rank']),
+            models.Index(fields=['course', '-champion_xp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.student.username} — {self.course.title} (Rank #{self.rank})"
     
     def update_rank(self):
-        """Update the rank for this entry"""
-        entries = LeaderboardEntry.objects.filter(course=self.course).order_by('-points', 'completion_percentage')
-        for idx, entry in enumerate(entries, start=1):
-            if entry.id == self.id:
-                self.rank = idx
-                self.save(update_fields=['rank'])
-                break
+        """Update ranks for all entries in this course with proper tie handling"""
+        entries = LeaderboardEntry.objects.filter(course=self.course).annotate(
+            calculated_rank=Window(
+                expression=Rank(),
+                order_by=[
+                    F('champion_xp').desc(),
+                    F('average_score').desc(),
+                    F('incorrect_code_attempts').asc(),
+                    F('completion_time_days').asc(nulls_last=True),
+                    F('completion_date').asc(nulls_last=True),
+                ]
+            )
+        )
+        
+        for entry in entries:
+            if entry.rank != entry.calculated_rank:
+                entry.rank = entry.calculated_rank
+                entry.save(update_fields=['rank'])
+    
+    def save(self, *args, **kwargs):
+        """Auto-cap values on save"""
+        if self.total_modules > 0:
+            if self.modules_completed > self.total_modules:
+                self.modules_completed = self.total_modules
+        super().save(*args, **kwargs)
