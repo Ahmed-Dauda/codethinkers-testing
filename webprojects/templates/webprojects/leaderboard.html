@@ -585,7 +585,7 @@
                 {% endif %}
 
                 <div class="student-name">
-                    {{ entry.student.get_full_name|default:entry.student.username }}
+                    {{ entry.student.first_name|default:entry.student.username }} {{ entry.student.last_name|default:entry.student.username }}
                     {% if entry.student == request.user %}<span class="badge-you">You</span>{% endif %}
                 </div>
                 <div class="student-xp">🏆 {{ entry.champion_xp }} XP</div>

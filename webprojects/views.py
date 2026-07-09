@@ -2822,7 +2822,6 @@ def check_badges(student, course, progress):
     
     return badges_awarded
 
-
 def get_motivation_message(entry, progress, total_students):
     """Generate motivation messages"""
     if not entry:
@@ -2847,12 +2846,12 @@ def get_motivation_message(entry, progress, total_students):
             name = next_entry.student.get_full_name() or next_entry.student.username
             messages.append(f"🎯 Earn {xp_needed} more XP to overtake {name}!")
     
-    # Assessment motivation
-    if progress and progress.get_average_score() < 90:
-        messages.append(f"🎯 Score 90%+ in your next assessment for bonus XP!")
+    # Assessment motivation - only if not already at 100%
+    if progress and progress.get_average_score() < 100 and progress.total_assessments_taken > 0:
+        messages.append(f"🎯 Aim for 100% in your next assessment for bonus XP!")
     
-    # Coding challenge motivation
-    if entry.coding_challenges_passed < entry.total_modules:
+    # Coding challenge motivation - only if there are remaining modules
+    if entry.total_modules > 0 and entry.coding_challenges_passed < entry.total_modules:
         needed = entry.total_modules - entry.coding_challenges_passed
         messages.append(f"💻 Solve {needed} more coding challenge(s) for +{needed * 5} XP!")
     
@@ -2863,7 +2862,12 @@ def get_motivation_message(entry, progress, total_students):
         else:
             messages.append("🔥 Start a learning streak by completing a module today!")
     
+    # Course completed - celebration message
+    if entry.modules_completed >= entry.total_modules and entry.total_modules > 0:
+        messages.insert(0, f"🎉 Congratulations! You've completed all {entry.total_modules} modules!")
+    
     return messages[:3]  # Limit to 3 messages
+
 
 
 def update_leaderboard_entry(student, course):
@@ -2910,7 +2914,6 @@ def update_leaderboard_entry(student, course):
 # ============================================
 # VIEWS
 # ============================================
-
 @login_required
 def course_leaderboard(request, course_id):
     """Display the leaderboard for a specific course"""
@@ -2930,6 +2933,12 @@ def course_leaderboard(request, course_id):
     leaderboard_entries = LeaderboardEntry.objects.filter(
         course=course
     ).select_related('student', 'student__profile').order_by('rank')
+    
+    # Fix entries with total_modules = 0
+    for entry in leaderboard_entries:
+        if entry.total_modules == 0 or entry.total_modules != total_topics:
+            entry.total_modules = total_topics
+            entry.save(update_fields=['total_modules'])
     
     total_students = leaderboard_entries.count()
     
