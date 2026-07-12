@@ -184,54 +184,57 @@
     flex-shrink: 0;
   }
 
-  #resizeHandle {
-    height: 28px;
-    cursor: row-resize;
-    background: #2d2d2d;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-    user-select: none;
-    -webkit-user-select: none;
-    border-top: 1px solid #3c3c3c;
-    border-bottom: 1px solid #3c3c3c;
-    position: relative;
-    z-index: 100;
-    touch-action: none;
-  }
+#resizeHandle {
+  position: relative;
+  height: 10px;
+  background: #3c3c3c;
+  border-top: 1px solid #444;
+  cursor: row-resize;
+  touch-action: none;
+  transition: background 0.15s ease;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#resizeHandle:hover,
+#resizeHandle.dragging {
+  background: #4ec9b0;
+}
+/* invisible bigger touch/mouse target beyond the visible bar */
+#resizeHandle::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -12px;
+  bottom: -12px;
+  touch-action: none;
+}
+/* visible grip dots, like VS Code's drag handle */
+#resizeHandle::after {
+  content: '';
+  width: 40px;
+  height: 3px;
+  border-radius: 2px;
+  background: #666;
+  transition: background 0.15s ease;
+  pointer-events: none;
+}
+#resizeHandle:hover::after,
+#resizeHandle.dragging::after {
+  background: #1e1e1e;
+}
 
-  .resize-grip {
-    width: 60px; height: 4px; background: #666;
-    border-radius: 2px; transition: all 0.2s; pointer-events: none;
-  }
 
-  #resizeHandle:hover,
-  #resizeHandle:active,
-  #resizeHandle.dragging { background: #4ec9b0; }
-
-  #resizeHandle:hover .resize-grip,
-  #resizeHandle.dragging .resize-grip {
-    background: #fff; width: 80px; height: 5px;
-  }
-
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
-  ::-webkit-scrollbar-track { background: #2c2c2c; }
-
-  @media (max-width: 768px) {
+@media (max-width: 768px) {
     .editor-layout { flex-direction: column; }
     .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #444; max-height: 35vh; overflow-y: auto; }
     .toolbar { flex-direction: column; align-items: stretch; }
-    .editor-panel { height: auto; flex: 1; min-height: 40vh; }
+    .editor-panel { height: auto; flex: 1; min-height: 10vh; }
     #outputPanel { min-height: 60px; max-height: none; }
     #container { min-height: 10px; flex: 1; }
-    #resizeHandle { height: 36px; cursor: ns-resize; }
-    .resize-grip { width: 80px; height: 5px; background: #888; }
-    #resizeHandle::before { content: '↕'; position: absolute; right: 12px; color: #888; font-size: 14px; }
-    #resizeHandle::after { content: 'Drag to resize'; position: absolute; left: 12px; color: #888; font-size: 11px; font-family: -apple-system, sans-serif; }
-    
-    /* Mobile-friendly buttons */
+
     .toolbar button, .toolbar select { padding: 8px 16px; font-size: 0.9em; min-height: 40px; touch-action: manipulation; }
     #runBtnCode, #aiToggleBtn { padding: 10px 20px; font-size: 1em; min-height: 44px; }
     .topic-item { padding: 12px 14px; margin-bottom: 6px; }
@@ -245,7 +248,6 @@
     .ums-trigger { width: 44px; height: 44px; }
     .delete-file-form button { padding: 6px 8px; font-size: 16px; }
     .sidebar, #outputPanel { -webkit-overflow-scrolling: touch; }
-    .resize-btn { padding: 10px 18px; font-size: 22px; min-width: 48px; min-height: 48px; touch-action: manipulation; }
   }
 
   @media (max-width: 480px) {
@@ -374,7 +376,168 @@
 {% endblock %}
 
 {% block sidebar %}
-<!-- Keep existing sidebar content unchanged -->
+
+<!-- ===== QUIZ MODAL ===== -->
+<div id="quizModal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeQuizModal()">&times;</span>
+    <h3 id="quizModalTitle">Quiz</h3>
+    <div id="quizModalBody"></div>
+    <div id="quizModalFooter" style="margin-top:16px; text-align:right; display:none;">
+      <button id="quizSubmitBtn" onclick="submitQuiz()" style="padding:8px 18px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer;">Submit Quiz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DROP ZONE ===== -->
+<div id="dropZone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #aaa;">
+  Drop File Here or 
+  <label for="fileInput" style="color: #4fa; cursor:pointer;">Browse</label>
+  <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.gif,.xls,.xlsx,.csv" style="display:none;">
+</div>
+<small style="color: #888;">Images and Excel files will be added to your files</small>
+
+<div id="upload-loader" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:9999; justify-content:center; align-items:center;">
+  <div style="width:50px; height:50px; border:5px solid #f3f3f3; border-top:5px solid #3498db; border-radius:50%; animation: spin 1s linear infinite;"></div>
+</div>
+
+<div style="margin-bottom: 20px;">
+  <input type="text" id="newFileName" placeholder="📝 New file name (e.g., index.html)" style="width: 100%; padding: 5px; margin-bottom: 5px; font-size: 0.9em;">
+  <button onclick="createNewFile()" style="width: 100%; background: #3498db; color: white; padding: 6px 10px; border: none; border-radius: 4px;">➕ Create File</button>
+</div>
+
+<hr>
+
+<!-- ===== EXAM SECTION ===== -->
+{% if not exam_id %}
+    <span style="color: #666;" title="No exam configured for this course">🎓 No Exam Available</span>
+{% elif topics and completed_topic_ids|length == topics|length %}
+    <a style="color: white;" href="{% url 'student:start-exam' pk=exam_id %}">🎓 Take Exam</a>
+{% else %}
+    <a id="examLockLink" href="{% url 'student:start-exam' pk=exam_id %}?next={{ request.path|urlencode }}" style="color: #aaa;" title="Complete all module quizzes to unlock the exam">
+        🔒 Take Exam (<span id="examProgressCount">{{ completed_topic_ids|length }}</span>/{{ topics|length }} modules)
+    </a>
+{% endif %}
+
+<!-- ===== PROGRESS BAR ===== -->
+<div id="quizProgressWrap">
+  <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#555; margin-bottom:4px;">
+    <span>Module Progress</span>
+    <span id="quizProgressLabel">{% if topics %}{% widthratio completed_topic_ids|length topics|length 100 %}{% else %}0{% endif %}%</span>
+  </div>
+  <div class="progress-bar">
+    <div id="quizProgressFill" class="progress-fill" style="width:{% if topics %}{% widthratio completed_topic_ids|length topics|length 100 %}{% else %}0{% endif %}%;"></div>
+  </div>
+</div>
+
+<!-- Leaderboard Link -->
+{% if course %}
+<a href="{% url 'webprojects:course_leaderboard' course.id %}?project_id={{ project.id }}&file_id={{ file.id }}" 
+   style="display: block; padding: 8px 12px; color: #9cdcfe; text-decoration: none; border: 1px solid #3c3c3c; border-radius: 6px; margin-bottom: 12px; transition: all 0.2s ease;"
+   onmouseover="this.style.background='#2a2d2e'; this.style.borderColor='#4fa';"
+   onmouseout="this.style.background=''; this.style.borderColor='#3c3c3c';">
+    🏆 Course Champions
+    {% if user_rank %}<span style="float:right; color: #4ade80; font-weight:600;" id="leaderboardRank">#{{ user_rank }}</span>{% endif %}
+</a>
+{% endif %}
+
+<!-- ===== TOPICS ===== -->
+<div class="topics-container" style='user-select: None'>
+  {% for topic in topics %}
+    <div class="topic-item" data-topic-id="{{ topic.id }}" id="topic-item-{{ topic.id }}">
+      <a href="javascript:void(0);" class="topic-toggle d-flex justify-content-between align-items-center"
+         onclick="toggleDesc('topic-{{ topic.id }}', this, '{{ topic.language|default:"python" }}')">
+        <span>{{ topic.title }}</span>
+        <span class="toggle-icon">➕</span>
+      </a>
+      <span id="studying-{{ topic.id }}" class="studying-indicator" style="display:none;">📖 Studying...</span>
+
+      <div id="topic-{{ topic.id }}" class="topic-desc language-{{ topic.language|default:'python' }}" style="display:none; background:#ffffff; color:#000000; padding:12px; border-radius:6px;">
+        {% if topic.img_topic %}
+          <div style="margin-bottom:12px;"><img src="{{ topic.img_topic.url }}" alt="{{ topic.title }}" style="max-width:100%; border-radius:6px; display:block;"></div>
+        {% endif %}
+        {% if topic.video %}
+          <div style="margin-bottom:12px;"><video controls style="max-width:100%; border-radius:6px; display:block;"><source src="{{ topic.video.url }}"></video></div>
+        {% endif %}
+        {% if topic.topics_url %}
+          <div style="margin-bottom:12px;"><iframe src="{{ topic.topics_url }}" frameborder="0" allowfullscreen style="width:100%; min-height:250px; border-radius:6px;"></iframe></div>
+        {% endif %}
+        {% if topic.language|default:'python' in 'python,javascript,html,css,java,cpp,csharp,php,ruby,go,rust,sql' %}
+          <p class="language-{{ topic.language|default:'python' }}" style="background:#ffffff !important; color:#000000 !important;">{{ topic.desc|safe|escape }}</p>
+        {% else %}
+          {% with topic.desc|safe as desc %}
+            {% if '<img' in desc or '<video' in desc or '<iframe' in desc %}
+              <div style="background:#ffffff; color:#000000; padding:16px; border-radius:6px; border:1px solid #e5e5e5; white-space:normal; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size:15px; line-height:1.6; max-width:100%;">{{ desc|safe }}</div>
+            {% else %}
+              <div style="background:#ffffff; color:#000000; padding:16px; border-radius:6px; border:1px solid #e5e5e5; white-space:normal; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size:15px; line-height:1.6; max-width:100%;">{{ desc|linebreaks|safe }}</div>
+            {% endif %}
+          {% endwith %}
+        {% endif %}
+      </div>
+
+      <!-- ===== QUIZ BUTTON & PASSED BADGE ===== -->
+      <div class="quiz-action-row" style="margin-top:6px; display:flex; align-items:center; gap:8px;">
+        {% with course_title=course.title|lower %}
+        {% if 'python' not in course_title and 'rust' not in course_title %}
+          <button class="quiz-btn" data-topic-id="{{ topic.id }}" data-topic-title="{{ topic.title|escapejs }}"
+                  onclick="openQuizModal({{ topic.id }}, this)">
+            {% if topic.id in completed_topic_ids %}🔁 Retake Quiz{% else %}📝 Take Quiz{% endif %}
+          </button>
+        {% endif %}
+        {% endwith %}
+        <span class="quiz-passed-badge" data-topic-id="{{ topic.id }}" style="{% if topic.id in completed_topic_ids %}display:inline;{% else %}display:none;{% endif %}">✅ Passed</span>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-muted">No content found for this course.</p>
+  {% endfor %}
+</div>
+
+<!-- ===== FILE LIST ===== -->
+<div id="fileListContainer">
+{% for ext in exts %}
+  {% with files|dictsort:"name" as sorted_files %}
+    <div class="folder-toggle" data-ext="{{ ext }}" style="display: flex; justify-content: space-between; align-items: center; background: #2a2d2e; border: 1px solid #3c3c3c; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px; cursor: pointer; font-size: 12.5px; font-weight: 600; color: #cccccc; letter-spacing: 0.03em; user-select: none; transition: background 0.15s ease;" onmouseover="this.style.background='#333638'" onmouseout="this.style.background='#2a2d2e'">
+        <span>📁 {{ ext|upper }} Files</span>
+        <span class="folder-arrow" style="font-size:11px; color:#666; transition: transform 0.2s;">▶</span>
+    </div>
+    <div class="file-group" data-ext="{{ ext }}" style="margin: 0 0 8px 0; border-left: 2px solid #3c3c3c; margin-left: 6px; padding-left: 8px; display: none;">
+      {% for f in sorted_files %}
+        {% if f.name|has_ext:ext %}
+          {% with f.name|lower as fname %}
+            <div class="file-item" data-file-id="{{ f.id }}" style="display: flex; align-items: center; gap: 6px; padding: 5px 8px; margin-bottom: 3px; border-radius: 5px; background: {% if f.id == file.id %}#094771{% else %}#1e1e1e{% endif %}; border: 1px solid {% if f.id == file.id %}#1177bb{% else %}#2d2d2d{% endif %}; transition: background 0.15s ease;" onmouseover="if('{{ f.id }}' !== '{{ file.id }}') this.style.background='#2a2d2e'" onmouseout="if('{{ f.id }}' !== '{{ file.id }}') this.style.background='#1e1e1e'">
+              {% if fname|slice:"-4:" == ".png" or fname|slice:"-4:" == ".jpg" or fname|slice:"-5:" == ".jpeg" or fname|slice:"-4:" == ".gif" %}
+                <a href="javascript:void(0);" onclick="showImageModal('{{ f.image.url }}')" title="{{ f.name }}" style="flex: 1; color: #4ec9b0; text-decoration: none; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🖼️ {{ f.name }}</a>
+              {% else %}
+                <a href="{% url 'webprojects:file_detail' f.project.id f.id %}" title="{{ f.name }}" style="flex: 1; color: {% if f.id == file.id %}#ffffff{% else %}#9cdcfe{% endif %}; text-decoration: none; font-size: 12px; font-weight: {% if f.id == file.id %}600{% else %}400{% endif %}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" onclick="event.preventDefault(); window.location.href=this.href;">📝 {{ f.name }}</a>
+                {% if ".html" in f.name|lower %}
+                <a href="{% url 'webprojects:share_preview' f.project.id f.id %}" target="_blank" title="Publish" style="flex-shrink: 0; font-size: 10.5px; font-weight: 600; color: #4caf50; text-decoration: none; background: rgba(76,175,80,0.12); border: 1px solid rgba(76,175,80,0.3); border-radius: 3px; padding: 2px 6px; white-space: nowrap;">↗ Publish</a>
+                {% endif %}
+                {% if f.is_excel %}
+                <a href="{% url 'webprojects:file_preview' f.project.id f.id %}" title="Preview spreadsheet" style="flex-shrink: 0; font-size: 10.5px; font-weight: 600; color: #569cd6; text-decoration: none; background: rgba(86,156,214,0.1); border: 1px solid rgba(86,156,214,0.3); border-radius: 3px; padding: 2px 6px; white-space: nowrap;">👁 View</a>
+                {% endif %}
+              {% endif %}
+              <form method="POST" action="{% url 'webprojects:file_delete' f.project.id f.id %}" class="delete-file-form" style="flex-shrink: 0; margin: 0; padding: 0;" onsubmit="return confirm('Are you sure you want to delete this file?');">
+                {% csrf_token %}
+                <button type="submit" title="Delete {{ f.name }}" style="background: transparent; border: 1px solid transparent; border-radius: 4px; color: #666; font-size: 13px; padding: 2px 5px; cursor: pointer; line-height: 1; transition: all 0.15s ease;" onmouseover="this.style.background='rgba(220,53,69,0.15)'; this.style.borderColor='rgba(220,53,69,0.4)'; this.style.color='#f47983';" onmouseout="this.style.background='transparent'; this.style.borderColor='transparent'; this.style.color='#666';">🗑</button>
+              </form>
+            </div>
+          {% endwith %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endwith %}
+{% endfor %}
+</div>
+
+<!-- ===== IMAGE POPUP ===== -->
+<div id="imagePopupModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000;">
+  <span onclick="closeImageModal()" style="position:absolute; top:20px; right:30px; font-size:32px; color:white; cursor:pointer;">&times;</span>
+  <div style="display:flex; align-items:center; justify-content:center; height:100%;">
+    <img id="popupImage" src="" alt="Preview" style="max-width:90%; max-height:90%; border: 2px solid #555; border-radius: 8px;" />
+  </div>
+</div>
+
 {% endblock %}
 
 {% block content %}
@@ -404,10 +567,7 @@
 <div id="outputPanel">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
     <strong style="margin-bottom: 0; padding-bottom: 0; border-bottom: none; font-size: 0.85em;">📤 Output</strong>
-    <div style="display: flex; gap: 6px;">
-      <button onclick="resizeOutput('up')" class="resize-btn" title="Make bigger" style="background:#3c3c3c; color:#fff; border:none; border-radius:6px; padding:6px 14px; cursor:pointer; font-size:18px; line-height:1;">▲</button>
-      <button onclick="resizeOutput('down')" class="resize-btn" title="Make smaller" style="background:#3c3c3c; color:#fff; border:none; border-radius:6px; padding:6px 14px; cursor:pointer; font-size:18px; line-height:1;">▼</button>
-    </div>
+
   </div>
   <pre id="outputText"></pre>
   <div id="tablePreview" style="display: none;"></div>
@@ -788,51 +948,114 @@ async function updateActiveTopic(topicId) {
     .catch(err => console.error(err));
 }
 
+
 // ============================================
-// OUTPUT PANEL RESIZE (BUTTON-BASED)
+// OUTPUT PANEL RESIZE (VS Code style drag handle)
 // ============================================
-function resizeOutput(direction) {
+(function() {
   var outputPanel = document.getElementById('outputPanel');
   var container = document.getElementById('container');
   var resizeHandle = document.getElementById('resizeHandle');
-  var currentHeight = outputPanel.offsetHeight;
-  var step = 100;
-  var newHeight;
-  
-  if (direction === 'up') {
-    newHeight = Math.min(currentHeight + step, window.innerHeight * 0.95);
-  } else {
-    newHeight = Math.max(currentHeight - step, 40);
+  if (!outputPanel || !resizeHandle) return;
+
+  var isMobile = window.innerWidth <= 768;
+  var headerHeight = 48;
+  var bottomBarHeight = (document.getElementById('mobileBottomBar') && document.getElementById('mobileBottomBar').style.display !== 'none') ? 60 : 0;
+  var minOutputHeight = 60;
+  var minEditorHeight = 50;
+
+  function getMaxOutputHeight() {
+    var toolbarHeight = document.getElementById('desktopToolbar') ? document.getElementById('desktopToolbar').offsetHeight : 0;
+    var sidebarHeight = 0;
+    var sidebar = document.querySelector('.sidebar');
+    if (sidebar && window.innerWidth <= 768) sidebarHeight = sidebar.offsetHeight || 0;
+    var handleHeight = resizeHandle.offsetHeight || 4;
+    return window.innerHeight - headerHeight - toolbarHeight - handleHeight - bottomBarHeight - sidebarHeight - minEditorHeight;
   }
-  
-  outputPanel.style.height = newHeight + 'px';
-  outputPanel.style.minHeight = newHeight + 'px';
+
+ function applyOutputHeight(h) {
+  var max = getMaxOutputHeight();
+  h = Math.max(minOutputHeight, Math.min(h, Math.max(max, minOutputHeight)));
+
+  outputPanel.style.height = h + 'px';
+  outputPanel.style.minHeight = h + 'px';
   outputPanel.style.maxHeight = 'none';
-  
+  outputPanel.style.flexShrink = '0';
+
+  // Don't touch container's height manually — editor-panel has flex-grow:1
+  // and will automatically fill whatever space outputPanel doesn't take.
+  // Just clear any leftover inline overrides from earlier code so flex can work:
   if (container) {
-    var totalHeight = window.innerHeight;
-    var headerHeight = 48;
-    var toolbarHeight = document.getElementById('desktopToolbar') ? document.getElementById('desktopToolbar').offsetHeight : 40;
-    var sidebarHeight = document.querySelector('.sidebar') ? document.querySelector('.sidebar').offsetHeight : 0;
-    var handleHeight = resizeHandle ? resizeHandle.offsetHeight : 28;
-    var isMobile = window.innerWidth <= 768;
-    var usedHeight = headerHeight + toolbarHeight + (isMobile ? sidebarHeight : 0) + newHeight + handleHeight;
-    var editorHeight = totalHeight - usedHeight;
-    
-    if (editorHeight > 10) {
-      container.style.height = editorHeight + 'px';
-      container.style.flexGrow = '0';
-      container.style.minHeight = '10px';
-    } else {
-      container.style.height = '10px';
-      container.style.flexGrow = '0';
-      container.style.minHeight = '10px';
-    }
+    container.style.removeProperty('height');
+    container.style.removeProperty('min-height');
+    container.style.removeProperty('flex-grow');
   }
-  
-  if (editor && editor.layout) { setTimeout(function() { editor.layout(); }, 50); }
-  localStorage.setItem('outputPanelHeight', newHeight + 'px');
+
+  if (window.editor && window.editor.layout) {
+    requestAnimationFrame(function() { editor.layout(); });
+  }
+  localStorage.setItem('outputPanelHeight', h + 'px');
+  return h;
 }
+
+  // Restore saved height on load
+  var saved = parseInt(localStorage.getItem('outputPanelHeight')) || 160;
+  applyOutputHeight(saved);
+
+
+
+// --- Drag logic (Pointer Events: works for mouse + touch + pen) ---
+  var dragging = false;
+  var startY = 0;
+  var startHeight = 0;
+
+  function onDragStart(e) {
+    dragging = true;
+    startY = e.clientY;
+    startHeight = outputPanel.offsetHeight;
+    resizeHandle.classList.add('dragging');
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+    resizeHandle.setPointerCapture(e.pointerId);
+  }
+
+  function onDragMove(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    var delta = startY - e.clientY; // dragging up = grow output
+    applyOutputHeight(startHeight + delta);
+  }
+
+  function onDragEnd(e) {
+    if (!dragging) return;
+    dragging = false;
+    resizeHandle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    try { resizeHandle.releasePointerCapture(e.pointerId); } catch (err) {}
+  }
+
+  resizeHandle.addEventListener('pointerdown', onDragStart);
+  resizeHandle.addEventListener('pointermove', onDragMove);
+  resizeHandle.addEventListener('pointerup', onDragEnd);
+  resizeHandle.addEventListener('pointercancel', onDragEnd);
+
+
+  // Mouse
+
+  // Recompute clamp on window resize / orientation change
+  window.addEventListener('resize', function() {
+    applyOutputHeight(outputPanel.offsetHeight);
+  });
+
+  // Expose for other code that might still call it
+  window.resizeOutput = function(direction) {
+    var step = 100;
+    var current = outputPanel.offsetHeight;
+    applyOutputHeight(direction === 'up' ? current + step : current - step);
+  };
+})();
+
 
 // FILE UPLOAD
 document.addEventListener('DOMContentLoaded', function() {
@@ -874,14 +1097,6 @@ var appBuilderTab = document.getElementById('appBuilderTab'), fileEditorTab = do
 function switchToAppBuilder() { appBuilderPanel.style.display = 'flex'; fileEditorPanel.style.display = 'none'; appBuilderTab.style.borderBottom = '3px solid #007bff'; appBuilderTab.style.fontWeight = 'bold'; appBuilderTab.style.color = '#007bff'; fileEditorTab.style.borderBottom = '3px solid transparent'; fileEditorTab.style.fontWeight = 'normal'; fileEditorTab.style.color = '#666'; }
 function switchToFileEditor() { appBuilderPanel.style.display = 'none'; fileEditorPanel.style.display = 'flex'; fileEditorTab.style.borderBottom = '3px solid #28a745'; fileEditorTab.style.fontWeight = 'bold'; fileEditorTab.style.color = '#28a745'; appBuilderTab.style.borderBottom = '3px solid transparent'; appBuilderTab.style.fontWeight = 'normal'; appBuilderTab.style.color = '#666'; }
 appBuilderTab.addEventListener('click', switchToAppBuilder); fileEditorTab.addEventListener('click', switchToFileEditor);
-var panel = document.getElementById('floatingAI'), dragHandle = document.getElementById('dragHandle'), isDraggingPanel = false, dragOffsetX = 0, dragOffsetY = 0;
-dragHandle.addEventListener('mousedown', function(e) { if (e.target.closest('.close-panel-btn')) return; isDraggingPanel = true; dragHandle.style.cursor = 'grabbing'; var r = panel.getBoundingClientRect(); panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px'; panel.style.right = 'auto'; dragOffsetX = e.clientX - r.left; dragOffsetY = e.clientY - r.top; e.preventDefault(); });
-dragHandle.addEventListener('touchstart', function(e) { if (e.target.closest('.close-panel-btn')) return; isDraggingPanel = true; var r = panel.getBoundingClientRect(); panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px'; panel.style.right = 'auto'; var t = e.touches[0]; dragOffsetX = t.clientX - r.left; dragOffsetY = t.clientY - r.top; e.preventDefault(); }, { passive: false });
-document.addEventListener('mousemove', function(e) { if (!isDraggingPanel) return; movePanel(e.clientX, e.clientY); });
-document.addEventListener('touchmove', function(e) { if (!isDraggingPanel) return; var t = e.touches[0]; movePanel(t.clientX, t.clientY); e.preventDefault(); }, { passive: false });
-function movePanel(cx, cy) { var nl = cx - dragOffsetX, nt = cy - dragOffsetY; var ml = window.innerWidth - panel.offsetWidth, mt = window.innerHeight - panel.offsetHeight; panel.style.left = Math.max(0, Math.min(nl, ml)) + 'px'; panel.style.top = Math.max(0, Math.min(nt, mt)) + 'px'; }
-document.addEventListener('mouseup', function() { isDraggingPanel = false; dragHandle.style.cursor = 'grab'; });
-document.addEventListener('touchend', function() { isDraggingPanel = false; });
 
 // TOGGLE EDITOR
 function toggleEditor() {
@@ -908,151 +1123,31 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // MOBILE OPTIMIZATION
-// ============================================
-// OUTPUT PANEL RESIZE (DESKTOP + MOBILE DRAG)
-// ============================================
 (function() {
-  var container = document.getElementById("container");
-  var outputPanel = document.getElementById("outputPanel");
-  var resizeHandle = document.getElementById("resizeHandle");
-
-  if (!outputPanel || !resizeHandle) return;
-  
-  var isDragging = false;
-  var startY = 0;
-  var startHeight = 0;
-  var MIN_HEIGHT = 40;
-  
-  function getMaxHeight() {
-    return window.innerHeight * 0.95;
-  }
-  
-  function onStart(e) {
-    if (!e.target.closest('#resizeHandle')) return;
-    isDragging = true;
-    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    startY = clientY;
-    startHeight = outputPanel.offsetHeight;
-    resizeHandle.classList.add('dragging');
-    document.body.style.userSelect = 'none';
-    document.body.style.webkitUserSelect = 'none';
-    document.body.style.overflow = 'hidden';
-    if (e.cancelable) e.preventDefault();
-    if (e.stopPropagation) e.stopPropagation();
-  }
-  
-  function onMove(e) {
-    if (!isDragging) return;
-    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    var diff = startY - clientY; // Drag UP = increase height
-    var newHeight = Math.max(MIN_HEIGHT, Math.min(startHeight + diff, getMaxHeight()));
-    
-    // UPDATE OUTPUT PANEL HEIGHT
-    outputPanel.style.height = newHeight + 'px';
-    outputPanel.style.minHeight = newHeight + 'px';
-    outputPanel.style.maxHeight = 'none';
-    
-    // ADJUST EDITOR CONTAINER
-    if (container) {
-      var totalHeight = window.innerHeight;
-      var headerHeight = 48;
-      var toolbarHeight = document.getElementById('desktopToolbar') ? document.getElementById('desktopToolbar').offsetHeight : 0;
-      var sidebarHeight = document.querySelector('.sidebar') ? document.querySelector('.sidebar').offsetHeight : 0;
-      var handleHeight = resizeHandle.offsetHeight;
-      var isMobile = window.innerWidth <= 768;
-      var usedHeight = headerHeight + toolbarHeight + (isMobile ? sidebarHeight : 0) + newHeight + handleHeight;
-      var editorHeight = totalHeight - usedHeight;
-      
-      if (editorHeight > 10) {
-        container.style.height = editorHeight + 'px';
-        container.style.flexGrow = '0';
-        container.style.minHeight = '10px';
-      } else {
-        container.style.height = '10px';
-        container.style.flexGrow = '0';
-        container.style.minHeight = '10px';
-      }
+    const isMobile = /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    if (isMobile) {
+        const desktopToolbar = document.getElementById('desktopToolbar');
+        const mobileBottomBar = document.getElementById('mobileBottomBar');
+        const outputPanel = document.getElementById('outputPanel');
+        const sidebar = document.querySelector('.sidebar');
+        if (desktopToolbar) desktopToolbar.style.display = 'none';
+        if (mobileBottomBar) { mobileBottomBar.style.display = 'flex'; document.body.style.paddingBottom = '70px'; }
+        if (outputPanel) outputPanel.style.marginBottom = '70px';
+        if (sidebar) {
+            const sidebarHeader = document.createElement('div');
+            sidebarHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px 0;cursor:pointer;';
+            sidebarHeader.innerHTML = '<strong>📁 Files & Modules</strong><span id="sidebarToggleIcon">▼</span>';
+            sidebar.insertBefore(sidebarHeader, sidebar.firstChild);
+            sidebarHeader.addEventListener('click', function() {
+                const content = sidebar.querySelectorAll('.folder-toggle,.file-group,.topics-container,#quizProgressWrap,#fileListContainer');
+                const icon = document.getElementById('sidebarToggleIcon');
+                const isHidden = content[0].style.display === 'none';
+                content.forEach(el => { el.style.display = isHidden ? '' : 'none'; });
+                icon.textContent = isHidden ? '▼' : '▶';
+                sidebar.style.maxHeight = isHidden ? '35vh' : '40px';
+            });
+        }
     }
-    
-    if (editor && editor.layout) editor.layout();
-    if (e.cancelable) e.preventDefault();
-  }
-  
-  function onEnd() {
-    if (!isDragging) return;
-    isDragging = false;
-    resizeHandle.classList.remove('dragging');
-    document.body.style.userSelect = '';
-    document.body.style.webkitUserSelect = '';
-    document.body.style.overflow = '';
-    localStorage.setItem('outputPanelHeight', outputPanel.style.height);
-  }
-  
-  // Mouse events
-  resizeHandle.addEventListener('mousedown', onStart);
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onEnd);
-  
-  // Touch events on resizeHandle
-  resizeHandle.addEventListener('touchstart', onStart, { passive: false });
-  document.addEventListener('touchmove', onMove, { passive: false });
-  document.addEventListener('touchend', onEnd);
-  document.addEventListener('touchcancel', onEnd);
-  
-  // Restore saved height
-  var savedHeight = localStorage.getItem('outputPanelHeight');
-  if (savedHeight) { 
-    outputPanel.style.height = savedHeight;
-    outputPanel.style.minHeight = savedHeight;
-  }
 })();
-
-function resizeOutput(direction) {
-  var outputPanel = document.getElementById('outputPanel');
-  var container = document.getElementById('container');
-  var resizeHandle = document.getElementById('resizeHandle');
-  var currentHeight = outputPanel.offsetHeight;
-  var step = 120; // Bigger step for faster resizing
-  var newHeight;
-  
-  if (direction === 'up') {
-    // Calculate max: total window height minus header and toolbar
-    var headerHeight = 48;
-    var toolbarHeight = document.getElementById('desktopToolbar') ? document.getElementById('desktopToolbar').offsetHeight : 0;
-    var handleHeight = resizeHandle ? resizeHandle.offsetHeight : 28;
-    var bottomBarHeight = document.getElementById('mobileBottomBar') && document.getElementById('mobileBottomBar').style.display !== 'none' ? 60 : 0;
-    var maxHeight = window.innerHeight - headerHeight - toolbarHeight - handleHeight - bottomBarHeight - 10;
-    
-    newHeight = Math.min(currentHeight + step, maxHeight);
-  } else {
-    newHeight = Math.max(currentHeight - step, 40);
-  }
-  
-  outputPanel.style.height = newHeight + 'px';
-  outputPanel.style.minHeight = newHeight + 'px';
-  outputPanel.style.maxHeight = 'none';
-  
-  // Editor gets whatever space is left
-  if (container) {
-    var headerHeight = 48;
-    var toolbarHeight = document.getElementById('desktopToolbar') ? document.getElementById('desktopToolbar').offsetHeight : 0;
-    var handleHeight = resizeHandle ? resizeHandle.offsetHeight : 28;
-    var bottomBarHeight = document.getElementById('mobileBottomBar') && document.getElementById('mobileBottomBar').style.display !== 'none' ? 60 : 0;
-    var usedHeight = headerHeight + toolbarHeight + newHeight + handleHeight + bottomBarHeight;
-    var editorHeight = window.innerHeight - usedHeight;
-    
-    if (editorHeight > 10) {
-      container.style.height = editorHeight + 'px';
-      container.style.minHeight = '10px';
-    } else {
-      container.style.height = '10px';
-      container.style.minHeight = '10px';
-    }
-    container.style.flexGrow = '0';
-  }
-  
-  if (editor && editor.layout) { setTimeout(function() { editor.layout(); }, 50); }
-  localStorage.setItem('outputPanelHeight', newHeight + 'px');
-}
 </script>
 {% endblock %}
