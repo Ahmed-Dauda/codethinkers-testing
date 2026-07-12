@@ -2121,6 +2121,7 @@ if hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
         client = None
 
 
+
 @login_required
 @require_http_methods(["GET", "POST"])
 def file_detail(request, project_id, file_id):
@@ -2282,25 +2283,106 @@ def file_detail(request, project_id, file_id):
                 code_blocks = re.findall(r'```python\n(.*?)```', topic_desc, re.DOTALL)
                 code_content = '\n'.join(code_blocks) if code_blocks else plain_desc
 
-                expected_prompt = f"""You are a Python interpreter. Execute this code mentally and return ONLY the output.
+                # ===== IMPROVED PROMPT TO HANDLE DETERMINISTIC OUTPUTS =====
+                expected_prompt = f"""You are a Python code analyzer. Analyze this code and determine what it WILL ALWAYS output when executed.
 
-## CODE TO EXECUTE:
+## CODE TO ANALYZE:
 {code_content}
 
-## STRICT RULES:
-- Execute EVERY print() statement in order
-- Return each print output on its own line
-- Return ONLY the raw output — no explanation, no labels, no markdown
-- If there are 2 print statements, return 2 lines
+## CRITICAL INSTRUCTIONS:
+1. Execute the code mentally, following ALL logic paths
+2. Identify ALL print() statements
+3. For each print(), determine if the output is:
+   - FIXED: Always prints the same thing regardless of any input (e.g., print("Hello"), print(5+3))
+   - CONDITIONAL: Prints based on logic that doesn't depend on user input (e.g., print("Even") if x%2==0)
+   - INPUT_DEPENDENT: Output changes based on user input (e.g., print("Hello " + name), print(age * 2))
 
-## EXAMPLE:
+## DECISION TREE:
+- If the code has ONLY input-dependent prints → return: VARIABLE_OUTPUT
+- If the code has ONLY fixed/conditional prints → return the exact output, one line per print()
+- If the code has a MIX of fixed and input-dependent prints → return only the fixed ones
+
+## IMPORTANT RULES FOR CONDITIONALS:
+- If there's an if/else that checks user input (like password check):
+  * print("Access granted.") in if branch AND print("Access denied.") in else branch
+  * You MUST return BOTH possibilities on separate lines:
+    Access granted.
+    Access denied.
+- This counts as CONDITIONAL output, NOT input-dependent
+
+## EXAMPLES:
+
+Example 1 - Simple fixed output:
 Code:
-print(3)
-print(4)
+print("Hello World")
+print(5 + 3)
+Response:
+Hello World
+8
 
-Your response:
-3
-4"""
+Example 2 - Input-dependent (names):
+Code:
+name = input("Enter name: ")
+print("Hello " + name)
+Response:
+VARIABLE_OUTPUT
+
+Example 3 - Conditional with password check:
+Code:
+password = input("Enter password: ")
+if password == "secret":
+    print("Access granted.")
+else:
+    print("Access denied.")
+Response:
+Access granted.
+Access denied.
+
+Example 4 - Mixed fixed and input-dependent:
+Code:
+print("Welcome to the system")
+name = input("Enter name: ")
+print("Processing...")
+print("Hello " + name)
+Response:
+Welcome to the system
+Processing...
+
+Example 5 - Math with fixed values:
+Code:
+x = 10
+y = 20
+print(x + y)
+Response:
+30
+
+Example 6 - Simple conditional (not input-dependent):
+Code:
+age = 18
+if age >= 18:
+    print("Adult")
+else:
+    print("Minor")
+Response:
+Adult
+
+Example 7 - Password check with multiple attempts:
+Code:
+password = input("Enter password: ")
+if password == "admin123":
+    print("Login successful")
+    print("Welcome admin")
+else:
+    print("Login failed")
+    print("Try again")
+Response:
+Login successful
+Welcome admin
+Login failed
+Try again
+
+Return ONLY the output lines (or VARIABLE_OUTPUT), nothing else. No markdown, no explanation, no labels."""
+                
                 try:
                     if client is None:
                         return JsonResponse({"status": "error", "message": "OpenAI API is not configured"}, status=500)
@@ -2308,10 +2390,10 @@ Your response:
                     expected_response = client.chat.completions.create(
                         model="gpt-4o-mini",
                         messages=[
-                            {"role": "system", "content": "You are a Python interpreter. Execute code mentally and return ONLY the raw output. No explanation, no markdown, no labels."},
+                            {"role": "system", "content": "You are a Python code analyzer. Determine the exact output or return VARIABLE_OUTPUT. Be thorough with conditional logic - include outputs from ALL branches."},
                             {"role": "user", "content": expected_prompt},
                         ],
-                        max_tokens=200,
+                        max_tokens=300,
                         temperature=0,
                     )
                     expected = expected_response.choices[0].message.content.strip()
@@ -2324,28 +2406,103 @@ Your response:
                     print(f"⚠️ Failed to generate expected output: {e}")
                     expected = ""
 
-            # ===== SCORE WITH AI =====
-            scoring_prompt = f"""You are a Python output checker. Compare these two outputs.
+            # ===== INITIALIZE ALL VARIABLES BEFORE CONDITIONAL BLOCKS =====
+            # Get or create progress
+            if not progress:
+                progress, _ = StudentProgress.objects.get_or_create(
+                    student=request.user, course=course
+                )
+            
+            # Initialize defaults
+            new_rank = user_rank
+            new_xp = champion_xp
+            xp_earned = 0
+            already_awarded = progress.completed_topics.filter(id=topic_id).exists()
+            earned_points = progress.completed_topics.filter(id__in=course_topic_ids).count()
+            display_score = earned_points
 
-EXPECTED (correct output):
+            # ===== ONLY MARK AS VARIABLE_OUTPUT IF TRULY INPUT-DEPENDENT =====
+            if expected == "VARIABLE_OUTPUT" or not expected:
+                # Cannot score this topic automatically — mark as correct if code ran without error
+                return JsonResponse({
+                    "status": "success",
+                    "result": {
+                        "score": display_score,
+                        "max_score": total_topics,
+                        "feedback": "✅ Code ran successfully! Output varies by input — marked as complete.",
+                        "correct": True
+                    },
+                    "points": earned_points,
+                    "total_topics": total_topics,
+                    "rank": new_rank,
+                    "champion_xp": new_xp,
+                    "xp_earned": xp_earned,
+                    "already_awarded": already_awarded,
+                    "average_score": progress.get_average_score() if progress else 0,
+                    "modules_completed": min(earned_points, total_topics),
+                    "expected_output": "VARIABLE_OUTPUT",
+                })
+
+            # ===== SCORE WITH AI - IMPROVED TO HANDLE CONDITIONAL OUTPUTS =====
+            scoring_prompt = f"""You are a Python output checker. Compare the student's output against the expected output.
+
+EXPECTED OUTPUT (may have multiple possible correct answers from conditional branches):
 ---
-{expected if expected else "Could not determine expected output"}
+{expected}
 ---
 
-STUDENT OUTPUT:
+STUDENT'S ACTUAL OUTPUT:
 ---
 {student_output}
 ---
 
-COMPARISON RULES:
-1. Split both into individual lines
-2. Strip whitespace from each line
-3. Compare line by line in order
-4. ALL expected lines must match corresponding student lines
-5. Extra lines in student output = OK, do not penalize
-6. Missing lines in student output = WRONG
-7. Numeric exact match: 7.0 == 7.0, 20 == 20
-8. score = 1 if ALL expected lines match, else score = 0
+## SCORING RULES:
+1. FIRST: Clean both outputs:
+   - Remove ALL input prompts (lines containing "Enter", "Type", "Input" etc.)
+   - Remove empty lines
+   - Strip whitespace from each line
+   
+2. If expected has MULTIPLE possible outputs (like "Access granted." and "Access denied."):
+   - Student's output must match EXACTLY ONE of the possibilities
+   - score = 1 if it matches any option, else score = 0
+
+3. If expected has SINGLE output:
+   - Student's output must contain the expected output (exact match per line)
+   - Extra lines are OK
+   - score = 1 if all expected lines match, else score = 0
+
+4. Be strict about whitespace but flexible about case if it makes sense
+
+## EXAMPLES:
+
+Expected:
+Access granted.
+Access denied.
+
+Student output:
+Enter your password: secret
+Access granted.
+→ score: 1 (matches "Access granted.")
+
+Expected:
+Access granted.
+Access denied.
+
+Student output:
+Enter your password: wrong
+Access denied.
+→ score: 1 (matches "Access denied.")
+
+Expected:
+Welcome to the system
+Processing...
+
+Student output:
+Welcome to the system
+Enter name: John
+Processing...
+Hello John
+→ score: 1 (both expected lines present)
 
 Return ONLY valid JSON:
 {{"score": 0, "max_score": 1, "feedback": "reason here", "correct": false}}"""
@@ -2357,7 +2514,7 @@ Return ONLY valid JSON:
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
-                        {"role": "system", "content": "You are a strict Python output checker. Compare outputs line by line. Return ONLY valid JSON with score 0 or 1."},
+                        {"role": "system", "content": "You are a strict but fair Python output checker. Handle conditional outputs correctly - check if student's output matches any valid branch."},
                         {"role": "user", "content": scoring_prompt},
                     ],
                     max_tokens=300,
@@ -2365,15 +2522,6 @@ Return ONLY valid JSON:
                     response_format={"type": "json_object"}
                 )
                 result = json.loads(response.choices[0].message.content)
-                
-                new_rank = user_rank
-                new_xp = champion_xp
-                xp_earned = 0
-                
-                if not progress:
-                    progress, _ = StudentProgress.objects.get_or_create(
-                        student=request.user, course=course
-                    )
                 
                 xp_before = champion_xp
                 
@@ -2384,10 +2532,6 @@ Return ONLY valid JSON:
                     progress.module_start_time = timezone.now()  # Reset timer
                     progress.save(update_fields=['total_time_spent_seconds', 'module_start_time'])
                     print(f"⏱️ Scored: +{int(time_spent)}s | Total: {progress.total_time_spent_seconds}s")
-                
-                already_awarded = progress.completed_topics.filter(id=topic_id).exists()
-                earned_points = progress.completed_topics.filter(id__in=course_topic_ids).count()
-                display_score = earned_points
                 
                 if result.get('correct', False):
                     if not already_awarded:
@@ -2410,11 +2554,13 @@ Return ONLY valid JSON:
                         except Exception as e:
                             print(f"⚠️ Failed to update leaderboard: {e}")
                     else:
+                        # Already awarded - keep existing values
                         display_score = earned_points
                         xp_earned = 0
                         result['feedback'] = (result.get('feedback', '') + 
                             '\n\n📌 Module already completed - no additional XP.')
                 else:
+                    # Incorrect answer
                     progress.incorrect_code_attempts += 1
                     progress.save(update_fields=['incorrect_code_attempts'])
                     display_score = earned_points
@@ -2483,8 +2629,12 @@ Return ONLY valid JSON:
             new_xp = leaderboard_entry.champion_xp if leaderboard_entry else 0
             new_rank = leaderboard_entry.rank if leaderboard_entry else None
             
+            # Get course topic IDs for the specific course
+            course_specific_topics = Topics.objects.filter(courses=course_obj)
+            course_specific_topic_ids = set(course_specific_topics.values_list('id', flat=True))
+            
             completed_ids = list(
-                progress_obj.completed_topics.filter(id__in=course_topic_ids).values_list('id', flat=True)
+                progress_obj.completed_topics.filter(id__in=course_specific_topic_ids).values_list('id', flat=True)
             ) if progress_obj else []
             
             # ===== AUTO-CREATE FILE =====
@@ -2525,15 +2675,17 @@ Return ONLY valid JSON:
                 "message": "Active topic updated",
                 "current_topic_id": topic_id,
                 "points": len(completed_ids),
-                "total_topics": total_topics,
+                "total_topics": course_specific_topics.count(),
                 "rank": new_rank,
                 "champion_xp": new_xp,
                 "auto_created_file_id": auto_created_file_id,
                 "total_time_spent_seconds": progress_obj.total_time_spent_seconds,
             })
 
-        # ================= AI PROMPT (unchanged) =================
-        # ... keep existing AI build code ...
+        # ================= AI PROMPT =================
+        if prompt and ai_action:
+            # ... keep existing AI build code ...
+            pass
 
         # ================= FILE SAVE =================
         if new_content and new_content != file.content:
@@ -2548,9 +2700,10 @@ Return ONLY valid JSON:
                     response_table = df.head(20).to_html(classes="table table-bordered table-sm", index=False)
             except Exception as e:
                 return JsonResponse({"status": "error", "message": str(e)}, status=400)
-
+      
         if is_python and (run_plot or new_content.strip()):
-            result = run_code(new_content)
+            user_inputs = data.get("user_inputs", [])
+            result = run_code(new_content, inputs=user_inputs)
             result["table"] = response_table
             if result["status"] == "error":
                 return JsonResponse(result, status=500)
@@ -2603,26 +2756,34 @@ from sms.models import Courses, Topics
 # ============================================
 # XP CALCULATION HELPERS
 # ============================================
-
 def calculate_champion_xp(progress, total_topics):
     """Calculate Champion XP for a student"""
     xp = 0
     
+    # Get course-specific topic IDs
+    course_topic_ids = set(
+        Topics.objects.filter(courses=progress.course).values_list('id', flat=True)
+    )
+    
     # Module completion: +10 XP per module (capped at total_topics)
-    completed = min(progress.completed_topics.filter(courses=progress.course).count(), total_topics)
+    completed = min(
+        progress.completed_topics.filter(id__in=course_topic_ids).count(), 
+        total_topics
+    )
     xp += completed * 10
     
     # Assessment performance XP - ONLY count unique topics (no duplicates)
-    # Get unique completed topic IDs
-    completed_topic_ids = list(progress.completed_topics.filter(courses=progress.course).values_list('id', flat=True))
-    
     # Only count assessment scores up to the number of completed topics
     # This prevents duplicate scores from inflating XP
+    completed_topic_ids = list(
+        progress.completed_topics.filter(id__in=course_topic_ids).values_list('id', flat=True)
+    )
+    
     unique_scores = progress.assessment_scores[:len(completed_topic_ids)] if len(progress.assessment_scores) > len(completed_topic_ids) else progress.assessment_scores
     
     for score in unique_scores:
         if score >= 90:
-            xp += 10
+            xp += 10  # Perfect score bonus
         elif score >= 80:
             xp += 8
         elif score >= 70:
@@ -2631,15 +2792,17 @@ def calculate_champion_xp(progress, total_topics):
             xp += 4
     
     # Coding challenges: +5 XP each (capped at total_topics)
-    coding_xp = min(progress.coding_challenges_passed, total_topics) * 5
+    # Only count coding challenges that match actual completed topics
+    coding_xp = min(progress.coding_challenges_passed, completed) * 5
     xp += coding_xp
     
     # Course completion: +100 XP (only if all modules completed)
     if progress.course_completed and completed >= total_topics:
         xp += 100
     
-    # First attempt bonuses: +5 XP each (capped at total_topics)
-    first_attempt_count = min(len(progress.first_attempt_topics), total_topics)
+    # First attempt bonuses: +5 XP each (capped at completed topics)
+    # Only count first attempts for actually completed topics
+    first_attempt_count = min(len(progress.first_attempt_topics), completed)
     xp += first_attempt_count * 5
     
     # Learning streak XP (only count the highest tier achieved)
@@ -2651,6 +2814,18 @@ def calculate_champion_xp(progress, total_topics):
         xp += 15
     elif progress.current_streak >= 3:
         xp += 5
+    # No XP for streaks less than 3 days
+    
+    # Add logging for debugging
+    print(f"""
+    📊 XP Breakdown for {progress.student.username}:
+    ├─ Modules ({completed}×10): {completed * 10}
+    ├─ Assessment Scores: {sum(10 if s >= 90 else 8 if s >= 80 else 6 if s >= 70 else 4 for s in unique_scores)}
+    ├─ Coding Challenges ({min(progress.coding_challenges_passed, completed)}×5): {coding_xp}
+    ├─ First Attempts ({first_attempt_count}×5): {first_attempt_count * 5}
+    ├─ Streak Bonus (streak={progress.current_streak}): {50 if progress.current_streak >= 30 else 30 if progress.current_streak >= 14 else 15 if progress.current_streak >= 7 else 5 if progress.current_streak >= 3 else 0}
+    └─ Total XP: {xp}
+    """)
     
     return xp
 
