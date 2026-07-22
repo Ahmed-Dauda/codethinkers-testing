@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Author List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+<h1>Author List</h1>
+<ul>
+    {% for author in object_list %}
+        <li><a href='{% url 'library_management:author_detail' author.pk %}'>{{ author.name }}</a></li>
+    {% endfor %}
+</ul>
+<a href='{% url 'library_management:author_create' %}'>Add Author</a>
+</body>
+</html>

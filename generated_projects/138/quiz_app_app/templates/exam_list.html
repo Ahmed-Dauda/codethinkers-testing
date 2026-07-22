@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class='text-2xl font-bold'>Exams</h2>
+<ul>
+    {% for exam in object_list %}
+    <li><a href='{% url 'exam_detail' exam.pk %}' class='text-blue-500'>{{ exam.quiz.title }} - {{ exam.date }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

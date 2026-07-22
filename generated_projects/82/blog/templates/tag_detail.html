@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Posts tagged with {{ tag_name }}</title>
+</head>
+<body class='flex flex-col min-h-screen'>
+    <nav class='bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50'>
+        <div class='max-w-7xl mx-auto px-4 py-3 flex justify-between items-center'>
+            <a href='/' class='text-xl font-bold text-indigo-600'>Blog</a>
+            <div class='flex items-center space-x-6'>
+                <a href='/' class='text-gray-600 hover:text-indigo-600 transition'>Home</a>
+                <a href='/admin/' class='text-gray-600 hover:text-indigo-600 transition'>Admin</a>
+            </div>
+        </div>
+    </nav>
+    <main class='flex-grow container mx-auto px-4 py-6'>
+        <h1 class='text-2xl font-bold'>Posts tagged with '{{ tag_name }}'</h1>
+        <ul class='mt-4'>
+            {% for post in posts %}
+                <li class='bg-white shadow-md rounded-lg p-4 mb-4'>
+                    <h2 class='text-xl font-semibold'>{{ post.title }}</h2>
+                    <p>{{ post.content|truncatewords:30 }}</p>
+                    <a href='{% url 'blog:post_detail' post.pk %}' class='text-indigo-600 hover:underline'>Read more</a>
+                </li>
+            {% empty %}
+                <p>No posts found for this tag.</p>
+            {% endfor %}
+        </ul>
+    </main>
+    <footer class='bg-gray-800 text-white mt-auto'>
+        <div class='max-w-7xl mx-auto px-4 py-6 text-center text-sm text-gray-400'>
+            &copy; 2026. All rights reserved.
+        </div>
+    </footer>
+</body>
+</html>

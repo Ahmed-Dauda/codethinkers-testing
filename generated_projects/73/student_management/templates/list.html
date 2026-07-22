@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow p-4">
+        <h1 class="text-xl font-bold">Student Management System</h1>
+    </nav>
+    <main class="max-w-7xl mx-auto p-4">
+        <h2 class="text-2xl font-semibold mb-4">Students</h2>
+        {% if objects %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for obj in objects %}
+                    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                        <img src="https://picsum.photos/600/400?random={{ forloop.counter }}" class="w-full h-48 object-cover" loading="lazy" alt="{{ obj.first_name }} {{ obj.last_name }}">
+                        <div class="p-4">
+                            <h3 class="text-lg font-bold">{{ obj.first_name }} {{ obj.last_name }}</h3>
+                            <p>Email: {{ obj.email }}</p>
+                            <p>Class: {{ obj.class_enrolled.name }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No items found.</p>
+        {% endif %}
+        <div class="mt-4">
+            {% for page_num in objects.paginator.page_range %}
+                <a href="?page={{ page_num }}" class="mx-1 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">{{ page_num }}</a>
+            {% endfor %}
+        </div>
+    </main>
+    <footer class="bg-white shadow p-4 text-center">
+        <p>&copy; 2023 Student Management System</p>
+    </footer>
+</body>
+</html>

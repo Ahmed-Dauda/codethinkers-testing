@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h2 class='text-2xl font-bold'>{{ object.title }}</h2>
+    <p>{{ object.description }}</p>
+    <form method='post' action='{% url 'cbt:submit_answer' object.id %}'>
+        {% csrf_token %}
+        <h3 class='text-xl font-semibold'>Questions:</h3>
+        <ul>
+            {% for question in object.questions.all %}
+                <li class='border-b py-2'>
+                    <p>{{ question.question_text }}</p>
+                    <label><input type='radio' name='question_{{ question.id }}' value='A'> A: {{ question.option_a }}</label><br>
+                    <label><input type='radio' name='question_{{ question.id }}' value='B'> B: {{ question.option_b }}</label><br>
+                    <label><input type='radio' name='question_{{ question.id }}' value='C'> C: {{ question.option_c }}</label><br>
+                    <label><input type='radio' name='question_{{ question.id }}' value='D'> D: {{ question.option_d }}</label><br>
+                </li>
+            {% endfor %}
+        </ul>
+        <button type='submit' class='bg-blue-500 text-white px-4 py-2'>Submit Answers</button>
+    </form>
+{% endblock %}

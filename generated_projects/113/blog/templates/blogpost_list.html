@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Blog Posts{% endblock %}
+{% block content %}
+  <h2>Blog Posts</h2>
+  <a href='{% url 'blog:blogpost_create' %}'>Create New Post</a>
+  <div>
+    {% for post in object_list %}
+      <h3><a href='{% url 'blog:blogpost_detail' post.pk %}'>{{ post.title }}</a></h3>
+      <p>{{ post.content|truncatewords:30 }}</p>
+    {% empty %}
+      <p>No posts available.</p>
+    {% endfor %}
+  </div>
+  {% include 'components/pagination.html' %}
+{% endblock %}

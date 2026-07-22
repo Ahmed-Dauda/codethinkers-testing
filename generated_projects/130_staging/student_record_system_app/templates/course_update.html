@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class='text-2xl font-bold'>Edit Course</h2>
+<form method='post'>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type='submit' class='bg-green-500 text-white p-2'>Update</button>
+</form>
+<a href='{% url 'student_record_system_app:course_list' %}' class='bg-gray-500 text-white p-2'>Cancel</a>
+{% endblock %}

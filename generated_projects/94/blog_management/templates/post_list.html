@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+<h1>Blog Posts</h1>{% for post in object_list %}<h2><a href='{% url 'blog_management:post_detail' post.pk %}'>{{ post.title }}</a></h2>{% endfor %}
+</body>
+</html>

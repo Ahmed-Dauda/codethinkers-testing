@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Inventory Management</title>
+</head>
+<body class='flex flex-col min-h-screen'>
+<nav class='bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50'>
+    <div class='max-w-7xl mx-auto px-4 py-3 flex justify-between items-center'>
+        <a href='/' class='text-xl font-bold text-indigo-600'>Inventory Management</a>
+        <div class='flex items-center space-x-6'>
+            <a href='/' class='text-gray-600 hover:text-indigo-600 transition'>Home</a>
+            <a href='/admin/' class='text-gray-600 hover:text-indigo-600 transition'>Admin</a>
+        </div>
+    </div>
+</nav>
+<main class='flex-grow container mx-auto px-4 py-6'>
+    <h1 class='text-2xl font-bold'>Dashboard</h1>
+    <div class='grid grid-cols-1 md:grid-cols-3 gap-4'>
+        <div class='bg-white shadow rounded-lg p-4 flex items-center'>
+            <i class='fas fa-box w-8 h-8 mr-2'></i>
+            <div>
+                <h2 class='font-bold'>Total Products</h2>
+                <p>{{ products.count }}</p>
+            </div>
+        </div>
+        <div class='bg-white shadow rounded-lg p-4 flex items-center'>
+            <i class='fas fa-tags w-8 h-8 mr-2'></i>
+            <div>
+                <h2 class='font-bold'>Total Categories</h2>
+                <p>{{ categories.count }}</p>
+            </div>
+        </div>
+        <div class='bg-white shadow rounded-lg p-4 flex items-center'>
+            <i class='fas fa-truck w-8 h-8 mr-2'></i>
+            <div>
+                <h2 class='font-bold'>Total Suppliers</h2>
+                <p>{{ suppliers.count }}</p>
+            </div>
+        </div>
+    </div>
+</main>
+<footer class='bg-gray-800 text-white mt-auto'>
+    <div class='max-w-7xl mx-auto px-4 py-6 text-center text-sm text-gray-400'>
+        &copy; 2026. All rights reserved.
+    </div>
+</footer>
+</body>
+</html>

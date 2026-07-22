@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+            <div class="relative flex items-center justify-between h-16">
+                <div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
+                    <button class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 focus:outline-none" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                    </button>
+                </div>
+                <div class="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold">Blog Management</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <main class="max-w-7xl mx-auto p-6">
+        <h2 class="text-2xl font-semibold mb-4">{{ post.title }}</h2>
+        <img src="https://picsum.photos/1200/400" class="w-full h-64 object-cover" alt="Hero">
+        <p class="mt-4">{{ post.content }}</p>
+        <h3 class="text-lg font-semibold mt-6">Comments</h3>
+        <div class="mt-4">
+            {% for comment in comments %}
+                <div class="bg-white shadow-md rounded-lg p-4 mb-4">
+                    <p><strong>{{ comment.name }}</strong> ({{ comment.email }})</p>
+                    <p>{{ comment.content }}</p>
+                </div>
+            {% empty %}
+                <p>No comments yet.</p>
+            {% endfor %}
+        </div>
+        <h3 class="text-lg font-semibold mt-6">Leave a Comment</h3>
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            {{ comment_form.as_p }}
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
+        </form>
+    </main>
+    <footer class="bg-white shadow mt-6">
+        <div class="max-w-7xl mx-auto py-4 text-center">
+            <p class="text-gray-600">© 2023 Blog Management System</p>
+        </div>
+    </footer>
+</body>
+</html>

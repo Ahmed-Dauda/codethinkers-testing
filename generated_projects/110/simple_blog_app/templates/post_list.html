@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Post List{% endblock %}
+{% block content %}
+<h1>Posts</h1>
+<ul>
+{% for post in object_list %}
+<li><a href='{% url 'simple_blog_app:post_detail' post.pk %}'>{{ post.title }}</a></li>
+{% endfor %}
+</ul>
+{% include 'components/pagination.html' %}
+{% endblock %}

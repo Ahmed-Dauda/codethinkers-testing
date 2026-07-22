@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class='text-2xl font-bold'>Quizzes</h2>
+<ul>
+    {% for quiz in object_list %}
+    <li><a href='{% url 'quiz_detail' quiz.pk %}' class='text-blue-500'>{{ quiz.title }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

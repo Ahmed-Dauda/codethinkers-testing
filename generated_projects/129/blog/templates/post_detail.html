@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class='text-2xl font-bold'>{{ object.title }}</h1>
+<p>{{ object.content }}</p>
+<a href='{% url 'post_update' object.pk %}' class='text-blue-500'>Edit</a>
+<a href='{% url 'post_delete' object.pk %}' class='text-red-500'>Delete</a>
+<a href='{% url 'post_list' %}' class='text-gray-500'>Back to List</a>
+{% endblock %}

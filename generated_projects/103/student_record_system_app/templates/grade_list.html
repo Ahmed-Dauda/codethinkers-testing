@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+<h1>Grade List</h1>
+<ul>
+{% for grade in grades %}
+    <li><a href='{% url 'student_record_system_app:grade_detail' grade.pk %}'>{{ grade.student.name }} - {{ grade.subject }}: {{ grade.score }}</a></li>
+{% endfor %}
+</ul>
+</body>
+</html>

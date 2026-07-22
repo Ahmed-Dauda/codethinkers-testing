@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+<h1>Staff Record System</h1>
+<ul>
+    <li><a href='{% url 'staff_record_system_app:staff_list' %}'>View Staff</a></li>
+    <li><a href='{% url 'staff_record_system_app:department_list' %}'>View Departments</a></li>
+</ul>
+</body>
+</html>

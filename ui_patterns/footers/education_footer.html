@@ -1,0 +1,34 @@
+<footer class="bg-blue-900 text-white mt-12">
+    <div class="max-w-7xl mx-auto px-6 py-10">
+        <div class="grid md:grid-cols-3 gap-8">
+
+            <div>
+                <h3 class="text-xl font-bold">{{ app_name }}</h3>
+                <p class="text-blue-200 mt-2">
+                 4   Empowering students through technology and digital learning.
+                </p>
+            </div>
+
+            <div>
+                <h4 class="font-semibold mb-3">Quick Links</h4>
+                <ul class="space-y-2 text-blue-200">
+                    <li><a href="/" class="hover:text-white">Home</a></li>
+                    <li><a href="/courses/" class="hover:text-white">Courses</a></li>
+                    <li><a href="/contact/" class="hover:text-white">Contact</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-semibold mb-3">Support</h4>
+                <p class="text-blue-200">
+                    Helping students learn Python, Django and Full Stack Development.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="border-t border-blue-700 mt-8 pt-4 text-center text-blue-300 text-sm">
+            © {% now "Y" %} {{ app_name }}. All rights reserved.
+        </div>
+    </div>
+</footer>
