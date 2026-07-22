@@ -15,5 +15,7 @@ source env/bin/activat
 
 
 # staging stage for codethinkers academy
+ssh root@204.168.237.20
+MyServer2026!Coolify
 cd /var/www/codethinkers-staging
 source env/bin/activate
