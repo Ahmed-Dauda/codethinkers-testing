@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Welcome to the Blog</h1>
+<p>Latest posts:</p>
+<ul>
+    {% for post in object_list %}
+        <li><a href='{% url 'blogpost_detail' post.pk %}'>{{ post.title }}</a> by {{ post.author }} on {{ post.created_at }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

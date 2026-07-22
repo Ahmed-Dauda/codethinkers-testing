@@ -37,6 +37,8 @@ class Project(models.Model):
         on_delete=models.SET_NULL
     )
     created = models.DateTimeField(auto_now_add=True)
+    assigned_port = models.IntegerField(null=True, blank=True)
+    admin_password = models.CharField(max_length=64, blank=True, null=True)
 
     def get_absolute_url(self):
         return f"/webprojects/{self.id}/"

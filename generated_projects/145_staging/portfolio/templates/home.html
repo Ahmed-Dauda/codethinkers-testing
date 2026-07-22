@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio</title>
+    
+</head>
+<body class="bg-gray-100">
+    <header class="bg-blue-600 text-white p-6">
+        <h1 class="text-3xl font-bold">Welcome to My Portfolio</h1>
+    </header>
+    <section id="about" class="p-6">
+        <h2 class="text-2xl font-semibold">About Me</h2>
+        <p>Information about me goes here.</p>
+    </section>
+    <section id="skills" class="p-6">
+        <h2 class="text-2xl font-semibold">Skills</h2>
+        <ul>
+            {% for skill in skills %}
+                <li>{{ skill.name }} - {{ skill.level }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section id="projects" class="p-6">
+        <h2 class="text-2xl font-semibold">Projects</h2>
+        <ul>
+            {% for project in projects %}
+                <li><a href="{{ project.url }}">{{ project.title }}</a> - {{ project.description }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section id="experience" class="p-6">
+        <h2 class="text-2xl font-semibold">Experience</h2>
+        <ul>
+            {% for experience in experiences %}
+                <li>{{ experience.role }} at {{ experience.company }} ({{ experience.start_date }} - {{ experience.end_date }})</li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section id="contact" class="p-6">
+        <h2 class="text-2xl font-semibold">Contact Me</h2>
+        <form action="" method="post">
+            {% csrf_token %}
+            <input type="text" name="name" placeholder="Your Name" required class="border p-2 w-full mb-4">
+            <input type="email" name="email" placeholder="Your Email" required class="border p-2 w-full mb-4">
+            <textarea name="message" placeholder="Your Message" required class="border p-2 w-full mb-4"></textarea>
+            <button type="submit" class="bg-blue-600 text-white p-2">Send Message</button>
+        </form>
+    </section>
+    <footer class="bg-gray-800 text-white p-6">
+        <p>&copy; {% now 'Y' %} My Portfolio. All rights reserved.</p>
+    </footer>
+</body>
+</html>

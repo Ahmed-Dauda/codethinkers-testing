@@ -1,0 +1,1 @@
+Get-ChildItem "ai_rules\*.md" | ForEach-Object { Write-Host "`n===== $($_.Name) =====`n"; Get-Content $_.FullName }

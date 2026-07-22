@@ -291,13 +291,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'users.middleware.BotSignupProtectionMiddleware',  # Your custom middleware
-    'users.middleware.VisitTrackingMiddleware',  # Adjust path to your app
+    # 'users.middleware.BotSignupProtectionMiddleware',  # Your custom middleware
+    # 'users.middleware.VisitTrackingMiddleware',  # Adjust path to your app
 
 ]
 
 
-MIDDLEWARE += ['users.middleware.UpdateLastActivityMiddleware']
+# MIDDLEWARE += ['users.middleware.UpdateLastActivityMiddleware']
 
 CSRF_COOKIE_SECURE=False
 

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Daily Revenue</h1>
+<h2>Total Revenue: ${{ total_revenue }}</h2>
+<h2>Total Expenses: ${{ total_expenses }}</h2>
+<h2>Net Revenue: ${{ net_revenue }}</h2>
+<table class='min-w-full bg-white'>
+    <thead>
+        <tr>
+            <th class='py-2'>Date</th>
+            <th class='py-2'>Amount</th>
+            <th class='py-2'>Description</th>
+            <th class='py-2'>Attendant</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sale in sales %}
+        <tr>
+            <td class='border px-4 py-2'>{{ sale.date }}</td>
+            <td class='border px-4 py-2'>${{ sale.amount }}</td>
+            <td class='border px-4 py-2'>{{ sale.description }}</td>
+            <td class='border px-4 py-2'>{{ sale.attendant.name }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

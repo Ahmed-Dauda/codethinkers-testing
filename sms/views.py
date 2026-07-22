@@ -318,7 +318,11 @@ class Homepage1(ListView):
         context['users'] = request.user
         context['user']  = NewUser.objects.order_by('id')
  
-        messages.success(request, 'You have successfully logged in.')
+        if request.user.is_authenticated:
+            messages.success(request, 'You have successfully logged in as ' + request.user.first_name + ' (' + request.user.email + ')')
+        else:
+            messages.info(request, 'Welcome, Guest!')
+
  
         if request.user.is_authenticated:
             user_newuser = get_object_or_404(NewUser, email=request.user.email)

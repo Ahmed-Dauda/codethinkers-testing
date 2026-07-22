@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Student Detail</title>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 p-4">
+        <div class="container mx-auto">
+            <a href="{% url 'student_records:home' %}" class="text-white">Home</a>
+            <a href="{% url 'student_records:about' %}" class="text-white ml-4">About</a>
+            <a href="{% url 'student_records:contact' %}" class="text-white ml-4">Contact</a>
+            <a href="{% url 'student_records:register_student' %}" class="text-white ml-4">Register</a>
+        </div>
+    </nav>
+    <main class="container mx-auto mt-8">
+        <h1 class="text-2xl font-bold mb-4">Student Detail</h1>
+        <div class="bg-white shadow-md rounded-lg p-4">
+            <img src="https://picsum.photos/600/400?random=1" class="w-full h-48 object-cover" loading="lazy" alt="{{ student.full_name }}">
+            <h2 class="text-xl font-semibold mt-2">{{ student.full_name }}</h2>
+            <p>Admission Number: {{ student.admission_number }}</p>
+            <p>Class: {{ student.class_name }}</p>
+            <p>Gender: {{ student.gender }}</p>
+            <p>Date of Birth: {{ student.date_of_birth }}</p>
+            <p>Parent Phone: {{ student.parent_phone }}</p>
+        </div>
+    </main>
+    <footer class="bg-gray-800 text-white p-4 mt-8">
+        <div class="container mx-auto text-center">
+            &copy; 2023 Student Records
+        </div>
+    </footer>
+</body>
+</html>

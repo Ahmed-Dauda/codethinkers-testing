@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blogpost List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+<h1>Blog Posts</h1>{% for post in object_list %}<h2><a href='{% url 'blog:blogpost_detail' post.pk %}'>{{ post.title }}</a></h2><p>by {{ post.author }} on {{ post.created_at }}</p>{% endfor %}{% if is_paginated %}<div class='pagination'>{% if page_obj.has_previous %}<a href='?page=1'>first</a><a href='?page={{ page_obj.previous_page_number }}'>previous</a>{% endif %}<span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a href='?page={{ page_obj.next_page_number }}'>next</a><a href='?page={{ page_obj.paginator.num_pages }}'>last</a>{% endif %}</div>{% endif %}
+</body>
+</html>

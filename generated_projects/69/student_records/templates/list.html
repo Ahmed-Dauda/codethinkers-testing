@@ -1,0 +1,40 @@
+<html lang="en">
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Student List</title>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 p-4">
+        <div class="container mx-auto">
+            <a href="{% url 'student_records:home' %}" class="text-white">Home</a>
+            <a href="{% url 'student_records:about' %}" class="text-white">About</a>
+            <a href="{% url 'student_records:contact' %}" class="text-white">Contact</a>
+            <a href="{% url 'student_records:register_student' %}" class="text-white">Register Student</a>
+            <a href="{% url 'student_records:dashboard' %}" class="text-white">Dashboard</a>
+        </div>
+    </nav>
+    <main class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">Student List</h1>
+        {% if objects %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for obj in objects %}
+                    <div class="bg-white shadow-md rounded-lg p-4">
+                        <img src="https://picsum.photos/600/400?random={{ forloop.counter }}" class="w-full h-48 object-cover" loading="lazy" alt="{{ obj.full_name }}">
+                        <h2 class="text-xl font-semibold">{{ obj.full_name }}</h2>
+                        <p>Admission Number: {{ obj.admission_number }}</p>
+                        <p>Class: {{ obj.class_name }}</p>
+                        <p>Gender: {{ obj.gender }}</p>
+                        <p>Date of Birth: {{ obj.date_of_birth }}</p>
+                        <p>Parent Phone: {{ obj.parent_phone }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No items found.</p>
+        {% endif %}
+    </main>
+    <footer class="bg-blue-600 p-4 text-white text-center">
+        <p>&copy; 2023 Student Records</p>
+    </footer>
+</body>
+</html>

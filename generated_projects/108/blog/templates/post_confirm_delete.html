@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Confirm Delete</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+{% extends 'base.html' %}
+{% block title %}Delete Post{% endblock %}
+{% block content %}
+<h2>Are you sure you want to delete '{{ object.title }}'?</h2>
+<form method='post'>
+  {% csrf_token %}
+  <button type='submit'>Confirm</button>
+</form>
+<a href='{% url 'blog:post_list' %}'>Cancel</a>
+{% endblock %}
+</body>
+</html>

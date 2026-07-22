@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ object.title }}</h2>
+<p>{{ object.content }}</p>
+<p>Author: {{ object.author }} | Created at: {{ object.created_at }}</p>
+<a href='{% url 'post_edit' object.pk %}'>Edit</a>
+<a href='{% url 'post_delete' object.pk %}'>Delete</a>
+<a href='{% url 'post_list' %}'>Back to Posts</a>
+{% endblock %}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense List</title>
+    
+</head>
+<body class="flex flex-col min-h-screen">
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/" class="text-xl font-bold text-indigo-600">Expense Tracker</a>
+            <div class="flex items-center space-x-6">
+                <a href="/income/" class="text-gray-600 hover:text-indigo-600 transition">Income</a>
+                <a href="/expense/" class="text-gray-600 hover:text-indigo-600 transition">Expenses</a>
+                <a href="/category/" class="text-gray-600 hover:text-indigo-600 transition">Categories</a>
+            </div>
+        </div>
+    </nav>
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <h1 class="text-2xl font-bold">Expense List</h1>
+        {% if object_list %}
+            <ul>
+                {% for expense in object_list %}
+                    <li>{{ expense.amount }} on {{ expense.date }} - {{ expense.category.name }}</li>
+                {% endfor %}
+            </ul>
+            {% if is_paginated %}
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1">First</a>
+                        <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    {% endif %}
+                    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <p>No items found. <a href="/expense/create/">Add one</a></p>
+        {% endif %}
+    </div>
+    <footer class="bg-gray-800 text-white mt-auto">
+        <div class="max-w-7xl mx-auto px-4 py-6 text-center text-sm text-gray-400">
+            &copy; 2026. All rights reserved.
+        </div>
+    </footer>
+</body>
+</html>
