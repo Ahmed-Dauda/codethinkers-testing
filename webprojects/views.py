@@ -2857,6 +2857,37 @@ def get_existing_project_context(project):
     }
 
 
+# views.py
+@login_required
+@require_http_methods(["POST"])
+def update_project_subdomain(request, project_id):
+    project = get_object_or_404(Project, id=project_id, user=request.user)
+    
+    try:
+        data = json.loads(request.body)
+        subdomain = data.get("subdomain", "").strip().lower()
+        
+        # Validate: only letters, numbers, hyphens
+        if subdomain and not re.match(r'^[a-z0-9-]+$', subdomain):
+            return JsonResponse({"status": "error", "message": "Only letters, numbers, and hyphens allowed."})
+        
+        # Check uniqueness
+        if subdomain and Project.objects.filter(subdomain=subdomain).exclude(id=project_id).exists():
+            return JsonResponse({"status": "error", "message": "This subdomain is already taken."})
+        
+        project.subdomain = subdomain or None
+        project.save(update_fields=['subdomain'])
+        
+        preview_url = f"https://{subdomain}.codethinkers.org/" if subdomain else f"https://project-{project.id}.codethinkers.org/"
+        
+        return JsonResponse({
+            "status": "success",
+            "subdomain": subdomain,
+            "preview_url": preview_url,
+        })
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
+
 
 @login_required
 def run_project(request, project_id):
@@ -3809,6 +3840,7 @@ SECRET_KEY = 'django-insecure-change-this-in-production'
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://*.codethinkers.org']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
