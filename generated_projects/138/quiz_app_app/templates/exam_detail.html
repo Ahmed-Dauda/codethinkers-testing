@@ -1,7 +1,0 @@
-{% extends 'base.html' %}
-{% block content %}
-<h2 class='text-2xl font-bold'>Exam for {{ object.quiz.title }}</h2>
-<p>Date: {{ object.date }}</p>
-<p>Duration: {{ object.duration }} minutes</p>
-<a href='{% url 'exam_create' %}' class='text-blue-500'>Create New Exam</a>
-{% endblock %}
