@@ -2783,7 +2783,8 @@ def rebuild_and_start_project(project):
             "step": "verify",
             "message": f"Server started but not responding on port {PORT}",
         }
-
+    
+    update_project_port_mapping(project)
     return {
         "status": "success",
         "message": "Project started successfully.",
@@ -2956,7 +2957,8 @@ print("Admin user setup complete")
                 "step": "verify",
                 "message": "Project applied successfully but no server port was returned.",
             })
-
+        
+        update_project_port_mapping(project)
         return JsonResponse({
             "status": "success",
             "message": "Project started successfully.",
@@ -5138,6 +5140,10 @@ PROJECT_PORTS_FILE = Path("/var/www/codethinkers-staging/project_ports.json")
 
 def update_project_port_mapping(project):
     """Write project subdomain → port mapping for the router."""
+    import os
+    if not os.environ.get('PRODUCTION'):
+        return  # Only runs on production server
+    
     mapping = {}
     if PROJECT_PORTS_FILE.exists():
         try:
