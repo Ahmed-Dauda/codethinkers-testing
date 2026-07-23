@@ -37,3 +37,7 @@ env/
 venv/
 ENV/
 .venv/
+project_databases/*.sqlite3
+project_databases/*.sqlite3-wal
+project_databases/*.sqlite3-shm
+project_databases/*.sqlite3-journal

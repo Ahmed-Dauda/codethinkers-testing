@@ -746,8 +746,10 @@ def restart_server_only(project):
 
     return {
         "status": "success",
-        "preview_url": f"http://127.0.0.1:{PORT}/",
-        "admin_url": f"http://127.0.0.1:{PORT}/admin/",
+        "preview_url": f"http://{get_public_host()}:{PORT}/",
+        "admin_url": f"http://{get_public_host()}:{PORT}/admin/",
+        # "preview_url": f"http://127.0.0.1:{PORT}/",
+        # "admin_url": f"http://127.0.0.1:{PORT}/admin/",
         "port": PORT,
     }
 
@@ -2786,8 +2788,10 @@ def rebuild_and_start_project(project):
     return {
         "status": "success",
         "message": "Project started successfully.",
-        "preview_url": f"http://127.0.0.1:{PORT}/",
-        "admin_url": f"http://127.0.0.1:{PORT}/admin/",
+        "preview_url": f"http://{get_public_host()}:{PORT}/",
+        "admin_url": f"http://{get_public_host()}:{PORT}/admin/",
+        # "preview_url": f"http://127.0.0.1:{PORT}/",
+        # "admin_url": f"http://127.0.0.1:{PORT}/admin/",
         "admin_credentials": {"username": "admin", "password": admin_password},
         "check_output": check.stdout,
         "migrate_output": migrate.stdout,
@@ -2871,8 +2875,10 @@ def run_project(request, project_id):
             return JsonResponse({
                 "status": "success",
                 "message": "Project already running.",
-                "preview_url": f"http://127.0.0.1:{port}/",
-                "admin_url": f"http://127.0.0.1:{port}/admin/",
+                "preview_url": f"http://{get_public_host()}:{port}/",
+                "admin_url": f"http://{get_public_host()}:{port}/admin/",
+                # "preview_url": f"http://127.0.0.1:{port}/",
+                # "admin_url": f"http://127.0.0.1:{port}/admin/",
                 "admin_credentials": {
                     "username": "admin",
                     "password": project.admin_password or "admin123",
@@ -2957,8 +2963,10 @@ print("Admin user setup complete")
         return JsonResponse({
             "status": "success",
             "message": "Project started successfully.",
-            "preview_url": f"http://127.0.0.1:{port}/",
-            "admin_url": f"http://127.0.0.1:{port}/admin/",
+            "preview_url": f"http://{get_public_host()}:{port}/",
+            "admin_url": f"http://{get_public_host()}:{port}/admin/",
+            # "preview_url": f"http://127.0.0.1:{port}/",
+            # "admin_url": f"http://127.0.0.1:{port}/admin/",
             "admin_credentials": {
                 "username": "admin",
                 "password": admin_password,
@@ -4034,8 +4042,10 @@ def project_status(request, project_id):
         return JsonResponse({
             "status": "success",
             "running": True,
-            "preview_url": f"http://127.0.0.1:{live_info['port']}/",
-            "admin_url": f"http://127.0.0.1:{live_info['port']}/admin/",
+            "preview_url": f"http://{get_public_host()}:{live_info['port']}/",
+            "admin_url": f"http://{get_public_host()}:{live_info['port']}/admin/",
+            # "preview_url": f"http://127.0.0.1:{live_info['port']}/",
+            # "admin_url": f"http://127.0.0.1:{live_info['port']}/admin/",
             "port": live_info['port'],
             "admin_password": live_info.get('admin_password', ''),
         })
@@ -4088,6 +4098,13 @@ def _load_ai_rules():
 
     return "\n\n".join(combined)
 
+
+def get_public_host():
+    """Returns the host to use in preview/admin URLs shown to the user.
+    Locally this is 127.0.0.1 (browser and server are the same machine).
+    On a real server, set PUBLIC_HOST in .env to the domain or public IP
+    so generated preview links are actually reachable."""
+    return os.environ.get("PUBLIC_HOST", "127.0.0.1")
 
 
 @login_required
@@ -5302,8 +5319,10 @@ def _restart_server(export_dir, project, project_name):
             get_info_path(export_dir).write_text(json.dumps({"pid": proc.pid, "port": use_port}))
             return {
                 "status": "success",
-                "preview_url": f"http://127.0.0.1:{use_port}/",
-                "admin_url": f"http://127.0.0.1:{use_port}/admin/",
+                "preview_url": f"http://{get_public_host()}:{use_port}/",
+                "admin_url": f"http://{get_public_host()}:{use_port}/admin/",
+                # "preview_url": f"http://127.0.0.1:{use_port}/",
+                # "admin_url": f"http://127.0.0.1:{use_port}/admin/",
                 "port": use_port,
             }
         stderr_tail = proc.stderr.read()[-1000:] if proc.stderr else ""
@@ -9342,3 +9361,4 @@ def submit_topic_quiz(request, topic_id):
         })
 
     return JsonResponse(response_data)
+
