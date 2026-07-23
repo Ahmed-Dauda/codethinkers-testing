@@ -746,10 +746,9 @@ def restart_server_only(project):
 
     return {
         "status": "success",
-        "preview_url": f"http://{get_public_host()}:{PORT}/",
-        "admin_url": f"http://{get_public_host()}:{PORT}/admin/",
-        # "preview_url": f"http://127.0.0.1:{PORT}/",
-        # "admin_url": f"http://127.0.0.1:{PORT}/admin/",
+
+      "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{port}/",
+        "admin_url": f"http://127.0.0.1:{PORT}/admin/",
         "port": PORT,
     }
 
@@ -2788,10 +2787,9 @@ def rebuild_and_start_project(project):
     return {
         "status": "success",
         "message": "Project started successfully.",
-        "preview_url": f"http://{get_public_host()}:{PORT}/",
-        "admin_url": f"http://{get_public_host()}:{PORT}/admin/",
-        # "preview_url": f"http://127.0.0.1:{PORT}/",
-        # "admin_url": f"http://127.0.0.1:{PORT}/admin/",
+
+      "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{port}/",
+        "admin_url": f"http://127.0.0.1:{PORT}/admin/",
         "admin_credentials": {"username": "admin", "password": admin_password},
         "check_output": check.stdout,
         "migrate_output": migrate.stdout,
@@ -2875,10 +2873,9 @@ def run_project(request, project_id):
             return JsonResponse({
                 "status": "success",
                 "message": "Project already running.",
-                "preview_url": f"http://{get_public_host()}:{port}/",
-                "admin_url": f"http://{get_public_host()}:{port}/admin/",
-                # "preview_url": f"http://127.0.0.1:{port}/",
-                # "admin_url": f"http://127.0.0.1:{port}/admin/",
+
+              "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{port}/",
+                "admin_url": f"http://127.0.0.1:{port}/admin/",
                 "admin_credentials": {
                     "username": "admin",
                     "password": project.admin_password or "admin123",
@@ -2963,10 +2960,9 @@ print("Admin user setup complete")
         return JsonResponse({
             "status": "success",
             "message": "Project started successfully.",
-            "preview_url": f"http://{get_public_host()}:{port}/",
-            "admin_url": f"http://{get_public_host()}:{port}/admin/",
-            # "preview_url": f"http://127.0.0.1:{port}/",
-            # "admin_url": f"http://127.0.0.1:{port}/admin/",
+
+         "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{port}/",
+            "admin_url": f"http://127.0.0.1:{port}/admin/",
             "admin_credentials": {
                 "username": "admin",
                 "password": admin_password,
@@ -5135,6 +5131,28 @@ print(json.dumps(results))
 '''
 
 
+import json
+from pathlib import Path
+
+PROJECT_PORTS_FILE = Path("/var/www/codethinkers-staging/project_ports.json")
+
+def update_project_port_mapping(project):
+    """Write project subdomain → port mapping for the router."""
+    mapping = {}
+    if PROJECT_PORTS_FILE.exists():
+        try:
+            mapping = json.loads(PROJECT_PORTS_FILE.read_text())
+        except json.JSONDecodeError:
+            mapping = {}
+    
+    subdomain = project.subdomain or f"project-{project.id}"
+    mapping[subdomain] = project.assigned_port
+    
+    PROJECT_PORTS_FILE.write_text(json.dumps(mapping))
+    print(f"📝 Updated port mapping: {subdomain}.codethinkers.org → port {project.assigned_port}")
+
+
+
 def _run_smoke_test(export_dir, project_name, project_id, changes):
     """Only tests parameterless named URLs from urls.py files touched by this change,
     so it can't test detail/edit views that need a real pk. Those still get the
@@ -5317,12 +5335,14 @@ def _restart_server(export_dir, project, project_name):
             _running_servers[project.id] = proc
             get_pidfile_path(export_dir).write_text(str(proc.pid))
             get_info_path(export_dir).write_text(json.dumps({"pid": proc.pid, "port": use_port}))
+            import os
+            is_prod = os.environ.get('PRODUCTION')
+            subdomain = getattr(project, 'subdomain', None) or f"project-{project.id}"
+            
             return {
                 "status": "success",
-                "preview_url": f"http://{get_public_host()}:{use_port}/",
-                "admin_url": f"http://{get_public_host()}:{use_port}/admin/",
-                # "preview_url": f"http://127.0.0.1:{use_port}/",
-                # "admin_url": f"http://127.0.0.1:{use_port}/admin/",
+                "preview_url": f"https://{subdomain}.codethinkers.org/" if is_prod else f"http://127.0.0.1:{use_port}/",
+                "admin_url": f"https://{subdomain}.codethinkers.org/admin/" if is_prod else f"http://127.0.0.1:{use_port}/admin/",
                 "port": use_port,
             }
         stderr_tail = proc.stderr.read()[-1000:] if proc.stderr else ""
