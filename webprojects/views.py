@@ -2902,11 +2902,11 @@ def run_project(request, project_id):
 
         if live_info:
             port = live_info['port']
+            update_project_port_mapping(project)
             return JsonResponse({
                 "status": "success",
                 "message": "Project already running.",
-
-              "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{port}/",
+                "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{port}/",
                 "admin_url": f"http://127.0.0.1:{port}/admin/",
                 "admin_credentials": {
                     "username": "admin",
@@ -5174,6 +5174,7 @@ def update_project_port_mapping(project):
     """Write project subdomain → port mapping for the router."""
     import os
     if not os.environ.get('PRODUCTION'):
+        print("   Skipping — not production")
         return  # Only runs on production server
     
     mapping = {}
