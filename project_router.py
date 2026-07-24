@@ -6,6 +6,7 @@ import http.client
 from pathlib import Path
 
 MAPPING_FILE = Path("/var/www/codethinkers-staging/project_ports.json")
+REDIRECTS_FILE = Path("/var/www/codethinkers-staging/subdomain_redirects.json")
 DJANGO_SOCKET = "/var/www/codethinkers-staging/codethinkers-staging.sock"
 
 _waking_lock = threading.Lock()
@@ -24,6 +25,23 @@ class UnixSocketHTTPConnection(http.client.HTTPConnection):
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.sock.settimeout(self.timeout)
         self.sock.connect(self.socket_path)
+
+
+def load_json(path):
+    """Load JSON file, return empty dict on any error (self-healing)."""
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def check_redirect(subdomain):
+    """Check if this subdomain should redirect to another.
+    Returns the target subdomain or None."""
+    redirects = load_json(REDIRECTS_FILE)
+    return redirects.get(subdomain)
 
 
 def get_entry(host):
@@ -99,6 +117,16 @@ def try_connect(port, retries=15, delay=1):
     return None
 
 
+def send_response(client_sock, status, body, extra_headers=None):
+    """Send an HTTP response."""
+    headers = f"HTTP/1.1 {status}\r\nContent-Type: text/html\r\nContent-Length: {len(body)}\r\nConnection: close\r\n"
+    if extra_headers:
+        for k, v in extra_headers.items():
+            headers += f"{k}: {v}\r\n"
+    headers += "\r\n"
+    client_sock.send(headers.encode() + body)
+
+
 def proxy(client_sock):
     try:
         request = client_sock.recv(8192)
@@ -106,44 +134,51 @@ def proxy(client_sock):
             return
 
         host = None
+        path = "/"
         for line in request.decode(errors='ignore').split('\r\n'):
             if line.lower().startswith('host:'):
                 host = line.split(':')[1].strip()
-                break
+            parts = line.split()
+            if len(parts) >= 2 and parts[0] in ('GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS'):
+                path = parts[1]
+
         if not host:
             return
 
         subdomain, entry = get_entry(host)
+
+        # Check redirects FIRST — before trying to connect
+        redirect_target = check_redirect(subdomain)
+        if redirect_target:
+            redirect_url = f"https://{redirect_target}.codethinkers.org{path}"
+            body = f'<html><head><title>Moved</title></head><body><p>This project has moved. <a href="{redirect_url}">Click here</a>.</p></body></html>'.encode()
+            send_response(client_sock, "301 Moved Permanently", body, {"Location": redirect_url})
+            return
+
         port = entry.get("port") if entry else None
 
         backend = try_connect(port, retries=1) if port else None
-    
+
         if not backend:
             if not entry:
-                resp = b"HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\nProject not found"
-                client_sock.send(resp)
+                send_response(client_sock, "404 Not Found", b"<html><body><h1>404</h1><p>Project not found</p></body></html>")
                 return
 
             if not entry.get("project_id"):
-                resp = (
-                    b"HTTP/1.1 503 Service Unavailable\r\n"
-                    b"Content-Type: text/plain\r\n\r\n"
-                    b"This project needs to be reopened once in the editor to enable "
-                    b"auto-start. After that, this link will always work."
+                send_response(
+                    client_sock, "503 Service Unavailable",
+                    b"<html><body><h1>503</h1><p>This project needs to be reopened once in the editor to enable auto-start. After that, this link will always work.</p></body></html>"
                 )
-                client_sock.send(resp)
                 return
 
             new_port = wake_project(subdomain)
             if not new_port:
-                resp = b"HTTP/1.1 502 Bad Gateway\r\nContent-Type: text/plain\r\n\r\nCould not start project"
-                client_sock.send(resp)
+                send_response(client_sock, "502 Bad Gateway", b"<html><body><h1>502</h1><p>Could not start project</p></body></html>")
                 return
 
             backend = try_connect(new_port, retries=15, delay=1)
             if not backend:
-                resp = b"HTTP/1.1 504 Gateway Timeout\r\nContent-Type: text/plain\r\n\r\nProject is starting, please refresh in a few seconds"
-                client_sock.send(resp)
+                send_response(client_sock, "504 Gateway Timeout", b"<html><body><h1>504</h1><p>Project is starting, please refresh in a few seconds</p></body></html>")
                 return
 
         backend.send(request)
@@ -159,8 +194,7 @@ def proxy(client_sock):
 
     except Exception as e:
         try:
-            resp = b"HTTP/1.1 502 Bad Gateway\r\nContent-Type: text/plain\r\n\r\nProxy error"
-            client_sock.send(resp)
+            send_response(client_sock, "502 Bad Gateway", b"<html><body><h1>502</h1><p>Proxy error</p></body></html>")
         except Exception:
             pass
         print(f"Proxy error: {e}")
@@ -173,7 +207,7 @@ def main():
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind(('127.0.0.1', 9000))
     server.listen(50)
-    print("Router listening on port 9000")
+    print("🔀 Router listening on port 9000 (with redirect support)")
     while True:
         client, _ = server.accept()
         threading.Thread(target=proxy, args=(client,), daemon=True).start()

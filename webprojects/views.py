@@ -7,6 +7,7 @@ import glob
 import json
 import sqlite3
 import re
+from django.db.utils import IntegrityError
 import secrets
 import shutil
 import socket
@@ -2867,16 +2868,26 @@ def update_project_subdomain(request, project_id):
         data = json.loads(request.body)
         subdomain = data.get("subdomain", "").strip().lower()
         
-        # Validate: only letters, numbers, hyphens
         if subdomain and not re.match(r'^[a-z0-9-]+$', subdomain):
             return JsonResponse({"status": "error", "message": "Only letters, numbers, and hyphens allowed."})
         
-        # Check uniqueness
         if subdomain and Project.objects.filter(subdomain=subdomain).exclude(id=project_id).exists():
             return JsonResponse({"status": "error", "message": "This subdomain is already taken."})
         
+        old_subdomain = project.subdomain  # capture before overwriting
         project.subdomain = subdomain or None
-        project.save(update_fields=['subdomain'])
+        
+        try:
+            project.save(update_fields=['subdomain'])
+        except IntegrityError:
+            # Race: someone else grabbed it between our check and save
+            return JsonResponse({"status": "error", "message": "This subdomain is already taken."})
+        
+        # Remove the OLD subdomain's routing entry so it doesn't rot
+        if old_subdomain and old_subdomain != subdomain:
+            add_subdomain_redirect(old_subdomain, subdomain or f"project-{project.id}")
+        
+        update_project_port_mapping(project)  # write the NEW entry
         
         preview_url = f"https://{subdomain}.codethinkers.org/" if subdomain else f"https://project-{project.id}.codethinkers.org/"
         
@@ -2887,6 +2898,24 @@ def update_project_subdomain(request, project_id):
         })
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
+    
+
+def remove_project_port_mapping(subdomain):
+    """Remove a stale subdomain entry after rename, so the old URL
+    stops routing instead of silently rotting into a dead port."""
+    import os
+    if not os.environ.get('PRODUCTION'):
+        return
+    if not PROJECT_PORTS_FILE.exists():
+        return
+    try:
+        mapping = json.loads(PROJECT_PORTS_FILE.read_text())
+    except json.JSONDecodeError:
+        return
+    if subdomain in mapping:
+        del mapping[subdomain]
+        PROJECT_PORTS_FILE.write_text(json.dumps(mapping))
+        print(f"🗑️ Removed stale port mapping: {subdomain}.codethinkers.org")
 
 
 @require_http_methods(["POST"])
@@ -5202,9 +5231,43 @@ print("__SMOKE_TEST_RESULT__")
 print(json.dumps(results))
 '''
 
-
 import json
 from pathlib import Path
+
+SUBDOMAIN_REDIRECTS_FILE = Path("/var/www/codethinkers-staging/subdomain_redirects.json")
+
+def add_subdomain_redirect(old_subdomain, new_subdomain):
+    """Record old_subdomain -> new_subdomain so visitors to the old URL
+    get redirected instead of hitting a dead port. Flattens multi-hop
+    renames (A->B->C) so lookups are always a single hop, and clears
+    any stale redirect if a subdomain gets reclaimed by a new project."""
+    import os
+    if not os.environ.get('PRODUCTION'):
+        return
+    if not old_subdomain or old_subdomain == new_subdomain:
+        return
+
+    redirects = {}
+    if SUBDOMAIN_REDIRECTS_FILE.exists():
+        try:
+            redirects = json.loads(SUBDOMAIN_REDIRECTS_FILE.read_text())
+        except json.JSONDecodeError:
+            redirects = {}
+
+    # Flatten: anything that used to point at old_subdomain now points
+    # straight at new_subdomain, so nobody chains through multiple hops.
+    for k, v in list(redirects.items()):
+        if v == old_subdomain:
+            redirects[k] = new_subdomain
+
+    redirects[old_subdomain] = new_subdomain
+
+    # If new_subdomain was itself a redirect source before, drop stale entry
+    redirects.pop(new_subdomain, None)
+
+    SUBDOMAIN_REDIRECTS_FILE.write_text(json.dumps(redirects))
+    print(f"🔀 Redirect recorded: {old_subdomain}.codethinkers.org -> {new_subdomain}.codethinkers.org")
+
 
 PROJECT_PORTS_FILE = Path("/var/www/codethinkers-staging/project_ports.json")
 
