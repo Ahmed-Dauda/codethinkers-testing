@@ -1,8 +1,0 @@
-{% extends 'base.html' %}
-{% block content %}
-<h1>{{ object.title }}</h1>
-<p>{{ object.content }}</p>
-<a href='{% url 'blog:post_update' object.pk %}'>Edit</a>
-<a href='{% url 'blog:post_delete' object.pk %}'>Delete</a>
-<a href='{% url 'blog:post_list' %}'>Back to Posts</a>
-{% endblock %}

@@ -458,6 +458,18 @@
 <button id="run-btn" data-project-id="{{ project.id }}">Run Project</button>
 <div id="run-result"></div>
 <hr>
+<div style="margin-top: 8px;">
+    <label style="color: #888; font-size: 12px;">🌐 Subdomain:</label>
+    <div style="display: flex; gap: 6px; margin-top: 4px;">
+        <input type="text" id="projectSubdomain" placeholder="my-app-name" 
+               value="{{ project.subdomain|default:'' }}"
+               style="flex: 1; padding: 5px 8px; font-size: 12px; border: 1px solid #3c3c3c; border-radius: 4px; background: #1e1e1e; color: #ccc;">
+        <span style="color: #888; font-size: 12px; padding: 5px 0;">.codethinkers.org</span>
+        <button onclick="saveSubdomain()" style="padding: 5px 10px; background: #2563eb; color: #fff; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">Save</button>
+    </div>
+    <span id="subdomainMsg" style="font-size: 11px; color: #4ade80; display: none;"></span>
+</div>
+<hr>
 <!-- ===== EXAM SECTION ===== -->
 {% if not exam_id %}
     <span style="color: #666;" title="No exam configured for this course">🎓 No Exam Available</span>
@@ -1846,9 +1858,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // fullstack preview toggle
 
-// ============================================
-// RUN PROJECT — Click Handler
-// ============================================
+async function saveSubdomain() {
+    const input = document.getElementById('projectSubdomain');
+    const msg = document.getElementById('subdomainMsg');
+    const subdomain = input.value.trim().toLowerCase();
+    const projectId = {{ project.id }};
+    
+    msg.style.display = 'none';
+    
+    try {
+        const res = await fetch(`/webprojects/projects/${projectId}/subdomain/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({ subdomain: subdomain }),
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            msg.textContent = `✅ Saved! URL: ${data.preview_url}`;
+            msg.style.color = '#4ade80';
+            msg.style.display = 'block';
+        } else {
+            msg.textContent = `❌ ${data.message}`;
+            msg.style.color = '#ef4444';
+            msg.style.display = 'block';
+        }
+    } catch (err) {
+        msg.textContent = '❌ Failed to save';
+        msg.style.color = '#ef4444';
+        msg.style.display = 'block';
+    }
+}
+
 // ============================================
 // RUN PROJECT — Click Handler (with fallbacks)
 // ============================================

@@ -746,10 +746,9 @@ def restart_server_only(project):
 
     return {
         "status": "success",
-        "preview_url": f"http://{get_public_host()}:{PORT}/",
-        "admin_url": f"http://{get_public_host()}:{PORT}/admin/",
-        # "preview_url": f"http://127.0.0.1:{PORT}/",
-        # "admin_url": f"http://127.0.0.1:{PORT}/admin/",
+
+      "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{port}/",
+        "admin_url": f"http://127.0.0.1:{PORT}/admin/",
         "port": PORT,
     }
 
@@ -2784,14 +2783,14 @@ def rebuild_and_start_project(project):
             "step": "verify",
             "message": f"Server started but not responding on port {PORT}",
         }
-
+    
+    update_project_port_mapping(project)
     return {
         "status": "success",
         "message": "Project started successfully.",
-        "preview_url": f"http://{get_public_host()}:{PORT}/",
-        "admin_url": f"http://{get_public_host()}:{PORT}/admin/",
-        # "preview_url": f"http://127.0.0.1:{PORT}/",
-        # "admin_url": f"http://127.0.0.1:{PORT}/admin/",
+
+      "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{port}/",
+        "admin_url": f"http://127.0.0.1:{PORT}/admin/",
         "admin_credentials": {"username": "admin", "password": admin_password},
         "check_output": check.stdout,
         "migrate_output": migrate.stdout,
@@ -2858,6 +2857,37 @@ def get_existing_project_context(project):
     }
 
 
+# views.py
+@login_required
+@require_http_methods(["POST"])
+def update_project_subdomain(request, project_id):
+    project = get_object_or_404(Project, id=project_id, user=request.user)
+    
+    try:
+        data = json.loads(request.body)
+        subdomain = data.get("subdomain", "").strip().lower()
+        
+        # Validate: only letters, numbers, hyphens
+        if subdomain and not re.match(r'^[a-z0-9-]+$', subdomain):
+            return JsonResponse({"status": "error", "message": "Only letters, numbers, and hyphens allowed."})
+        
+        # Check uniqueness
+        if subdomain and Project.objects.filter(subdomain=subdomain).exclude(id=project_id).exists():
+            return JsonResponse({"status": "error", "message": "This subdomain is already taken."})
+        
+        project.subdomain = subdomain or None
+        project.save(update_fields=['subdomain'])
+        
+        preview_url = f"https://{subdomain}.codethinkers.org/" if subdomain else f"https://project-{project.id}.codethinkers.org/"
+        
+        return JsonResponse({
+            "status": "success",
+            "subdomain": subdomain,
+            "preview_url": preview_url,
+        })
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
+
 
 @login_required
 def run_project(request, project_id):
@@ -2872,13 +2902,12 @@ def run_project(request, project_id):
 
         if live_info:
             port = live_info['port']
+            update_project_port_mapping(project)
             return JsonResponse({
                 "status": "success",
                 "message": "Project already running.",
-                "preview_url": f"http://{get_public_host()}:{port}/",
-                "admin_url": f"http://{get_public_host()}:{port}/admin/",
-                # "preview_url": f"http://127.0.0.1:{port}/",
-                # "admin_url": f"http://127.0.0.1:{port}/admin/",
+                "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{port}/",
+                "admin_url": f"http://127.0.0.1:{port}/admin/",
                 "admin_credentials": {
                     "username": "admin",
                     "password": project.admin_password or "admin123",
@@ -2959,14 +2988,14 @@ print("Admin user setup complete")
                 "step": "verify",
                 "message": "Project applied successfully but no server port was returned.",
             })
-
+        
+        update_project_port_mapping(project)
         return JsonResponse({
             "status": "success",
             "message": "Project started successfully.",
-            "preview_url": f"http://{get_public_host()}:{port}/",
-            "admin_url": f"http://{get_public_host()}:{port}/admin/",
-            # "preview_url": f"http://127.0.0.1:{port}/",
-            # "admin_url": f"http://127.0.0.1:{port}/admin/",
+
+         "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{port}/",
+            "admin_url": f"http://127.0.0.1:{port}/admin/",
             "admin_credentials": {
                 "username": "admin",
                 "password": admin_password,
@@ -3811,6 +3840,7 @@ SECRET_KEY = 'django-insecure-change-this-in-production'
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://*.codethinkers.org']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -5135,6 +5165,33 @@ print(json.dumps(results))
 '''
 
 
+import json
+from pathlib import Path
+
+PROJECT_PORTS_FILE = Path("/var/www/codethinkers-staging/project_ports.json")
+
+def update_project_port_mapping(project):
+    """Write project subdomain → port mapping for the router."""
+    import os
+    if not os.environ.get('PRODUCTION'):
+        print("   Skipping — not production")
+        return  # Only runs on production server
+    
+    mapping = {}
+    if PROJECT_PORTS_FILE.exists():
+        try:
+            mapping = json.loads(PROJECT_PORTS_FILE.read_text())
+        except json.JSONDecodeError:
+            mapping = {}
+    
+    subdomain = project.subdomain or f"project-{project.id}"
+    mapping[subdomain] = project.assigned_port
+    
+    PROJECT_PORTS_FILE.write_text(json.dumps(mapping))
+    print(f"📝 Updated port mapping: {subdomain}.codethinkers.org → port {project.assigned_port}")
+
+
+
 def _run_smoke_test(export_dir, project_name, project_id, changes):
     """Only tests parameterless named URLs from urls.py files touched by this change,
     so it can't test detail/edit views that need a real pk. Those still get the
@@ -5317,12 +5374,14 @@ def _restart_server(export_dir, project, project_name):
             _running_servers[project.id] = proc
             get_pidfile_path(export_dir).write_text(str(proc.pid))
             get_info_path(export_dir).write_text(json.dumps({"pid": proc.pid, "port": use_port}))
+            import os
+            is_prod = os.environ.get('PRODUCTION')
+            subdomain = getattr(project, 'subdomain', None) or f"project-{project.id}"
+            
             return {
                 "status": "success",
-                "preview_url": f"http://{get_public_host()}:{use_port}/",
-                "admin_url": f"http://{get_public_host()}:{use_port}/admin/",
-                # "preview_url": f"http://127.0.0.1:{use_port}/",
-                # "admin_url": f"http://127.0.0.1:{use_port}/admin/",
+                "preview_url": f"https://{subdomain}.codethinkers.org/" if is_prod else f"http://127.0.0.1:{use_port}/",
+                "admin_url": f"https://{subdomain}.codethinkers.org/admin/" if is_prod else f"http://127.0.0.1:{use_port}/admin/",
                 "port": use_port,
             }
         stderr_tail = proc.stderr.read()[-1000:] if proc.stderr else ""

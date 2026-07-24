@@ -1,8 +1,0 @@
-{% extends 'base.html' %}
-{% block content %}
-<h2 class='text-2xl font-bold'>{{ object.first_name }} {{ object.last_name }}</h2>
-<p>Email: {{ object.email }}</p>
-<a href='{% url 'student_record_system_app:student_update' object.pk %}' class='bg-yellow-500 text-white p-2'>Edit</a>
-<a href='{% url 'student_record_system_app:student_delete' object.pk %}' class='bg-red-500 text-white p-2'>Delete</a>
-<a href='{% url 'student_record_system_app:student_list' %}' class='bg-gray-500 text-white p-2'>Back to List</a>
-{% endblock %}

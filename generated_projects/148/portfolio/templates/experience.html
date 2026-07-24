@@ -1,9 +1,0 @@
-{% extends 'base.html' %}
-{% block content %}
-    <h1 class='text-3xl font-bold'>Experience</h1>
-    <ul>
-        {% for exp in object_list %}
-            <li>{{ exp.job_title }} at {{ exp.company }} ({{ exp.start_date }} - {{ exp.end_date }})</li>
-        {% endfor %}
-    </ul>
-{% endblock %}
