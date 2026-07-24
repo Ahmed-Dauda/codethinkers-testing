@@ -2867,9 +2867,20 @@ def update_project_subdomain(request, project_id):
     try:
         data = json.loads(request.body)
         subdomain = data.get("subdomain", "").strip().lower()
-        
-        if subdomain and not re.match(r'^[a-z0-9-]+$', subdomain):
-            return JsonResponse({"status": "error", "message": "Only letters, numbers, and hyphens allowed."})
+
+        RESERVED_SUBDOMAINS = {
+            'admin', 'www', 'api', 'mail', 'staging', 'app', 'status',
+            'login', 'signup', 'auth', 'accounts', 'dashboard',
+            'blog', 'help', 'support', 'docs', 'dev', 'test',
+            'cdn', 'static', 'media', 'assets', 'files',
+            'ftp', 'smtp', 'pop', 'imap', 'ns1', 'ns2',
+            'git', 'ci', 'jenkins', 'docker', 'k8s',
+            'payment', 'billing', 'invoice', 'receipt',
+            'admin-panel', 'cpanel', 'webmail', 'whm',
+            'codethinkers', 'coolify',
+        }
+        if subdomain in RESERVED_SUBDOMAINS:
+            return JsonResponse({"status": "error", "message": "This subdomain is reserved and cannot be used."})
         
         if subdomain and Project.objects.filter(subdomain=subdomain).exclude(id=project_id).exists():
             return JsonResponse({"status": "error", "message": "This subdomain is already taken."})
@@ -4136,19 +4147,26 @@ def project_status(request, project_id):
     live_info = get_live_server_info(export_dir)
     
     if live_info:
+        port = live_info['port']
+        subdomain = getattr(project, 'subdomain', None) or f"project-{project.id}"
+        
+        if os.environ.get('PRODUCTION'):
+            preview_url = f"https://{subdomain}.codethinkers.org/"
+            admin_url = f"https://{subdomain}.codethinkers.org/admin/"
+        else:
+            preview_url = f"http://127.0.0.1:{port}/"
+            admin_url = f"http://127.0.0.1:{port}/admin/"
+        
         return JsonResponse({
             "status": "success",
             "running": True,
-            "preview_url": f"http://{get_public_host()}:{live_info['port']}/",
-            "admin_url": f"http://{get_public_host()}:{live_info['port']}/admin/",
-            # "preview_url": f"http://127.0.0.1:{live_info['port']}/",
-            # "admin_url": f"http://127.0.0.1:{live_info['port']}/admin/",
-            "port": live_info['port'],
+            "preview_url": preview_url,
+            "admin_url": admin_url,
+            "port": port,
             "admin_password": live_info.get('admin_password', ''),
         })
     
     return JsonResponse({"status": "success", "running": False})
-
 
 
 def _load_ai_rules():
