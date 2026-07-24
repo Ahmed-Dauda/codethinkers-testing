@@ -3523,6 +3523,18 @@ class {model_name}Form(forms.ModelForm):
                     new_files[f"{app_name}/forms.py"] = forms_content
                     print(f"🔧 Auto-created missing form: {model_name}Form (with import)")
 
+        
+            # Ensure 'from . import views' exists in urls.py
+            if 'from . import views' not in urls_content_app:
+                if 'from django.urls import path' in urls_content_app:
+                    urls_content_app = urls_content_app.replace(
+                        'from django.urls import path',
+                        'from django.urls import path\nfrom . import views'
+                    )
+                else:
+                    urls_content_app = 'from django.urls import path\nfrom . import views\n\n' + urls_content_app
+                print(f"🔧 Auto-added 'from . import views' to urls.py")
+
             # Auto-generate missing URL patterns for views that exist
             if not has_url:
                 existing_view_names = set()
@@ -3977,6 +3989,17 @@ def delete_my_project(request, project_id):
         if export_dir.exists():
             shutil.rmtree(export_dir, ignore_errors=True)
         
+    
+        # Delete persistent database
+        persistent_db_path = Path(settings.BASE_DIR) / "project_databases" / f"project_{project.id}.sqlite3"
+        for suffix in ("", "-wal", "-shm", "-journal"):
+            db_file = persistent_db_path.parent / f"{persistent_db_path.name}{suffix}"
+            if db_file.exists():
+                try:
+                    db_file.unlink()
+                except OSError:
+                    pass
+
         # Delete project (cascades to files/folders)
         project.delete()
         

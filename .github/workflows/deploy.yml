@@ -71,15 +71,15 @@ jobs:
 
             # ── Restart and verify ────────────────────────────────────────
             systemctl restart $GUNICORN
-            systemctl restart $SERVICE
+            
             sleep 10
 
-            if ! systemctl is-active --quiet $SERVICE; then
-              echo "$SERVICE down - rolling back"
+            if ! systemctl is-active --quiet $GUNICORN; then
+              echo "$GUNICORN down - rolling back"
               git reset --hard $LAST_WORKING
-              systemctl restart $SERVICE
+              systemctl restart $GUNICORN
               sleep 10
-              systemctl is-active --quiet $SERVICE || exit 1
+              systemctl is-active --quiet $GUNICORN || exit 1
             fi
 
             echo "$DEPLOY_BRANCH deploy successful"
