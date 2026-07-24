@@ -2889,6 +2889,44 @@ def update_project_subdomain(request, project_id):
         return JsonResponse({"status": "error", "message": str(e)})
 
 
+@require_http_methods(["POST"])
+def wake_project(request, subdomain):
+    """Internal endpoint the router calls when a subdomain's mapped port
+    isn't responding. Starts the project's server on demand, Replit-style.
+    Only accepts requests from localhost — this is not meant to be public."""
+    if request.META.get('REMOTE_ADDR') not in ('127.0.0.1', '::1'):
+        return JsonResponse({"status": "error", "message": "Forbidden"}, status=403)
+
+    mapping = {}
+    if PROJECT_PORTS_FILE.exists():
+        try:
+            mapping = json.loads(PROJECT_PORTS_FILE.read_text())
+        except json.JSONDecodeError:
+            pass
+
+    entry = mapping.get(subdomain)
+    if not entry or "project_id" not in entry:
+        return JsonResponse({"status": "error", "message": "Unknown subdomain"}, status=404)
+
+    try:
+        project = Project.objects.get(id=entry["project_id"])
+    except Project.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Project not found"}, status=404)
+
+    export_dir = Path(settings.BASE_DIR) / "generated_projects" / str(project.id)
+    live_info = get_live_server_info(export_dir)
+    if live_info:
+        # Already running (race: router and another request both triggered a wake)
+        return JsonResponse({"status": "success", "port": live_info["port"]})
+
+    result = rebuild_and_start_project(project)
+    if result.get("status") != "success":
+        return JsonResponse({"status": "error", "message": result.get("message", "Failed to start")}, status=500)
+
+    update_project_port_mapping(project)
+    return JsonResponse({"status": "success", "port": result["port"]})
+
+
 @login_required
 def run_project(request, project_id):
     try:
@@ -5171,7 +5209,9 @@ from pathlib import Path
 PROJECT_PORTS_FILE = Path("/var/www/codethinkers-staging/project_ports.json")
 
 def update_project_port_mapping(project):
-    """Write project subdomain → port mapping for the router."""
+    """Write project subdomain → port + project_id mapping for the router.
+    Storing project_id (not just port) lets the router trigger an on-demand
+    wake-up when nothing is listening on the port yet."""
     import os
     if not os.environ.get('PRODUCTION'):
         print("   Skipping — not production")
@@ -5185,10 +5225,13 @@ def update_project_port_mapping(project):
             mapping = {}
     
     subdomain = project.subdomain or f"project-{project.id}"
-    mapping[subdomain] = project.assigned_port
+    mapping[subdomain] = {
+        "project_id": project.id,
+        "port": project.assigned_port,
+    }
     
     PROJECT_PORTS_FILE.write_text(json.dumps(mapping))
-    print(f"📝 Updated port mapping: {subdomain}.codethinkers.org → port {project.assigned_port}")
+    print(f"📝 Updated port mapping: {subdomain}.codethinkers.org → project {project.id}, port {project.assigned_port}")
 
 
 
