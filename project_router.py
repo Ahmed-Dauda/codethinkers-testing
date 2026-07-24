@@ -27,12 +27,19 @@ class UnixSocketHTTPConnection(http.client.HTTPConnection):
 
 
 def get_entry(host):
-    """Extract subdomain and look up its mapping entry."""
+    """Extract subdomain and look up its mapping entry.
+    Tolerates the old bare-int format so a stale mapping file never
+    breaks the router — it just can't wake that specific entry until
+    the project is rebuilt through the normal flow, which refreshes
+    it to the new format automatically."""
     subdomain = host.split('.')[0]
     if MAPPING_FILE.exists():
         try:
             mapping = json.loads(MAPPING_FILE.read_text())
-            return subdomain, mapping.get(subdomain)
+            entry = mapping.get(subdomain)
+            if isinstance(entry, int):
+                entry = {"port": entry, "project_id": None}
+            return subdomain, entry
         except json.JSONDecodeError:
             pass
     return subdomain, None
@@ -110,10 +117,20 @@ def proxy(client_sock):
         port = entry.get("port") if entry else None
 
         backend = try_connect(port, retries=1) if port else None
-
+    
         if not backend:
             if not entry:
                 resp = b"HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\nProject not found"
+                client_sock.send(resp)
+                return
+
+            if not entry.get("project_id"):
+                resp = (
+                    b"HTTP/1.1 503 Service Unavailable\r\n"
+                    b"Content-Type: text/plain\r\n\r\n"
+                    b"This project needs to be reopened once in the editor to enable "
+                    b"auto-start. After that, this link will always work."
+                )
                 client_sock.send(resp)
                 return
 

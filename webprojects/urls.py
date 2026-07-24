@@ -11,6 +11,7 @@ upload_file_ajax,update_active_topic ,explain_code_view,load_project_files ,vali
 app_name = 'webprojects'
 
 urlpatterns = [
+    path("internal/wake/<str:subdomain>/", views.wake_project, name="wake_project"),
     # urls.py
 path('projects/<int:project_id>/subdomain/', update_project_subdomain, name='update_subdomain'),
     path('projects/<int:project_id>/status/', project_status, name='project_status'),
