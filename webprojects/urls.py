@@ -11,6 +11,14 @@ upload_file_ajax,update_active_topic ,explain_code_view,load_project_files ,vali
 app_name = 'webprojects'
 
 urlpatterns = [
+    path('project/<int:project_id>/delete/', views.delete_my_project, name='delete_my_project'),
+    path('platform-settings/update/', views.update_platform_settings, name='update_platform_settings'),
+    path('project/<int:project_id>/activate/', views.activate_project, name='activate_project'),
+    path('project/<int:project_id>/subscribe/', views.subscribe_project, name='subscribe_project'),
+    path('user/<int:user_id>/projects/', views.user_projects, name='user_projects'),
+    path('bulk-action/', views.bulk_project_action, name='bulk_project_action'),
+
+    path('platform-stats/', views.platform_stats, name='platform_stats'),
     path("internal/wake/<str:subdomain>/", views.wake_project, name="wake_project"),
     # urls.py
 path('projects/<int:project_id>/subdomain/', update_project_subdomain, name='update_subdomain'),

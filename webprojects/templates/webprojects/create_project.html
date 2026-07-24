@@ -1,94 +1,268 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Create Project</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Projects — Codethinkers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
-        input, button { padding: 8px; margin: 5px 0; }
-        button { cursor: pointer; }
-        ul { list-style: none; padding: 0; }
-        li { margin-bottom: 10px; }
-        a { text-decoration: none; color: #333; }
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
+        .project-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .project-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
     </style>
 </head>
-<body>
-    <h1>My Projects</h1>
+<body class="min-h-screen">
 
-    <input type="text" id="projectName" placeholder="Project name" />
-    <button onclick="createProject()">Create Project</button>
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="text-xl font-bold text-indigo-600">Codethinkers</a>
+                <nav class="flex items-center gap-6">
+                    <a href="/admin/" class="text-sm text-gray-600 hover:text-indigo-600 transition">Admin</a>
+                    <span class="text-sm font-medium text-gray-800">{{ request.user.get_full_name|default:request.user.username }}</span>
+                </nav>
+            </div>
+        </div>
+    </header>
 
-    <ul id="projectList">
-        {% for project in projects %}
-        <li>
-            {% with first_file=project.files.all|first %}
-                {% if first_file %}
-                    <a href="{% url 'webprojects:file_detail' project.id first_file.id %}">
-                        {{ project.name }} ({{ project.files.count }} files)
-                    </a>
-                {% else %}
-                    {{ project.name }} (No files)
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div>
+                <h1 class="text-3xl font-extrabold text-gray-900">📁 My Projects</h1>
+                <p class="text-gray-500 mt-1">Create and manage your applications</p>
+            </div>
+            <div class="flex gap-3">
+                <input type="text" id="projectName" placeholder="Project name" 
+                       class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                       onkeypress="if(event.key==='Enter') createProject()">
+                <button onclick="createProject()" 
+                        class="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition whitespace-nowrap">
+                    ➕ Create Project
+                </button>
+            </div>
+        </div>
+
+        <!-- Active Projects -->
+        {% if active_projects %}
+        <h2 class="text-lg font-semibold text-gray-700 mb-4">✅ Active Projects</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+            {% for project in active_projects %}
+<div class="project-card bg-white rounded-xl shadow-sm border border-gray-200 p-5 relative group">
+    <a href="{% url 'webprojects:file_detail' project.id project.files.first.id %}" class="block">
+        <div class="flex items-start justify-between">
+            <div>
+                <h3 class="font-semibold text-gray-800 text-lg">{{ project.name }}</h3>
+                <p class="text-sm text-gray-500 mt-1">{{ project.files.count }} file{{ project.files.count|pluralize }}</p>
+            </div>
+            {% if project.subdomain %}
+            <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">🌐 Live</span>
+            {% endif %}
+        </div>
+        <div class="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100">
+            <span class="text-xs text-gray-400">{{ project.created|date:"M d, Y" }}</span>
+            {% if project.subdomain %}
+            <span class="text-xs text-indigo-500 truncate">{{ project.subdomain }}.codethinkers.org</span>
+            {% endif %}
+        </div>
+    </a>
+    <!-- Delete Button -->
+    <button onclick="event.preventDefault(); event.stopPropagation(); deleteProject({{ project.id }}, '{{ project.name|escapejs }}')"
+            class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-red-50 hover:bg-red-100 rounded-lg text-red-500 hover:text-red-700"
+            title="Delete Project">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+    </button>
+</div>
+{% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Pending Projects — Risk of Deletion -->
+        {% if pending_projects %}
+        <h2 class="text-lg font-semibold text-amber-700 mb-4">🔒 Pending Payment — ⚠️ Risk of Deletion</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+            {% for project in pending_projects %}
+            <div class="bg-white rounded-xl shadow-sm border-2 border-amber-400 p-5">
+                
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <h3 class="font-semibold text-gray-800 text-lg">{{ project.name }}</h3>
+                        <p class="text-sm text-gray-500">{{ project.files.count }} file{{ project.files.count|pluralize }}</p>
+                    </div>
+                    <span class="inline-flex px-2 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-700">⏳ Pending</span>
+                </div>
+                {% if project.subdomain %}
+                <p class="text-xs text-indigo-500 mb-2">🌐 {{ project.subdomain }}.codethinkers.org</p>
                 {% endif %}
-            {% endwith %}
-        </li>
-        {% empty %}
-        <li>No projects yet.</li>
-        {% endfor %}
-    </ul>
+                <p class="text-xs text-gray-400 mb-4">Created {{ project.created|date:"M d, Y" }}</p>
 
-    <!-- ✅ Django-safe URL template -->
+                <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                    <p class="text-sm font-semibold text-red-700">⚠️ Risk of Deletion</p>
+                    <p class="text-xs text-red-600 mt-1">Unpaid projects are deleted after <strong>7 days</strong>. Pay now to keep your project and domain active.</p>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-4 text-sm border border-gray-200 mb-4">
+                    <p class="font-semibold text-gray-700 mb-3 text-center">
+                        💳 Pay to Activate — ₦{{ platform_settings.subscription_amount|floatformat:0 }}/month
+                    </p>
+                    <div class="space-y-1.5">
+                        <p class="text-gray-600"><span class="font-medium">Bank:</span> {{ platform_settings.bank_name }}</p>
+                        <p class="text-gray-600"><span class="font-medium">Account:</span> {{ platform_settings.account_number }}</p>
+                        <p class="text-gray-600"><span class="font-medium">Name:</span> {{ platform_settings.account_name }}</p>
+                        <p class="text-gray-600 mt-2 pt-2 border-t border-gray-200">
+                            <span class="font-medium text-amber-600">📝 Reference:</span>
+                            <span class="font-bold text-amber-700">{{ project.subdomain|default:project.name|slugify }}</span>
+                        </p>
+                    </div>
+                    {% if platform_settings.payment_instructions %}
+                    <p class="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-200">{{ platform_settings.payment_instructions }}</p>
+                    {% endif %}
+                </div>
+
+                <button onclick="copyAccountDetails(this, '{{ project.subdomain|default:project.name|slugify }}')"
+                        class="w-full px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition">
+                    📋 Copy Account Details
+                </button>
+                <p class="text-xs text-gray-400 text-center mt-2">
+                    After payment, message support with your <strong>reference</strong> to activate.
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Suspended Projects -->
+        {% if suspended_projects %}
+        <h2 class="text-lg font-semibold text-red-700 mb-4">🚫 Suspended</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+            {% for project in suspended_projects %}
+            <div class="bg-red-50 rounded-xl shadow-sm border border-red-200 p-5">
+                <h3 class="font-semibold text-gray-400 text-lg">{{ project.name }}</h3>
+                <p class="text-sm text-red-500 mt-1">Contact support to restore access</p>
+                <p class="text-xs text-gray-400 mt-3">{{ project.created|date:"M d, Y" }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if not active_projects and not pending_projects and not suspended_projects %}
+        <div class="text-center py-16">
+            <div class="text-6xl mb-4">🚀</div>
+            <h2 class="text-2xl font-bold text-gray-700 mb-2">No projects yet</h2>
+            <p class="text-gray-500">Create your first project to get started!</p>
+        </div>
+        {% endif %}
+
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-6 text-center text-sm text-gray-400">
+            &copy; {% now "Y" %} Codethinkers. All rights reserved.
+        </div>
+    </footer>
+
     <script>
         const FILE_DETAIL_URL_TEMPLATE = "{% url 'webprojects:file_detail' 0 0 %}";
-    </script>
+        const PLATFORM_BANK = "{{ platform_settings.bank_name }}";
+        const PLATFORM_ACCOUNT = "{{ platform_settings.account_number }}";
+        const PLATFORM_NAME = "{{ platform_settings.account_name }}";
+        const PLATFORM_AMOUNT = "₦{{ platform_settings.subscription_amount|floatformat:0 }}";
 
-    <script>
-    // --- CSRF helper ---
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== "") {
-            const cookies = document.cookie.split(";");
-            for (let cookie of cookies) {
-                cookie = cookie.trim();
-                if (cookie.substring(0, name.length + 1) === (name + "=")) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== "") {
+                for (let cookie of document.cookie.split(";")) {
+                    cookie = cookie.trim();
+                    if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie("csrftoken");
+
+        async function createProject() {
+            const name = document.getElementById("projectName").value.trim();
+            if (!name) return alert("Project name is required");
+            try {
+                const res = await fetch("{% url 'webprojects:create_project' %}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+                    body: JSON.stringify({ name })
+                });
+                const data = await res.json();
+                if (data.status === "success") {
+                    if (data.file_id) {
+                        window.location.href = FILE_DETAIL_URL_TEMPLATE
+                            .replace("/0/file/0/", `/${data.project_id}/file/${data.file_id}/`);
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    alert(data.message || "Error creating project");
+                }
+            } catch (err) {
+                alert("Error: " + err);
             }
         }
-        return cookieValue;
-    }
-    const csrftoken = getCookie("csrftoken");
 
-    // --- Create Project AJAX ---
-    function createProject() {
-        const name = document.getElementById("projectName").value.trim();
-        if (!name) return alert("Project name is required");
-
-        fetch("{% url 'webprojects:create_project' %}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrftoken
-            },
-            body: JSON.stringify({ name })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === "success") {
-                if (data.file_id) {
-                    const url = FILE_DETAIL_URL_TEMPLATE
-                        .replace("/0/file/0/", `/${data.project_id}/file/${data.file_id}/`);
-                    window.location.href = url;
-                } else {
-                    alert("Project created, but no file created.");
-                }
-            } else {
-                alert(data.message || "Error creating project");
+        async function copyAccountDetails(btn, reference) {
+            const details = `Bank: ${PLATFORM_BANK}\nAccount: ${PLATFORM_ACCOUNT}\nName: ${PLATFORM_NAME}\nAmount: ${PLATFORM_AMOUNT}\nReference: ${reference}`;
+            try {
+                await navigator.clipboard.writeText(details);
+                const origHTML = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                btn.classList.add('bg-emerald-500');
+                btn.classList.remove('bg-indigo-600');
+                setTimeout(() => {
+                    btn.innerHTML = origHTML;
+                    btn.classList.remove('bg-emerald-500');
+                    btn.classList.add('bg-indigo-600');
+                }, 2000);
+            } catch (err) {
+                const textarea = document.createElement('textarea');
+                textarea.value = details;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                const origHTML = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                setTimeout(() => { btn.innerHTML = origHTML; }, 2000);
             }
-        })
-        .catch(err => alert("Error: " + err));
+        }
+
+        async function deleteProject(projectId, projectName) {
+    if (!confirm(`Delete "${projectName}"?\n\nThis will permanently delete the project, all its files, and stop any running server. This cannot be undone.`)) return;
+    
+    // Double confirm for safety
+    if (!confirm('Are you absolutely sure? Type "yes" to confirm.')) return;
+    
+    try {
+        const res = await fetch(`/webprojects/project/${projectId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.message || 'Failed to delete project');
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
     }
+}
     </script>
+
 </body>
 </html>
-

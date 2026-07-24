@@ -1,6 +1,8 @@
 import datetime
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import JsonResponse
+from functools import wraps
+from users.models import NewUser
 from .models import Project, File, StudentProgress, StudentXP
 import json
 import glob
@@ -20,7 +22,7 @@ from pathlib import Path
 from django.conf import settings
 from django.db import transaction
 from django.http import JsonResponse
-
+from .models import PlatformSettings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -235,7 +237,8 @@ def create_project(request):
                 user=request.user,
                 name=name,
                 course=course,
-                topic=None
+                topic=None,
+                prompt=None  # Will be set during AI build
             )
 
             folder = Folder.objects.create(
@@ -269,13 +272,87 @@ def create_project(request):
             })
 
     # ---------------- GET REQUEST ----------------
-    user_projects = Project.objects.filter(
+    active_projects = Project.objects.filter(
         user=request.user
+    ).exclude(
+        status__in=['pending', 'suspended']
+    ).select_related('course', 'topic').order_by('-created')
+    
+    pending_projects = Project.objects.filter(
+        user=request.user,
+        status='pending'
+    ).select_related('course', 'topic').order_by('-created')
+    
+    suspended_projects = Project.objects.filter(
+        user=request.user,
+        status='suspended'
     ).select_related('course', 'topic').order_by('-created')
 
     return render(request, 'webprojects/create_project.html', {
-        'projects': user_projects
+        'projects': user_projects,
+        'active_projects': active_projects,
+        'pending_projects': pending_projects,
+        'suspended_projects': suspended_projects,
     })    
+
+
+@login_required
+@require_http_methods(["POST"])
+def subscribe_project(request, project_id):
+    """Activate a pending project after payment."""
+    project = get_object_or_404(Project, id=project_id, user=request.user, status='pending')
+    
+    # Here you would integrate with Paystack/Flutterwave
+    # For now, just activate it (replace with real payment logic)
+    
+    # After successful payment:
+    project.status = 'active'
+    project.save(update_fields=['status'])
+    
+    return JsonResponse({
+        "status": "success",
+        "message": "Project activated! You can now access it.",
+        "redirect_url": f"/webprojects/{project.id}/"
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def activate_project(request, project_id):
+    """Activate a single project after payment verification."""
+    project = get_object_or_404(Project, id=project_id)
+    project.status = 'active'
+    project.save(update_fields=['status'])
+    
+    return JsonResponse({
+        "status": "success",
+        "message": f"Project '{project.name}' activated successfully."
+    })
+
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_platform_settings(request):
+    """Update platform payment settings."""
+    settings = PlatformSettings.get_settings()
+    
+    try:
+        data = json.loads(request.body)
+        settings.subscription_amount = data.get('subscription_amount', settings.subscription_amount)
+        settings.bank_name = data.get('bank_name', settings.bank_name)
+        settings.account_number = data.get('account_number', settings.account_number)
+        settings.account_name = data.get('account_name', settings.account_name)
+        settings.payment_instructions = data.get('payment_instructions', settings.payment_instructions)
+        settings.save()
+        
+        return JsonResponse({
+            "status": "success",
+            "message": "Payment settings updated successfully."
+        })
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
+    
 
 # editor/views.py
 # views.py
@@ -2966,8 +3043,22 @@ def wake_project(request, subdomain):
     update_project_port_mapping(project)
     return JsonResponse({"status": "success", "port": result["port"]})
 
+# Add this as a decorator or check in your views
+def check_project_access(view_func):
+    """Decorator that blocks access to pending/suspended projects."""
+    @wraps(view_func)
+    def wrapper(request, project_id, *args, **kwargs):
+        project = get_object_or_404(Project, id=project_id, user=request.user)
+        if project.status in ('pending', 'suspended'):
+            return render(request, 'webprojects/project_blocked.html', {
+                'project': project,
+            }, status=403)
+        return view_func(request, project_id, *args, **kwargs)
+    return wrapper
+
 
 @login_required
+@check_project_access
 def run_project(request, project_id):
     try:
         project = get_object_or_404(Project, id=project_id, user=request.user)
@@ -3857,7 +3948,45 @@ def build_subprocess_env(export_dir, project_name, project_id=None):
     
     return env
 
-
+@login_required
+@require_http_methods(["POST"])
+def delete_my_project(request, project_id):
+    """Allow a user to delete their own project."""
+    project = get_object_or_404(Project, id=project_id, user=request.user)
+    
+    try:
+        # Kill server if running
+        export_dir = Path(settings.BASE_DIR) / "generated_projects" / str(project.id)
+        kill_previous_server(export_dir, project.id)
+        
+        # Remove port mapping
+        subdomain = project.subdomain or f"project-{project.id}"
+        remove_project_port_mapping(subdomain)
+        
+        # Clean up redirects
+        if SUBDOMAIN_REDIRECTS_FILE.exists():
+            try:
+                redirects = json.loads(SUBDOMAIN_REDIRECTS_FILE.read_text())
+                redirects.pop(subdomain, None)
+                redirects = {k: v for k, v in redirects.items() if v != subdomain}
+                SUBDOMAIN_REDIRECTS_FILE.write_text(json.dumps(redirects))
+            except json.JSONDecodeError:
+                pass
+        
+        # Clean up generated files
+        if export_dir.exists():
+            shutil.rmtree(export_dir, ignore_errors=True)
+        
+        # Delete project (cascades to files/folders)
+        project.delete()
+        
+        return JsonResponse({
+            "status": "success",
+            "message": f"Project '{project.name}' deleted successfully."
+        })
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
+    
 
 def build_manage_py(project_name):
     return f'''#!/usr/bin/env python
@@ -4139,6 +4268,7 @@ def project_state(request, project_id):
 
 
 @login_required
+@check_project_access  
 def project_status(request, project_id):
     """Check if server is running WITHOUT triggering a rebuild"""
     project = get_object_or_404(Project, id=project_id, user=request.user)
@@ -4167,6 +4297,114 @@ def project_status(request, project_id):
         })
     
     return JsonResponse({"status": "success", "running": False})
+
+
+@login_required
+def platform_stats(request):
+    """Admin dashboard showing platform usage statistics."""
+    from django.db.models import Count, Q
+    from django.contrib.auth import get_user_model
+    
+    User = get_user_model()
+    
+    stats = {
+        "total_users": User.objects.count(),
+        "total_projects": Project.objects.count(),
+        "projects_with_subdomain": Project.objects.filter(subdomain__isnull=False).count(),
+        "unique_prompts": Project.objects.exclude(prompt__isnull=True).exclude(prompt="").count(),
+    }
+    
+    # Top users by project count
+    top_users = NewUser.objects.annotate(
+        project_count=Count('project')
+    ).order_by('-project_count')[:20]
+    
+    # Recent projects
+    recent_projects = Project.objects.select_related('user').order_by('-created')[:50]
+    
+    return render(request, 'webprojects/platform_stats.html', {
+        'stats': stats,
+        'top_users': top_users,
+        'recent_projects': recent_projects,
+    })
+
+
+@login_required
+def user_projects(request, user_id):
+    """Show all projects for a specific user."""
+    target_user = get_object_or_404(NewUser, id=user_id)
+    projects = Project.objects.filter(user=target_user).order_by('-created')
+    
+    return render(request, 'webprojects/user_projects.html', {
+        'target_user': target_user,
+        'projects': projects,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def bulk_project_action(request):
+    """Bulk action: mark as pending or delete projects."""
+    data = json.loads(request.body)
+    action = data.get('action')
+    project_ids = data.get('project_ids', [])
+    
+    if not project_ids:
+        return JsonResponse({"status": "error", "message": "No projects selected."})
+    
+    projects = Project.objects.filter(id__in=project_ids)
+    
+    if action == 'pending':
+        projects.update(status='pending')
+        # Kill running servers for pending projects
+        for p in projects:
+            export_dir = Path(settings.BASE_DIR) / "generated_projects" / str(p.id)
+            kill_previous_server(export_dir, p.id)
+            # Remove from port mapping so subdomain stops working
+            subdomain = p.subdomain or f"project-{p.id}"
+            remove_project_port_mapping(subdomain)
+            # Also remove redirect entries pointing to this subdomain
+            _clean_subdomain_redirects(subdomain)
+        return JsonResponse({"status": "success", "message": f"{len(project_ids)} projects marked as pending. Servers stopped and subdomains disabled."})
+    
+    elif action == 'activate':
+        projects.update(status='active')
+        return JsonResponse({"status": "success", "message": f"{len(project_ids)} projects activated."})
+    
+    elif action == 'delete':
+        count = projects.count()
+        for p in projects:
+            export_dir = Path(settings.BASE_DIR) / "generated_projects" / str(p.id)
+            kill_previous_server(export_dir, p.id)
+            # Remove port mapping
+            subdomain = p.subdomain or f"project-{p.id}"
+            remove_project_port_mapping(subdomain)
+            _clean_subdomain_redirects(subdomain)
+            # Clean up generated files
+            if export_dir.exists():
+                shutil.rmtree(export_dir, ignore_errors=True)
+        projects.delete()
+        return JsonResponse({"status": "success", "message": f"{count} projects deleted."})
+    
+    return JsonResponse({"status": "error", "message": "Invalid action."})
+
+
+def _clean_subdomain_redirects(subdomain):
+    """Remove any redirect entries pointing to or from this subdomain."""
+    if not SUBDOMAIN_REDIRECTS_FILE.exists():
+        return
+    try:
+        redirects = json.loads(SUBDOMAIN_REDIRECTS_FILE.read_text())
+    except json.JSONDecodeError:
+        return
+    
+    # Remove entries where this subdomain is the source
+    redirects.pop(subdomain, None)
+    # Remove entries where this subdomain is the target
+    redirects = {k: v for k, v in redirects.items() if v != subdomain}
+    
+    SUBDOMAIN_REDIRECTS_FILE.write_text(json.dumps(redirects))
+
 
 
 def _load_ai_rules():
@@ -4223,6 +4461,7 @@ def get_public_host():
 
 
 @login_required
+@check_project_access
 @require_http_methods(["POST"])
 def ai_build_project(request, project_id):
     """
@@ -4245,6 +4484,11 @@ def ai_build_project(request, project_id):
 
     if client is None:
         return JsonResponse({"status": "error", "message": "🔑 OpenAI API is not configured."}, status=500)
+
+    # ── Save the prompt for platform statistics ──
+    if prompt and not apply_now:
+        project.prompt = prompt
+        project.save(update_fields=['prompt'])
 
     # ─────────────────────────────────────────────────────────────
     # DETECT: Is this a new project or an existing one?
@@ -4275,9 +4519,10 @@ def ai_build_project(request, project_id):
         return _incremental_build(project, prompt, existing_files)
 
     # ─────────────────────────────────────────────────────────────
-    # PATH C: FULL SCAFFOLD (new/fresh project) - Original logic
+    # PATH C: FULL SCAFFOLD (new/fresh project)
     # ─────────────────────────────────────────────────────────────
     return _scaffold_build(project, prompt)
+
 
 
 # ═════════════════════════════════════════════════════════════════
@@ -6547,6 +6792,7 @@ class HomeView(ListView):
 
 
 @login_required
+@check_project_access
 @require_http_methods(["GET", "POST"])
 def file_detail(request, project_id, file_id):
     # ================= PROJECT & FILE =================
@@ -8232,7 +8478,8 @@ def start_course(request, course_id):
     # Create new project for this course
     project = Project.objects.create(
         user=request.user,
-        name=course.title
+        name=course.title,
+        prompt=None
     )
     
     # Create a default Python file

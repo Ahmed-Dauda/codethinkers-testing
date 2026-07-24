@@ -40,6 +40,13 @@ class Project(models.Model):
     assigned_port = models.IntegerField(null=True, blank=True)
     admin_password = models.CharField(max_length=64, blank=True, null=True)
     subdomain = models.CharField(max_length=100, blank=True, null=True, unique=True)
+    prompt = models.TextField(blank=True, null=True)  # Store the AI prompt used
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('pending', 'Pending Payment'),
+        ('suspended', 'Suspended'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
 
 
     def get_absolute_url(self):
@@ -48,6 +55,30 @@ class Project(models.Model):
     def __str__(self):
         return f"{self.name} (ID: {self.id})"
 
+
+# models.py
+class PlatformSettings(models.Model):
+    """Singleton model for platform-wide settings."""
+    subscription_amount = models.DecimalField(max_digits=10, decimal_places=2, default=15000.00)
+    subscription_currency = models.CharField(max_length=3, default='NGN')
+    bank_name = models.CharField(max_length=100, default='GTBank')
+    account_number = models.CharField(max_length=20, default='0123456789')
+    account_name = models.CharField(max_length=200, default='Codethinkers Academy')
+    payment_instructions = models.TextField(blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'Platform Settings'
+
+    def __str__(self):
+        return 'Platform Settings'
+
+    @classmethod
+    def get_settings(cls):
+        """Get or create the singleton settings object."""
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+    
 
 # ---------------- Folder ----------------
 class Folder(models.Model):
