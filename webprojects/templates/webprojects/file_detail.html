@@ -860,7 +860,7 @@ function getCsrfToken() {
         .find(row => row.startsWith('csrftoken='));
     
     if (cookieValue) {
-        return cookieValue.split('=')[1];
+        return cookieValue.substring('csrftoken='.length);
     }
     
     // Fallback to meta tag or input
@@ -1469,7 +1469,7 @@ function runCode() {
     }
   }
   output.innerHTML = `⏳ Running... <span class="spinner"></span>`; tablePreview.innerHTML = ""; plotPreview.innerHTML = ""; scorePanel.style.display = "none";
-  fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" }, body: JSON.stringify({ content: code, run_plot: true, run_table: true, topic_id: activeTopicId, user_inputs: userInputs }) })
+  fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() }, body: JSON.stringify({ content: code, run_plot: true, run_table: true, topic_id: activeTopicId, user_inputs: userInputs }) })
   .then(r => r.json())
   .then(data => {
     if (data.status === "error") { output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(data.message)}</span>`; }
@@ -1485,13 +1485,14 @@ function runCode() {
   .catch(err => { output.innerHTML = `<span style="color:red;">❌ ${escapeHTML(err.message)}</span>`; });
 }
 
+
 async function scoreOutput(studentOutput, topicId) {
     const scorePanel = document.getElementById("scorePanel"), scoreDisplay = document.getElementById("scoreDisplay"), scoreFeedback = document.getElementById("scoreFeedback"), scoreBarFill = document.getElementById("scoreBarFill");
     scorePanel.style.display = "block"; scoreDisplay.textContent = "🤖 AI is scoring..."; scoreFeedback.textContent = ""; scoreBarFill.style.width = "0%";
     try {
-        const res = await fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" }, body: JSON.stringify({ action: "score_output", student_output: studentOutput, topic_id: topicId }) });
+        const res = await fetch("{% url 'webprojects:file_detail' file.project.id file.id %}", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() }, body: JSON.stringify({ action: "score_output", student_output: studentOutput, topic_id: topicId }) });
         const data = await res.json();
-        if (data.status === "success" && data.preview_url) {
+        if (data.status === "success" && data.result) {
             const { score, max_score, feedback, correct } = data.result;
             const pct = (score / max_score) * 100;
             const color = correct ? "#22c55e" : "#ef4444";
