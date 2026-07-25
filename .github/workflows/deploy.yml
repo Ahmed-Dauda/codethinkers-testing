@@ -61,7 +61,7 @@ jobs:
             # ── Database backup ───────────────────────────────────────────
             mkdir -p $BACKUP_DIR
             BACKUP_FILE=$BACKUP_DIR/backup_$(date +%Y%m%d_%H%M%S).dump
-            sudo -u postgres /usr/lib/postgresql/17/bin/pg_dump -Fc $DB_NAME > $BACKUP_FILE
+            sudo -u postgres /usr/lib/postgresql/16/bin/pg_dump -h localhost -p 5433 -Fc $DB_NAME > $BACKUP_FILE
             echo "Backup saved: $BACKUP_FILE"
             ls -t $BACKUP_DIR/*.dump | tail -n +8 | xargs rm -f 2>/dev/null
 
@@ -110,6 +110,7 @@ jobs:
 
       - name: Send failure email
         if: failure()
+        continue-on-error: true
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
