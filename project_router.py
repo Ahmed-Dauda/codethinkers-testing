@@ -135,9 +135,14 @@ def proxy(client_sock):
 
         host = None
         path = "/"
+        content_length = 0
+        header_end = request.find(b'\r\n\r\n')
+
         for line in request.decode(errors='ignore').split('\r\n'):
             if line.lower().startswith('host:'):
                 host = line.split(':')[1].strip()
+            if line.lower().startswith('content-length:'):
+                content_length = int(line.split(':')[1].strip())
             parts = line.split()
             if len(parts) >= 2 and parts[0] in ('GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS'):
                 path = parts[1]
@@ -145,9 +150,19 @@ def proxy(client_sock):
         if not host:
             return
 
+        if header_end != -1 and content_length > 0:
+            body_already_read = len(request) - (header_end + 4)
+            remaining = content_length - body_already_read
+            client_sock.settimeout(30)
+            while remaining > 0:
+                chunk = client_sock.recv(min(65536, remaining))
+                if not chunk:
+                    break
+                request += chunk
+                remaining -= len(chunk)
+
         subdomain, entry = get_entry(host)
 
-        # Check redirects FIRST — before trying to connect
         redirect_target = check_redirect(subdomain)
         if redirect_target:
             redirect_url = f"https://{redirect_target}.codethinkers.org{path}"

@@ -5769,7 +5769,13 @@ def _restart_server(export_dir, project, project_name):
             import os
             is_prod = os.environ.get('PRODUCTION')
             subdomain = getattr(project, 'subdomain', None) or f"project-{project.id}"
-            
+
+            # Without this, the router keeps routing to whatever port was
+            # live BEFORE this restart — since that process is now dead,
+            # every request 502s with "Could not start project" until
+            # someone manually clicks Run (which does call this).
+            update_project_port_mapping(project)
+
             return {
                 "status": "success",
                 "preview_url": f"https://{subdomain}.codethinkers.org/" if is_prod else f"http://127.0.0.1:{use_port}/",
