@@ -11,9 +11,11 @@ celery -A school worker --loglevel=info
 ssh root@204.168.237.20
 MyServer2026!Coolify
 cd /var/www/codethinkers
-source env/bin/activat
+source env/bin/activate
 
 
 # staging stage for codethinkers academy
+ssh root@204.168.237.20
+MyServer2026!Coolify
 cd /var/www/codethinkers-staging
 source env/bin/activate

@@ -86,30 +86,32 @@ jobs:
         env:
           DEPLOY_BRANCH: ${{ github.ref_name }}
 
-      - name: Send success email
-        if: success()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.EMAIL_USER }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "✅ Codethinkers ${{ github.ref_name }} Deploy Successful"
-          to: codethinkersa@gmail.com
-          from: ${{ secrets.EMAIL_USER }}
-          body: |
-            Codethinkers ${{ github.ref_name }} deployed successfully!
+      # - name: Send success email
+      #   if: success()
+      #   continue-on-error: true
+      #   uses: dawidd6/action-send-mail@v3
+      #   with:
+      #     server_address: smtp.gmail.com
+      #     server_port: 587
+      #     username: ${{ secrets.EMAIL_USER }}
+      #     password: ${{ secrets.EMAIL_PASSWORD }}
+      #     subject: "✅ Codethinkers ${{ github.ref_name }} Deploy Successful"
+      #     to: codethinkersa@gmail.com
+      #     from: ${{ secrets.EMAIL_USER }}
+      #     body: |
+      #       Codethinkers ${{ github.ref_name }} deployed successfully!
 
-            Commit: ${{ github.sha }}
-            Time: ${{ github.event.head_commit.timestamp }}
-            Message: ${{ github.event.head_commit.message }}
+      #       Commit: ${{ github.sha }}
+      #       Time: ${{ github.event.head_commit.timestamp }}
+      #       Message: ${{ github.event.head_commit.message }}
 
-            Services Status:
-            ✅ Web app: Running
-            ✅ Redis: Running
+      #       Services Status:
+      #       ✅ Web app: Running
+      #       ✅ Redis: Running
 
       - name: Send failure email
         if: failure()
+        continue-on-error: true
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -127,3 +129,5 @@ jobs:
             Message: ${{ github.event.head_commit.message }}
 
             Check logs: https://github.com/Ahmed-Dauda/codethinkers-testing/actions
+
+            

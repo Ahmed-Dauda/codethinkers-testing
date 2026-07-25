@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Statistics — Codethinkers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
+        .stat-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+        .prompt-cell { max-width: 400px; }
+        .prompt-text { cursor: pointer; }
+        .prompt-text:hover { color: #4f46e5; }
+        .prompt-full { display: none; }
+        .prompt-full.show { display: block; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="text-xl font-bold text-indigo-600">Codethinkers</a>
+                <nav class="flex items-center gap-6">
+                    <a href="/admin/" class="text-sm text-gray-600 hover:text-indigo-600 transition">Admin</a>
+                    <a href="/webprojects/" class="text-sm text-gray-600 hover:text-indigo-600 transition">Projects</a>
+                    <span class="text-sm font-medium text-gray-800">{{ request.user.get_full_name|default:request.user.username }}</span>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Page Title -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900">📊 Platform Statistics</h1>
+            <p class="text-gray-500 mt-1">Overview of user activity and project creation across the platform.</p>
+        </div>
+<!-- Payment Settings -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-10" id="paymentSettings">
+    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+        <div>
+            <h2 class="text-lg font-semibold text-gray-800">💳 Payment Settings</h2>
+            <p class="text-sm text-gray-500">Update bank details and subscription amount</p>
+        </div>
+        <button onclick="savePaymentSettings()" 
+                class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition">
+            💾 Save Settings
+        </button>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Amount (₦)</label>
+                <input type="number" id="subAmount" value="{{ platform_settings.subscription_amount|floatformat:0 }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
+                <input type="text" id="subBank" value="{{ platform_settings.bank_name }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Account Number</label>
+                <input type="text" id="subAccount" value="{{ platform_settings.account_number }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
+                <input type="text" id="subName" value="{{ platform_settings.account_name }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+        </div>
+        <div class="mt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Instructions (shown to users)</label>
+            <textarea id="subInstructions" rows="2"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">{{ platform_settings.payment_instructions|default:'' }}</textarea>
+        </div>
+        <p id="settingsMsg" class="text-sm mt-2 hidden"></p>
+    </div>
+</div>
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div class="stat-card bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Users</p>
+                        <p class="text-4xl font-bold text-indigo-600 mt-2">{{ stats.total_users }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-2xl">👥</div>
+                </div>
+            </div>
+            <div class="stat-card bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Projects</p>
+                        <p class="text-4xl font-bold text-emerald-600 mt-2">{{ stats.total_projects }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-2xl">📁</div>
+                </div>
+            </div>
+            <div class="stat-card bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Custom Subdomains</p>
+                        <p class="text-4xl font-bold text-amber-600 mt-2">{{ stats.projects_with_subdomain }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-2xl">🌐</div>
+                </div>
+            </div>
+            <div class="stat-card bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">AI Builds</p>
+                        <p class="text-4xl font-bold text-violet-600 mt-2">{{ stats.unique_prompts }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-violet-100 rounded-full flex items-center justify-center text-2xl">🤖</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Creators -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-10">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                <h2 class="text-lg font-semibold text-gray-800">🏆 Top Creators</h2>
+                <p class="text-sm text-gray-500">Users with the most projects created</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-100">
+                    <thead>
+                        <tr class="bg-gray-50 text-left">
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Projects</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for user in top_users %}
+                        <tr class="hover:bg-indigo-50/30 transition-colors">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-400">{{ forloop.counter }}</td>
+                            <td class="px-6 py-4">
+    <a href="{% url 'webprojects:user_projects' user.id %}" 
+       class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+        <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-sm font-bold text-indigo-600">
+            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+        </div>
+        <span class="text-sm font-medium text-indigo-600 hover:text-indigo-800">{{ user.get_full_name|default:user.username }}</span>
+    </a>
+</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">{{ user.email }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">{{ user.phone_number|default:"—" }}</td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
+                                    {{ user.project_count }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="px-6 py-12 text-center text-gray-400">No projects created yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Projects -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                <h2 class="text-lg font-semibold text-gray-800">🕐 Recent Projects</h2>
+                <p class="text-sm text-gray-500">Latest projects — click a prompt to copy it</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-100">
+                    <thead>
+                        <tr class="bg-gray-50 text-left">
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Project</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Owner</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Subdomain</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">AI Prompt</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Created</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for p in recent_projects %}
+                        <tr class="hover:bg-indigo-50/30 transition-colors">
+                            <td class="px-6 py-4">
+                                <a href="/webprojects/{{ p.id }}/" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">{{ p.name }}</a>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ p.user.email }}</td>
+                            <td class="px-6 py-4">
+                                {% if p.subdomain %}
+                                <a href="https://{{ p.subdomain }}.codethinkers.org" target="_blank" 
+                                   class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800">
+                                    🌐 {{ p.subdomain }}
+                                </a>
+                                {% else %}
+                                <span class="text-sm text-gray-400">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 prompt-cell">
+                                {% if p.prompt %}
+                                <div class="relative group">
+                                    <button onclick="copyPrompt(this, '{{ p.prompt|escapejs }}')" 
+                                            class="text-sm text-gray-600 hover:text-indigo-600 text-left transition-colors"
+                                            title="Click to copy full prompt">
+                                        {{ p.prompt|truncatechars:80 }}
+                                    </button>
+                                    <span class="copy-msg hidden text-xs text-emerald-500 ml-2">✅ Copied!</span>
+                                </div>
+                                {% else %}
+                                <span class="text-sm text-gray-400">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-400 text-right whitespace-nowrap">
+                                {{ p.created|date:"M d, Y" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="px-6 py-12 text-center text-gray-400">No projects created yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-6 text-center text-sm text-gray-400">
+            &copy; {% now "Y" %} Codethinkers. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+    function copyPrompt(btn, text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const msg = btn.parentElement.querySelector('.copy-msg');
+            msg.classList.remove('hidden');
+            btn.textContent = text;  // Show full prompt
+            setTimeout(() => {
+                msg.classList.add('hidden');
+                btn.textContent = text.length > 80 ? text.substring(0, 80) + '...' : text;
+            }, 2000);
+        });
+    }
+
+    async function savePaymentSettings() {
+    const msg = document.getElementById('settingsMsg');
+    const data = {
+        subscription_amount: document.getElementById('subAmount').value,
+        bank_name: document.getElementById('subBank').value,
+        account_number: document.getElementById('subAccount').value,
+        account_name: document.getElementById('subName').value,
+        payment_instructions: document.getElementById('subInstructions').value,
+    };
+    
+    try {
+        const res = await fetch("{% url 'webprojects:update_platform_settings' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify(data),
+        });
+        const result = await res.json();
+        
+        msg.classList.remove('hidden');
+        if (result.status === 'success') {
+            msg.className = 'text-sm mt-2 text-emerald-600';
+            msg.textContent = '✅ ' + result.message;
+        } else {
+            msg.className = 'text-sm mt-2 text-red-600';
+            msg.textContent = '❌ ' + result.message;
+        }
+        setTimeout(() => msg.classList.add('hidden'), 3000);
+    } catch (err) {
+        msg.classList.remove('hidden');
+        msg.className = 'text-sm mt-2 text-red-600';
+        msg.textContent = '❌ Failed to save';
+    }
+}
+    </script>
+
+</body>
+</html>

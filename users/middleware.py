@@ -15,7 +15,6 @@ User = get_user_model()  # This gets your NewUser model
 
 
 class VisitTrackingMiddleware(MiddlewareMixin):
-    # ... (keep all your existing code, but update the should_track method)
     
     def should_track(self, request):
         """Determine if this request should be tracked"""
@@ -30,7 +29,7 @@ class VisitTrackingMiddleware(MiddlewareMixin):
             r'\.ico$',
             r'^/webprojects/file-autosave/',
             r'^/webprojects/.*/chat/',
-            r'^/webprojects/.*/load-files/',  # ✅ Also skip load-files
+            r'^/webprojects/.*/load-files/',
         ]
         
         for pattern in exclude_patterns:
@@ -39,7 +38,59 @@ class VisitTrackingMiddleware(MiddlewareMixin):
         
         return True
     
-    # ... rest of your methods (get_client_ip, get_device_type, etc.)
+    def get_client_ip(self, request):
+        """Extract client IP from request"""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR', '')
+        return ip
+    
+    def get_device_type(self, user_agent):
+        """Detect device type from user agent"""
+        if not user_agent:
+            return 'unknown'
+        ua = user_agent.lower()
+        if 'mobile' in ua or 'android' in ua or 'iphone' in ua:
+            return 'mobile'
+        elif 'tablet' in ua or 'ipad' in ua:
+            return 'tablet'
+        return 'desktop'
+    
+    def get_browser(self, user_agent):
+        """Detect browser from user agent"""
+        if not user_agent:
+            return 'unknown'
+        ua = user_agent.lower()
+        if 'firefox' in ua:
+            return 'Firefox'
+        elif 'chrome' in ua and 'edg' not in ua:
+            return 'Chrome'
+        elif 'edg' in ua:
+            return 'Edge'
+        elif 'safari' in ua and 'chrome' not in ua:
+            return 'Safari'
+        elif 'opera' in ua:
+            return 'Opera'
+        return 'Other'
+    
+    def get_os(self, user_agent):
+        """Detect operating system from user agent"""
+        if not user_agent:
+            return 'unknown'
+        ua = user_agent.lower()
+        if 'windows' in ua:
+            return 'Windows'
+        elif 'mac' in ua:
+            return 'MacOS'
+        elif 'linux' in ua and 'android' not in ua:
+            return 'Linux'
+        elif 'android' in ua:
+            return 'Android'
+        elif 'iphone' in ua or 'ipad' in ua:
+            return 'iOS'
+        return 'Other'
     
     def process_request(self, request):
         """Track visit on each request - with error handling"""
@@ -47,7 +98,6 @@ class VisitTrackingMiddleware(MiddlewareMixin):
         if not self.should_track(request):
             return None
         
-        # ✅ Only track authenticated users to reduce load
         if not request.user.is_authenticated:
             return None
         
@@ -65,7 +115,6 @@ class VisitTrackingMiddleware(MiddlewareMixin):
             browser = self.get_browser(user_agent)
             os = self.get_os(user_agent)
             
-            # Get or create visit
             visit = None
             try:
                 visit = UserVisit.objects.filter(
@@ -120,55 +169,23 @@ class VisitTrackingMiddleware(MiddlewareMixin):
             logger.error(f"VisitTrackingMiddleware error: {e}")
         
         return None
-
-
-class BotSignupProtectionMiddleware(MiddlewareMixin):
-    def __call__(self, request):
-        if request.path == '/accounts/signup/' and request.method == 'GET':
-            request.session['form_created_at'] = timezone.now().isoformat()
-        return super().__call__(request)
-
+    
 
 class UpdateLastActivityMiddleware:
-    """
-    Middleware to update user last_activity - with rate limiting
-    """
-    
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        # ✅ Only update if user is authenticated
         if request.user.is_authenticated:
-            # Skip for certain paths
-            path = request.path
-            skip_paths = [
-                r'^/static/',
-                r'^/media/',
-                r'^/admin/',
-                r'^/webprojects/file-autosave/',
-                r'^/webprojects/.*/chat/',
-                r'^/webprojects/.*/load-files/',  # ✅ Skip load-files
-                r'\.json$',
-                r'\.xml$',
-            ]
-            
-            should_skip = False
-            for pattern in skip_paths:
-                if re.match(pattern, path):
-                    should_skip = True
-                    break
-            
+            skip_paths = [r'^/static/', r'^/media/', r'^/admin/', r'^/webprojects/file-autosave/', r'^/webprojects/.*/chat/', r'^/webprojects/.*/load-files/', r'\.json$', r'\.xml$']
+            should_skip = any(re.match(p, request.path) for p in skip_paths)
             if not should_skip:
                 try:
+                    from django.contrib.auth import get_user_model
+                    User = get_user_model()
                     now = timezone.now()
-                    # ✅ Use the User model (which is NewUser)
-                    User.objects.filter(id=request.user.id).update(
-                        last_activity=now
-                    )
-                    # Update the user object in memory
+                    User.objects.filter(id=request.user.id).update(last_activity=now)
                     request.user.last_activity = now
                 except Exception as e:
                     logger.warning(f"LastActivity update failed: {e}")
-        
         return self.get_response(request)

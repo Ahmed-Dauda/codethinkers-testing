@@ -1,16 +1,37 @@
 from django.urls import path
-from certificate_stats import views
-from webprojects.views import (ai_python_completion,ai_suggest_code, course_leaderboard, file_autosave, create_file, create_folder, 
-create_project,generate_topic_quiz, start_course,submit_topic_quiz ,
+from . import views
+from webprojects.views import (ai_build_project, ai_python_completion,ai_suggest_code, course_leaderboard, file_autosave, create_file, create_folder, 
+create_project,generate_topic_quiz, project_state, project_status, run_project, start_course,submit_topic_quiz ,
 file_delete, file_preview, get_code_examples, get_contextual_hint, get_course_exam, get_file_content, get_student_courses, get_student_progress, get_xp_stats, mark_topic_complete, project_detail,
 file_detail, project_files_json, public_folder_view, recommend_next_course, 
-run_python_code, set_current_topic, share_preview_view, file_chat, topic_info, update_leaderboard,
+run_python_code, set_current_topic, share_preview_view, file_chat, topic_info, update_leaderboard, update_project_subdomain,
 upload_file_ajax,update_active_topic ,explain_code_view,load_project_files ,validate_topic_completion, view_rendered_file, voice_chat_tutor)
 
 
 app_name = 'webprojects'
 
 urlpatterns = [
+    path('project/<int:project_id>/delete/', views.delete_my_project, name='delete_my_project'),
+    path('platform-settings/update/', views.update_platform_settings, name='update_platform_settings'),
+    path('project/<int:project_id>/activate/', views.activate_project, name='activate_project'),
+    path('project/<int:project_id>/subscribe/', views.subscribe_project, name='subscribe_project'),
+    path('user/<int:user_id>/projects/', views.user_projects, name='user_projects'),
+    path('bulk-action/', views.bulk_project_action, name='bulk_project_action'),
+
+    path('platform-stats/', views.platform_stats, name='platform_stats'),
+    path("internal/wake/<str:subdomain>/", views.wake_project, name="wake_project"),
+    # urls.py
+path('projects/<int:project_id>/subdomain/', update_project_subdomain, name='update_subdomain'),
+    path('projects/<int:project_id>/status/', project_status, name='project_status'),
+    path('project/<int:project_id>/state/', project_state, name='project_state'),
+
+ path(
+        "projects/<int:project_id>/run/",
+        run_project,
+        name="run_project",
+    ),
+
+    path('project/<int:project_id>/ai-build/', ai_build_project, name='ai_build_project'),
     path('course/<int:course_id>/start/', start_course, name='start_course'),
     path('leaderboard/<int:course_id>/', course_leaderboard, name='course_leaderboard'),
     path('update-leaderboard/<int:course_id>/', update_leaderboard, name='update_leaderboard'),

@@ -72,8 +72,8 @@ Only proceed to production if staging passes all tests.
 ```bash
 git checkout main
 git pull origin main
-git tag -a v1.x-stable -m "describe what's in this stable release"
-git push origin v1.x-stable
+git tag -a v1.2-stable -m "describe what's in this stable release"
+git push origin v1.2-stable
 ```
 
 Increment the version each time (`v1.1-stable`, `v1.2-stable`, etc.) so you can always identify and return to a specific past release.

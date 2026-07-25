@@ -291,14 +291,35 @@
 
     /* ===== Alerts ===== */
     .alert-stack { padding-top: 16px; }
-    .alert {
+       .alert {
         background: #EFF6FF;
         color: #1D4ED8;
         border-left: 4px solid var(--color-primary);
-        padding: 13px 18px;
+        padding: 13px 40px 13px 18px;
         border-radius: 8px;
         font-size: 14px;
         margin-bottom: 10px;
+        position: relative;
+    }
+    .alert-close {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #1D4ED8;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+        opacity: 0.6;
+        transition: opacity 0.15s;
+        line-height: 1;
+    }
+    .alert-close:hover {
+        opacity: 1;
+        background: rgba(0,0,0,0.05);
     }
 
     /* ===== Quick contact bar ===== */
@@ -736,7 +757,7 @@
     <div class="wrap nav">
         <a href="/" class="nav-logo">
             <img src="/static/sms/images/logo.png" alt="CodeThinkers Academy" onerror="this.style.display='none'">
-            CodeThinkers Academy
+            CodeThinkers
         </a>
 
         <!-- Nav Search -->
@@ -897,7 +918,7 @@
             🔒 Password Reset
         </a>
         <div class="ums-divider"></div>
-        <a class="ums-item ums-item--danger" href="#" role="menuitem"
+        <a class="ums-item ums-item--danger" href="{% url 'account_logout' %}" role="menuitem"
            data-toggle="modal" data-target="#logoutModal">
             🚪 Logout
         </a>
@@ -989,9 +1010,7 @@
                 <a href="mailto:codethinkersa@gmail.com" class="btn btn--outline">Contact Us</a>
             </div>
             {% if user.is_authenticated %}
-                <h2>Welcome, {{ user.username }}!</h2>
-            {% else %}
-                <h2>Welcome, Guest!</h2>
+                <h2>Welcome, {{ user.first_name|default:user.email }}!</h2>
             {% endif %}
         </div>
         <div class="hero-media">
@@ -1002,7 +1021,10 @@
     {% if messages %}
     <div class="wrap alert-stack">
         {% for message in messages %}
-        <div class="alert">{{ message }}</div>
+        <div class="alert">
+            {{ message }}
+            <button class="alert-close" onclick="this.parentElement.style.display='none'" title="Close">✕</button>
+        </div>
         {% endfor %}
     </div>
     {% endif %}
@@ -1536,13 +1558,10 @@
     });
 })();
 </script>
-
 <script>
-
-
     document.addEventListener('DOMContentLoaded', function () {
-        const alerts = document.querySelectorAll('.alert');
-        setTimeout(() => { alerts.forEach(a => a.style.display = 'none'); }, 6000);
+        // Alerts stay visible until manually closed by the user
+        // No auto-dismiss timeout
 
         const trigger = document.getElementById('userMenuTrigger');
         const panel = document.getElementById('userMenuPanel');

@@ -2,6 +2,24 @@ from django.contrib import admin
 from .models import Project, File, Folder, StudentProgress
 from django.utils.html import format_html
 
+
+# admin.py
+from .models import PlatformSettings
+
+@admin.register(PlatformSettings)
+class PlatformSettingsAdmin(admin.ModelAdmin):
+    fieldsets = (
+        ('Subscription', {
+            'fields': ('subscription_amount', 'subscription_currency')
+        }),
+        ('Bank Details', {
+            'fields': ('bank_name', 'account_number', 'account_name')
+        }),
+        ('Instructions', {
+            'fields': ('payment_instructions',)
+        }),
+    )
+    
 @admin.register(StudentProgress)
 class StudentProgressAdmin(admin.ModelAdmin):
     list_display = ("student", "course", "progress_display", "last_updated")
