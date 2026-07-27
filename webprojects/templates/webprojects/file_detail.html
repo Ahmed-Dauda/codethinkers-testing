@@ -603,6 +603,8 @@
 {% endblock %}
 
 {% block content %}
+
+
 <!-- ===== TOOLBAR (Desktop) ===== -->
 <div id="desktopToolbar" style="padding: 8px 12px; background: #222; border-bottom: 1px solid #444; text-align: right; display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
 
@@ -651,71 +653,42 @@
   </div>
   
   <!-- Tabs -->
-  <div style="display:flex; border-bottom:2px solid #e9ecef; background:#f8f9fa;">
+<div style="display:flex; border-bottom:2px solid #e9ecef; background:#f8f9fa;">
     <button id="appBuilderTab" class="ai-tab" onclick="switchToAppBuilder()" style="flex:1; padding:12px 16px; border:none; background:none; cursor:pointer; border-bottom:3px solid #007bff; font-weight:600; font-size:13px; color:#007bff; transition:all 0.2s;">🏗️ Build Project</button>
     <button id="fileEditorTab" class="ai-tab" onclick="switchToFileEditor()" style="flex:1; padding:12px 16px; border:none; background:none; cursor:pointer; border-bottom:3px solid transparent; font-weight:500; font-size:13px; color:#666; transition:all 0.2s;">📝 Edit {{ file.name|truncatechars:20 }}</button>
-  </div>
-  
-  <!-- Build Project Panel -->
-  <div id="appBuilderPanel" style="padding:12px; flex:1; display:flex; flex-direction:column; overflow-y:auto;">
+</div>
+
+<!-- Build Project Panel -->
+<div id="appBuilderPanel" style="padding:12px; flex:1; display:flex; flex-direction:column; overflow-y:auto; min-width:480px;">
     <div style="font-size:11px; color:#888; margin-bottom:8px; line-height:1.4;">
       💡 <b>Frontend:</b> "Create a landing page"<br>
       💡 <b>Fullstack:</b> "Build a Student Record System with CRUD"
     </div>
-    
-    <div style="display:flex; gap:8px; margin-bottom:8px;">
-      <input type="text" id="aiPrompt" placeholder="e.g., Build a Student Record System..." style="flex:1; padding:10px 12px; font-size:14px; border:1px solid #ddd; border-radius:6px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#007bff'" onblur="this.style.borderColor='#ddd'"/>
-     <button id="runAIPrompt" onclick="runAIBuild()" style="padding:10px 16px; background:#007bff; color:#fff; font-size:14px; font-weight:600; border:none; border-radius:6px; cursor:pointer; white-space:nowrap; transition:all 0.2s;" onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'">🚀 Analyze</button>
-<button id="applyFullstackBtn" onclick="applyFullstackChanges()" style="padding:10px 16px; background:#28a745; color:white; font-size:14px; font-weight:600; border:none; border-radius:6px; cursor:pointer; white-space:nowrap; transition:all 0.2s; display:none;" onmouseover="this.style.background='#1e7e34'" onmouseout="this.style.background='#28a745'">✅ Apply All</button>
+
+    <!-- Row 1: Model + Buttons -->
+    <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center;">
+      <select id="aiModel" style="flex:0 0 auto; padding:10px 12px; font-size:13px; border:1px solid #ddd; border-radius:6px; outline:none; background:#fff; cursor:pointer; min-width:170px;">
+    <option value="gpt-4o-mini" selected>⚡ GPT-4o Mini (Fast)</option>
+    <option value="gpt-5.5">⭐ GPT-5.5</option>
+
+</select>
+      <button id="runAIPrompt" onclick="runAIBuild()" style="flex:0 0 auto; padding:10px 16px; background:#007bff; color:#fff; font-size:14px; font-weight:600; border:none; border-radius:6px; cursor:pointer; white-space:nowrap; transition:all 0.2s;" onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'">🚀 Analyze</button>
+      <button id="applyFullstackBtn" onclick="applyFullstackChanges()" style="flex:0 0 auto; padding:10px 16px; background:#28a745; color:white; font-size:14px; font-weight:600; border:none; border-radius:6px; cursor:pointer; white-space:nowrap; transition:all 0.2s; display:none;" onmouseover="this.style.background='#1e7e34'" onmouseout="this.style.background='#28a745'">✅ Apply All</button>
     </div>
-    
-<!-- Quick Action Prompts -->
-<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
 
-    <button onclick="document.getElementById('aiPrompt').value='Create a modern responsive portfolio website with a hero section, about me, skills, projects, experience, resume download, contact form, and footer.'; runAIBuild()"
-        style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;"
-        title="Portfolio">
-        👤 Portfolio
-    </button>
+    <!-- Row 2: Prompt input, full width -->
+    <div style="margin-bottom:8px;">
+      <input type="text" id="aiPrompt" placeholder="e.g., Build here..." style="width:80%; box-sizing:border-box; padding:10px 12px; font-size:14px; border:1px solid #ddd; border-radius:6px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#007bff'" onblur="this.style.borderColor='#ddd'"/>
+    </div>
 
-    <button onclick="document.getElementById('aiPrompt').value='Build a Student Management System with students, classes, teachers, CRUD operations, search, pagination, Django admin, and responsive pages.'; runAIBuild()"
-        style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;"
-        title="Education">
-        📚 Student System
-    </button>
+    <!-- Quick Action Prompts -->
+    <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+    <button onclick="document.getElementById('aiPrompt').value='Build a simple Tic Tac Toe game as a single-page app. Use ONLY one view rendering one template. No models needed. The template should contain: Complete HTML with Tailwind CSS CDN, A 3x3 grid of clickable cells using JavaScript for game logic, Two players alternate clicking cells to place X and O, Display current player turn at the top, Detect and highlight winning combination, Detect draw when all cells are filled, Show winner announcement popup, Reset/New Game button, Score tracker for both players, Large emoji (❌ and ⭕) for markers, Hover effects on empty cells, Clean game-like design with shadows and rounded corners'; runAIBuild()" style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;" title="Game">🎮 Tic Tac Toe</button>
+<button onclick="document.getElementById('aiPrompt').value='Build a personal writing portfolio for a freelance essayist. Visitors can browse published essays, read full pieces, and see an About page with a short bio. No login needed — this is just a public showcase of my writing.'; runAIBuild()" style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;" title="Education">Author Portfolio</button>
 
-    <button onclick="document.getElementById('aiPrompt').value='Create a Blog Management System with posts, categories, comments, CRUD operations, Django admin, search, and responsive templates.'; runAIBuild()"
-        style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;"
-        title="Blog">
-        📝 Blog
-    </button>
+<button onclick="document.getElementById('aiPrompt').value='Build an inventory dashboard with Product model (name, sku, quantity, price, category, low_stock_threshold, last_restocked). Show total products count, low stock alerts with red badges, stock value summary card, recent restocks table, category distribution chart, and quick search bar. Use Tailwind CSS with a warehouse-style design.'; runAIBuild()" style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;" title="Dashboard">Inventory Dashboard</button>
+    </div>
 
-    <button onclick="document.getElementById('aiPrompt').value='Build a Task Management System with projects, tasks, priorities, status tracking, CRUD operations, search, pagination, and dashboard.'; runAIBuild()"
-        style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;"
-        title="Productivity">
-        ✅ Task Manager
-    </button>
-
-    <button onclick="document.getElementById('aiPrompt').value='Build an Inventory Management System with products, categories, suppliers, stock management, sales records, CRUD operations, reports, and Django admin.'; runAIBuild()"
-        style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;"
-        title="Business">
-        📦 Inventory
-    </button>
-
-    <button onclick="document.getElementById('aiPrompt').value='Create an Expense Tracker with income, expenses, categories, monthly reports, charts, CRUD operations, and dashboard.'; runAIBuild()"
-        style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;"
-        title="Finance">
-        💰 Expense Tracker
-    </button>
-
-    <button onclick="document.getElementById('aiPrompt').value='Build an Employee Management System with employees, departments, attendance, leave management, CRUD operations, search, reports, and Django admin.'; runAIBuild()"
-        style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;"
-        title="HR">
-        👥 Employees
-    </button>
-
-</div>
-    
     <!-- Output area -->
     <div style="flex:1; min-height:150px; background:#1e1e1e; border-radius:8px; overflow:hidden;">
       <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 12px; background:#2d2d2d; border-bottom:1px solid #444;">
@@ -725,18 +698,18 @@
       <pre id="appBuilderOutput" style="background:transparent; color:#d4d4d4; padding:12px; margin:0; height:calc(100% - 32px); overflow-y:auto; white-space:pre-wrap; font-family:'SF Mono','Fira Code','Consolas',monospace; font-size:12px; line-height:1.5;"></pre>
     </div>
   </div>
-  
+
   <!-- Edit File Panel -->
   <div id="fileEditorPanel" style="padding:12px; flex:1; display:none; flex-direction:column; overflow-y:auto;">
     <div style="font-size:11px; color:#888; margin-bottom:8px;">
       💡 Describe changes to <b>{{ file.name }}</b> and AI will apply them
     </div>
-    
+
     <div style="display:flex; gap:8px; margin-bottom:8px;">
       <input id="fileChatPrompt" placeholder="e.g., Add form validation, fix the header..." style="flex:1; padding:10px 12px; font-size:14px; border:1px solid #ddd; border-radius:6px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#28a745'" onblur="this.style.borderColor='#ddd'"/>
       <button id="applyBtn" onclick="applyChanges()" style="padding:10px 16px; background:#28a745; color:white; font-size:14px; font-weight:600; border:none; border-radius:6px; cursor:pointer; white-space:nowrap; transition:all 0.2s;" onmouseover="this.style.background='#1e7e34'" onmouseout="this.style.background='#28a745'">💾 Apply</button>
     </div>
-    
+
     <!-- Output area -->
     <div style="flex:1; min-height:150px; background:#1e1e1e; border-radius:8px; overflow:hidden;">
       <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 12px; background:#2d2d2d; border-bottom:1px solid #444;">
@@ -746,7 +719,7 @@
       <pre id="fileChatOutput" style="background:transparent; color:#d4d4d4; padding:12px; margin:0; height:calc(100% - 32px); overflow-y:auto; white-space:pre-wrap; font-family:'SF Mono','Fira Code','Consolas',monospace; font-size:12px; line-height:1.5;"></pre>
     </div>
   </div>
-  
+
   <!-- Resize Handle -->
   <div id="resizeHandleAI" style="height:6px; cursor:row-resize; background:#e9ecef; border-radius:0 0 10px 10px; transition:background 0.2s;" onmouseover="this.style.background='#007bff'" onmouseout="this.style.background='#e9ecef'"></div>
 </div>
@@ -1005,10 +978,12 @@ function closeImageModal() { const modal = document.getElementById('imagePopupMo
 // ============================================
 window.runAIBuild = async function() {
   const promptInput = document.getElementById('aiPrompt');
+  const modelSelect = document.getElementById('aiModel');
   const outputEl = document.getElementById('appBuilderOutput');
   const runBtn = document.getElementById('runAIPrompt');
   const applyBtn = document.getElementById('applyFullstackBtn');
   const prompt = promptInput.value.trim();
+  const model = modelSelect ? modelSelect.value : 'gpt-4o-mini';
   
   if (!prompt) {
     showToast('Please enter a prompt', 'warning');
@@ -1018,9 +993,8 @@ window.runAIBuild = async function() {
   runBtn.disabled = true;
   runBtn.textContent = '⏳ Analyzing...';
   outputEl.style.display = 'block';
-  outputEl.textContent = '⏳ Analyzing your request...\n';
+  outputEl.textContent = `⏳ Analyzing with ${model}...\n`;
   
-  // Hide apply button until we know the mode
   if (applyBtn) applyBtn.style.display = 'none';
   
   try {
@@ -1032,20 +1006,19 @@ window.runAIBuild = async function() {
         'Content-Type': 'application/json',
         'X-CSRFToken': getCsrfToken()
       },
-      body: JSON.stringify({ prompt: prompt })
+      body: JSON.stringify({ 
+        prompt: prompt,
+        model: model
+      })
     });
     
     const data = await res.json();
     
     if (data.status === 'success') {
       
-      // ─────────────────────────────────────────
-      // INCREMENTAL MODE (existing project)
-      // ─────────────────────────────────────────
       if (data.build_type === 'incremental') {
         outputEl.textContent = '';
         
-        // ── Show AI thinking if available ──
         if (data.thinking) {
           outputEl.textContent += `🧠 AI ARCHITECT THINKING:\n${'═'.repeat(50)}\n`;
           if (data.thinking.understanding) {
@@ -1066,38 +1039,27 @@ window.runAIBuild = async function() {
           outputEl.textContent += `\n`;
         }
         
-        outputEl.textContent += `📋 AI ANALYSIS:\n`;
-        outputEl.textContent += `${'═'.repeat(50)}\n`;
+        outputEl.textContent += `📋 AI ANALYSIS:\n${'═'.repeat(50)}\n`;
         outputEl.textContent += `${data.analysis || 'No analysis provided'}\n\n`;
-        outputEl.textContent += `${'═'.repeat(50)}\n`;
-        outputEl.textContent += `📝 PROPOSED CHANGES (${(data.changes || []).length}):\n`;
-        outputEl.textContent += `${'═'.repeat(50)}\n\n`;
+        outputEl.textContent += `${'═'.repeat(50)}\n📝 PROPOSED CHANGES (${(data.changes || []).length}):\n${'═'.repeat(50)}\n\n`;
         
         (data.changes || []).forEach((change, i) => {
-          const icon = change.action === 'create' ? '🆕' : 
-                      change.action === 'update' ? '✏️' : '🗑️';
+          const icon = change.action === 'create' ? '🆕' : change.action === 'update' ? '✏️' : '🗑️';
           outputEl.textContent += `${i + 1}. ${icon} ${change.action.toUpperCase()}: ${change.file_path}\n`;
           outputEl.textContent += `   Reason: ${change.reason || 'N/A'}\n`;
-          
           if (change.content) {
-            const preview = change.content.substring(0, 200);
-            outputEl.textContent += `   Preview: ${preview}${change.content.length > 200 ? '...' : ''}\n`;
+            outputEl.textContent += `   Preview: ${change.content.substring(0, 200)}${change.content.length > 200 ? '...' : ''}\n`;
           }
           outputEl.textContent += '\n';
         });
         
-        if (data.requires_migration) {
-          outputEl.textContent += `\n⚠️  Models changed — migrations will be needed\n`;
-        }
-        if (data.requires_server_restart) {
-          outputEl.textContent += `\n🔄 Server restart will be needed\n`;
-        }
-        
-        outputEl.textContent += `\n${'═'.repeat(50)}\n`;
-        outputEl.textContent += `💡 Review the changes above, then click "Apply All" to implement\n`;
+        if (data.requires_migration) outputEl.textContent += `\n⚠️  Models changed — migrations will be needed\n`;
+        if (data.requires_server_restart) outputEl.textContent += `\n🔄 Server restart will be needed\n`;
+        outputEl.textContent += `\n${'═'.repeat(50)}\n💡 Review the changes above, then click "Apply All" to implement\n`;
         
         window.pendingChanges = {
           prompt: prompt,
+          model: model,
           changes: data.changes,
           requires_migration: data.requires_migration || false,
           requires_server_restart: data.requires_server_restart || false
@@ -1112,65 +1074,33 @@ window.runAIBuild = async function() {
         showToast(`✅ Analysis complete — ${(data.changes || []).length} changes proposed`, 'success');
       }
       
-      // ─────────────────────────────────────────
-      // SCAFFOLD MODE (new project)
-      // ─────────────────────────────────────────
       else {
         outputEl.textContent = '';
         
-        // ── Show AI thinking if available (moved here where data exists) ──
         if (data.thinking) {
           outputEl.textContent += `🧠 AI ARCHITECT THINKING:\n${'═'.repeat(50)}\n`;
-          if (data.thinking.business_understanding) {
-            outputEl.textContent += `📋 Business: ${data.thinking.business_understanding}\n`;
-          }
-          if (data.thinking.app_type) {
-            outputEl.textContent += `📱 App Type: ${data.thinking.app_type}\n`;
-          }
-          if (data.thinking.core_modules) {
-            outputEl.textContent += `📦 Modules: ${data.thinking.core_modules.join(', ')}\n`;
-          }
-          if (data.thinking.database_design) {
-            outputEl.textContent += `🗄️ DB Design: ${data.thinking.database_design}\n`;
-          }
-          if (data.thinking.page_plan) {
-            outputEl.textContent += `📄 Pages: ${data.thinking.page_plan.join(', ')}\n`;
-          }
-          if (data.thinking.auth_plan) {
-            outputEl.textContent += `🔐 Auth: ${data.thinking.auth_plan}\n`;
-          }
-          if (data.thinking.suggested_features && data.thinking.suggested_features.length > 0) {
-            outputEl.textContent += `💡 Suggested: ${data.thinking.suggested_features.join(', ')}\n`;
-          }
+          if (data.thinking.business_understanding) outputEl.textContent += `📋 Business: ${data.thinking.business_understanding}\n`;
+          if (data.thinking.app_type) outputEl.textContent += `📱 App Type: ${data.thinking.app_type}\n`;
+          if (data.thinking.core_modules) outputEl.textContent += `📦 Modules: ${data.thinking.core_modules.join(', ')}\n`;
+          if (data.thinking.database_design) outputEl.textContent += `🗄️ DB Design: ${data.thinking.database_design}\n`;
+          if (data.thinking.page_plan) outputEl.textContent += `📄 Pages: ${data.thinking.page_plan.join(', ')}\n`;
+          if (data.thinking.auth_plan) outputEl.textContent += `🔐 Auth: ${data.thinking.auth_plan}\n`;
+          if (data.thinking.suggested_features && data.thinking.suggested_features.length > 0) outputEl.textContent += `💡 Suggested: ${data.thinking.suggested_features.join(', ')}\n`;
           outputEl.textContent += `\n`;
         }
         
         outputEl.textContent += `✅ ${data.message}\n\n`;
-        outputEl.textContent += `📦 Project: ${data.project_name}\n`;
-        outputEl.textContent += `📦 App: ${data.app_name}\n`;
-        outputEl.textContent += `📁 Files Created: ${(data.files_created || []).length}\n\n`;
-        outputEl.textContent += `${'═'.repeat(50)}\n`;
-        outputEl.textContent += `📄 FILES:\n`;
-        outputEl.textContent += `${'═'.repeat(50)}\n`;
-        
+        outputEl.textContent += `📦 Project: ${data.project_name}\n📦 App: ${data.app_name}\n📁 Files: ${(data.files_created || []).length}\n\n`;
+        outputEl.textContent += `${'═'.repeat(50)}\n📄 FILES:\n${'═'.repeat(50)}\n`;
         (data.files_created || []).forEach(file => {
-          const icon = file.endsWith('.py') ? '🐍' : 
-                      file.endsWith('.html') ? '🌐' : '📄';
-          outputEl.textContent += `  ${icon} ${file}\n`;
+          outputEl.textContent += `  ${file.endsWith('.py') ? '🐍' : file.endsWith('.html') ? '🌐' : '📄'} ${file}\n`;
         });
-        
         if (data.warnings && data.warnings.length > 0) {
           outputEl.textContent += `\n⚠️ Warnings:\n`;
-          data.warnings.forEach(w => {
-            outputEl.textContent += `  • ${w}\n`;
-          });
+          data.warnings.forEach(w => { outputEl.textContent += `  • ${w}\n`; });
         }
-        
-        outputEl.textContent += `\n💡 Open the files in the editor to customize them.\n`;
-        outputEl.textContent += `💡 Click "Run Project" to start the Django server.\n`;
-        
+        outputEl.textContent += `\n💡 Open files to customize. Click "Run Project" to start.\n`;
         if (applyBtn) applyBtn.style.display = 'none';
-        
         showToast('✅ Project generated!', 'success');
       }
       
@@ -1178,25 +1108,18 @@ window.runAIBuild = async function() {
       
     } else {
       outputEl.textContent = `❌ Error: ${data.message || 'Build failed'}\n`;
-      if (data.errors) {
-        outputEl.textContent += `\nErrors:\n`;
-        data.errors.forEach(e => {
-          outputEl.textContent += `  • ${e}\n`;
-        });
-      }
+      if (data.errors) { data.errors.forEach(e => { outputEl.textContent += `  • ${e}\n`; }); }
       showToast(data.message || 'Build failed', 'error');
     }
     
   } catch (err) {
     outputEl.textContent = `❌ Request failed: ${err.message}\n`;
-    console.error('AI Build error:', err);
     showToast('Error: ' + err.message, 'error');
   } finally {
     runBtn.disabled = false;
     runBtn.textContent = '🚀 Run AI';
   }
 };
-
 // ============================================
 // APPLY INCREMENTAL CHANGES
 // Called when user clicks "Apply All" button

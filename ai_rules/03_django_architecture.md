@@ -26,6 +26,30 @@
 - `success_url` on every CreateView/UpdateView/DeleteView
 - `.order_by('-id')` on ALL QuerySets
 
+## LoginRequiredMixin / login_required — Only With Real Auth
+
+⚠️ CRITICAL: Do NOT use `LoginRequiredMixin`, `@login_required`, or any
+other mechanism that redirects unauthenticated users to a login page,
+UNLESS you are ALSO generating a complete, real authentication system
+in this same build:
+
+- A `registration/login.html` template (or equivalent, wired via
+  `LOGIN_URL` in settings)
+- Real login/logout URL patterns
+- A working login view (Django's built-in `LoginView`/`LogoutView`
+  is fine, but the template it renders MUST exist)
+
+For admin-managed CRUD apps — the default unless the user explicitly
+asks for public self-service accounts — views should have NO auth
+requirement at all. Staff manage everything through Django admin,
+which has its own separate, already-working login page. Regular views
+(ListView, DetailView, CreateView, etc.) should never inherit
+LoginRequiredMixin in this default case.
+
+Using LoginRequiredMixin without a real login template is a guaranteed
+TemplateDoesNotExist crash on the FIRST unauthenticated request to that
+view — this is not a style choice, it is a hard requirement.
+
 ## Admin (admin_py)
 
 ### Required Imports (ALWAYS include these)

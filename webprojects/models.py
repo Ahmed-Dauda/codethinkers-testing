@@ -47,6 +47,7 @@ class Project(models.Model):
         ('suspended', 'Suspended'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    ai_model = models.CharField(max_length=50, default='gpt-4o-mini')
 
 
     def get_absolute_url(self):

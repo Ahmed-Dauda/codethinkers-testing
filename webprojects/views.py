@@ -4509,9 +4509,11 @@ def ai_build_project(request, project_id):
         return JsonResponse({"status": "error", "message": "🔑 OpenAI API is not configured."}, status=500)
 
     # ── Save the prompt for platform statistics ──
+    # ── Save the prompt and model choice ──
     if prompt and not apply_now:
         project.prompt = prompt
-        project.save(update_fields=['prompt'])
+        project.ai_model = data.get('model', 'gpt-4o-mini')
+        project.save(update_fields=['prompt', 'ai_model'])
 
     # ─────────────────────────────────────────────────────────────
     # DETECT: Is this a new project or an existing one?
@@ -5254,7 +5256,7 @@ def _run_static_validation(changes, files_before, all_files):
                 f"vs original ({len(old_content)} chars). Not applying."
             )
     
-    # www
+
     for file_path, content in all_files.items():
         if file_path.endswith("views.py") and content:
             view_classes = re.findall(r'class\s+(\w+)\s*\(\s*(\w+)\s*\)', content)
@@ -5357,7 +5359,6 @@ def _run_static_validation(changes, files_before, all_files):
                 if name not in url_names_defined:
                     validation_errors.append(f"❌ {file_path} calls {{% url '{name}' %}} — undefined name")
 
-    # Admin registration check for new models
     # Admin registration check for new models (now blocking, not just a warning)
     for file_path, content in all_files.items():
         if file_path.endswith("models.py") and content:
@@ -5418,7 +5419,6 @@ def _run_static_validation(changes, files_before, all_files):
                         f"list_display, list_filter, and search_fields instead"
                     )
 
-
     validation_errors.extend(_check_admin_list_select_related(all_files))
     # Views select_related check — warning only, doesn't block build
     select_related_warnings = _check_views_select_related(all_files)
@@ -5426,12 +5426,17 @@ def _run_static_validation(changes, files_before, all_files):
         for w in select_related_warnings:
             print(f"⚠️ {w}")
    # Only check LoginRequiredMixin if the project has auth URLs set up
+    # Only check LoginRequiredMixin usage patterns if the project has auth URLs set up
     root_urls = all_files.get(f"{project_name}/urls.py", "") if project_name else ""
     has_auth = 'accounts/' in root_urls
     if has_auth:
         validation_errors.extend(_check_login_required_on_user_filtered_views(all_files))
 
-   
+    # Unconditional — this is the inverse case: catches LoginRequiredMixin/
+    # @login_required used WITHOUT auth being set up at all, which is
+    # exactly what crashed project 163 with TemplateDoesNotExist on the
+    # very first unauthenticated request.
+    validation_errors.extend(_check_login_required_has_template(all_files))
 
     return validation_errors
 
@@ -5482,6 +5487,35 @@ def _check_new_models_have_full_wiring(files_before, all_files):
     return errors
 
 
+def _check_login_required_has_template(all_files):
+    """LoginRequiredMixin/@login_required redirects unauthenticated users
+    to registration/login.html by default — if that template doesn't
+    exist anywhere in the generated files, this crashes with
+    TemplateDoesNotExist on the very first unauthenticated request."""
+    errors = []
+    uses_login_required = False
+    offending_files = []
+
+    for file_path, content in all_files.items():
+        if file_path.endswith("views.py") and content:
+            if 'LoginRequiredMixin' in content or '@login_required' in content:
+                uses_login_required = True
+                offending_files.append(file_path)
+
+    if uses_login_required:
+        has_login_template = any(
+            p.endswith("registration/login.html") or p.endswith("/login.html")
+            for p in all_files
+        )
+        if not has_login_template:
+            errors.append(
+                f"❌ {', '.join(offending_files)} use LoginRequiredMixin/@login_required "
+                f"but no login template exists (registration/login.html) — this crashes "
+                f"with TemplateDoesNotExist on the first unauthenticated request. Either "
+                f"generate a real login template + URL, or remove the auth requirement "
+                f"entirely (admin-managed apps should have no view-level auth by default)."
+            )
+    return errors
 # ═════════════════════════════════════════════════════════════════
 # SMOKE TEST — actually request the changed URLs, catch real tracebacks
 # ═════════════════════════════════════════════════════════════════
@@ -5631,6 +5665,8 @@ def _run_smoke_test(export_dir, project_name, project_id, changes):
     errors = []
     for r in results:
         if r.get("error"):
+        
+            print(f"🔴 FULL SMOKE TEST ERROR for {r['name']} ({r.get('url', '?')}):\n{r['error']}\n{'='*80}")
             errors.append(f"❌ {r['name']} ({r.get('url', '?')}): {r['error']}")
     return errors
 
@@ -6172,13 +6208,55 @@ def validate_and_repair_python_files(files_dict):
 
 
 
-
 def _scaffold_build(project, prompt):
     """
     Full scaffold — AI thinks like a senior architect before generating code.
     Follows the 10-step thinking framework for production-quality Django apps.
     """
     try:
+        # -----------------------------------------------------------
+        # Model-compatibility layer — different OpenAI models require
+        # different parameter names/values. Centralize that here so
+        # every call site in this function stays correct automatically
+        # as the model dropdown grows (gpt-5.5, gpt-5.3-codex,
+        # gpt-5.5-pro, gpt-4o-mini, gpt-5.4-mini, and future additions).
+        # -----------------------------------------------------------
+        LEGACY_MAX_TOKENS_MODELS = {'gpt-4o-mini', 'gpt-4-turbo-preview', 'gpt-4', 'gpt-3.5-turbo'}
+        FIXED_TEMPERATURE_MODELS = {'gpt-5.5', 'gpt-5.5-pro', 'gpt-5.3-codex', 'gpt-5.4-mini'}
+
+        def _create_completion(model, messages, max_tokens=16000, temperature=0.3, json_mode=True):
+            """Create a chat completion with model-appropriate parameters,
+            self-healing against parameter mismatches for models not yet
+            in the lists above."""
+            uses_legacy_param = model in LEGACY_MAX_TOKENS_MODELS
+            allows_custom_temperature = model not in FIXED_TEMPERATURE_MODELS
+
+            kwargs = dict(model=model, messages=messages)
+            if allows_custom_temperature:
+                kwargs['temperature'] = temperature
+            if uses_legacy_param:
+                kwargs['max_tokens'] = max_tokens
+            else:
+                kwargs['max_completion_tokens'] = max_tokens
+            if json_mode:
+                kwargs['response_format'] = {"type": "json_object"}
+
+            try:
+                return client.chat.completions.create(**kwargs)
+            except Exception as e:
+                err_str = str(e)
+                if 'max_tokens' in err_str and 'max_completion_tokens' in err_str:
+                    print(f"⚠️ Token-param mismatch for model '{model}', retrying with the other name")
+                    kwargs.pop('max_tokens', None)
+                    kwargs.pop('max_completion_tokens', None)
+                    kwargs['max_completion_tokens' if uses_legacy_param else 'max_tokens'] = max_tokens
+                    return client.chat.completions.create(**kwargs)
+                if "'temperature'" in err_str and 'unsupported_value' in err_str:
+                    print(f"⚠️ Model '{model}' rejected custom temperature, retrying without it")
+                    kwargs.pop('temperature', None)
+                    return client.chat.completions.create(**kwargs)
+                raise
+
         # -----------------------------------------------------------
         # Helper: Validate AI-generated app data
         # -----------------------------------------------------------
@@ -6189,14 +6267,10 @@ def _scaffold_build(project, prompt):
             if not app_data:
                 return errors, warnings
 
-           
             required_fields = ["app_name", "views_py", "urls_py"]
             for field in required_fields:
                 if not app_data.get(field):
                     errors.append(f"Missing required field: {field}")
-            # models_py and admin_py are only required if the app actually
-            # needs persistent data — a static site (portfolio, landing
-            # page) may legitimately have none.
             if app_data.get("models_py") and not app_data.get("admin_py"):
                 errors.append("Missing required field: admin_py (models_py is present, so admin registration is expected)")
 
@@ -6237,11 +6311,9 @@ def _scaffold_build(project, prompt):
 
             return errors, warnings
 
-  
         # -----------------------------------------------------------
         # Helper: Repair AI-generated views
         # -----------------------------------------------------------
-
         def repair_views_py(content):
             if not content:
                 return content
@@ -6266,7 +6338,6 @@ def _scaffold_build(project, prompt):
             )
 
             return content
-        
 
         def normalize_template_paths(app_name, views_py, templates):
             """Fix template references that mistakenly use 'app_name/file.html'
@@ -6285,28 +6356,23 @@ def _scaffold_build(project, prompt):
                     return full.replace(template_name, bare_name)
                 return full
 
-            # Fix render() calls
             fixed_views = re.sub(
                 r"""render\([^,]+,\s*['"]([^'"]+)['"]""",
                 fix_path,
                 views_py,
             )
-            
-            # Fix template_name = 'app_name/file.html'
             fixed_views = re.sub(
                 r"""template_name\s*=\s*['"]([^'"]+)['"]""",
                 fix_path,
                 fixed_views,
             )
-            
-            return fixed_views, templates   
-        # -----------------------------------------------------------
-        # Helper: f-string quote collision repair
-        # -----------------------------------------------------------
-    
+            return fixed_views, templates
+
         # ─────────────────────────────────────────────────────
         # STEP 1-2: Generate project name
         # ─────────────────────────────────────────────────────
+        ai_model = getattr(project, 'ai_model', None) or 'gpt-4o-mini'
+
         scaffold_cache_key = f"scaffold_{hashlib.md5(prompt.encode()).hexdigest()}"
         scaffold_data = cache.get(scaffold_cache_key)
 
@@ -6316,14 +6382,13 @@ Given a project description, choose a short, descriptive Django project name.
 Return ONLY this JSON: {"project_name": "mysite"}
 RULES: project_name must be a valid Python identifier (lowercase, underscores only). No markdown, no explanation."""
 
-            scaffold_response = client.chat.completions.create(
-                model="gpt-4o-mini",
+            scaffold_response = _create_completion(
+                model=ai_model,
                 messages=[
                     {"role": "system", "content": scaffold_system},
                     {"role": "user", "content": f"Generate a Django project scaffold for: {prompt}"},
                 ],
                 max_tokens=3000, temperature=0.3,
-                response_format={"type": "json_object"}
             )
 
             scaffold_text = scaffold_response.choices[0].message.content.strip()
@@ -6367,21 +6432,16 @@ Pick distinct, descriptive names."""
         app_cache_key = f"app_{project.id}_{state_fingerprint}_v5_architect"
         cache.delete(app_cache_key)
 
-        # ── THE ARCHITECT SYSTEM PROMPT ──
-        # ── Load AI rules from modular files ──
         architect_system = _load_ai_rules()
-       
         architect_system = architect_system.replace("__CONTEXT_NOTE__", context_note)
 
-        app_response = client.chat.completions.create(
-            model="gpt-4o-mini",
+        app_response = _create_completion(
+            model=ai_model,
             messages=[
                 {"role": "system", "content": architect_system},
                 {"role": "user", "content": f"Build a complete Django application for: {prompt}"},
             ],
-            max_tokens=16000,
-            temperature=0.3,
-            response_format={"type": "json_object"}
+            max_tokens=16000, temperature=0.3,
         )
 
         app_choice = app_response.choices[0]
@@ -6391,52 +6451,45 @@ Pick distinct, descriptive names."""
         if app_choice.finish_reason == "length":
             print("⚠️ Response truncated — retrying with minimal template instructions")
             retry_prompt = f"{prompt}\n\n[SYSTEM NOTE: Your previous response was truncated because it was too large. Generate a complete response but keep templates minimal — single-file functional HTML, no inline CSS beyond Tailwind classes, reuse navbar/footer structure. Prioritize completeness over visual polish.]"
-            
-            retry_response = client.chat.completions.create(
+
+            retry_response = _create_completion(
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": architect_system},
                     {"role": "user", "content": f"Build a complete Django application for: {retry_prompt}"},
                 ],
-                max_tokens=16000,
-                temperature=0.3,
-                response_format={"type": "json_object"}
+                max_tokens=16000, temperature=0.3,
             )
-            
+
             retry_choice = retry_response.choices[0]
             app_text = retry_choice.message.content.strip()
             print(f"🔄 Retry response: {len(app_text)} chars, finish_reason={retry_choice.finish_reason}")
-            
+
             if retry_choice.finish_reason == "length":
-                # Third attempt: split into two phases
                 print("⚠️ Still truncated — splitting into architecture + templates phases")
-                
-                # Phase 1: Architecture only (no templates)
+
                 arch_prompt = f"{prompt}\n\n[SYSTEM NOTE: Generate ONLY the architecture files — models.py, admin.py, urls.py, views.py, forms.py, tests.py. Do NOT generate any templates. Templates will be generated in a separate pass.]"
-                
-                arch_response = client.chat.completions.create(
+
+                arch_response = _create_completion(
                     model="gpt-4o-mini",
                     messages=[
                         {"role": "system", "content": architect_system},
                         {"role": "user", "content": f"Build a complete Django application (architecture only, no templates): {arch_prompt}"},
                     ],
-                    max_tokens=16000,
-                    temperature=0.3,
-                    response_format={"type": "json_object"}
+                    max_tokens=16000, temperature=0.3,
                 )
-                
+
                 arch_choice = arch_response.choices[0]
                 arch_text = arch_choice.message.content.strip()
                 print(f"🏗️ Architecture response: {len(arch_text)} chars, finish_reason={arch_choice.finish_reason}")
-                
+
                 if arch_choice.finish_reason == "length":
                     return JsonResponse({
                         "status": "error",
                         "message": "Project is too large even without templates. Try fewer models/pages.",
                         "detail": "finish_reason=length (architecture-only also truncated)",
                     }, status=500)
-                
-                # Parse architecture
+
                 try:
                     arch_data = json.loads(arch_text)
                 except json.JSONDecodeError:
@@ -6446,34 +6499,31 @@ Pick distinct, descriptive names."""
                         arch_data = json.loads(arch_text[start:end])
                     else:
                         return JsonResponse({"status": "error", "message": "Invalid JSON in architecture response"}, status=500)
-                
-                # Phase 2: Templates only
+
                 arch_summary = json.dumps({
                     "app_name": arch_data.get("app_name", ""),
                     "models": arch_data.get("models_py", "")[:500],
                     "views": arch_data.get("views_py", "")[:500],
                     "urls": arch_data.get("urls_py", "")[:300],
                 }, indent=2)
-                
+
                 template_prompt = f"Based on this architecture:\n{arch_summary}\n\nGenerate ALL required templates. Include: home.html (dashboard with stats), list.html, detail.html, form.html (create/edit), confirm_delete.html. Use Tailwind CDN, same navbar/footer on every page. Keep each template functional and minimal — prioritize completeness."
-                
+
                 template_system = """You are a Django template expert. Return ONLY valid JSON with a templates dict. Every template must have proper HTML structure with Tailwind CDN navbar and footer. Use bare template names (no app prefix)."""
-                
-                template_response = client.chat.completions.create(
+
+                template_response = _create_completion(
                     model="gpt-4o-mini",
                     messages=[
                         {"role": "system", "content": template_system},
                         {"role": "user", "content": template_prompt},
                     ],
-                    max_tokens=16000,
-                    temperature=0.3,
-                    response_format={"type": "json_object"}
+                    max_tokens=16000, temperature=0.3,
                 )
-                
+
                 template_choice = template_response.choices[0]
                 template_text = template_choice.message.content.strip()
                 print(f"📄 Templates response: {len(template_text)} chars, finish_reason={template_choice.finish_reason}")
-                
+
                 try:
                     template_data = json.loads(template_text)
                 except json.JSONDecodeError:
@@ -6482,53 +6532,41 @@ Pick distinct, descriptive names."""
                     if start != -1 and end > start:
                         template_data = json.loads(template_text[start:end])
                     else:
-                        # Use fallback templates
                         template_data = {"templates": {}}
-                
-                # Merge: architecture data + templates
+
                 app_text = json.dumps({**arch_data, "templates": template_data.get("templates", {})})
                 print(f"🔗 Merged response: {len(app_text)} chars")
-                
+
                 app_choice = type('obj', (object,), {
                     'message': type('obj', (object,), {'content': app_text}),
                     'finish_reason': 'stop'
                 })()
-            
+
             app_choice = retry_choice if 'app_choice' not in dir() or app_choice is retry_choice else app_choice
 
-
-                # Fix common JSON issues in AI responses
-
-        # 1. Remove markdown code fences if present
+        # Fix common JSON issues in AI responses
         app_text = re.sub(r'^```json\s*', '', app_text)
         app_text = re.sub(r'\s*```$', '', app_text)
-        
-        # 2. Try to fix unescaped quotes in string values
-        # Find the error position and log it
+
         try:
             json.loads(app_text)
         except json.JSONDecodeError as e:
             print(f"⚠️ JSON error at line {e.lineno}, column {e.colno}, char {e.pos}")
-            # Show context around the error
             start_ctx = max(0, e.pos - 100)
             end_ctx = min(len(app_text), e.pos + 100)
             print(f"   Context: ...{app_text[start_ctx:end_ctx]}...")
-
 
         try:
             app_data = json.loads(app_text)
         except json.JSONDecodeError as e:
             print(f"⚠️ JSON parse error: {e}")
-            # Try to fix common issues
             start = app_text.find("{")
             end = app_text.rfind("}") + 1
             if start != -1 and end > start:
                 try:
                     app_data = json.loads(app_text[start:end])
                 except json.JSONDecodeError as e2:
-                    # Try adding missing closing braces
                     fixed = app_text[start:end]
-                    # Count braces
                     open_braces = fixed.count('{') - fixed.count('}')
                     fixed += '}' * open_braces
                     try:
@@ -6537,13 +6575,13 @@ Pick distinct, descriptive names."""
                     except json.JSONDecodeError:
                         print(f"❌ Could not repair JSON: {e2}")
                         return JsonResponse({
-                            "status": "error", 
+                            "status": "error",
                             "message": f"Invalid JSON from AI. Try again with a simpler prompt.",
                             "detail": str(e2)[:200]
                         }, status=500)
             else:
                 return JsonResponse({
-                    "status": "error", 
+                    "status": "error",
                     "message": "No valid JSON in AI response. Try again."
                 }, status=500)
         if not isinstance(app_data, dict):
@@ -6662,6 +6700,7 @@ class HomeView(ListView):
                 "message": "Generated code has syntax errors",
                 "errors": syntax_errors,
             }, status=500)
+
         # ─────────────────────────────────────────────────────
         # Route through the same staged apply pipeline the
         # incremental path uses — static validation, staging
@@ -6678,10 +6717,6 @@ class HomeView(ListView):
             if content is not None
         ]
 
-        
-        # A fresh scaffold build always needs migrations (new models)
-        # and a server restart (all-new Python code).
-        # Retry up to 2 times if validation fails, feeding errors back to AI.
         max_scaffold_retries = 2
         for scaffold_attempt in range(max_scaffold_retries + 1):
             apply_result = _attempt_apply(
@@ -6689,16 +6724,14 @@ class HomeView(ListView):
                 requires_migration=True,
                 requires_server_restart=True,
             )
-      
+
             if apply_result["ok"]:
                 break
-            
-            # If auto-fix already ran (we generated views/templates), skip AI retry
-            # and just let the validation errors through — they're likely from AI overwriting our fixes
+
             if scaffold_attempt == 0 and (
                 apply_result.get("validation_errors") or apply_result.get("smoke_test_errors")
             ):
-                error_context = apply_result.get("failure_summary", "")[:2000]
+                error_context = apply_result.get("failure_summary", "")[:6000]
                 print(f"⚠️ Scaffold validation failed (attempt {scaffold_attempt + 1}) — regenerating with error context")
 
                 common_fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "common_fixes.md"
@@ -6711,27 +6744,24 @@ class HomeView(ListView):
                     f"[YOU MUST FIX EVERY ERROR ABOVE BEFORE RETURNING.]\n\n"
                     f"{common_fixes}"
                 )
-                
-                retry_response = client.chat.completions.create(
+
+                retry_response = _create_completion(
                     model="gpt-4o-mini",
                     messages=[
                         {"role": "system", "content": architect_system},
                         {"role": "user", "content": f"Build a complete Django application for: {retry_prompt}"},
                     ],
-                    max_tokens=16000,
-                    temperature=0.2,
-                    response_format={"type": "json_object"}
+                    max_tokens=16000, temperature=0.2,
                 )
-                
+
                 retry_choice = retry_response.choices[0]
                 retry_text = retry_choice.message.content.strip()
                 print(f"🔄 Retry {scaffold_attempt + 1} response: {len(retry_text)} chars, finish_reason={retry_choice.finish_reason}")
-                
+
                 if retry_choice.finish_reason == "length":
                     print("⚠️ Retry truncated — trying one more time with minimal templates")
                     continue
-                
-                # Re-parse the retry response
+
                 try:
                     retry_data = json.loads(retry_text)
                 except json.JSONDecodeError:
@@ -6744,16 +6774,14 @@ class HomeView(ListView):
                             continue
                     else:
                         continue
-                
+
                 if not isinstance(retry_data, dict):
                     continue
-                
-                # Rebuild pseudo_changes from retry data
+
                 retry_app_name = normalize_name(retry_data.get("app_name", "core"), fallback="core")
                 if retry_app_name == project_name:
                     retry_app_name = f"{retry_app_name}_app"
-                
-            
+
                 retry_data["views_py"], retry_data["templates"] = normalize_template_paths(
                     retry_app_name, retry_data.get("views_py", ""), retry_data.get("templates", {})
                 )
@@ -6772,19 +6800,15 @@ class HomeView(ListView):
                     for path, content in retry_new_files.items()
                     if content is not None
                 ]
-                
-               
-                # Update app_name for the success response
+
                 app_name = retry_app_name
                 app_data = retry_data
                 thinking = retry_data.get("thinking", thinking)
             elif scaffold_attempt > 0:
-                # Already retried once — don't keep trying
                 print(f"⚠️ Validation still failing after AI retry — exiting retry loop")
                 break
 
         if not apply_result["ok"]:
-            
             print(f"❌ Apply failed after {scaffold_attempt + 1} attempt(s): {apply_result['failure_summary'][:500]}")
             return JsonResponse({
                 "status": "error",
@@ -6813,8 +6837,7 @@ class HomeView(ListView):
 
     except Exception as e:
         print(f"❌ Scaffold Build Error: {traceback.format_exc()}")
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
-        
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)        
 
 
 
@@ -9320,8 +9343,9 @@ or
 {{"is_correct": false, "feedback": "❌ [specific issue]. Example:\\n[correct code]"}}"""
 
     try:
+        ai_model = getattr(project, 'ai_model', None) or 'gpt-4o-mini'
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=ai_model,
             messages=[
                 {"role": "system", "content": "You are a strict Python teacher. Respond ONLY with valid JSON. Use \\n for line breaks in code examples."},
                 {"role": "user", "content": prompt}
