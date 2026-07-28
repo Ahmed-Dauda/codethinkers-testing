@@ -3360,7 +3360,6 @@ def validate_and_repair_python_files(files_dict):
     return files_dict, unrecoverable
 
 
-
 def _assemble_and_autofix_scaffold_files(app_data, app_name, project_name, settings_content, urls_content):
     """Builds the full new_files dict from AI-generated app_data, running every
     deterministic auto-fix pass (template path normalization, missing templates,
@@ -3466,10 +3465,6 @@ def _assemble_and_autofix_scaffold_files(app_data, app_name, project_name, setti
             
                 if not other_views_exist and 'HomeView' in views_content:
                     print(f"ℹ️ Model '{model_name}' has no views (private app — admin handles it)")
-                    # Still ensure the model is imported in admin.py even
-                    # though we're skipping view generation — admin.py may
-                    # already reference this model (e.g. @admin.register)
-                    # without importing it.
                     if f"import {model_name}" not in admin_content and "from .models import *" not in admin_content:
                         if "from .models import" in admin_content:
                             admin_content = re.sub(
@@ -3523,7 +3518,6 @@ class {model_name}Form(forms.ModelForm):
                     new_files[f"{app_name}/forms.py"] = forms_content
                     print(f"🔧 Auto-created missing form: {model_name}Form (with import)")
 
-        
             # Ensure 'from . import views' exists in urls.py
             if 'from . import views' not in urls_content_app:
                 if 'from django.urls import path' in urls_content_app:
@@ -3615,20 +3609,82 @@ class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
                 print(f"🔧 Auto-added list_select_related for {model_name}Admin: {sorted(fk_fields)}")
 
     # Auto-fix: Remove self.request.user if no auth
-    if views_content:
-        views_content = re.sub(
-            r'(\s+)form\.instance\.author\s*=\s*self\.request\.user',
-            r'\1# Auto-fix: removed self.request.user (no auth requested)\n\1form.instance.author = None',
+    # Auto-fix: If views use self.request.user, add LoginRequiredMixin
+    if views_content and 'self.request.user' in views_content:
+        # Find all class-based views that use self.request.user
+        view_classes = re.finditer(
+            r'class\s+(\w+)\s*\(([^)]*)\)\s*:',
             views_content
         )
-        views_content = re.sub(
-            r'(\s+)(\w+)\s*=\s*self\.request\.user',
-            r'\1# Auto-fix: removed self.request.user to avoid LoginRequiredMixin\n\1# \2 = self.request.user',
-            views_content
-        )
+        for match in view_classes:
+            class_name, bases = match.group(1), match.group(2)
+            # Only fix if it doesn't already have LoginRequiredMixin
+            if 'LoginRequiredMixin' not in bases:
+                # Get the class body to check if it uses self.request.user
+                class_start = match.start()
+                # Find next class definition
+                next_class = re.search(r'\nclass\s+\w+\s*\(', views_content[class_start+1:])
+                class_end = class_start + 1 + next_class.start() if next_class else len(views_content)
+                class_body = views_content[class_start:class_end]
+                
+                if 'self.request.user' in class_body:
+                    # Add LoginRequiredMixin
+                    if bases.strip():
+                        new_bases = f'LoginRequiredMixin, {bases}'
+                    else:
+                        new_bases = 'LoginRequiredMixin'
+                    
+                    old_declaration = f'class {class_name}({bases}):'
+                    new_declaration = f'class {class_name}({new_bases}):'
+                    views_content = views_content.replace(old_declaration, new_declaration, 1)
+                    print(f"🔧 Auto-added LoginRequiredMixin to {class_name}")
+        
+        # Add the import if missing
+        if 'from django.contrib.auth.mixins import LoginRequiredMixin' not in views_content:
+            views_content = 'from django.contrib.auth.mixins import LoginRequiredMixin\n' + views_content
+            print(f"🔧 Auto-added LoginRequiredMixin import")
+
+
+    # Auto-fix: If LoginRequiredMixin is used, create login template and accounts URL
+    root_urls_path = f"{project_name}/urls.py"
+    if 'LoginRequiredMixin' in views_content or '@login_required' in views_content:
+        # Create login template
+        login_path = f"{app_name}/templates/registration/login.html"
+        if login_path not in new_files:
+            new_files[login_path] = (
+                '{% extends "base.html" %}\n'
+                '{% block content %}\n'
+                '<div class="max-w-md mx-auto mt-10 bg-white p-8 rounded-lg shadow">\n'
+                '<h2 class="text-2xl font-bold mb-6">Login</h2>\n'
+                '{% if form.errors %}<p class="text-red-500 mb-4">Invalid username or password.</p>{% endif %}\n'
+                '<form method="post">\n'
+                '{% csrf_token %}\n'
+                '{{ form.as_p }}\n'
+                '<button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg mt-4">Log in</button>\n'
+                '</form>\n'
+                '<p class="text-sm text-gray-500 mt-4 text-center">Don\'t have an account? <a href="#" class="text-indigo-600">Sign up</a></p>\n'
+                '</div>\n'
+                '{% endblock %}\n'
+            )
+            print(f"🔧 Auto-created registration/login.html for LoginRequiredMixin views")
+
+        # Add accounts/ URL to root urls.py
+        if root_urls_path in new_files:
+            root_content = new_files[root_urls_path]
+            if "django.contrib.auth.urls" not in root_content:
+                if 'from django.urls import path, include' not in root_content:
+                    root_content = root_content.replace(
+                        'from django.urls import path',
+                        'from django.urls import path, include'
+                    )
+                root_content = root_content.replace(
+                    "urlpatterns = [",
+                    "urlpatterns = [\n    path('accounts/', include('django.contrib.auth.urls')),"
+                )
+                new_files[root_urls_path] = root_content
+                print(f"🔧 Auto-added accounts/ URL for LoginRequiredMixin")
 
     # Ensure app urls.py is wired into root urls.py
-    root_urls_path = f"{project_name}/urls.py"
     root_urls_content = new_files.get(root_urls_path, "")
     if root_urls_content and f"include('{app_name}.urls')" not in root_urls_content:
         root_urls_content = inject_url_include(root_urls_content, app_name)
@@ -3641,8 +3697,7 @@ class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
     new_files[f"{app_name}/urls.py"] = urls_content_app
 
     new_files = ensure_proper_html_structure_for_files(new_files, app_name)
-    
- 
+
     # Re-run template auto-fix for views that were JUST generated
     if views_content:
         template_refs = set(re.findall(r"template_name\s*=\s*['\"]([^'\"]+)['\"]", views_content))
@@ -5106,6 +5161,8 @@ def _extract_fk_fields_per_model(models_content):
         result[model_name] = fk_fields
     return result
 
+
+
 def _check_admin_list_select_related(all_files):
     """Blocks if any ModelAdmin shows a real ForeignKey field in list_display
     or list_filter without also listing it in list_select_related — that
@@ -5154,6 +5211,32 @@ def _check_admin_list_select_related(all_files):
                     f"— this causes N+1 queries and slow admin pages. Add: "
                     f"list_select_related = {tuple(sorted(fk_shown))}"
                 )
+    return errors
+
+def _check_django_db_models_import(all_files):
+    """Catches 'models.F(...)', 'models.Q(...)', 'models.Count(...)' etc.
+    used in views.py without 'from django.db import models' (or an
+    equivalent import) — a NameError that crashes on the very first
+    request to that view."""
+    errors = []
+    for file_path, content in all_files.items():
+        if not file_path.endswith("views.py") or not content:
+            continue
+
+        uses_models_namespace = bool(re.search(
+            r'\bmodels\.(F|Q|Count|Sum|Avg|Max|Min|Case|When|Value|ExpressionWrapper)\(',
+            content
+        ))
+        if not uses_models_namespace:
+            continue
+
+        has_import = bool(re.search(r'from\s+django\.db\s+import\s+.*\bmodels\b', content))
+        if not has_import:
+            errors.append(
+                f"❌ {file_path} uses 'models.F()/Q()/Count()/etc.' but is missing "
+                f"'from django.db import models' — this crashes with NameError on the "
+                f"first request. Add the import."
+            )
     return errors
 
 
@@ -5255,7 +5338,6 @@ def _run_static_validation(changes, files_before, all_files):
                 f"⚠️ {file_path}: new content ({len(new_content)} chars) looks truncated "
                 f"vs original ({len(old_content)} chars). Not applying."
             )
-    
 
     for file_path, content in all_files.items():
         if file_path.endswith("views.py") and content:
@@ -5271,8 +5353,7 @@ def _run_static_validation(changes, files_before, all_files):
                     validation_errors.append(
                         f"❌ {file_path}: '{parent}' used by '{class_name}' but not imported."
                     )
-            
-            # Check every CBV has template_name explicitly set
+
             for match in re.finditer(r'class\s+(\w+)\s*\(\s*(\w+)\s*\)\s*:', content):
                 class_name, parent = match.group(1), match.group(2)
                 if parent in required_parents:
@@ -5317,7 +5398,7 @@ def _run_static_validation(changes, files_before, all_files):
     for app in new_apps:
         if f"'{app}'" not in settings_content and f'"{app}"' not in settings_content:
             validation_errors.append(f"❌ App '{app}' not registered in INSTALLED_APPS")
-   
+
     settings_file_path = next((p for p in all_files if p.endswith("/settings.py")), None)
     project_name = settings_file_path.split("/")[0] if settings_file_path else None
     root_urls_path = f"{project_name}/urls.py" if project_name else None
@@ -5341,25 +5422,23 @@ def _run_static_validation(changes, files_before, all_files):
                 if not any(p.endswith(tmpl) for p in all_files):
                     validation_errors.append(f"❌ {file_path} references missing template '{tmpl}'")
 
-        # Built-in auth URLs that come from django.contrib.auth.urls (always available)
-    BUILT_IN_AUTH_URLS = {'login', 'logout', 'password_change', 'password_change_done', 
-                          'password_reset', 'password_reset_done', 'password_reset_confirm', 
+    BUILT_IN_AUTH_URLS = {'login', 'logout', 'password_change', 'password_change_done',
+                          'password_reset', 'password_reset_done', 'password_reset_confirm',
                           'password_reset_complete'}
-    
+
     url_names_defined = set()
     for file_path, content in all_files.items():
         if file_path.endswith("urls.py"):
             url_names_defined |= set(re.findall(r'name=[\'"](\w+)[\'"]', content))
-    
-    url_names_defined |= BUILT_IN_AUTH_URLS  # These come from django.contrib.auth.urls
-    
+
+    url_names_defined |= BUILT_IN_AUTH_URLS
+
     for file_path, content in all_files.items():
         if file_path.endswith(".html"):
             for name in re.findall(r"\{%\s*url\s+['\"](\w+)['\"]", content):
                 if name not in url_names_defined:
                     validation_errors.append(f"❌ {file_path} calls {{% url '{name}' %}} — undefined name")
 
-    # Admin registration check for new models (now blocking, not just a warning)
     for file_path, content in all_files.items():
         if file_path.endswith("models.py") and content:
             model_names = re.findall(r'class\s+(\w+)\s*\(\s*models\.Model\s*\)', content)
@@ -5389,7 +5468,6 @@ def _run_static_validation(changes, files_before, all_files):
                         f"— define it once at the top of the file"
                     )
 
-                # Registered — but is it a real config, or a bare/lazy registration?
                 admin_class_match = re.search(
                     rf'@admin\.register\({model_name}\)\s*\nclass\s+(\w+)\s*\(([^)]*)\)',
                     admin_content
@@ -5420,25 +5498,25 @@ def _run_static_validation(changes, files_before, all_files):
                     )
 
     validation_errors.extend(_check_admin_list_select_related(all_files))
-    # Views select_related check — warning only, doesn't block build
+
+    # NEW: Catch models.F()/Q()/Count() used without import
+    validation_errors.extend(_check_django_db_models_import(all_files))
+
     select_related_warnings = _check_views_select_related(all_files)
     if select_related_warnings:
         for w in select_related_warnings:
             print(f"⚠️ {w}")
-   # Only check LoginRequiredMixin if the project has auth URLs set up
-    # Only check LoginRequiredMixin usage patterns if the project has auth URLs set up
+
     root_urls = all_files.get(f"{project_name}/urls.py", "") if project_name else ""
     has_auth = 'accounts/' in root_urls
     if has_auth:
         validation_errors.extend(_check_login_required_on_user_filtered_views(all_files))
 
-    # Unconditional — this is the inverse case: catches LoginRequiredMixin/
-    # @login_required used WITHOUT auth being set up at all, which is
-    # exactly what crashed project 163 with TemplateDoesNotExist on the
-    # very first unauthenticated request.
+    # NEW: Check LoginRequiredMixin has login template
     validation_errors.extend(_check_login_required_has_template(all_files))
 
     return validation_errors
+
 
 
 def _check_new_models_have_full_wiring(files_before, all_files):
@@ -6318,7 +6396,14 @@ def _scaffold_build(project, prompt):
             if not content:
                 return content
 
+            # Fix missing django.db.models import when models.F() or models.Q() is used
+            if re.search(r'\bmodels\.(F|Q|Count|Sum|Avg|Max|Min)\b', content) and 'from django.db import models' not in content:
+                content = 'from django.db import models\n' + content
+                print("🔧 Added missing 'from django.db import models' import")
+
+            # Fix .all() without order_by
             pattern = r'(\w+)\s*=\s*(\w+)\.objects\.all\(\)(?!\s*\.order_by)'
+
             def fix_queryset(match):
                 var_name = match.group(1)
                 model = match.group(2)

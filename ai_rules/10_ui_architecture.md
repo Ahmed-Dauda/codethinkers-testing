@@ -29,3 +29,5 @@ check that `templates["base.html"]` exists.
 {% block content %}
 ...page content...
 {% endblock %}
+
+- For interactive components (dropdowns, modals, tabs, accordions, toasts), see `12_interactive_components.md` for pre-built accessible Alpine.js patterns. Use those patterns as-is instead of inventing new JS.

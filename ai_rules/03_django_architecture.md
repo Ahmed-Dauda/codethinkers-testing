@@ -50,6 +50,25 @@ Using LoginRequiredMixin without a real login template is a guaranteed
 TemplateDoesNotExist crash on the FIRST unauthenticated request to that
 view — this is not a style choice, it is a hard requirement.
 
+## Django F() / Q() Expressions — Import Requirement
+
+⚠️ CRITICAL: If any view compares one field to another on the same
+model (e.g. `quantity__lt=F('low_stock_threshold')`), or uses `Q()`,
+`Count()`, `Sum()`, `Avg()`, `Max()`, `Min()`, or similar query
+expressions/aggregates, you MUST have `from django.db import models`
+at the top of views.py and reference them as `models.F(...)`,
+`models.Q(...)`, `models.Count(...)`, etc.
+
+This is a SEPARATE import from importing your own app's models
+(`from .models import Product`) — missing it is a guaranteed
+NameError crash on the very first request to that view, e.g.:
+`NameError: name 'models' is not defined`.
+
+Common trigger: dashboard/inventory-style views comparing a field
+against a threshold field on the same row (low stock alerts, overdue
+items, quota checks) — any `F('some_other_field')` comparison needs
+this import.
+
 ## Admin (admin_py)
 
 ### Required Imports (ALWAYS include these)
