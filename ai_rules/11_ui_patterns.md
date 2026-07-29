@@ -129,12 +129,6 @@ on contract," not "Task 1."
 - [ ] Every color/font/radius/shadow class references the chosen
       Design System's CSS variables — no hardcoded indigo/gray/
       `rounded-lg` leftover from the structural reference examples below
-- [ ] IF Design System F (Data Dashboard): every numeric value uses
-      `font-mono`/tabular-nums, trend indicators use positive/negative
-      colors distinct from brand, tables have sticky headers + zebra rows
-- [ ] IF Design System G (Playful Game): score/streak numbers are
-      never plain ink color, primary buttons use `.btn-pop`, correct/
-      incorrect feedback has a distinct color AND a scale/motion cue
 
 ---
 
@@ -146,14 +140,23 @@ on contract," not "Task 1."
 | Public Blog / Content / Read-Only / Articles | Footer 2A/2B | Navbar 2A/2B | Card 2A/2B |
 | Public Full CRUD / SaaS / Dashboard / User Accounts | Footer 3A/3B | Navbar 3A/3B | Card 3A/3B |
 | Education / School / LMS / CBT / Student Portal | Footer 4A/4B | Navbar 4A/4B | Card 4A/4B |
-| Games / Quizzes / Gamified / Leaderboards | Footer 3A/3B | Navbar 3B (restyled per System G) | Card 3B (restyled per System G, see Score/Leaderboard patterns above) |
+| Data-heavy Dashboard / Analytics / Admin Console | Sidebar Shell (Section 5) — no navbar/footer | — | Card 5A/5B |
+| Game / Quiz / Coding Exercise / Interactive Challenge | HUD Shell (Section 6) — no navbar/footer | — | Card 6A/6B |
 
-⚠️ Trigger words that MUST classify as Games, not SaaS: "quiz", "trivia",
-"streak", "leaderboard", "points", "score", "level up", "badges",
-"challenge". If ANY of these appear in the prompt describing the core
-mechanic (not just a minor feature), app_type MUST be a Games
-classification and Design System G MUST be used — do not default to
-Public SaaS just because the app also has user accounts and CRUD.
+**Data-heavy Dashboard vs. Public SaaS (row 3):** if the app's PRIMARY
+surface is charts/tables/metrics viewed constantly by a logged-in user
+(analytics, admin console, ops dashboard) → use the Section 5 Sidebar
+Shell instead of Navbar 3. If it's a SaaS product where the dashboard
+is just one of several pages alongside marketing/settings/billing →
+Navbar 3 is still right, and individual dashboard PAGES can still use
+Card 5A/5B for stat displays.
+
+**Game/Quiz trigger words:** game, quiz, coding exercise, interactive
+challenge, puzzle, timed test, practice problem, tic-tac-toe/hangman/
+memory-match style mini-games. Use the Section 6 HUD Shell — these
+should NOT get a normal navbar/footer at all; full chrome breaks
+immersion and wastes screen space on what's usually a small, focused
+interaction.
 
 **If the app has ANY public-facing pages, use Footer/Navbar/Card 2, 3, or
 4 — NOT the Private (1) set.**
@@ -171,24 +174,35 @@ page with `NoReverseMatch` the instant it renders.
 
 ## Design System Selection
 
+⚠️ TOKEN-EFFICIENCY REQUIREMENT: Do NOT reproduce a Design System's full
+CSS variable block inline in every build — this is the single biggest
+cause of truncated/incomplete AI responses. Each system is pre-built as
+a static CSS file. Emit ONE line referencing it instead of the ~20-line
+`<style>` block:
+
+```html
+<link rel="stylesheet" href="{% static 'design_systems/editorial.css' %}">
+```
+
+File names, one per system: `editorial.css`, `technical-mono.css`,
+`warm-soft.css`, `brutalist.css`, `modern-bold.css`. Still include the
+matching Google Fonts `<link>` (that part is short and varies too much
+to templatize). Only the CSS variables + base rules move to the static
+file — never regenerate that block by hand.
+
 Pick ONE based on the project's actual subject matter and tone — not
 randomly, not always the same one. Rough guide:
 
 | Vibe / Industry signal | Design System |
 |---|---|
 | Content, writing, publications, personal brand, portfolio, editorial | **A — Editorial** |
-| Tech tools, internal admin systems, engineering-facing, low data density | **B — Technical Mono** |
+| Tech tools, internal dashboards, admin systems, data-heavy, engineering | **B — Technical Mono** |
 | Youth-facing, wellness, community, food, lifestyle, friendly products | **C — Warm Soft** |
 | Print-poster, zine, retro-web, intentionally raw/anti-corporate | **D — Brutalist** |
 | Modern SaaS, startups, events, product launches — bold but sleek, not raw | **E — Modern Bold** |
-| Data-dense analytics dashboards, KPI monitoring, admin panels with charts/tables as the PRIMARY content | **F — Data Dashboard** |
-| Games, quizzes, interactive challenges, gamified learning, leaderboards, anything with scores/streaks/levels | **G — Playful Game** |
+| Premium/luxury, high-end services, boutique brands, exclusivity | **G — Midnight Luxury** |
+| Developer tools, technical docs, code-adjacent, restrained/professional dark | **H — Dark Minimal** |
 | Genuinely unsure / nothing fits | Default to **A — Editorial** — it's the safest broad fit, never Inter/indigo defaults |
-
-⚠️ B vs F: both are technical/dark, but B is for admin CRUD screens
-where forms and record lists dominate — F is specifically for screens
-where CHARTS, KPI numbers, and data tables ARE the product. If the
-project's core value is "see your metrics at a glance," use F, not B.
 
 ⚠️ Do not confuse "bold" with "brutalist." Brutalist (D) is a specific
 retro/print-poster aesthetic — hard offset shadows, flat primary
@@ -411,142 +425,44 @@ a flat shadow.
 
 ---
 
----
+### Design System G — Midnight Luxury
 
-### Design System F — Data Dashboard
-
-Built for screens where charts, KPI numbers, and tables ARE the
-content — not a form-heavy admin panel with the occasional stat card.
-Dense information hierarchy, a restrained accent used only for
-data-viz (never decoration), generous use of tabular-nums for anything
-that's a real number.
+Premium, elegant dark. Warm gold accent against near-black, serif
+display type. For high-end/boutique/exclusive-feeling brands — the
+opposite mood of Modern Bold's tech-startup energy.
 
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --font-body: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-    --bg: #F7F8FA;
-    --surface: #FFFFFF;
-    --surface-alt: #F0F2F5;
-    --ink: #111827;
-    --ink-muted: #6B7280;
-    --brand: #0EA5E9;
-    --brand-hover: #0284C7;
-    --positive: #16A34A;
-    --negative: #DC2626;
-    --border: #E5E7EB;
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --shadow-card: 0 1px 3px rgba(17,24,39,0.06), 0 1px 2px rgba(17,24,39,0.04);
-  }
-  body { font-family: var(--font-body); background: var(--bg); color: var(--ink); }
-  .font-mono, .stat-value, table td.numeric { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'design_systems/midnight-luxury.css' %}">
 ```
 
-Usage pattern: every numeric value (stat cards, table cells, chart
-labels) gets `font-mono` — this is the single strongest signal of a
-dashboard system. Positive/negative trend indicators use
-`text-[var(--positive)]`/`text-[var(--negative)]`, NEVER the brand
-color, so trend meaning stays visually distinct from brand accent.
-Cards use `bg-[var(--surface)] shadow-[var(--shadow-card)]
-rounded-[var(--radius-md)] border border-[var(--border)]` — the
-border+shadow combo (not one or the other) reads as "data container,"
-distinct from Editorial/Warm Soft's shadow-only cards. Tables get
-zebra striping via `even:bg-[var(--surface-alt)]`, sticky headers
-(`sticky top-0 bg-[var(--surface)]`), and right-aligned numeric
-columns (`text-right` + `font-mono`). Charts (if using an inline
-`<canvas>`/svg approach, no JS charting library available) should use
-`--brand` as the primary series color and `--ink-muted` at low opacity
-for gridlines — never rainbow multi-color for a single-series chart.
-
-KPI stat card pattern:
-```html
-<div class="bg-[var(--surface)] border border-[var(--border)] shadow-[var(--shadow-card)] rounded-[var(--radius-md)] p-5">
-    <div class="flex items-center justify-between mb-1">
-        <p class="text-sm text-[var(--ink-muted)]">{{ label }}</p>
-        <span class="text-xs font-mono {{ trend_positive|yesno:'text-[var(--positive)],text-[var(--negative)]' }}">
-            {{ trend_positive|yesno:'▲,▼' }} {{ trend_value }}%
-        </span>
-    </div>
-    <p class="text-3xl font-mono font-semibold text-[var(--ink)]">{{ value }}</p>
-</div>
-```
+Usage pattern: generous negative space, thin gold borders used
+sparingly (not on every element), headline type set larger and looser
+(`tracking-wide`) than other systems — restraint is the point, not
+density.
 
 ---
 
-### Design System G — Playful Game
+### Design System H — Dark Minimal
 
-Built for anything score-driven or gamified: quizzes, learning
-challenges, leaderboards, streak trackers. High-energy, rounded,
-saturated — but still legible and usable, not a literal game HUD.
-Motion and celebratory feedback matter more here than in any other
-system.
+Restrained, monochrome dark with exactly one accent color. GitHub/
+Vercel/developer-tool territory — for technical docs, code-adjacent
+products, or any dark-mode request that should read as professional
+and quiet rather than dramatic.
 
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --font-display: 'Baloo 2', sans-serif;
-    --font-body: 'Manrope', sans-serif;
-    --bg: #FFF3E0;
-    --surface: #FFFFFF;
-    --ink: #2B1E12;
-    --ink-muted: #8A7862;
-    --brand: #FF3D68;
-    --brand-hover: #E8264F;
-    --gold: #FFB800;
-    --success: #22C55E;
-    --border: #2B1E12;
-    --radius-md: 18px;
-    --radius-full: 999px;
-    --shadow-pop: 0 6px 0 0 var(--border);
-  }
-  body { font-family: var(--font-body); background: var(--bg); color: var(--ink); }
-  h1, h2, h3, .font-display { font-family: var(--font-display); font-weight: 700; }
-  .btn-pop { box-shadow: var(--shadow-pop); transition: transform 0.1s, box-shadow 0.1s; }
-  .btn-pop:active { transform: translateY(4px); box-shadow: 0 2px 0 0 var(--border); }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'design_systems/dark-minimal.css' %}">
 ```
 
-Usage pattern: primary actions (Start Quiz, Submit Answer, Claim
-Reward) use `.btn-pop` — a thick bottom "shadow" that compresses on
-press, giving tactile game-button feedback (no library needed, pure
-CSS). Score/streak/XP numbers use `font-display` at large sizes with
-`text-[var(--gold)]` or `text-[var(--brand)]`, never plain
-`text-[var(--ink)]` — numbers that matter to the player should always
-read as celebratory. Progress bars use `rounded-[var(--radius-full)]`
-with a `--brand`-to-`--gold` gradient fill, never a flat single color.
-Leaderboard rows: 1st/2nd/3rd place get a distinct badge color
-(`--gold`, `#C0C0C0`-ish silver, `#CD7F32`-ish bronze) — never render
-all ranks identically. Correct/incorrect answer feedback uses
-`--success` (green, with a subtle scale-up animation on correct) vs
-`--brand` (used as an error/miss color here, not just accent) —
-`transition-transform` + a brief `scale-105` pulse on correct answers
-adds the "juice" this system's whole identity depends on.
+Usage pattern: almost no shadows (`--shadow-card: none`, matches
+Technical Mono's approach), a single blue accent (`--brand`) used
+sparingly for links/primary actions only, borders do the separation
+work instead of elevation.
 
-Score/streak display pattern:
-```html
-<div class="inline-flex items-center gap-2 bg-[var(--surface)] border-2 border-[var(--border)] rounded-[var(--radius-full)] px-4 py-2 shadow-[var(--shadow-pop)]">
-    <span class="text-xl">🔥</span>
-    <span class="font-display text-xl text-[var(--brand)]">{{ streak_count }} day streak</span>
-</div>
-```
-
-Leaderboard row pattern:
-```html
-<div class="flex items-center gap-4 bg-[var(--surface)] border-2 border-[var(--border)] rounded-[var(--radius-md)] p-4">
-    <span class="font-display text-2xl w-8 text-center" style="color: {{ rank_color }}">{{ rank }}</span>
-    <div class="flex-1">
-        <p class="font-semibold">{{ player_name }}</p>
-        <p class="text-sm text-[var(--ink-muted)]">{{ points }} pts</p>
-    </div>
-</div>
-```
+---
 
 ## Applying a Design System to the Structural Templates
 
@@ -746,9 +662,13 @@ Layout: icon badge left, label + large percentage/value right.
 `base.html` MUST contain:
 - `<!DOCTYPE html>` structure
 - Tailwind CSS CDN in `<head>`
-- The chosen Design System's Google Fonts `<link>` + `<style>` block
-  (from the Design System section above) in `<head>`, AFTER the
-  Tailwind CDN script tag
+- The chosen Design System's Google Fonts `<link>` tag, AND a
+  `<link rel="stylesheet" href="{% static 'design_systems/<name>.css' %}">`
+  tag referencing the matching static file — NEVER an inline `<style>`
+  block reproducing the variables (see Token-Efficiency Requirement
+  above). Both go in `<head>`, AFTER the Tailwind CDN script tag.
+- `{% load static %}` at the very top of the template, above
+  `<!DOCTYPE html>` — required for the `{% static %}` tag to work
 - The chosen navbar variant, restyled per the Design System, inside
   `{% block navbar %}{% endblock %}`
 - Flash messages area

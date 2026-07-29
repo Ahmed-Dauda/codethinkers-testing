@@ -392,7 +392,10 @@
 {% block header %}
 <div style="display: flex; gap: 16px; align-items: center; width: 100%;">
     <a style="color: white;" href="{% url 'webprojects:create_project' %}">📁 {{ file.project.name }} — 📝 {{ file.name }}</a>
+    
     <span style="color: #94a3b8; font-size: 1.1em; white-space: nowrap; margin-left: 8px;">👤 {{ request.user.first_name|default:request.user.username }} {{ request.user.last_name|default:'' }}</span>
+    <button onclick="location.href="{% url 'webprojects:create_project' %}" style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-family: Arial, sans-serif;">Create Apps</button>
+  
     <button id="toggleEditorBtn" onclick="toggleEditor()" style="background: #2ecc71; color: #fff; border: none; border-radius: 20px; padding: 4px 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-left: auto;" onmouseover="this.style.background='#27ae60'" onmouseout="this.style.background='#2ecc71'">✕ Hide Editor</button>
     
     <div id="xpDisplay" style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; background: #2a2d2e; border-radius: 20px; border: 1px solid #3c3c3c; font-size: 14px; font-weight: 500; color: #e0e0e0; margin-left: 16px;">
@@ -610,6 +613,7 @@
 
   <button id="aiToggleBtn" onclick="toggleAIPanel()" style="background:#6366f1; color:white; padding:6px 14px; border:none; border-radius:4px; font-size:0.9em; cursor:pointer;">🤖 AI Assistant</button>
   <button id="runBtnCode" onclick="runCode()" style="background:#2ecc71; color:white; padding:6px 14px; border:none; border-radius:4px; font-size:0.9em; cursor:pointer;">▶ Run Code</button> 
+    
 </div>
 
 <!-- ===== MOBILE BOTTOM BAR ===== -->
@@ -647,11 +651,13 @@
 <!-- ===== FLOATING AI PANEL ===== -->
 <div id="floatingAI" style="position: fixed; top: 60px; right: 20px; width: 480px; min-height: 350px; max-height: 80vh; background: #fff; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: none; flex-direction: column; z-index: 9999;">
   <!-- Drag Handle -->
+   
   <div id="dragHandle" style="cursor: grab; padding: 10px 14px; background: #f8f9fa; border-bottom: 1px solid #e9ecef; border-radius: 10px 10px 0 0; display:flex; align-items:center; justify-content:space-between;">
     <span style="font-weight:600; font-size:14px; color:#333;">🤖 AI Assistant</span>
     <button class="close-panel-btn" onclick="closeAIPanel()" title="Close" style="background: none; border: none; font-size: 20px; color: #888; cursor: pointer; padding: 2px 8px; border-radius: 4px; line-height:1;" onmouseover="this.style.background='#fee2e2';this.style.color='#dc2626';" onmouseout="this.style.background='none';this.style.color='#888';">&times;</button>
   </div>
-  
+
+   
   <!-- Tabs -->
 <div style="display:flex; border-bottom:2px solid #e9ecef; background:#f8f9fa;">
     <button id="appBuilderTab" class="ai-tab" onclick="switchToAppBuilder()" style="flex:1; padding:12px 16px; border:none; background:none; cursor:pointer; border-bottom:3px solid #007bff; font-weight:600; font-size:13px; color:#007bff; transition:all 0.2s;">🏗️ Build Project</button>
@@ -685,7 +691,7 @@
     <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
     <button onclick="document.getElementById('aiPrompt').value='Build a simple Tic Tac Toe game as a single-page app. Use ONLY one view rendering one template. No models needed. The template should contain: Complete HTML with Tailwind CSS CDN, A 3x3 grid of clickable cells using JavaScript for game logic, Two players alternate clicking cells to place X and O, Display current player turn at the top, Detect and highlight winning combination, Detect draw when all cells are filled, Show winner announcement popup, Reset/New Game button, Score tracker for both players, Large emoji (❌ and ⭕) for markers, Hover effects on empty cells, Clean game-like design with shadows and rounded corners'; runAIBuild()" style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;" title="Game">🎮 Tic Tac Toe</button>
 <button onclick="document.getElementById('aiPrompt').value='Build a personal writing portfolio for a freelance essayist. Visitors can browse published essays, read full pieces, and see an About page with a short bio. No login needed — this is just a public showcase of my writing.'; runAIBuild()" style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;" title="Education">Author Portfolio</button>
-<button onclick="document.getElementById('aiPrompt').value='Build a personal task management app called SoloWorks with: Task model with title, completed, due_date, user (ForeignKey to User), TaskListView filtered by self.request.user, TaskCreateView with form.instance.user = self.request.user, DashboardView showing task stats for self.request.user, User can only see/edit their own tasks'; runAIBuild()" style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;" title="SoloWorks">SoloWorks</button>
+<button onclick="document.getElementById('aiPrompt').value='Build a personal task management app called SoloWorks with: Task model with title, completed, due_date, user (ForeignKey to User), TaskListView filtered by self.request.user, TaskCreateView with form.instance.user = self.request.user, DashboardView showing task stats for self.request.user, User can only see/edit their own tasks'; runAIBuild()" style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;" >SoloWorks</button>
 <button onclick="document.getElementById('aiPrompt').value='Build an inventory dashboard with Product model (name, sku, quantity, price, category, low_stock_threshold, last_restocked). Show total products count, low stock alerts with red badges, stock value summary card, recent restocks table, category distribution chart, and quick search bar. Use Tailwind CSS with a warehouse-style design.'; runAIBuild()" style="font-size:11px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:20px;background:#f8f9fa;cursor:pointer;white-space:nowrap;" title="Dashboard">Inventory Dashboard</button>
     </div>
 
@@ -708,6 +714,7 @@
     <div style="display:flex; gap:8px; margin-bottom:8px;">
       <input id="fileChatPrompt" placeholder="e.g., Add form validation, fix the header..." style="flex:1; padding:10px 12px; font-size:14px; border:1px solid #ddd; border-radius:6px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#28a745'" onblur="this.style.borderColor='#ddd'"/>
       <button id="applyBtn" onclick="applyChanges()" style="padding:10px 16px; background:#28a745; color:white; font-size:14px; font-weight:600; border:none; border-radius:6px; cursor:pointer; white-space:nowrap; transition:all 0.2s;" onmouseover="this.style.background='#1e7e34'" onmouseout="this.style.background='#28a745'">💾 Apply</button>
+      <button id="publishBtn" onclick="publishFile()" style="background:#f59e0b; color:white; padding:6px 14px; border:none; border-radius:4px; font-size:0.9em; cursor:pointer;">📤 save changes</button> 
     </div>
 
     <!-- Output area -->
@@ -1916,5 +1923,42 @@ document.getElementById("run-btn").addEventListener("click", async () => {
         }
     } catch (err) {}
 })();
+
+
+
+async function publishFile() {
+    const btn = document.getElementById('publishBtn');
+    const content = editor.getValue();
+    const FILE_ID = {{ file.id }};
+    
+    btn.disabled = true;
+    btn.textContent = '⏳ Publishing...';
+    
+    try {
+        const res = await fetch(`/webprojects/project/{{ project.id }}/file/${FILE_ID}/publish/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({ content: content })
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            showToast('✅ Published! ' + (data.message || ''), 'success');
+            if (data.restart) {
+                showToast('🔄 Server restarted', 'info');
+            }
+        } else {
+            showToast('❌ ' + (data.message || 'Failed'), 'error');
+        }
+    } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '📤 Publish';
+    }
+}
 </script>
 {% endblock %}

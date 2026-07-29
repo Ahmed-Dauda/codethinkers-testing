@@ -783,6 +783,7 @@
         </form>
 
         <div class="nav-actions">
+            <button onclick="location.href='{% url 'webprojects:create_project' %}'" style="padding: 10px 20px; background-color: #ef5204; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-family: Arial, sans-serif;">Create Apps</button>
             {% if user.is_authenticated %}
             <div class="user-menu" id="userMenu">
                 <button type="button" id="userMenuTrigger" aria-haspopup="true" aria-expanded="false" class="user-menu-trigger">
@@ -1007,7 +1008,9 @@
                 {% if not user.is_authenticated %}
                 <a href="{% url 'account_login' %}" class="btn btn--primary">Join Free Now</a>
                 {% endif %}
+                <button onclick="location.href='{% url 'webprojects:create_project' %}'" style="padding: 10px 20px; background-color: #3f04ef; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-family: Arial, sans-serif;">Create Apps</button>
                 <a href="mailto:codethinkersa@gmail.com" class="btn btn--outline">Contact Us</a>
+                
             </div>
             {% if user.is_authenticated %}
                 <h2>Welcome, {{ user.first_name|default:user.email }}!</h2>

@@ -11,6 +11,7 @@ upload_file_ajax,update_active_topic ,explain_code_view,load_project_files ,vali
 app_name = 'webprojects'
 
 urlpatterns = [
+    path('project/<int:project_id>/file/<int:file_id>/publish/', views.publish_file, name='publish_file'),
     path('project/<int:project_id>/delete/', views.delete_my_project, name='delete_my_project'),
     path('platform-settings/update/', views.update_platform_settings, name='update_platform_settings'),
     path('project/<int:project_id>/activate/', views.activate_project, name='activate_project'),

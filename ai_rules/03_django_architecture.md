@@ -116,9 +116,18 @@ class ExportAdminMixin:
         return response
     export_as_docx.short_description = "Export selected as Word document"
 ```
+
 ⚠️ CRITICAL: `admin.py` MUST import every model it registers. The FIRST line after the imports should be:
 ```python
 from .models import ModelName1, ModelName2, ModelName3
+```
+
+⚠️ SELF-CHECK BEFORE RETURNING: Does your admin.py contain the literal
+text `class ExportAdminMixin`? Does EVERY `class XAdmin(...)` line
+contain `ExportAdminMixin` inside its parentheses? If either answer is
+no, your admin.py is incomplete and WILL fail validation. This has
+been the single most common validation failure — check it explicitly,
+every time, before finalizing your response.
 
 ### Every ModelAdmin MUST include ALL of these:
 ```python
@@ -136,3 +145,4 @@ class ModelNameAdmin(ExportAdminMixin, admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('fk_field1', 'fk_field2').order_by('-id')
+```

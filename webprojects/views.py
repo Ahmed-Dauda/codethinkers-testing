@@ -174,6 +174,72 @@ def voice_chat_tutor(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+def _auto_capture_failure(failure_summary, validation_errors):
+    """Extract new failure patterns and append them to 13_common_fixes.md
+    so the same bug class never slips through twice."""
+    
+    fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
+    if not fixes_path.exists():
+        return
+    
+    existing_content = fixes_path.read_text(encoding="utf-8")
+    
+    # Extract existing FIX numbers to avoid collisions
+    existing_fixes = set(re.findall(r'FIX-(\d{3})', existing_content))
+    next_num = max(int(n) for n in existing_fixes) + 1 if existing_fixes else 13
+    
+    new_entries = []
+    
+    # Extract unique error signatures
+    error_lines = []
+    if validation_errors:
+        error_lines.extend(validation_errors)
+    if failure_summary:
+        # Grab first meaningful line of each error block
+        for line in failure_summary.split('\n'):
+            line = line.strip()
+            if line.startswith('❌') or line.startswith('⚠️'):
+                error_lines.append(line)
+    
+    seen_signatures = set()
+    for error in error_lines:
+        # Create a short signature from the error
+        signature = error[:120].strip()
+        if signature in seen_signatures:
+            continue
+        seen_signatures.add(signature)
+        
+        # Skip if this exact symptom already exists
+        if signature in existing_content:
+            continue
+        
+        fix_num = f"FIX-{next_num:03d}"
+        new_entry = f"""
+---
+
+## {fix_num}: [TODO: Name this error]
+**Symptom:** `{signature}`
+**Cause:** [TODO: Add root cause]
+**Fix instruction for AI retry:** "[TODO: Add specific fix steps]"
+"""
+        new_entries.append(new_entry)
+        next_num += 1
+    
+    if new_entries:
+        # Append before the "How to add a new fix" section
+        insertion_point = existing_content.rfind("## How to add a new fix:")
+        if insertion_point == -1:
+            insertion_point = len(existing_content)
+        
+        updated_content = (
+            existing_content[:insertion_point] +
+            "\n".join(new_entries) + "\n" +
+            existing_content[insertion_point:]
+        )
+        
+        fixes_path.write_text(updated_content, encoding="utf-8")
+        print(f"📝 Auto-captured {len(new_entries)} new failure pattern(s) to 13_common_fixes.md")
+        print(f"   TODO: Edit the file to add 'Cause' and 'Fix instruction' for each [TODO] entry")
 
 
 @login_required
@@ -191,13 +257,13 @@ def create_project(request):
                 })
 
             # ---------------- COURSE RESOLUTION ----------------
-            course = None
-            if course_id:
-                course = Courses.objects.filter(pk=course_id).first()
-            if not course:
-                course = Courses.objects.filter(title=name).first()
-            print("CREATE PROJECT COURSE:", course)
-            # ---------------------------------------------------
+            # course = None
+            # if course_id:
+            #     course = Courses.objects.filter(pk=course_id).first()
+            # if not course:
+            #     course = Courses.objects.filter(title=name).first()
+            # print("CREATE PROJECT COURSE:", course)
+            # # ---------------------------------------------------
 
             # Prevent duplicate projects per user
             existing_project = Project.objects.filter(
@@ -236,7 +302,7 @@ def create_project(request):
             project = Project.objects.create(
                 user=request.user,
                 name=name,
-                course=course,
+                # course=course,
                 topic=None,
                 prompt=None  # Will be set during AI build
             )
@@ -296,6 +362,8 @@ def create_project(request):
     })    
 
 
+
+
 @login_required
 @require_http_methods(["POST"])
 def subscribe_project(request, project_id):
@@ -352,7 +420,9 @@ def update_platform_settings(request):
         })
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
-    
+
+  
+
 
 # editor/views.py
 # views.py
@@ -483,6 +553,7 @@ def project_detail(request, project_id):
         'files': files,
         'folders': folders
     })
+
 
 
 
@@ -776,59 +847,6 @@ def project_files_json(request, project_id):
     })
    
 
-
-def restart_server_only(project):
-    """Restart the dev server process using files already on disk —
-    no rmtree, no re-export from DB. Use this after a direct disk edit
-    (like the AI file editor) that's already in sync with the DB, so
-    .py changes actually take effect without risking a full-rebuild
-    override of anything else."""
-    export_dir = Path(settings.BASE_DIR) / "generated_projects" / str(project.id)
-
-    if not export_dir.exists():
-        return {"status": "error", "message": "Project not yet built — run it first."}
-
-        kill_previous_server(export_dir, project.id)
-    time.sleep(1)  # Wait for OS to release the port
-
-    settings_file = next(export_dir.glob("*/settings.py"), None)
-    
-    if not settings_file:
-        return {"status": "error", "message": "No settings.py found on disk."}
-    project_name = settings_file.parent.name
-
-    env = build_subprocess_env(export_dir, project_name, project.id)
-
-    try:
-        proc, PORT = start_dev_server(export_dir, env, project)
-    except RuntimeError as e:
-        return {"status": "error", "step": "runserver", "message": str(e)}
-
-    _running_servers[project.id] = proc
-    get_pidfile_path(export_dir).write_text(str(proc.pid))
-
-    # Preserve the existing admin password rather than generating a new one
-    admin_password = None
-    info_path = get_info_path(export_dir)
-    if info_path.exists():
-        try:
-            admin_password = json.loads(info_path.read_text()).get("admin_password")
-        except (json.JSONDecodeError, KeyError):
-            pass
-
-    info_path.write_text(json.dumps({
-        "pid": proc.pid,
-        "port": PORT,
-        "admin_password": admin_password,
-    }))
-
-    return {
-        "status": "success",
-
-      "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{port}/",
-        "admin_url": f"http://127.0.0.1:{PORT}/admin/",
-        "port": PORT,
-    }
 
 
 @csrf_protect
@@ -2036,7 +2054,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 import json
 
-def _safe_rename(src: Path, dst: Path, retries: int = 30, delay: float = 1.0):
+def _safe_rename(src: Path, dst: Path, retries: int = 60, delay: float = 1.0):
     """Windows can hold file handles open briefly after a process is killed
     (SQLite connections, runserver's autoreload child process, antivirus
     scanning, etc.), causing os.rename to fail with WinError 32 even though
@@ -2157,7 +2175,6 @@ import psutil  # pip install psutil
 def get_pidfile_path(export_dir):
     return export_dir / ".runserver.pid"
 
-
 def kill_previous_server(export_dir, project_id):
     """Kill any previous server for this project — whether tracked in
     memory (same process lifetime) or orphaned (host app restarted)."""
@@ -2172,21 +2189,31 @@ def kill_previous_server(export_dir, project_id):
             old_proc.wait()
 
     # 2. Also check the pidfile in case the host app restarted and lost
-    # track of it in memory (this is what's biting you right now)
+    # track of it in memory
     pidfile = get_pidfile_path(export_dir)
     if pidfile.exists():
         try:
             pid = int(pidfile.read_text().strip())
             if psutil.pid_exists(pid):
                 p = psutil.Process(pid)
+                # Kill child processes first (Django's autoreloader spawns a child)
+                try:
+                    children = p.children(recursive=True)
+                    for child in children:
+                        child.terminate()
+                    psutil.wait_procs(children, timeout=5)
+                except (psutil.NoSuchProcess, psutil.TimeoutExpired):
+                    pass
                 p.terminate()
                 p.wait(timeout=5)
         except (ValueError, psutil.NoSuchProcess, psutil.TimeoutExpired):
             pass
         finally:
             pidfile.unlink(missing_ok=True)
+    
+    # 3. Wait for Windows to release file handles
+    time.sleep(1)
 
-_running_servers = {}
 
 import socket
 import time
@@ -2198,6 +2225,7 @@ def is_port_free(port):
             return True
         except OSError:
             return False
+
 
 
 def get_or_assign_port(project):
@@ -2250,7 +2278,6 @@ def wait_for_server(port, timeout=20, warmup=True):
             time.sleep(0.3)
     return False, None
 
-
 def start_dev_server(export_dir, env, project, max_attempts=3):
     """Start Django dev server. Autoreload is left ON (Django's own
     file-watcher) so ordinary .py edits are picked up automatically and
@@ -2281,7 +2308,7 @@ def start_dev_server(export_dir, env, project, max_attempts=3):
         print(f"🚀 Starting server on port {port} (attempt {attempt + 1})")
 
         proc = subprocess.Popen(
-            [sys.executable, "manage.py", "runserver", "--noreload", "--nothreading" if False else "--noreload", str(port)],
+            [sys.executable, "manage.py", "runserver", "--noreload", str(port)],
             cwd=export_dir,
             env=env,
             stdout=subprocess.PIPE,
@@ -2289,7 +2316,6 @@ def start_dev_server(export_dir, env, project, max_attempts=3):
             text=True,
         )
 
-        # Wait for initial bind with longer timeout
         time.sleep(5)
 
         if proc.poll() is not None:
@@ -2299,7 +2325,6 @@ def start_dev_server(export_dir, env, project, max_attempts=3):
             print(f"--- stderr ---\n{stderr}")
             continue
 
-        # Check if server is responding with longer timeout
         print(f"⏳ Checking if server is responding on port {port}...")
         up, status_code = wait_for_server(port, timeout=20, warmup=True)
 
@@ -2308,7 +2333,7 @@ def start_dev_server(export_dir, env, project, max_attempts=3):
             try:
                 response2 = requests.get(f"http://127.0.0.1:{port}/", timeout=2)
                 if response2.status_code < 500:
-                    return True, response2.status_code
+                    return proc, port
             except:
                 pass
 
@@ -2341,6 +2366,67 @@ def start_dev_server(export_dir, env, project, max_attempts=3):
             continue
 
     raise RuntimeError(f"Could not start dev server after {max_attempts} attempts")
+
+
+
+def restart_server_only(project):
+    """Restart the dev server process using files already on disk."""
+    export_dir = Path(settings.BASE_DIR) / "generated_projects" / str(project.id)
+
+    if not export_dir.exists():
+        return {"status": "error", "message": "Project not yet built — run it first."}
+
+    # Get the OLD port before killing the server
+    old_port = None
+    info_path = get_info_path(export_dir)
+    if info_path.exists():
+        try:
+            old_info = json.loads(info_path.read_text())
+            old_port = old_info.get("port")
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    kill_previous_server(export_dir, project.id)
+    time.sleep(2)
+
+    settings_file = next(export_dir.glob("*/settings.py"), None)
+    if not settings_file:
+        return {"status": "error", "message": "No settings.py found on disk."}
+    project_name = settings_file.parent.name
+
+    env = build_subprocess_env(export_dir, project_name, project.id)
+
+    try:
+        # Use old port if available, otherwise assign new
+        if old_port:
+            project.assigned_port = old_port
+            project.save(update_fields=['assigned_port'])
+        proc, PORT = start_dev_server(export_dir, env, project)
+    except RuntimeError as e:
+        return {"status": "error", "step": "runserver", "message": str(e)}
+
+    _running_servers[project.id] = proc
+    get_pidfile_path(export_dir).write_text(str(proc.pid))
+
+    admin_password = None
+    if info_path.exists():
+        try:
+            admin_password = json.loads(info_path.read_text()).get("admin_password")
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    info_path.write_text(json.dumps({
+        "pid": proc.pid,
+        "port": PORT,
+        "admin_password": admin_password,
+    }))
+
+    return {
+        "status": "success",
+        "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{PORT}/",
+        "admin_url": f"http://127.0.0.1:{PORT}/admin/",
+        "port": PORT,
+    }
 
 
 
@@ -2657,6 +2743,8 @@ def _restore_sqlite_db(export_dir, backup):
         print(f"✅ Restored {list(backup.keys())} — user data preserved")
 
 
+
+
 def rebuild_and_start_project(project):
     """Full rebuild: kill any running server, re-export files from DB,
     check/makemigrations/migrate/createsuperuser, and start a fresh
@@ -2867,7 +2955,7 @@ def rebuild_and_start_project(project):
         "status": "success",
         "message": "Project started successfully.",
 
-      "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{port}/",
+        "preview_url": f"https://{getattr(project, 'subdomain', None) or f'project-{project.id}'}.codethinkers.org/" if os.environ.get('PRODUCTION') else f"http://127.0.0.1:{PORT}/",
         "admin_url": f"http://127.0.0.1:{PORT}/admin/",
         "admin_credentials": {"username": "admin", "password": admin_password},
         "check_output": check.stdout,
@@ -3226,6 +3314,7 @@ def inject_admin_branding(urls_content, project_name, app_name):
     return urls_content
 
 
+
 def build_admin_custom_css():
     return """
 /* ── Modern admin theme ── */
@@ -3303,6 +3392,7 @@ body { font-family: var(--font-family-primary); background: #f9fafb; }
 """
 
 
+
 def build_admin_base_site_html():
     return """{% extends "admin/base_site.html" %}
 {% load static %}
@@ -3360,6 +3450,47 @@ def validate_and_repair_python_files(files_dict):
     return files_dict, unrecoverable
 
 
+def _ensure_login_required_on_user_views(views_content):
+    """Scan every view class in views.py — if it uses self.request.user
+    anywhere in its body, it MUST inherit LoginRequiredMixin or it
+    crashes with TypeError for anonymous visitors (self.request.user
+    is AnonymousUser, not None, so most code paths fail loudly).
+    Previous auto-fix only patched the first offending view found —
+    this fixes ALL of them in one pass."""
+    if not views_content or 'self.request.user' not in views_content:
+        return views_content
+
+    class_pattern = re.compile(r'class\s+(\w+)\s*\(([^)]*)\)\s*:')
+    matches = list(class_pattern.finditer(views_content))
+
+    for i in range(len(matches) - 1, -1, -1):  # reverse, so earlier positions stay valid as we edit
+        match = matches[i]
+        class_name = match.group(1)
+        base_classes = match.group(2)
+
+        body_start = match.end()
+        body_end = matches[i + 1].start() if i + 1 < len(matches) else len(views_content)
+        class_body = views_content[body_start:body_end]
+
+        if 'self.request.user' not in class_body:
+            continue
+        if 'LoginRequiredMixin' in base_classes:
+            continue
+
+        new_bases = f"LoginRequiredMixin, {base_classes}" if base_classes.strip() else "LoginRequiredMixin"
+        old_class_line = match.group(0)
+        new_class_line = f"class {class_name}({new_bases}):"
+        views_content = views_content[:match.start()] + new_class_line + views_content[match.end():]
+        print(f"🔧 Auto-added LoginRequiredMixin to {class_name} (uses self.request.user)")
+
+    if 'LoginRequiredMixin' in views_content and 'from django.contrib.auth.mixins import LoginRequiredMixin' not in views_content:
+        views_content = 'from django.contrib.auth.mixins import LoginRequiredMixin\n' + views_content
+        print("🔧 Auto-added LoginRequiredMixin import")
+
+    return views_content
+
+
+
 def _assemble_and_autofix_scaffold_files(app_data, app_name, project_name, settings_content, urls_content):
     """Builds the full new_files dict from AI-generated app_data, running every
     deterministic auto-fix pass (template path normalization, missing templates,
@@ -3402,7 +3533,11 @@ def _assemble_and_autofix_scaffold_files(app_data, app_name, project_name, setti
         f"{app_name}/migrations/__init__.py": "",
         f"{app_name}/models.py": default_models,
         f"{app_name}/views.py": app_data.get("views_py", ""),
-        f"{app_name}/admin.py": default_admin,
+                f"{app_name}/admin.py": (
+            build_export_admin_mixin() + "\n\n" + default_admin
+            if default_admin and "class ExportAdminMixin" not in default_admin
+            else default_admin
+        ),
         f"{app_name}/urls.py": default_urls,
         f"{app_name}/tests.py": default_tests,
         "requirements.txt": "Pillow>=10.0.0\npython-docx>=1.0.0\n",
@@ -3521,10 +3656,14 @@ class {model_name}Form(forms.ModelForm):
             # Ensure 'from . import views' exists in urls.py
             if 'from . import views' not in urls_content_app:
                 if 'from django.urls import path' in urls_content_app:
-                    urls_content_app = urls_content_app.replace(
-                        'from django.urls import path',
-                        'from django.urls import path\nfrom . import views'
-                    )
+                    import_pos = urls_content_app.find('from django.urls import path')
+                    if import_pos != -1:
+                        end_of_line = urls_content_app.find('\n', import_pos)
+                        urls_content_app = (
+                            urls_content_app[:end_of_line + 1] +
+                            'from . import views\n' +
+                            urls_content_app[end_of_line + 1:]
+                        )
                 else:
                     urls_content_app = 'from django.urls import path\nfrom . import views\n\n' + urls_content_app
                 print(f"🔧 Auto-added 'from . import views' to urls.py")
@@ -3556,9 +3695,15 @@ class {model_name}Form(forms.ModelForm):
                         missing_urls += f"    path('{model_lower}/<int:pk>/update/', views.{model_name}UpdateView.as_view(), name='{model_lower}_update'),\n"
                     if 'delete' in existing_view_names:
                         missing_urls += f"    path('{model_lower}/<int:pk>/delete/', views.{model_name}DeleteView.as_view(), name='{model_lower}_delete'),\n"
-
+                    
                     if '\n]' in urls_content_app:
-                        urls_content_app = urls_content_app.replace('\n]', '\n' + missing_urls + ']', 1)
+                        bracket_pos = urls_content_app.rfind('\n]')
+                        if bracket_pos != -1:
+                            urls_content_app = (
+                                urls_content_app[:bracket_pos] +
+                                '\n' + missing_urls +
+                                urls_content_app[bracket_pos:]
+                            )
                     else:
                         urls_content_app += f"\nurlpatterns = [\n{missing_urls}]\n"
 
@@ -3582,15 +3727,56 @@ class {model_name}Form(forms.ModelForm):
                 if fk_fields:
                     select_related_line = f"    list_select_related = {tuple(sorted(fk_fields))}\n"
 
+                # Detect timestamp fields on the model
+                model_body_match = re.search(
+                    rf'class\s+{model_name}\s*\(.*?models\.Model.*?\)\s*:(.*?)(?=\nclass\s|\Z)',
+                    models_content, re.DOTALL
+                )
+                timestamp_fields = []
+                if model_body_match:
+                    model_body = model_body_match.group(1)
+                    for ts_field in ['created_at', 'updated_at', 'created', 'updated', 'modified_at', 'modified']:
+                        if re.search(rf'\b{ts_field}\s*=', model_body):
+                            timestamp_fields.append(ts_field)
+                
+                readonly_line = ""
+                get_queryset_method = ""
+                if timestamp_fields:
+                    readonly_line = f"    readonly_fields = {tuple(timestamp_fields)}\n"
+                
+                if fk_fields:
+                    fk_tuple = tuple(sorted(fk_fields))
+                    get_queryset_method = f'''
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related{fk_tuple}.order_by('-id')
+'''
+
                 missing_admin = f'''
 @admin.register({model_name})
 class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
     list_display = ('id', '__str__', 'created_at')
     search_fields = ('id',)
     list_per_page = 25
-{select_related_line}'''
+{readonly_line}{select_related_line}{get_queryset_method}'''
                 admin_content += missing_admin
-                print(f"🔧 Auto-created admin for {model_name} with list_select_related={sorted(fk_fields) if fk_fields else 'none'}")
+                print(f"🔧 Auto-created admin for {model_name} with list_select_related={sorted(fk_fields) if fk_fields else 'none'}, readonly={timestamp_fields}")
+
+    # Auto-fix: Add ExportAdminMixin to ModelAdmin classes missing it.
+    # Positional slicing, same reasoning as the LoginRequiredMixin fix above.
+    if admin_content and models_content:
+        admin_matches = list(re.finditer(
+            r'@admin\.register\((\w+)\)\s*\nclass\s+(\w+)\s*\(([^)]*)\)',
+            admin_content
+        ))
+        for match in reversed(admin_matches):
+            model_name, class_name, bases = match.group(1), match.group(2), match.group(3)
+            if 'ExportAdminMixin' in bases:
+                continue
+            new_bases = f'ExportAdminMixin, {bases}' if bases.strip() else 'ExportAdminMixin'
+            class_decl_start = admin_content.rfind('class', match.start(2) - 6, match.end(3) + 1)
+            new_text = f'@admin.register({model_name})\nclass {class_name}({new_bases})'
+            admin_content = admin_content[:match.start()] + new_text + admin_content[match.end():]
+            print(f"ðŸ”§ Auto-added ExportAdminMixin to {class_name}")
 
     # Auto-fix: Add list_select_related to existing admin classes missing it
     if models_content and admin_content:
@@ -3608,37 +3794,34 @@ class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
                 admin_content = admin_content.replace(match.group(1), replacement)
                 print(f"🔧 Auto-added list_select_related for {model_name}Admin: {sorted(fk_fields)}")
 
-    # Auto-fix: Remove self.request.user if no auth
+
     # Auto-fix: If views use self.request.user, add LoginRequiredMixin
+    # causing some views to be missed with no error at all.
     if views_content and 'self.request.user' in views_content:
-        # Find all class-based views that use self.request.user
-        view_classes = re.finditer(
-            r'class\s+(\w+)\s*\(([^)]*)\)\s*:',
-            views_content
-        )
-        for match in view_classes:
+        matches = list(re.finditer(r'class\s+(\w+)\s*\(([^)]*)\)\s*:', views_content))
+        for i in range(len(matches) - 1, -1, -1):  # reverse: earlier match.start() stays valid as we edit
+            match = matches[i]
             class_name, bases = match.group(1), match.group(2)
-            # Only fix if it doesn't already have LoginRequiredMixin
-            if 'LoginRequiredMixin' not in bases:
-                # Get the class body to check if it uses self.request.user
-                class_start = match.start()
-                # Find next class definition
-                next_class = re.search(r'\nclass\s+\w+\s*\(', views_content[class_start+1:])
-                class_end = class_start + 1 + next_class.start() if next_class else len(views_content)
-                class_body = views_content[class_start:class_end]
-                
-                if 'self.request.user' in class_body:
-                    # Add LoginRequiredMixin
-                    if bases.strip():
-                        new_bases = f'LoginRequiredMixin, {bases}'
-                    else:
-                        new_bases = 'LoginRequiredMixin'
-                    
-                    old_declaration = f'class {class_name}({bases}):'
-                    new_declaration = f'class {class_name}({new_bases}):'
-                    views_content = views_content.replace(old_declaration, new_declaration, 1)
-                    print(f"🔧 Auto-added LoginRequiredMixin to {class_name}")
-        
+
+            if 'LoginRequiredMixin' in bases:
+                continue
+
+            body_start = match.end()
+            body_end = matches[i + 1].start() if i + 1 < len(matches) else len(views_content)
+            class_body = views_content[body_start:body_end]
+
+            if 'self.request.user' not in class_body:
+                continue
+
+            new_bases = f'LoginRequiredMixin, {bases}' if bases.strip() else 'LoginRequiredMixin'
+            new_class_line = f'class {class_name}({new_bases}):'
+            views_content = views_content[:match.start()] + new_class_line + views_content[match.end():]
+            print(f"ðŸ”§ Auto-added LoginRequiredMixin to {class_name}")
+
+        if 'LoginRequiredMixin' in views_content and 'from django.contrib.auth.mixins import LoginRequiredMixin' not in views_content:
+            views_content = 'from django.contrib.auth.mixins import LoginRequiredMixin\n' + views_content
+            print(f"ðŸ”§ Auto-added LoginRequiredMixin import")
+
         # Add the import if missing
         if 'from django.contrib.auth.mixins import LoginRequiredMixin' not in views_content:
             views_content = 'from django.contrib.auth.mixins import LoginRequiredMixin\n' + views_content
@@ -3651,38 +3834,54 @@ class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
         # Create login template
         login_path = f"{app_name}/templates/registration/login.html"
         if login_path not in new_files:
-            new_files[login_path] = (
-                '{% extends "base.html" %}\n'
-                '{% block content %}\n'
-                '<div class="max-w-md mx-auto mt-10 bg-white p-8 rounded-lg shadow">\n'
-                '<h2 class="text-2xl font-bold mb-6">Login</h2>\n'
-                '{% if form.errors %}<p class="text-red-500 mb-4">Invalid username or password.</p>{% endif %}\n'
-                '<form method="post">\n'
-                '{% csrf_token %}\n'
-                '{{ form.as_p }}\n'
-                '<button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg mt-4">Log in</button>\n'
-                '</form>\n'
-                '<p class="text-sm text-gray-500 mt-4 text-center">Don\'t have an account? <a href="#" class="text-indigo-600">Sign up</a></p>\n'
-                '</div>\n'
-                '{% endblock %}\n'
-            )
+            new_files[login_path] = build_login_template()
             print(f"🔧 Auto-created registration/login.html for LoginRequiredMixin views")
 
         # Add accounts/ URL to root urls.py
         if root_urls_path in new_files:
             root_content = new_files[root_urls_path]
             if "django.contrib.auth.urls" not in root_content:
+
                 if 'from django.urls import path, include' not in root_content:
-                    root_content = root_content.replace(
-                        'from django.urls import path',
-                        'from django.urls import path, include'
+                    import_pos = root_content.find('from django.urls import path')
+                    if import_pos != -1:
+                        end_of_line = root_content.find('\n', import_pos)
+                        root_content = (
+                            root_content[:end_of_line] +
+                            ', include' +
+                            root_content[end_of_line:]
+                        )
+                bracket_pos = root_content.find('urlpatterns = [')
+                if bracket_pos != -1:
+                    insert_pos = root_content.find('[', bracket_pos) + 1
+                    root_content = (
+                        root_content[:insert_pos] +
+                        "\n    path('accounts/', include('django.contrib.auth.urls'))," +
+                        root_content[insert_pos:]
                     )
-                root_content = root_content.replace(
-                    "urlpatterns = [",
-                    "urlpatterns = [\n    path('accounts/', include('django.contrib.auth.urls')),"
-                )
                 new_files[root_urls_path] = root_content
                 print(f"🔧 Auto-added accounts/ URL for LoginRequiredMixin")
+
+    # Inject LOGIN_URL/LOGIN_REDIRECT_URL into settings.py
+    settings_path = f"{project_name}/settings.py"
+    if settings_path in new_files:
+        settings_content_block = new_files[settings_path]
+        if 'LOGIN_URL' not in settings_content_block:
+            auth_settings = """
+# Auth settings
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+"""
+            static_pos = settings_content_block.find("STATIC_URL")
+            if static_pos != -1:
+                settings_content_block = (
+                    settings_content_block[:static_pos] +
+                    auth_settings + "\n" +
+                    settings_content_block[static_pos:]
+                )
+                new_files[settings_path] = settings_content_block
+                print(f"🔧 Auto-injected LOGIN_URL/LOGIN_REDIRECT_URL into settings.py")
 
     # Ensure app urls.py is wired into root urls.py
     root_urls_content = new_files.get(root_urls_path, "")
@@ -3710,6 +3909,82 @@ class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
 
     new_files, _syntax_errors = validate_and_repair_python_files(new_files)
     return new_files
+
+
+def build_export_admin_mixin():
+    """Deterministic ExportAdminMixin — never let the LLM generate this."""
+    return '''class ExportAdminMixin:
+    """CSV and DOCX export for all admin classes."""
+    actions = ['export_as_csv', 'export_as_docx']
+
+    def export_as_csv(self, request, queryset):
+        import csv
+        from django.http import HttpResponse
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields]
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename={meta.verbose_name_plural}.csv'
+        writer = csv.writer(response)
+        writer.writerow(field_names)
+        for obj in queryset.select_related().iterator(chunk_size=1000):
+            writer.writerow([getattr(obj, field) for field in field_names])
+        return response
+    export_as_csv.short_description = "Export selected as CSV"
+
+    def export_as_docx(self, request, queryset):
+        import io
+        from django.http import HttpResponse
+        from docx import Document
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields]
+        document = Document()
+        document.add_heading(str(meta.verbose_name_plural).title(), level=1)
+        table = document.add_table(rows=1, cols=len(field_names))
+        table.style = 'Light Grid Accent 1'
+        hdr_cells = table.rows[0].cells
+        for i, name in enumerate(field_names):
+            hdr_cells[i].text = name
+        for obj in queryset.select_related().iterator(chunk_size=1000):
+            row_cells = table.add_row().cells
+            for i, name in enumerate(field_names):
+                row_cells[i].text = str(getattr(obj, name))
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        response['Content-Disposition'] = f'attachment; filename={meta.verbose_name_plural}.docx'
+        document.save(response)
+        return response
+    export_as_docx.short_description = "Export selected as Word document"'''
+
+def build_login_template():
+    """Deterministic login template — never let the LLM generate this."""
+    return '''{% extends "base.html" %}
+{% block content %}
+<div class="max-w-md mx-auto mt-10 bg-white p-8 rounded-lg shadow">
+    <h2 class="text-2xl font-bold mb-6">Login</h2>
+    {% if form.errors %}<p class="text-red-500 mb-4">Invalid username or password.</p>{% endif %}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg mt-4 hover:bg-indigo-700">Log in</button>
+    </form>
+    <p class="text-sm text-gray-500 mt-4 text-center">Don't have an account? <a href="#" class="text-indigo-600">Sign up</a></p>
+</div>
+{% endblock %}'''
+
+
+def build_signup_template():
+    """Deterministic signup template — never let the LLM generate this."""
+    return '''{% extends "base.html" %}
+{% block content %}
+<div class="max-w-md mx-auto mt-10 bg-white p-8 rounded-lg shadow">
+    <h2 class="text-2xl font-bold mb-6">Sign Up</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg mt-4 hover:bg-indigo-700">Create Account</button>
+    </form>
+    <p class="text-sm text-gray-500 mt-4 text-center">Already have an account? <a href="{% url 'login' %}" class="text-indigo-600">Log in</a></p>
+</div>
+{% endblock %}'''
 
 
 def _fallback_base_html(app_name, project_name, app_type=""):
@@ -4806,6 +5081,75 @@ def _export_project_files(project, export_dir):
 # ═════════════════════════════════════════════════════════════════
 
 MAX_RETRIES = 2
+def _auto_capture_failure(failure_summary, validation_errors):
+    """Extract new failure patterns and append them to 13_common_fixes.md
+    so the same bug class never slips through twice."""
+    
+    fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
+    if not fixes_path.exists():
+        return
+    
+    existing_content = fixes_path.read_text(encoding="utf-8")
+    
+    # Extract existing FIX numbers to avoid collisions
+    existing_fixes = set(re.findall(r'FIX-(\d{3})', existing_content))
+    next_num = max(int(n) for n in existing_fixes) + 1 if existing_fixes else 13
+    
+    new_entries = []
+    
+    # Extract unique error signatures
+    error_lines = []
+    if validation_errors:
+        error_lines.extend(validation_errors)
+    if failure_summary:
+        # Grab first meaningful line of each error block
+        for line in failure_summary.split('\n'):
+            line = line.strip()
+            if line.startswith('❌') or line.startswith('⚠️'):
+                error_lines.append(line)
+    
+    seen_signatures = set()
+    for error in error_lines:
+        # Create a short signature from the error
+        signature = error[:120].strip()
+        if signature in seen_signatures:
+            continue
+        seen_signatures.add(signature)
+        
+        # Skip if this exact symptom already exists
+        if signature in existing_content:
+            continue
+        
+        fix_num = f"FIX-{next_num:03d}"
+        new_entry = f"""
+---
+
+## {fix_num}: [TODO: Name this error]
+**Symptom:** `{signature}`
+**Cause:** [TODO: Add root cause]
+**Fix instruction for AI retry:** "[TODO: Add specific fix steps]"
+"""
+        new_entries.append(new_entry)
+        next_num += 1
+    
+    if new_entries:
+        # Append before the "How to add a new fix" section
+        insertion_point = existing_content.rfind("## How to add a new fix:")
+        if insertion_point == -1:
+            insertion_point = len(existing_content)
+        
+        updated_content = (
+            existing_content[:insertion_point] +
+            "\n".join(new_entries) + "\n" +
+            existing_content[insertion_point:]
+        )
+        
+        fixes_path.write_text(updated_content, encoding="utf-8")
+        print(f"📝 Auto-captured {len(new_entries)} new failure pattern(s) to 13_common_fixes.md")
+        print(f"   TODO: Edit the file to add 'Cause' and 'Fix instruction' for each [TODO] entry")
+
+
+MAX_RETRIES = 2
 
 def _apply_incremental_changes(project, data):
     prompt = data.get("prompt", "").strip()
@@ -4843,10 +5187,20 @@ def _apply_incremental_changes(project, data):
 
         # Failed. Can we retry?
         failure_summary = result["failure_summary"]
-        retry_log.append({"attempt": attempt, "reason": failure_summary})
+        retry_log.append({"attempt": attempt, "reason": failure_summary[:500]})
+        
+        # Truncate for AI context — 8000 chars is enough to see the errors
+        ai_failure_context = failure_summary[:8000]
 
         if attempt > MAX_RETRIES or not prompt:
             print(f"❌ APPLY FAILED — retry_log: {json.dumps(retry_log, indent=2)}")
+            
+            # Auto-capture new failure patterns before returning
+            _auto_capture_failure(
+                result.get("failure_summary", ""),
+                result.get("validation_errors", [])
+            )
+            
             return JsonResponse({
                 "status": "error",
                 "message": (
@@ -4859,12 +5213,19 @@ def _apply_incremental_changes(project, data):
                 "retry_log": retry_log,
             }, status=400 if result.get("validation_errors") else 500)
 
+        
         # Regenerate changes from the AI using the real failure as context
         existing_files = File.objects.filter(project=project)
+        
+        # Load common fixes to give the AI specific repair instructions
+        common_fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
+        common_fixes = common_fixes_path.read_text(encoding="utf-8") if common_fixes_path.exists() else ""
+        
         regenerated = _generate_ai_changes(
             project, prompt, existing_files,
-            retry_context=[failure_summary],
+            retry_context=[ai_failure_context],
             previous_changes=changes,
+            common_fixes=common_fixes,
         )
         
         print(f"🔍 regenerated type: {type(regenerated)}")
@@ -4902,6 +5263,16 @@ def _attempt_apply(project, changes, requires_migration, requires_server_restart
         if change.get("action") in ("create", "update"):
             all_files[change["file_path"]] = change.get("content", "")
 
+    # Pre-inject ExportAdminMixin into any new/updated admin.py
+    for file_path in list(all_files.keys()):
+        if file_path.endswith("admin.py"):
+            content = all_files[file_path]
+            if content and "class ExportAdminMixin" not in content:
+                all_files[file_path] = build_export_admin_mixin() + "\n\n" + content
+                for change in changes:
+                    if change.get("file_path") == file_path:
+                        change["content"] = all_files[file_path]
+                print(f"🔧 [incremental] Pre-injected ExportAdminMixin into {file_path}")
 
     # Auto-fix: Add list_select_related to admin classes missing it (incremental path)
     for file_path, content in all_files.items():
@@ -4916,11 +5287,20 @@ def _attempt_apply(project, changes, requires_migration, requires_server_restart
                     pattern = rf'(@admin\.register\({model_name}\).*?class\s+\w+Admin\([^)]+\).*?)(?=\n@admin\.register|\nclass\s|\Z)'
                     match = re.search(pattern, content, re.DOTALL)
                     if match and 'list_select_related' not in match.group(1):
-                        replacement = match.group(1).replace(
+                       
+                        old_block = match.group(1)
+                        replacement = old_block.replace(
                             'list_per_page = 25',
                             f'list_per_page = 25\n    list_select_related = {tuple(sorted(fk_fields))}'
                         )
-                        content = content.replace(match.group(1), replacement)
+                        block_start = content.find(old_block)
+                        if block_start != -1:
+                            content = (
+                                content[:block_start] +
+                                replacement +
+                                content[block_start + len(old_block):]
+                            )
+
                         all_files[file_path] = content
                         # Also update the actual change content
                         for change in changes:
@@ -5057,8 +5437,12 @@ def _attempt_apply(project, changes, requires_migration, requires_server_restart
         time.sleep(0.5)
     time.sleep(1)  # small extra buffer for Windows handle release even after process exit
 
-
     # ── Promote: keep old live dir as backup instead of deleting it ──
+    # ── Promote: keep old live dir as backup instead of deleting it ──
+    # Force release any lingering file handles before rename (Windows)
+    _force_release_db_lock(export_dir / "db.sqlite3")
+    time.sleep(0.5)
+    
     if backup_dir.exists():
         shutil.rmtree(backup_dir, ignore_errors=True)
     if export_dir.exists():
@@ -5594,6 +5978,8 @@ def _check_login_required_has_template(all_files):
                 f"entirely (admin-managed apps should have no view-level auth by default)."
             )
     return errors
+
+
 # ═════════════════════════════════════════════════════════════════
 # SMOKE TEST — actually request the changed URLs, catch real tracebacks
 # ═════════════════════════════════════════════════════════════════
@@ -5604,15 +5990,39 @@ import django
 django.setup()
 from django.test import Client
 from django.urls import reverse, NoReverseMatch
+from django.apps import apps
 
 names = {url_names!r}
 results = []
 c = Client()
+
+# Try to get a valid PK from each model for detail/edit/delete URLs
+model_pks = {{}}
+for model in apps.get_models():
+    try:
+        obj = model.objects.first()
+        if obj:
+            model_pks[model.__name__.lower()] = obj.pk
+    except Exception:
+        pass
+
 for name in names:
+    kwargs = {{}}
+    url = None
     try:
         url = reverse(name)
     except NoReverseMatch:
-        continue  # requires args, skip — can't smoke test without knowing valid pk/slug
+        # Try with pk=1, then try auto-detected PK
+        for pk_val in [1] + list(model_pks.values()):
+            try:
+                url = reverse(name, kwargs={{"pk": pk_val}})
+                break
+            except NoReverseMatch:
+                continue
+    
+    if url is None:
+        continue  # truly unresolvable, skip
+        
     try:
         resp = c.get(url, follow=True)
         entry = {{"name": name, "url": url, "status": resp.status_code}}
@@ -5628,6 +6038,44 @@ for name in names:
 print("__SMOKE_TEST_RESULT__")
 print(json.dumps(results))
 '''
+
+_BUSINESS_SMOKE_TEST_SCRIPT = '''
+import os, sys, json
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{project_name}.settings")
+import django
+django.setup()
+from django.test import Client
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+results = []
+c = Client()
+
+# 1. Auth flow works
+try:
+    # Signup
+    resp = c.post('/signup/', {{"username": "testuser", "password1": "testpass123", "password2": "testpass123"}})
+    results.append({{"test": "signup", "pass": resp.status_code in (200, 302)}})
+    
+    # Login
+    resp = c.post('/accounts/login/', {{"username": "testuser", "password": "testpass123"}})
+    results.append({{"test": "login", "pass": resp.status_code in (200, 302)}})
+    
+    # Dashboard accessible
+    resp = c.get('/')
+    results.append({{"test": "dashboard_reachable", "pass": resp.status_code == 200}})
+    
+    # Logout
+    resp = c.get('/accounts/logout/')
+    results.append({{"test": "logout", "pass": resp.status_code in (200, 302)}})
+except Exception as e:
+    results.append({{"test": "auth_flow", "pass": False, "error": str(e)[:500]}})
+
+print("__BUSINESS_SMOKE_RESULT__")
+print(json.dumps(results))
+'''
+
+
 
 import json
 from pathlib import Path
@@ -5847,7 +6295,7 @@ def _run_migrations(export_dir, project, project_name, apps_with_model_changes,
 
         if migrate_all.returncode == 0:
             return f"Migrations applied for: {', '.join(apps_with_model_changes)}"
-        return f"Migration error: {migrate_all.stderr[:800]}"
+        return f"Migration error: {migrate_all.stderr[:8000]}"
     except Exception as e:
         return f"Migration error: {str(e)}"
 
@@ -5906,7 +6354,7 @@ def _restart_server(export_dir, project, project_name):
 # AI REGENERATION (used both by the normal incremental-build endpoint
 # and by the retry loop above)
 # ═════════════════════════════════════════════════════════════════
-def _generate_ai_changes(project, prompt, existing_files, retry_context=None, previous_changes=None):
+def _generate_ai_changes(project, prompt, existing_files, retry_context=None, previous_changes=None, common_fixes=""):
     """Returns the parsed {analysis, changes, requires_migration, ...} dict,
     or None on failure. retry_context, if given, is a list of error strings
     from a failed previous attempt. previous_changes, if given, is the full
@@ -5926,7 +6374,7 @@ def _generate_ai_changes(project, prompt, existing_files, retry_context=None, pr
     system_prompt = _build_incremental_system_prompt(project_name, file_map, project_context)
 
     user_message = f"Request: {prompt}"
-
+   
     if retry_context:
         prev_files_list = ""
         if previous_changes:
@@ -5940,7 +6388,16 @@ def _generate_ai_changes(project, prompt, existing_files, retry_context=None, pr
             + "\n\nBut it FAILED with these real errors "
               "(from static validation and/or actually loading the pages):\n"
             + "\n".join(retry_context)
-            + "\n\nFix these specific issues WITHOUT dropping any of the other files "
+        )
+        
+        if common_fixes:
+            user_message += (
+                "\n\nCOMMON FIXES FOR THESE ERROR PATTERNS:\n"
+                + common_fixes
+            )
+        
+        user_message += (
+            "\n\nFix these specific issues WITHOUT dropping any of the other files "
               "listed above — you must resubmit the COMPLETE, corrected change set "
               "including every file from the list above that's still needed, not just "
               "the ones related to the error. If the error says a new model is missing "
@@ -6816,10 +7273,10 @@ class HomeView(ListView):
             if scaffold_attempt == 0 and (
                 apply_result.get("validation_errors") or apply_result.get("smoke_test_errors")
             ):
-                error_context = apply_result.get("failure_summary", "")[:6000]
+                error_context = apply_result.get("failure_summary", "")[:8000]
                 print(f"⚠️ Scaffold validation failed (attempt {scaffold_attempt + 1}) — regenerating with error context")
-
-                common_fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "common_fixes.md"
+              
+                common_fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
                 common_fixes = common_fixes_path.read_text(encoding="utf-8") if common_fixes_path.exists() else ""
 
                 retry_prompt = (
@@ -6892,9 +7349,16 @@ class HomeView(ListView):
             elif scaffold_attempt > 0:
                 print(f"⚠️ Validation still failing after AI retry — exiting retry loop")
                 break
-
+      
         if not apply_result["ok"]:
-            print(f"❌ Apply failed after {scaffold_attempt + 1} attempt(s): {apply_result['failure_summary'][:500]}")
+            print(f"❌ Apply failed after {scaffold_attempt + 1} attempt(s): {apply_result['failure_summary'][:8000]}")
+            
+            # Auto-capture new failure patterns before returning
+            _auto_capture_failure(
+                apply_result.get("failure_summary", ""),
+                apply_result.get("validation_errors", [])
+            )
+            
             return JsonResponse({
                 "status": "error",
                 "message": f"Generated app failed validation after {scaffold_attempt + 1} attempt(s).",
@@ -6903,7 +7367,7 @@ class HomeView(ListView):
                 "smoke_test_errors": apply_result.get("smoke_test_errors"),
                 "thinking": thinking,
             }, status=500)
-
+    
         payload = apply_result["payload"]
         files_created = [a["file"] for a in payload["applied"]]
 
@@ -6926,7 +7390,43 @@ class HomeView(ListView):
 
 
 
-
+@login_required
+@require_http_methods(["POST"])
+def publish_file(request, project_id, file_id):
+    file = get_object_or_404(File, id=file_id, project__user=request.user)
+    
+    try:
+        data = json.loads(request.body)
+        new_content = data.get("content", "")
+        
+        if not new_content:
+            return JsonResponse({"status": "error", "message": "Content cannot be empty"}, status=400)
+        
+        # Normalize line endings
+        new_content = new_content.replace('\r\n', '\n').replace('\r', '\n')
+        
+        file.content = new_content
+        file.save(update_fields=["content"])
+        
+        export_dir = Path(settings.BASE_DIR) / "generated_projects" / str(file.project.id)
+        full_path = export_dir / file.name
+        full_path.parent.mkdir(parents=True, exist_ok=True)
+        full_path.write_text(new_content, encoding="utf-8", newline='\n')
+        
+        print(f"📤 Published: {full_path}")
+        
+        # Always restart server for any file type
+        from webprojects.views import restart_server_only
+        restart_result = restart_server_only(file.project)
+        
+        return JsonResponse({
+            "status": "success",
+            "message": "File published and server restarted.",
+            "restart": restart_result,
+        })
+        
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)       
 
 @login_required
 @check_project_access
