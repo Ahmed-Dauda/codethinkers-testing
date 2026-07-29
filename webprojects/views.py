@@ -3094,6 +3094,7 @@ def remove_project_port_mapping(subdomain):
         print(f"🗑️ Removed stale port mapping: {subdomain}.codethinkers.org")
 
 
+
 @require_http_methods(["POST"])
 def wake_project(request, subdomain):
     """Internal endpoint the router calls when a subdomain's mapped port
@@ -3108,16 +3109,32 @@ def wake_project(request, subdomain):
             mapping = json.loads(PROJECT_PORTS_FILE.read_text())
         except json.JSONDecodeError:
             pass
-
+   
     entry = mapping.get(subdomain)
-    if not entry or "project_id" not in entry:
+    project = None
+
+    if entry and "project_id" in entry:
+        try:
+            project = Project.objects.get(id=entry["project_id"])
+        except Project.DoesNotExist:
+            project = None
+
+    if not project:
+        # Fall back to the database — this subdomain may simply have
+        # never been started before, so it was never written into the
+        # JSON mapping yet. The database is the permanent source of
+        # truth for whether a project exists at all.
+        project = Project.objects.filter(subdomain=subdomain).first()
+        if not project and subdomain.startswith("project-"):
+            try:
+                fallback_id = int(subdomain.split("project-", 1)[1])
+                project = Project.objects.filter(id=fallback_id).first()
+            except ValueError:
+                project = None
+
+    if not project:
         return JsonResponse({"status": "error", "message": "Unknown subdomain"}, status=404)
-
-    try:
-        project = Project.objects.get(id=entry["project_id"])
-    except Project.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "Project not found"}, status=404)
-
+    
     export_dir = Path(settings.BASE_DIR) / "generated_projects" / str(project.id)
     live_info = get_live_server_info(export_dir)
     if live_info:
