@@ -3094,8 +3094,15 @@ def remove_project_port_mapping(subdomain):
         print(f"🗑️ Removed stale port mapping: {subdomain}.codethinkers.org")
 
 
+def get_port_mapping(request):
+    """Return the full subdomain->port mapping for the proxy."""
+    if PROJECT_PORTS_FILE.exists():
+        return JsonResponse(json.loads(PROJECT_PORTS_FILE.read_text()))
+    return JsonResponse({})
+
 
 @require_http_methods(["POST"])
+@csrf_exempt
 def wake_project(request, subdomain):
     """Internal endpoint the router calls when a subdomain's mapped port
     isn't responding. Starts the project's server on demand, Replit-style.

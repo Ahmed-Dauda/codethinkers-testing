@@ -63,6 +63,7 @@ def get_entry(host):
     return subdomain, None
 
 
+
 def wake_project(subdomain):
     """Ask Django to start the project's server, over the internal Unix
     socket. If another thread is already waking this same subdomain,
@@ -175,20 +176,13 @@ def proxy(client_sock):
         backend = try_connect(port, retries=1) if port else None
 
         if not backend:
-            if not entry:
-                send_response(client_sock, "404 Not Found", b"<html><body><h1>404</h1><p>Project not found</p></body></html>")
-                return
-
-            if not entry.get("project_id"):
-                send_response(
-                    client_sock, "503 Service Unavailable",
-                    b"<html><body><h1>503</h1><p>This project needs to be reopened once in the editor to enable auto-start. After that, this link will always work.</p></body></html>"
-                )
-                return
-
+            # Always attempt to wake, even if there's no local cache entry
+            # yet — the subdomain might just have never been started
+            # before. Django's wake endpoint checks the real database,
+            # so it's the actual source of truth, not this JSON cache.
             new_port = wake_project(subdomain)
             if not new_port:
-                send_response(client_sock, "502 Bad Gateway", b"<html><body><h1>502</h1><p>Could not start project</p></body></html>")
+                send_response(client_sock, "404 Not Found", b"<html><body><h1>404</h1><p>Project not found</p></body></html>")
                 return
 
             backend = try_connect(new_port, retries=15, delay=1)
