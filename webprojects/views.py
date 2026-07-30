@@ -3107,9 +3107,8 @@ def wake_project(request, subdomain):
     """Internal endpoint the router calls when a subdomain's mapped port
     isn't responding. Starts the project's server on demand, Replit-style.
     Only accepts requests from localhost — this is not meant to be public."""
-    if request.META.get('REMOTE_ADDR') not in ('127.0.0.1', '::1'):
+    if request.META.get('REMOTE_ADDR') not in ('127.0.0.1', '::1', '', None):
         return JsonResponse({"status": "error", "message": "Forbidden"}, status=403)
-
     mapping = {}
     if PROJECT_PORTS_FILE.exists():
         try:
