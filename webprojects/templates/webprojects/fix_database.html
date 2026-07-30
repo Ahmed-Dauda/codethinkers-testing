@@ -1,0 +1,67 @@
+{% extends "webprojects/base_editor.html" %}
+
+{% block title %}Fix Database Monitor - CodeThinkers{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 40px auto; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h1 style="color: #4ade80; margin: 0; font-size: 24px;">🧠 Auto-Learning Fix Database</h1>
+        <a href="{% url 'webprojects:create_project' %}" style="color: #94a3b8; text-decoration: none;">← Back</a>
+    </div>
+
+    <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+        <div style="background: #1e293b; padding: 16px 24px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: #4ade80;">{{ fix_count }}</div>
+            <div style="color: #94a3b8; font-size: 12px;">Patterns Learned</div>
+        </div>
+        <div style="background: #1e293b; padding: 16px 24px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: {% if todo_count > 0 %}#f59e0b{% else %}#4ade80{% endif %};">{{ todo_count }}</div>
+            <div style="color: #94a3b8; font-size: 12px;">Pending</div>
+        </div>
+        <div style="background: #1e293b; padding: 16px 24px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 14px; font-weight: bold; color: #94a3b8;">{{ last_updated|date:"M d, Y H:i" }}</div>
+            <div style="color: #94a3b8; font-size: 12px;">Last Updated</div>
+        </div>
+    </div>
+
+    <!-- AI Prompt Rules -->
+    <h2 style="color: #94a3b8; font-size: 16px; margin-bottom: 12px;">📋 AI Prompt Rules</h2>
+    {% for rule in rules %}
+    <div style="background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 10px 14px; margin-bottom: 6px;">
+        <span style="color: #4ade80; font-weight: bold;">{{ rule.number }}.</span>
+        <span style="color: #94a3b8; font-size: 13px;">{{ rule.text }}</span>
+    </div>
+    {% empty %}
+    <div style="color: #666; font-size: 13px; padding: 10px;">No prompt rules found.</div>
+    {% endfor %}
+
+    <!-- Auto-Fix Patterns -->
+    <h2 style="color: #94a3b8; font-size: 16px; margin: 24px 0 12px;">🔧 Auto-Fix Patterns</h2>
+    {% for fix in fixes %}
+    <div style="background: {% if fix.is_todo %}#292107{% else %}#0f172a{% endif %}; border: 1px solid {% if fix.is_todo %}#f59e0b33{% else %}#334155{% endif %}; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="background: {% if fix.is_todo %}#f59e0b{% else %}#4ade80{% endif %}; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">{{ fix.number }}</span>
+            <span style="color: #e2e8f0; font-weight: 600;">{{ fix.name }}</span>
+            {% if fix.is_todo %}<span style="color: #f59e0b; font-size: 11px;">⚠️ Pending</span>{% endif %}
+        </div>
+        <div style="color: #94a3b8; font-size: 12px; margin-bottom: 4px;">
+            <strong>Symptom:</strong> <code style="color: #f87171;">{{ fix.symptom }}</code>
+        </div>
+        <div style="color: #94a3b8; font-size: 12px; margin-bottom: 4px;">
+            <strong>Cause:</strong> {{ fix.cause }}
+        </div>
+        <div style="color: #94a3b8; font-size: 12px;">
+            <strong>Fix:</strong> {{ fix.fix }}
+        </div>
+    </div>
+    {% empty %}
+    <div style="text-align: center; padding: 40px; color: #666;">No fix patterns yet. They'll appear here automatically when builds encounter new errors.</div>
+    {% endfor %}
+
+    <div style="margin-top: 24px; color: #666; font-size: 11px; text-align: center;">
+        This file auto-learns from build failures. Each entry represents a permanently closed bug class.
+    </div>
+
+</div>
+{% endblock %}

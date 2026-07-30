@@ -3169,6 +3169,7 @@ def check_project_access(view_func):
     return wrapper
 
 
+
 @login_required
 @check_project_access
 def run_project(request, project_id):
@@ -5103,11 +5104,62 @@ def _export_project_files(project, export_dir):
 # ═════════════════════════════════════════════════════════════════
 # ENTRY POINT — call this from ai_build_project's apply_now branch
 # ═════════════════════════════════════════════════════════════════
+def _ai_generate_fix(symptom, error_context):
+    """Ask the AI to generate a fix entry for a new error pattern.
+    Writes the completed entry directly to 13_common_fixes.md."""
+    
+    fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
+    if not fixes_path.exists():
+        return
+    
+    prompt = f"""You are fixing a bug in a Django code generator. Given this error:
 
-MAX_RETRIES = 2
+ERROR: {error_context[:500]}
+
+Write a fix entry in this EXACT format (replace XXX with the next number):
+
+## FIX-XXX: [Short descriptive name]
+**Symptom:** `[key phrase from the error that will match future occurrences]`
+**Cause:** [One line explaining why this happens]
+**Fix instruction for AI retry:** "[Step-by-step instructions to fix this error]"
+
+The symptom must be a substring that will appear in future identical errors.
+Keep it short and generic. Make the fix instruction specific and actionable."""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a Django debugging expert. Return ONLY the formatted fix entry, no other text."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.2,
+            max_tokens=1000,
+        )
+        
+        ai_fix = response.choices[0].message.content.strip()
+        
+        # Read existing content
+        existing = fixes_path.read_text(encoding="utf-8")
+        
+        # Replace the first [TODO] entry with the AI-generated fix
+        todo_pattern = r'## FIX-\d+: \[TODO:.*?\n\*\*Symptom:\*\*.*?\n\*\*Cause:\*\*.*?\n\*\*Fix instruction for AI retry:\*\*.*?\n'
+        match = re.search(todo_pattern, existing, re.DOTALL)
+        if match:
+            existing = existing[:match.start()] + ai_fix + '\n' + existing[match.end():]
+            fixes_path.write_text(existing, encoding="utf-8")
+            print(f"🤖 AI generated and saved fix entry to 13_common_fixes.md")
+        else:
+            print(f"⚠️ No [TODO] entry found to replace")
+        
+    except Exception as e:
+        print(f"⚠️ AI fix generation failed: {e}")
+
+
 def _auto_capture_failure(failure_summary, validation_errors):
     """Extract new failure patterns and append them to 13_common_fixes.md
-    so the same bug class never slips through twice."""
+    so the same bug class never slips through twice. Then asks AI to
+    fill in the fix instructions automatically."""
     
     fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
     if not fixes_path.exists():
@@ -5120,13 +5172,13 @@ def _auto_capture_failure(failure_summary, validation_errors):
     next_num = max(int(n) for n in existing_fixes) + 1 if existing_fixes else 13
     
     new_entries = []
+    captured_errors = []
     
     # Extract unique error signatures
     error_lines = []
     if validation_errors:
         error_lines.extend(validation_errors)
     if failure_summary:
-        # Grab first meaningful line of each error block
         for line in failure_summary.split('\n'):
             line = line.strip()
             if line.startswith('❌') or line.startswith('⚠️'):
@@ -5140,7 +5192,7 @@ def _auto_capture_failure(failure_summary, validation_errors):
             continue
         seen_signatures.add(signature)
         
-        # Skip if this exact symptom already exists
+        # Skip if this exact symptom already exists in any FIX entry
         if signature in existing_content:
             continue
         
@@ -5154,6 +5206,7 @@ def _auto_capture_failure(failure_summary, validation_errors):
 **Fix instruction for AI retry:** "[TODO: Add specific fix steps]"
 """
         new_entries.append(new_entry)
+        captured_errors.append((signature, error))
         next_num += 1
     
     if new_entries:
@@ -5170,12 +5223,382 @@ def _auto_capture_failure(failure_summary, validation_errors):
         
         fixes_path.write_text(updated_content, encoding="utf-8")
         print(f"📝 Auto-captured {len(new_entries)} new failure pattern(s) to 13_common_fixes.md")
-        print(f"   TODO: Edit the file to add 'Cause' and 'Fix instruction' for each [TODO] entry")
+        
+        # Ask AI to fill in the fix for each captured error
+        for symptom, full_error in captured_errors:
+            print(f"🤖 Asking AI to generate fix for: {symptom[:80]}...")
+            _ai_generate_fix(symptom, full_error)
+
+
+
+def _auto_fix_failure(failure_summary, validation_errors, all_files):
+    """Auto-fix known failure patterns by reading fix instructions
+    directly from 13_common_fixes.md. To add a new fix, just add an
+    entry to that file — no code changes needed."""
+    fixes_applied = 0
+    unfixed = []
+    
+    # Load fix patterns from the file
+    fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
+    fix_patterns = {}
+    if fixes_path.exists():
+        content = fixes_path.read_text(encoding="utf-8")
+        # Parse each FIX entry: symptom -> fix instruction
+        entries = re.findall(
+            r'## FIX-\d+:.*?\n\*\*Symptom:\*\*\s*`(.*?)`\s*\n\*\*Cause:\*\*\s*(.*?)\s*\n\*\*Fix instruction for AI retry:\*\*\s*"(.*?)"',
+            content, re.DOTALL
+        )
+        for symptom, cause, fix_instruction in entries:
+            fix_patterns[symptom.strip()] = fix_instruction.strip()
+    
+    for error in (validation_errors or []):
+        fixed = False
+        
+        # Try each known pattern
+        for symptom, fix_instruction in fix_patterns.items():
+            if symptom in error:
+                # Apply the fix instruction
+                if "template_name" in fix_instruction.lower():
+                    match = re.search(r'(\w+)\((\w+)\) in (\S+) is missing template_name', error)
+                    if match:
+                        class_name, parent, file_path = match.group(1), match.group(2), match.group(3)
+                        if file_path in all_files:
+                            content = all_files[file_path]
+                            template_name = class_name.replace('View', '').lower() + '.html'
+                            if 'List' in class_name:
+                                template_name = class_name.replace('ListView', '_list').lower() + '.html'
+                            elif 'Detail' in class_name:
+                                template_name = class_name.replace('DetailView', '_detail').lower() + '.html'
+                            elif 'Create' in class_name:
+                                template_name = class_name.replace('CreateView', '_form').lower() + '.html'
+                            elif 'Update' in class_name:
+                                template_name = class_name.replace('UpdateView', '_form').lower() + '.html'
+                            elif 'Delete' in class_name:
+                                template_name = class_name.replace('DeleteView', '_confirm_delete').lower() + '.html'
+                            
+                            old_line = f'class {class_name}({parent}):'
+                            new_line = f'class {class_name}({parent}):\n    template_name = \'{template_name}\''
+                            content = content.replace(old_line, new_line, 1)
+                            all_files[file_path] = content
+                            fixes_applied += 1
+                            print(f"🔧 Auto-fixed: Added template_name='{template_name}' to {class_name}")
+                            fixed = True
+                            break
+                
+                elif "ExportAdminMixin" in fix_instruction:
+                    match = re.search(r'(\S+/admin\.py)', error)
+                    if match:
+                        file_path = match.group(1)
+                        if file_path in all_files:
+                            content = all_files[file_path]
+                            if "class ExportAdminMixin" not in content:
+                                all_files[file_path] = build_export_admin_mixin() + "\n\n" + content
+                                fixes_applied += 1
+                                print(f"🔧 Auto-fixed: Injected ExportAdminMixin into {file_path}")
+                                fixed = True
+                                break
+                
+                elif "LoginRequiredMixin" in fix_instruction:
+                    match = re.search(r'(\w+) in (\S+)', error)
+                    if match:
+                        class_name, file_path = match.group(1), match.group(2)
+                        if file_path in all_files:
+                            content = all_files[file_path]
+                            pattern = rf'class {class_name}\((\w+)\):'
+                            replacement = rf'class {class_name}(LoginRequiredMixin, \1):'
+                            new_content = re.sub(pattern, replacement, content)
+                            if new_content != content:
+                                if 'from django.contrib.auth.mixins import LoginRequiredMixin' not in new_content:
+                                    new_content = 'from django.contrib.auth.mixins import LoginRequiredMixin\n' + new_content
+                                all_files[file_path] = new_content
+                                fixes_applied += 1
+                                print(f"🔧 Auto-fixed: Added LoginRequiredMixin to {class_name}")
+                                fixed = True
+                                break
+                
+                elif "list_select_related" in fix_instruction:
+                    match = re.search(r'(\w+) in (\S+) shows ForeignKey field\(s\) (\[.*?\])', error)
+                    if match:
+                        class_name, file_path, fk_list = match.group(1), match.group(2), match.group(3)
+                        if file_path in all_files:
+                            content = all_files[file_path]
+                            pattern = rf'(class {class_name}\([^)]+\):.*?list_per_page\s*=\s*\d+)'
+                            admin_match = re.search(pattern, content, re.DOTALL)
+                            if admin_match:
+                                fk_tuple = fk_list.replace('[', '(').replace(']', ')')
+                                replacement = admin_match.group(1) + f"\n    list_select_related = {fk_tuple}"
+                                content = content.replace(admin_match.group(1), replacement)
+                                all_files[file_path] = content
+                                fixes_applied += 1
+                                print(f"🔧 Auto-fixed: Added list_select_related={fk_list} to {class_name}")
+                                fixed = True
+                                break
+                
+                elif "@admin.register" in fix_instruction:
+                    match = re.search(r"Model '(\w+)' in (\S+) isn't registered in (\S+)", error)
+                    if match:
+                        model_name, models_file, admin_file = match.group(1), match.group(2), match.group(3)
+                        if admin_file in all_files:
+                            content = all_files[admin_file]
+                            if f"class {model_name}Admin" not in content:
+                                admin_block = f'''
+@admin.register({model_name})
+class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
+    list_display = ('id', '__str__')
+    search_fields = ('id',)
+    list_per_page = 25
+'''
+                                content += admin_block
+                                all_files[admin_file] = content
+                                fixes_applied += 1
+                                print(f"🔧 Auto-fixed: Registered {model_name} in {admin_file}")
+                                fixed = True
+                                break
+        
+        if not fixed:
+            unfixed.append(error)
+    
+    # Auto-capture remaining unfixed errors
+    if unfixed:
+        _auto_capture_failure(failure_summary, unfixed)
+    
+    return all_files, fixes_applied, unfixed
+
+
+def _ai_generate_fix(symptom, error_context):
+    """Ask the AI to generate a fix instruction for a new error pattern.
+    Writes the result directly to 13_common_fixes.md."""
+    
+    fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
+    if not fixes_path.exists():
+        return
+    
+    prompt = f"""You are fixing a bug in a Django code generator. Given this error:
+
+ERROR: {error_context[:500]}
+
+Write a fix entry in this EXACT format:
+
+## FIX-XXX: [Short descriptive name]
+**Symptom:** `[key phrase from the error that will match future occurrences]`
+**Cause:** [One line explaining why this happens]
+**Fix instruction for AI retry:** "[Step-by-step instructions to fix this error]"
+
+The symptom must be a substring that will appear in future occurrences of the same error.
+Keep the symptom short and generic enough to match similar errors.
+Make the fix instruction specific and actionable."""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a Django debugging expert. Return ONLY the formatted fix entry, no other text."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.2,
+            max_tokens=1000,
+        )
+        
+        ai_fix = response.choices[0].message.content.strip()
+        
+        # Read existing content
+        existing = fixes_path.read_text(encoding="utf-8")
+        
+        # Find the [TODO] entry and replace it
+        todo_pattern = r'(## FIX-\d+: \[TODO:.*?\n\*\*Symptom:\*\*.*?\n\*\*Cause:\*\*.*?\n\*\*Fix instruction for AI retry:\*\*.*?\n)'
+        existing = re.sub(todo_pattern, ai_fix + '\n', existing, count=1)
+        
+        fixes_path.write_text(existing, encoding="utf-8")
+        print(f"🤖 AI generated and saved fix entry to 13_common_fixes.md")
+        print(f"   {ai_fix[:200]}...")
+        
+        
+    except Exception as e:
+        print(f"⚠️ AI fix generation failed: {e}")
+
+
+@login_required
+@require_http_methods(["GET"])
+def fix_database_view(request):
+    """Admin-only view to monitor the auto-learning fix database."""
+    if not request.user.is_superuser:
+        return JsonResponse({"status": "error", "message": "Unauthorized"}, status=403)
+    
+    fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
+    
+    if not fixes_path.exists():
+        return render(request, 'webprojects/fix_database.html', {
+            'rules': [],
+            'fixes': [],
+            'fix_count': 0,
+            'todo_count': 0,
+            'last_updated': None,
+        })
+    
+    content = fixes_path.read_text(encoding="utf-8")
+    from datetime import datetime
+    last_updated = datetime.fromtimestamp(fixes_path.stat().st_mtime)
+    
+    # Parse numbered rules (top section)
+    rules = []
+    rules_section = content.split('# Common Fixes — Auto-Applied Failure Patterns')[0]
+    rule_matches = re.findall(r'(\d+)\.\s*(.*?)(?=\n\d+\.\s|$)', rules_section, re.DOTALL)
+    for num, text in rule_matches:
+        # Clean up the text — remove extra whitespace but keep the full content
+        clean_text = ' '.join(text.strip().split())
+        rules.append({'number': num, 'text': clean_text[:300]})
+
+    
+    # Parse FIX entries
+    fixes = []
+    entries = re.findall(
+        r'(## FIX-\d+:.*?)(?=\n## FIX-\d+:|\n## How to add|\Z)',
+        content, re.DOTALL
+    )
+    
+    for entry in entries:
+        name_match = re.search(r'## (FIX-\d+):\s*(.*)', entry)
+        symptom_match = re.search(r'\*\*Symptom:\*\*\s*`(.*?)`', entry)
+        cause_match = re.search(r'\*\*Cause:\*\*\s*(.*?)\n', entry)
+        fix_match = re.search(r'\*\*Fix instruction.*?:\*\*\s*"(.*?)"', entry, re.DOTALL)
+        
+        fixes.append({
+            'number': name_match.group(1) if name_match else '???',
+            'name': name_match.group(2).strip() if name_match else 'Unknown',
+            'symptom': symptom_match.group(1)[:100] if symptom_match else '',
+            'cause': cause_match.group(1).strip() if cause_match else '',
+            'fix': fix_match.group(1).strip()[:150] if fix_match else '',
+            'is_todo': '[TODO]' in entry,
+        })
+    
+    fix_count = len(fixes)
+    todo_count = sum(1 for f in fixes if f['is_todo'])
+    
+    return render(request, 'webprojects/fix_database.html', {
+        'rules': rules,
+        'fixes': fixes,
+        'fix_count': fix_count,
+        'todo_count': todo_count,
+        'last_updated': last_updated,
+    })
+
+
 
 
 MAX_RETRIES = 2
 
 def _apply_incremental_changes(project, data):
+    prompt = data.get("prompt", "").strip()
+    changes = data.get("changes", [])
+    requires_migration = data.get("requires_migration", False)
+    requires_server_restart = data.get("requires_server_restart", False)
+
+    if not changes:
+        return JsonResponse({"status": "error", "message": "No changes to apply"}, status=400)
+
+    attempt = 0
+    retry_log = []
+
+    while True:
+        attempt += 1
+        print(f"🔍 Applying {len(changes)} changes: {[c.get('file_path') for c in changes]}")
+        print(f"🔍 requires_migration={requires_migration}, requires_server_restart={requires_server_restart}")
+        try:
+            result = _attempt_apply(
+                project, changes, requires_migration, requires_server_restart
+            )
+        except Exception as e:
+            print(f"❌ _attempt_apply crashed: {traceback.format_exc()}")
+            return JsonResponse({
+                "status": "error",
+                "message": f"Apply failed with an unexpected error: {e}",
+                "retry_log": retry_log,
+            }, status=500)
+
+        if result["ok"]:
+            response = result["payload"]
+            if retry_log:
+                response["auto_fixed_after_retries"] = retry_log
+            return JsonResponse(response)
+
+        # Failed. Try auto-fix first before AI retry
+        failure_summary = result["failure_summary"]
+        validation_errors = result.get("validation_errors", [])
+        retry_log.append({"attempt": attempt, "reason": failure_summary[:500]})
+        
+        # Build all_files dict from current changes for auto-fix
+        all_files = {}
+        for c in changes:
+            if c.get("action") in ("create", "update"):
+                all_files[c["file_path"]] = c.get("content", "")
+        
+        all_files, fixes_applied, unfixed = _auto_fix_failure(
+            failure_summary, validation_errors, all_files
+        )
+        
+        if fixes_applied > 0:
+            # Update changes with auto-fixed content
+            for c in changes:
+                if c["file_path"] in all_files:
+                    c["content"] = all_files[c["file_path"]]
+            
+            if not unfixed:
+                # All errors fixed — retry apply without AI
+                retry_log.append({"attempt": f"auto-fix-{attempt}", "reason": f"Auto-fixed {fixes_applied} error(s)"})
+                print(f"🔧 All {fixes_applied} errors auto-fixed — retrying apply")
+                continue
+        
+        # Still have unfixed errors — truncate for AI context
+        ai_failure_context = failure_summary[:8000]
+
+        if attempt > MAX_RETRIES or not prompt:
+            print(f"❌ APPLY FAILED — retry_log: {json.dumps(retry_log, indent=2)}")
+            return JsonResponse({
+                "status": "error",
+                "message": (
+                    f"Failed after {attempt} attempt(s)."
+                    if prompt else
+                    "Failed and no 'prompt' was provided, so it could not be auto-retried."
+                ),
+                "validation_errors": validation_errors,
+                "smoke_test_errors": result.get("smoke_test_errors"),
+                "retry_log": retry_log,
+            }, status=400 if result.get("validation_errors") else 500)
+
+        
+        # Regenerate changes from the AI using the real failure as context
+        existing_files = File.objects.filter(project=project)
+        
+        # Load common fixes to give the AI specific repair instructions
+        common_fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
+        common_fixes = common_fixes_path.read_text(encoding="utf-8") if common_fixes_path.exists() else ""
+        
+        regenerated = _generate_ai_changes(
+            project, prompt, existing_files,
+            retry_context=[ai_failure_context],
+            previous_changes=changes,
+            common_fixes=common_fixes,
+        )
+        
+        print(f"🔍 regenerated type: {type(regenerated)}")
+        if isinstance(regenerated, dict):
+            print(f"🔍 regenerated keys: {list(regenerated.keys())}")
+            print(f"🔍 regenerated changes count: {len(regenerated.get('changes', []))}")
+        else:
+            print(f"🔍 regenerated is NOT a dict: {regenerated}")
+        
+        if not regenerated or not regenerated.get("changes"):
+            return JsonResponse({
+                "status": "error",
+                "message": "Retry attempt did not produce usable changes.",
+                "retry_log": retry_log,
+            }, status=500)
+
+        changes = regenerated["changes"]
+        requires_migration = regenerated.get("requires_migration", requires_migration)
+        requires_server_restart = regenerated.get("requires_server_restart", requires_server_restart)
+        print(f"🔍 Regenerated {len(changes)} changes: {[c.get('file_path') for c in changes]}")
+        # loop and try again
     prompt = data.get("prompt", "").strip()
     changes = data.get("changes", [])
     requires_migration = data.get("requires_migration", False)
@@ -5271,6 +5694,7 @@ def _apply_incremental_changes(project, data):
         requires_server_restart = regenerated.get("requires_server_restart", requires_server_restart)
         print(f"🔍 Regenerated {len(changes)} changes: {[c.get('file_path') for c in changes]}")
         # loop and try again
+
 
 # ═════════════════════════════════════════════════════════════════
 # ONE FULL ATTEMPT: validate -> save -> stage -> check -> promote -> smoke test
@@ -6767,6 +7191,8 @@ def validate_and_repair_python_files(files_dict):
 
 
 
+
+
 def _scaffold_build(project, prompt):
     """
     Full scaffold — AI thinks like a senior architect before generating code.
@@ -7293,13 +7719,30 @@ class HomeView(ListView):
 
             if apply_result["ok"]:
                 break
-
+         
             if scaffold_attempt == 0 and (
                 apply_result.get("validation_errors") or apply_result.get("smoke_test_errors")
             ):
-                error_context = apply_result.get("failure_summary", "")[:8000]
+                failure_summary = apply_result.get("failure_summary", "")
+                validation_errors = apply_result.get("validation_errors", [])
+                
+                # Try auto-fix before AI retry
+                all_files_dict = {c["file_path"]: c.get("content", "") for c in pseudo_changes}
+                all_files_dict, fixes_applied, unfixed = _auto_fix_failure(
+                    failure_summary, validation_errors, all_files_dict
+                )
+                
+                if fixes_applied > 0:
+                    # Update pseudo_changes with auto-fixed content
+                    for c in pseudo_changes:
+                        if c["file_path"] in all_files_dict:
+                            c["content"] = all_files_dict[c["file_path"]]
+                    print(f"🔧 Auto-fixed {fixes_applied} error(s) in scaffold — retrying apply")
+                    continue  # retry _attempt_apply with fixed files, skip AI retry
+                
+                error_context = failure_summary[:8000]
                 print(f"⚠️ Scaffold validation failed (attempt {scaffold_attempt + 1}) — regenerating with error context")
-              
+
                 common_fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
                 common_fixes = common_fixes_path.read_text(encoding="utf-8") if common_fixes_path.exists() else ""
 

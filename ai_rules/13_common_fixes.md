@@ -166,7 +166,9 @@ properly closed."
 
 ---
 
-## How to add a new fix:
-1. When a novel failure reaches production, add it here with a unique FIX-XXX number
-2. Include: symptom (copy-paste the exact error message), cause, and fix instruction
-3. The retry logic will automatically include this file in the AI's context
+
+---
+## FIX-013: Missing list_select_related for FK fields
+**Symptom:** `shows ForeignKey field(s)`
+**Cause:** Admin displays FK fields without select_related — causes N+1 queries
+**Fix instruction for AI retry:** "Add list_select_related with the exact FK fields shown in the error message."

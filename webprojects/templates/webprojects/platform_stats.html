@@ -42,6 +42,28 @@
             <h1 class="text-3xl font-extrabold text-gray-900">📊 Platform Statistics</h1>
             <p class="text-gray-500 mt-1">Overview of user activity and project creation across the platform.</p>
         </div>
+
+                <a href="{% url 'webprojects:fix_database' %}"
+   style="
+      display:inline-block;
+      padding:12px 24px;
+      background:#2563eb;
+      color:#fff;
+      text-decoration:none;
+      border-radius:8px;
+      font-size:14px;
+      font-weight:600;
+      font-family:Arial, sans-serif;
+      border:1px solid #1d4ed8;
+      box-shadow:0 2px 6px rgba(0,0,0,0.15);
+      transition:all 0.3s ease;
+      cursor:pointer;
+   "
+   onmouseover="this.style.background='#1d4ed8'; this.style.transform='translateY(-2px)'"
+   onmouseout="this.style.background='#2563eb'; this.style.transform='translateY(0)'">
+    🔧 Error Fixes Count
+</a>
+<br><br>
 <!-- Payment Settings -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-10" id="paymentSettings">
     <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
@@ -49,6 +71,7 @@
             <h2 class="text-lg font-semibold text-gray-800">💳 Payment Settings</h2>
             <p class="text-sm text-gray-500">Update bank details and subscription amount</p>
         </div>
+
         <button onclick="savePaymentSettings()" 
                 class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition">
             💾 Save Settings
