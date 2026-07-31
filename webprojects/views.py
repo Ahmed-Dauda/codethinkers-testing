@@ -4858,10 +4858,17 @@ def ai_build_project(request, project_id):
 
     prompt = data.get("prompt", "").strip()
     apply_now = data.get("apply", False)
-    
+
     if not prompt and not apply_now:
         return JsonResponse({"status": "error", "message": "Please enter a prompt"}, status=400)
-
+        # Hard limit on prompt size to prevent AI timeouts
+        MAX_PROMPT_LENGTH = 800
+        if len(prompt) > MAX_PROMPT_LENGTH and not apply_now:
+            return JsonResponse({
+                "status": "error",
+                "message": f"Prompt is too long ({len(prompt)} chars). Max is {MAX_PROMPT_LENGTH}. Break your requirements into smaller parts and build incrementally."
+            }, status=400)
+        
     if client is None:
         return JsonResponse({"status": "error", "message": "🔑 OpenAI API is not configured."}, status=500)
 
