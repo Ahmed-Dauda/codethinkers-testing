@@ -213,11 +213,14 @@ def _auto_capture_failure(failure_summary, validation_errors):
         if signature in existing_content:
             continue
         
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
         fix_num = f"FIX-{next_num:03d}"
         new_entry = f"""
 ---
 
 ## {fix_num}: [TODO: Name this error]
+**Captured:** {timestamp}
 **Symptom:** `{signature}`
 **Cause:** [TODO: Add root cause]
 **Fix instruction for AI retry:** "[TODO: Add specific fix steps]"
@@ -5484,6 +5487,7 @@ def fix_database_view(request):
         fixes.append({
             'number': name_match.group(1) if name_match else '???',
             'name': name_match.group(2).strip() if name_match else 'Unknown',
+            'captured': captured_match.group(1).strip() if captured_match else '',
             'symptom': symptom_match.group(1) if symptom_match else '',
             'cause': cause_match.group(1).strip() if cause_match else '',
             'fix': fix_match.group(1).strip() if fix_match else '',

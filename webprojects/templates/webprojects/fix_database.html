@@ -39,6 +39,7 @@
     <div style="background: {% if fix.is_todo %}#292107{% else %}#0f172a{% endif %}; border: 1px solid {% if fix.is_todo %}#f59e0b33{% else %}#334155{% endif %}; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
             <span style="background: {% if fix.is_todo %}#f59e0b{% else %}#4ade80{% endif %}; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">{{ fix.number }}</span>
+            <span style="color: #666; font-size: 11px;">{{ fix.captured }}</span>
             <span style="color: #e2e8f0; font-weight: 600;">{{ fix.name }}</span>
             {% if fix.is_todo %}<span style="color: #f59e0b; font-size: 11px;">⚠️ Pending</span>{% endif %}
         </div>
