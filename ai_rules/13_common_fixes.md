@@ -172,3 +172,10 @@ properly closed."
 **Symptom:** `shows ForeignKey field(s)`
 **Cause:** Admin displays FK fields without select_related — causes N+1 queries
 **Fix instruction for AI retry:** "Add list_select_related with the exact FK fields shown in the error message."
+
+---
+
+## FIX-014: ImageField not displaying images
+**Symptom:** `images not displaying` or `image not showing`
+**Cause:** Missing ImageField setup — no Pillow, no MEDIA config, wrong template syntax, or missing enctype
+**Fix instruction for AI retry:** "For any model with image fields: 1) Use `models.ImageField(upload_to='uploads/')` with Pillow in requirements.txt. 2) In settings.py add `MEDIA_URL = '/media/'` and `MEDIA_ROOT = BASE_DIR / 'media'`. 3) In urls.py add `static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)` inside `if settings.DEBUG:`. 4) In templates use `{{ object.image.url }}` NOT `{{ object.image }}`. 5) Forms with file uploads MUST have `enctype='multipart/form-data'`. 6) Views handling file uploads must include `request.FILES` in the form constructor."

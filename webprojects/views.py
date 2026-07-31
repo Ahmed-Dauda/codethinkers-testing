@@ -4980,10 +4980,19 @@ COMPLETE FILE MAP (with content):
             max_tokens=16000,
             response_format={"type": "json_object"}
         )
-
+      
         choice = response.choices[0]
         raw_text = choice.message.content
         print(f"✅ Incremental AI response: {len(raw_text)} chars, finish_reason={choice.finish_reason}")
+        
+        # Check if AI returned HTML error page instead of JSON
+        if raw_text.strip().startswith('<') or '<html' in raw_text[:200].lower():
+            print(f"❌ AI returned HTML instead of JSON (likely timeout/error)")
+            return JsonResponse({
+                "status": "error",
+                "message": "The AI service returned an error page. The prompt may be too large or timed out. Try a shorter prompt.",
+            }, status=500)
+        
         print(f"🔍 First 500 chars of response: {raw_text[:500]}")
 
         if choice.finish_reason == "length":
@@ -5399,21 +5408,26 @@ Make the fix instruction specific and actionable."""
         )
         
         ai_fix = response.choices[0].message.content.strip()
-        
-        # Read existing content
         existing = fixes_path.read_text(encoding="utf-8")
-        
-        # Find the [TODO] entry and replace it
+
         todo_pattern = r'(## FIX-\d+: \[TODO:.*?\n\*\*Symptom:\*\*.*?\n\*\*Cause:\*\*.*?\n\*\*Fix instruction for AI retry:\*\*.*?\n)'
-        existing = re.sub(todo_pattern, ai_fix + '\n', existing, count=1)
-        
-        fixes_path.write_text(existing, encoding="utf-8")
+        new_content, count = re.subn(todo_pattern, ai_fix + '\n', existing, count=1)
+
+        if count == 0:
+            # The TODO entry didn't match the expected format — don't
+            # silently claim success. Append the new fix at the end
+            # instead of losing it, and flag that the TODO cleanup failed.
+            print(f"⚠️ Could not find matching [TODO] entry to replace — "
+                  f"appending new fix entry instead so it isn't lost")
+            new_content = existing.rstrip() + "\n\n" + ai_fix + "\n"
+
+        fixes_path.write_text(new_content, encoding="utf-8")
         print(f"🤖 AI generated and saved fix entry to 13_common_fixes.md")
         print(f"   {ai_fix[:200]}...")
-        
-        
+
     except Exception as e:
         print(f"⚠️ AI fix generation failed: {e}")
+
 
 
 @login_required
@@ -5442,12 +5456,18 @@ def fix_database_view(request):
     rules = []
     rules_section = content.split('# Common Fixes — Auto-Applied Failure Patterns')[0]
     rule_matches = re.findall(r'(\d+)\.\s*(.*?)(?=\n\d+\.\s|$)', rules_section, re.DOTALL)
-    for num, text in rule_matches:
-        # Clean up the text — remove extra whitespace but keep the full content
-        clean_text = ' '.join(text.strip().split())
-        rules.append({'number': num, 'text': clean_text[:300]})
+    # Split rules by numbered pattern, capturing multi-line rules fully
+    rule_blocks = re.split(r'\n(?=\d+\.\s)', rules_section)
+    for block in rule_blocks:
+        match = re.match(r'(\d+)\.\s*(.*)', block, re.DOTALL)
+        if match:
+            num = match.group(1)
+            text = match.group(2).strip()
+            # Keep line breaks for readability but collapse excessive whitespace
+            text = re.sub(r'\n{3,}', '\n\n', text)
+            text = re.sub(r' +', ' ', text)
+            rules.append({'number': num, 'text': text})
 
-    
     # Parse FIX entries
     fixes = []
     entries = re.findall(
@@ -5464,9 +5484,9 @@ def fix_database_view(request):
         fixes.append({
             'number': name_match.group(1) if name_match else '???',
             'name': name_match.group(2).strip() if name_match else 'Unknown',
-            'symptom': symptom_match.group(1)[:100] if symptom_match else '',
+            'symptom': symptom_match.group(1) if symptom_match else '',
             'cause': cause_match.group(1).strip() if cause_match else '',
-            'fix': fix_match.group(1).strip()[:150] if fix_match else '',
+            'fix': fix_match.group(1).strip() if fix_match else '',
             'is_todo': '[TODO]' in entry,
         })
     
@@ -5480,7 +5500,6 @@ def fix_database_view(request):
         'todo_count': todo_count,
         'last_updated': last_updated,
     })
-
 
 
 
@@ -7364,7 +7383,20 @@ def _scaffold_build(project, prompt):
         # ─────────────────────────────────────────────────────
         ai_model = getattr(project, 'ai_model', None) or 'gpt-4o-mini'
 
+        # Auto-split massive prompts into core + features
+        if len(prompt) > 1500:
+            print(f"⚠️ Large prompt ({len(prompt)} chars) — extracting core requirements")
+            sentences = re.split(r'(?<=[.!?])\s+', prompt)
+            core_prompt = ' '.join(sentences[:3])
+            models = re.findall(r'\b(\w+)\s*(?:model|page|section|management)\b', prompt, re.IGNORECASE)
+            if models:
+                core_prompt += f" Include these models: {', '.join(set(models[:5]))}."
+            core_prompt += " Generate ONLY the core models, admin, views, urls, and 3-5 essential templates. Keep it minimal."
+            print(f"   Core prompt: {core_prompt[:200]}...")
+            prompt = core_prompt
+
         scaffold_cache_key = f"scaffold_{hashlib.md5(prompt.encode()).hexdigest()}"
+
         scaffold_data = cache.get(scaffold_cache_key)
 
         if not scaffold_data:
@@ -7434,11 +7466,19 @@ Pick distinct, descriptive names."""
             ],
             max_tokens=16000, temperature=0.3,
         )
-
+        
         app_choice = app_response.choices[0]
         app_text = app_choice.message.content.strip()
         print(f"✅ AI Architect Response: {len(app_text)} chars, finish_reason={app_choice.finish_reason}")
-
+        
+        # Check if AI returned HTML error page instead of JSON
+        if app_text.strip().startswith('<') or '<html' in app_text[:200].lower():
+            print(f"❌ AI returned HTML instead of JSON (likely timeout/error)")
+            return JsonResponse({
+                "status": "error",
+                "message": "The AI service returned an error page. The prompt may be too large or timed out. Try a shorter prompt.",
+            }, status=500)
+        
         if app_choice.finish_reason == "length":
             print("⚠️ Response truncated — retrying with minimal template instructions")
             retry_prompt = f"{prompt}\n\n[SYSTEM NOTE: Your previous response was truncated because it was too large. Generate a complete response but keep templates minimal — single-file functional HTML, no inline CSS beyond Tailwind classes, reuse navbar/footer structure. Prioritize completeness over visual polish.]"

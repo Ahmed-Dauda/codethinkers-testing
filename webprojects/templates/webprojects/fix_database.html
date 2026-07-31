@@ -1,8 +1,5 @@
-{% extends "webprojects/base_editor.html" %}
 
-{% block title %}Fix Database Monitor - CodeThinkers{% endblock %}
 
-{% block content %}
 <div style="max-width: 900px; margin: 40px auto; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
@@ -46,12 +43,12 @@
             {% if fix.is_todo %}<span style="color: #f59e0b; font-size: 11px;">⚠️ Pending</span>{% endif %}
         </div>
         <div style="color: #94a3b8; font-size: 12px; margin-bottom: 4px;">
-            <strong>Symptom:</strong> <code style="color: #f87171;">{{ fix.symptom }}</code>
+            <strong>Symptom:</strong> <code style="color: #f87171; white-space: pre-wrap; word-break: break-word;">{{ fix.symptom }}</code>
         </div>
-        <div style="color: #94a3b8; font-size: 12px; margin-bottom: 4px;">
+        <div style="color: #94a3b8; font-size: 12px; margin-bottom: 4px; white-space: pre-wrap; word-break: break-word;">
             <strong>Cause:</strong> {{ fix.cause }}
         </div>
-        <div style="color: #94a3b8; font-size: 12px;">
+        <div style="color: #94a3b8; font-size: 12px; white-space: pre-wrap; word-break: break-word;">
             <strong>Fix:</strong> {{ fix.fix }}
         </div>
     </div>
@@ -64,4 +61,4 @@
     </div>
 
 </div>
-{% endblock %}
+
