@@ -5761,40 +5761,6 @@ def _attempt_apply(project, changes, requires_migration, requires_server_restart
                         change["content"] = all_files[file_path]
                 print(f"🔧 [incremental] Pre-injected ExportAdminMixin into {file_path}")
 
-    # Auto-fix: Add list_select_related to admin classes missing it (incremental path)
-    for file_path, content in all_files.items():
-        if file_path.endswith("admin.py") and content:
-            models_path = file_path.replace("admin.py", "models.py")
-            models_content = all_files.get(models_path, "")
-            if models_content:
-                fk_map = _extract_fk_fields_per_model(models_content)
-                for model_name, fk_fields in fk_map.items():
-                    if not fk_fields:
-                        continue
-                    pattern = rf'(@admin\.register\({model_name}\).*?class\s+\w+Admin\([^)]+\).*?)(?=\n@admin\.register|\nclass\s|\Z)'
-                    match = re.search(pattern, content, re.DOTALL)
-                    if match and 'list_select_related' not in match.group(1):
-                       
-                        old_block = match.group(1)
-                        replacement = old_block.replace(
-                            'list_per_page = 25',
-                            f'list_per_page = 25\n    list_select_related = {tuple(sorted(fk_fields))}'
-                        )
-                        block_start = content.find(old_block)
-                        if block_start != -1:
-                            content = (
-                                content[:block_start] +
-                                replacement +
-                                content[block_start + len(old_block):]
-                            )
-
-                        all_files[file_path] = content
-                        # Also update the actual change content
-                        for change in changes:
-                            if change.get("file_path") == file_path:
-                                change["content"] = content
-                        print(f"🔧 [incremental] Auto-added list_select_related for {model_name}Admin: {sorted(fk_fields)}")
-
     validation_errors = _run_static_validation(changes, files_before, all_files)
     if validation_errors:
         return {
