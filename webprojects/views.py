@@ -6,6 +6,7 @@ from users.models import NewUser
 from .models import Project, File, StudentProgress, StudentXP
 import json
 import glob
+from datetime import datetime
 import json
 import sqlite3
 import re
@@ -213,7 +214,6 @@ def _auto_capture_failure(failure_summary, validation_errors):
         if signature in existing_content:
             continue
         
-        from datetime import datetime
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
         fix_num = f"FIX-{next_num:03d}"
         new_entry = f"""
