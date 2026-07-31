@@ -5176,6 +5176,7 @@ Keep it short and generic. Make the fix instruction specific and actionable."""
         print(f"⚠️ AI fix generation failed: {e}")
 
 
+
 def _auto_capture_failure(failure_summary, validation_errors):
     """Extract new failure patterns and append them to 13_common_fixes.md
     so the same bug class never slips through twice. Then asks AI to
@@ -5206,8 +5207,13 @@ def _auto_capture_failure(failure_summary, validation_errors):
     
     seen_signatures = set()
     for error in error_lines:
-        # Create a short signature from the error
-        signature = error[:120].strip()
+        # Create a signature from the error, with the specific class/model
+        # name stripped out — "ProductAdmin in x.py shows..." and
+        # "CartAdmin in x.py shows..." are the SAME underlying issue and
+        # should only ever trigger one AI fix-generation call, not one
+        # per affected model.
+        normalized = re.sub(r'❌\s*\w+\s+in\s+\S+', '❌ <Class> in <file>', error)
+        signature = normalized[:120].strip()
         if signature in seen_signatures:
             continue
         seen_signatures.add(signature)
