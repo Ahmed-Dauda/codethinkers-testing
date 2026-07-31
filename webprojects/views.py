@@ -5481,9 +5481,11 @@ def fix_database_view(request):
     for entry in entries:
         name_match = re.search(r'## (FIX-\d+):\s*(.*)', entry)
         symptom_match = re.search(r'\*\*Symptom:\*\*\s*`(.*?)`', entry)
+
         cause_match = re.search(r'\*\*Cause:\*\*\s*(.*?)\n', entry)
         fix_match = re.search(r'\*\*Fix instruction.*?:\*\*\s*"(.*?)"', entry, re.DOTALL)
-        
+        captured_match = re.search(r'\*\*Captured:\*\*\s*(.*?)\n', entry)
+
         fixes.append({
             'number': name_match.group(1) if name_match else '???',
             'name': name_match.group(2).strip() if name_match else 'Unknown',
