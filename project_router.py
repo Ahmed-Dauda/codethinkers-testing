@@ -150,8 +150,15 @@ def proxy(client_sock):
 
         if not host:
             return
+     
+        MAX_BODY_SIZE = 20 * 1024 * 1024  # 20MB cap, matches nginx client_max_body_size
 
         if header_end != -1 and content_length > 0:
+            if content_length > MAX_BODY_SIZE:
+                body = b'<html><body><h1>413</h1><p>File too large. Maximum upload size is 20MB.</p></body></html>'
+                send_response(client_sock, "413 Payload Too Large", body)
+                return
+
             body_already_read = len(request) - (header_end + 4)
             remaining = content_length - body_already_read
             client_sock.settimeout(30)
