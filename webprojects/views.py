@@ -7390,15 +7390,17 @@ def _scaffold_build(project, prompt):
         ai_model = getattr(project, 'ai_model', None) or 'gpt-4o-mini'
 
         # Auto-split massive prompts into core + features
+        # Auto-split massive prompts into core + features
+        original_prompt = prompt
         if len(prompt) > 1500:
             print(f"⚠️ Large prompt ({len(prompt)} chars) — extracting core requirements")
-            sentences = re.split(r'(?<=[.!?])\s+', prompt)
-            core_prompt = ' '.join(sentences[:3])
-            models = re.findall(r'\b(\w+)\s*(?:model|page|section|management)\b', prompt, re.IGNORECASE)
-            if models:
-                core_prompt += f" Include these models: {', '.join(set(models[:5]))}."
-            core_prompt += " Generate ONLY the core models, admin, views, urls, and 3-5 essential templates. Keep it minimal."
-            print(f"   Core prompt: {core_prompt[:200]}...")
+            # Extract model names from capitalized words before "model" or "management"
+            models = re.findall(r'\b([A-Z][a-z]+)\s+(?:model|page|section|management)\b', prompt)
+            if not models:
+                models = re.findall(r'(?:Product|Category|Order|Customer|Cart|User|Item|Sale|Inventory)\b', prompt, re.IGNORECASE)
+            
+            core_prompt = f"Build a Django app with these core models: {', '.join(set(models[:6]))}. Include admin, views, urls, and 3-5 essential templates. Keep it minimal. Full requirements: {original_prompt[:200]}..."
+            print(f"   Core prompt: {core_prompt[:300]}...")
             prompt = core_prompt
 
         scaffold_cache_key = f"scaffold_{hashlib.md5(prompt.encode()).hexdigest()}"
