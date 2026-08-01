@@ -146,3 +146,24 @@ class ModelNameAdmin(ExportAdminMixin, admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('fk_field1', 'fk_field2').order_by('-id')
 ```
+
+## {% load static %} / {% extends %} Ordering
+
+⚠️ CRITICAL: Any template using `{% static '...' %}` MUST have
+`{% load static %}` immediately AFTER `{% extends %}` — never before
+it. Django requires `{% extends %}` to be the absolute first tag in a
+child template; nothing, including `{% load %}`, may precede it.
+Putting `{% load static %}` before `{% extends %}` raises a
+`TemplateSyntaxError` on every single page load. Correct order:
+
+```html
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+...
+{% endblock %}
+```
+
+If the template does NOT extend another template (e.g. `base.html`
+itself, which has no `{% extends %}`), `{% load static %}` should be
+the very first line instead.

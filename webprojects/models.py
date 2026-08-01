@@ -427,3 +427,77 @@ class LeaderboardEntry(models.Model):
             if self.modules_completed > self.total_modules:
                 self.modules_completed = self.total_modules
         super().save(*args, **kwargs)
+
+# ─────────────────────────────────────────────────────────────
+# Add this class to webprojects/models.py (anywhere alongside
+# your existing Project/File models). Requires: from django.db
+# import models — you almost certainly already have this import.
+# ─────────────────────────────────────────────────────────────
+
+class BuildAttempt(models.Model):
+    """One row per apply/build attempt. This is the ground-truth dataset
+    that makes rule-editing decisions data-driven instead of guesswork —
+    without this, there's no way to know whether a FIX-XXX entry or a
+    prompt edit actually helped, or how often a given failure pattern
+    recurs even after supposedly being fixed."""
+
+    BUILD_TYPE_CHOICES = [
+        ("scaffold", "Scaffold (new project)"),
+        ("incremental", "Incremental (existing project)"),
+    ]
+
+    OUTCOME_CHOICES = [
+        ("success", "Success"),
+        ("success_after_autofix", "Success (after deterministic auto-fix)"),
+        ("success_after_ai_retry", "Success (after AI retry)"),
+        ("failure_validation", "Failed — static validation"),
+        ("failure_smoke_test", "Failed — smoke test (runtime error)"),
+        ("failure_exception", "Failed — unhandled exception"),
+        ("failure_max_retries", "Failed — exhausted retries"),
+    ]
+
+    project = models.ForeignKey(
+        "webprojects.Project", on_delete=models.CASCADE,
+        related_name="build_attempts", null=True, blank=True,
+    )
+    build_type = models.CharField(max_length=20, choices=BUILD_TYPE_CHOICES)
+    prompt = models.TextField(blank=True)
+
+    # Which attempt number within this build request (1 = first try,
+    # 2 = after first auto-fix/retry, etc.)
+    attempt_number = models.PositiveSmallIntegerField(default=1)
+
+    outcome = models.CharField(max_length=30, choices=OUTCOME_CHOICES)
+
+    # Raw error lists at the time of this attempt — stored as JSON so we
+    # can later query "how often does this exact error string appear"
+    # without needing a separate normalized error table yet.
+    validation_errors = models.JSONField(default=list, blank=True)
+    smoke_test_errors = models.JSONField(default=list, blank=True)
+
+    # Which FIX-XXX entries from 13_common_fixes.md matched this attempt's
+    # errors, and whether each one's application actually resolved its
+    # error by the NEXT attempt (filled in retroactively via
+    # mark_previous_attempt_fix_resolution once we know the outcome of
+    # the following attempt in the same build).
+    fix_patterns_triggered = models.JSONField(default=list, blank=True)
+    # e.g. [{"fix_id": "FIX-007", "resolved": true}, {"fix_id": "FIX-002", "resolved": false}]
+
+    # Which ai_rules/*.md files were loaded for this build (lets us later
+    # correlate outcome quality against rule-file versions, if we start
+    # versioning those files).
+    rule_files_loaded = models.JSONField(default=list, blank=True)
+
+    duration_seconds = models.FloatField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["build_type", "outcome"]),
+            models.Index(fields=["-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.build_type} attempt {self.attempt_number} — {self.outcome} ({self.created_at:%Y-%m-%d %H:%M})"
+    

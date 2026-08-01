@@ -6,6 +6,42 @@ from django.utils.html import format_html
 # admin.py
 from .models import PlatformSettings
 
+# ─────────────────────────────────────────────────────────────
+# Add this to webprojects/admin.py
+# (add BuildAttempt to your existing "from .models import ..." line
+# if you don't already import *)
+# ─────────────────────────────────────────────────────────────
+
+from django.contrib import admin
+from .models import BuildAttempt
+
+
+@admin.register(BuildAttempt)
+class BuildAttemptAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'created_at', 'build_type', 'outcome',
+        'attempt_number', 'project', 'short_prompt',
+    )
+    list_filter = ('build_type', 'outcome', 'created_at')
+    search_fields = ('prompt',)
+    readonly_fields = (
+        'project', 'build_type', 'prompt', 'attempt_number', 'outcome',
+        'validation_errors', 'smoke_test_errors', 'fix_patterns_triggered',
+        'rule_files_loaded', 'duration_seconds', 'created_at',
+    )
+    list_per_page = 50
+    date_hierarchy = 'created_at'
+    ordering = ('-created_at',)
+
+    def short_prompt(self, obj):
+        return (obj.prompt or '')[:60]
+    short_prompt.short_description = 'Prompt'
+
+    def has_add_permission(self, request):
+        # These are only ever created by the pipeline itself — no manual entries.
+        return False
+
+    
 @admin.register(PlatformSettings)
 class PlatformSettingsAdmin(admin.ModelAdmin):
     fieldsets = (

@@ -78,7 +78,7 @@ from .models import File, Project
 
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
-
+from .models import BuildAttempt
 
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -121,12 +121,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from collections import defaultdict
 from sms.models import CompletedTopics, Courses, Topics
-
-
+from .build_outcome_logging import _log_build_attempt, _extract_fix_ids_from_error_text, mark_previous_attempt_fix_resolution
 import pandas as pd
 from django.conf import settings
-
-
+from .models import *
 import os
 import io
 import json
@@ -3569,6 +3567,8 @@ def _assemble_and_autofix_scaffold_files(app_data, app_name, project_name, setti
         f"{app_name}/tests.py": default_tests,
         "requirements.txt": "Pillow>=10.0.0\npython-docx>=1.0.0\n",
     }
+
+    
     if default_forms:
         new_files[f"{app_name}/forms.py"] = default_forms
 
@@ -3583,6 +3583,16 @@ def _assemble_and_autofix_scaffold_files(app_data, app_name, project_name, setti
         app_type_hint = app_data.get("thinking", {}).get("app_type", "")
         new_files[base_html_path] = _fallback_base_html(app_name, project_name, app_type_hint)
         print(f"🔧 Auto-created missing base.html for {app_name}")
+
+    # Auto-fix: {% static %} used without {% load static %} — TemplateSyntaxError
+    # at render time, invisible to manage.py check, only caught by the smoke test.
+    for tpl_path in list(new_files.keys()):
+        if not tpl_path.endswith('.html') or not new_files[tpl_path]:
+            continue
+        tpl_content = new_files[tpl_path]
+        if '{% static' in tpl_content and '{% load static %}' not in tpl_content:
+            new_files[tpl_path] = '{% load static %}\n' + tpl_content
+            print(f"🔧 Auto-added missing {{% load static %}} to {tpl_path}")
 
     # Auto-fix: missing components
     all_template_content = "\n".join(
@@ -3777,14 +3787,19 @@ class {model_name}Form(forms.ModelForm):
     def get_queryset(self, request):
         return super().get_queryset(request).select_related{fk_tuple}.order_by('-id')
 '''
+              
+                # Only include created_at in list_display if model actually has it
+                has_created_at = 'created_at' in (model_body_match.group(1) if model_body_match else '')
+                display_fields = "'id', '__str__', 'created_at'" if has_created_at else "'id', '__str__'"
 
                 missing_admin = f'''
 @admin.register({model_name})
 class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
-    list_display = ('id', '__str__', 'created_at')
+    list_display = ({display_fields})
     search_fields = ('id',)
     list_per_page = 25
 {readonly_line}{select_related_line}{get_queryset_method}'''
+                
                 admin_content += missing_admin
                 print(f"🔧 Auto-created admin for {model_name} with list_select_related={sorted(fk_fields) if fk_fields else 'none'}, readonly={timestamp_fields}")
 
@@ -3804,6 +3819,35 @@ class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
             new_text = f'@admin.register({model_name})\nclass {class_name}({new_bases})'
             admin_content = admin_content[:match.start()] + new_text + admin_content[match.end():]
             print(f"ðŸ”§ Auto-added ExportAdminMixin to {class_name}")
+
+    # Auto-fix: Add list_select_related to existing admin classes missing it
+        # Auto-fix: Strip non-existent fields from list_display in admin classes
+    if models_content and admin_content:
+        model_fields_map = {}
+        for m in re.finditer(r'class\s+(\w+)\s*\(.*?models\.Model.*?\)\s*:(.*?)(?=\nclass\s|\Z)', models_content, re.DOTALL):
+            model_name = m.group(1)
+            body = m.group(2)
+            fields = set(re.findall(r'(\w+)\s*=', body))
+            model_fields_map[model_name] = fields
+        
+        for model_name, real_fields in model_fields_map.items():
+            if not real_fields:
+                continue
+            pattern = rf'(@admin\.register\({model_name}\).*?list_display\s*=\s*\()([^)]+)\)'
+            match = re.search(pattern, admin_content, re.DOTALL)
+            if match:
+                display_fields_str = match.group(2)
+                display_fields = [f.strip().strip("'\"") for f in display_fields_str.split(',')]
+                valid_fields = [f for f in display_fields if f in real_fields or f in ('id', '__str__')]
+                invalid_fields = set(display_fields) - set(valid_fields)
+              
+                if invalid_fields:
+                    if len(valid_fields) == 1:
+                        new_display = f"('{valid_fields[0]}',)"
+                    else:
+                        new_display = '(' + ', '.join(f"'{f}'" for f in valid_fields) + ')'
+                    admin_content = admin_content[:match.start(2)] + new_display + admin_content[match.end(2):]
+                    print(f"🔧 Stripped invalid fields {invalid_fields} from {model_name}Admin list_display")
 
     # Auto-fix: Add list_select_related to existing admin classes missing it
     if models_content and admin_content:
@@ -4096,6 +4140,9 @@ def _fallback_base_html(app_name, project_name, app_type=""):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{% block title %}}{display_name}{{% endblock %}}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
     <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -4194,6 +4241,9 @@ def ensure_proper_html_structure_for_files(new_files, app_name):
         # since base.html owns all of that. Wrapping them here would break
         # Django's template inheritance (extends must be the first tag).
         if '{% extends' in content:
+            # Fix: Add {% load static %} when {% static %} is used but not loaded
+            if "{% static " in content and "{% load static %}" not in content:
+                content = "{% load static %}\n" + content
             new_files[path] = content
             continue
 
@@ -4215,7 +4265,13 @@ def ensure_proper_html_structure_for_files(new_files, app_name):
                 if not has_head:
                     content = '<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>' + title + '</title>\n    ' + TAILWIND_SCRIPT + '\n</head>\n' + body_content + '\n</html>'
             else:
+
+
                 content = '<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>' + title + '</title>\n    ' + TAILWIND_SCRIPT + '\n</head>\n<body class="bg-gray-50 min-h-screen flex flex-col">\n' + content + '\n</body>\n</html>'
+           
+        # Fix: Add {% load static %} when {% static %} is used but not loaded
+        if "{% static " in content and "{% load static %}" not in content:
+            content = "{% load static %}\n" + content
         new_files[path] = content
     return new_files
 
@@ -4520,6 +4576,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
     return template.replace("__PROJECT_NAME__", project_name)
 
 
+
+def _check_load_static_present(all_files):
+    """Blocks if any template uses {% static %} without {% load static %} —
+    this is a TemplateSyntaxError at render time that manage.py check can't
+    catch (it doesn't render templates), only the smoke test does — and by
+    then it's too late unless this validator also catches it before deploy."""
+    errors = []
+    for file_path, content in all_files.items():
+        if not file_path.endswith(".html") or not content:
+            continue
+        if '{% static' in content and '{% load static %}' not in content:
+            errors.append(f"❌ {file_path} uses {{% static %}} but is missing {{% load static %}}")
+    return errors
+
+
 def _check_login_required_on_user_filtered_views(all_files):
     """Blocks if a view filters by self.request.user (or sets it in form_valid)
     without LoginRequiredMixin — AnonymousUser passed into a FK filter/lookup
@@ -4786,6 +4857,66 @@ def _clean_subdomain_redirects(subdomain):
     SUBDOMAIN_REDIRECTS_FILE.write_text(json.dumps(redirects))
 
 
+def _prune_common_fixes_if_needed(max_chars=6000):
+    """13_common_fixes.md is loaded into every build's prompt automatically
+    (via _load_ai_rules) — that's what makes learned fixes permanent. But
+    left unchecked, it grows forever and eventually eats the token budget,
+    causing the exact truncation bugs this whole pipeline was built to
+    prevent. Runs automatically, inline, every time the file is loaded —
+    no scheduling, no manual step.
+
+    Pruning rule: drop entries that are PROVEN learned — a resolve rate
+    of 100% over a meaningful sample means the AI now reliably avoids
+    this mistake even without the reminder text, so the crutch can be
+    retired. Never drops an entry with < 5 recorded attempts (not
+    enough evidence) or a resolve rate under 100% (still needed)."""
+    fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
+    if not fixes_path.exists():
+        return
+
+    content = fixes_path.read_text(encoding="utf-8")
+    if len(content) <= max_chars:
+        return
+
+    from collections import defaultdict
+    from webprojects.models import BuildAttempt
+
+    stats = defaultdict(lambda: {"attempted": 0, "resolved": 0})
+    for b in BuildAttempt.objects.exclude(fix_patterns_triggered=[]).order_by("-created_at")[:500]:
+        for fix in b.fix_patterns_triggered:
+            fix_id = fix.get("fix_id")
+            if not fix_id:
+                continue
+            stats[fix_id]["attempted"] += 1
+            if fix.get("resolved"):
+                stats[fix_id]["resolved"] += 1
+
+    retirable = set()
+    for fix_id, s in stats.items():
+        if s["attempted"] >= 5 and s["resolved"] == s["attempted"]:
+            retirable.add(fix_id)
+
+    if not retirable:
+        print(f"⚠️ 13_common_fixes.md is {len(content)} chars (over {max_chars}) "
+              f"but no entries have enough proven-resolved history to retire yet")
+        return
+
+    entries = re.split(r'(?=## FIX-\d+:)', content)
+    kept, dropped = [], []
+    for entry in entries:
+        m = re.match(r'## (FIX-\d+):', entry)
+        if m and m.group(1) in retirable:
+            dropped.append(m.group(1))
+            continue
+        kept.append(entry)
+
+    if dropped:
+        new_content = "".join(kept)
+        fixes_path.write_text(new_content, encoding="utf-8")
+        print(f"✂️ Auto-pruned {len(dropped)} fully-learned fix entries from "
+              f"13_common_fixes.md ({dropped}) — file was {len(content)} chars, "
+              f"now {len(new_content)} chars")
+
 
 def _load_ai_rules():
     """Load AI rule files: the explicit list below first (in this exact
@@ -4810,6 +4941,8 @@ def _load_ai_rules():
     ]
 
     combined = []
+    
+    _prune_common_fixes_if_needed()
 
     for filename in rule_files:
         filepath = rules_dir / filename
@@ -5348,17 +5481,20 @@ def _auto_fix_failure(failure_summary, validation_errors, all_files):
                         class_name, file_path, fk_list = match.group(1), match.group(2), match.group(3)
                         if file_path in all_files:
                             content = all_files[file_path]
-                            pattern = rf'(class {class_name}\([^)]+\):.*?list_per_page\s*=\s*\d+)'
+                            pattern = rf'(class {class_name}\([^)]+\):.*?)(?=\n@admin\.register|\nclass \w|\Z)'
                             admin_match = re.search(pattern, content, re.DOTALL)
                             if admin_match:
-                                fk_tuple = fk_list.replace('[', '(').replace(']', ')')
-                                replacement = admin_match.group(1) + f"\n    list_select_related = {fk_tuple}"
-                                content = content.replace(admin_match.group(1), replacement)
-                                all_files[file_path] = content
-                                fixes_applied += 1
-                                print(f"🔧 Auto-fixed: Added list_select_related={fk_list} to {class_name}")
-                                fixed = True
-                                break
+                                class_block = admin_match.group(1)
+                                if 'list_select_related' not in class_block:
+                                    fk_items = re.findall(r"'([^']+)'", fk_list)
+                                    fk_tuple = "(" + ", ".join(f"'{f}'" for f in fk_items) + ("," if len(fk_items) == 1 else "") + ")"
+                                    new_block = class_block.rstrip() + f"\n    list_select_related = {fk_tuple}\n"
+                                    content = content.replace(class_block, new_block, 1)
+                                    all_files[file_path] = content
+                                    fixes_applied += 1
+                                    print(f"🔧 Auto-fixed: Added list_select_related={fk_tuple} to {class_name}")
+                                    fixed = True
+                                    break
                 
                 elif "@admin.register" in fix_instruction:
                     match = re.search(r"Model '(\w+)' in (\S+) isn't registered in (\S+)", error)
@@ -5380,6 +5516,49 @@ class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
                                 print(f"🔧 Auto-fixed: Registered {model_name} in {admin_file}")
                                 fixed = True
                                 break
+                
+                elif "get_queryset" in fix_instruction and "select_related" in fix_instruction:
+                    match = re.search(
+                        r'(\w+) in (\S+): template accesses FK fields (\[.*?\])',
+                        error
+                    )
+                    if match:
+                        class_name, file_path, fk_list = match.group(1), match.group(2), match.group(3)
+                        if file_path in all_files:
+                            content = all_files[file_path]
+                            fk_items = re.findall(r"'([^']+)'", fk_list)
+                            select_related_args = ", ".join(f"'{f}'" for f in fk_items)
+
+                            class_pattern = rf'(class {class_name}\([^)]+\):.*?)(?=\nclass \w|\Z)'
+                            class_match = re.search(class_pattern, content, re.DOTALL)
+                            if class_match:
+                                class_block = class_match.group(1)
+                                if 'def get_queryset' in class_block:
+                                    new_block, n_subs = re.subn(
+                                        r'(return\s+[^\n]+?)(\n)',
+                                        rf'\1.select_related({select_related_args})\2',
+                                        class_block,
+                                        count=1
+                                    )
+                                else:
+                                    class_line_match = re.search(rf'class {class_name}\([^)]+\):\n', class_block)
+                                    if class_line_match:
+                                        insert_at = class_line_match.end()
+                                        new_method = (
+                                            f"    def get_queryset(self):\n"
+                                            f"        return super().get_queryset().select_related({select_related_args})\n\n"
+                                        )
+                                        new_block = class_block[:insert_at] + new_method + class_block[insert_at:]
+                                    else:
+                                        new_block = class_block
+
+                                if new_block != class_block:
+                                    content = content.replace(class_block, new_block, 1)
+                                    all_files[file_path] = content
+                                    fixes_applied += 1
+                                    print(f"🔧 Auto-fixed: Added select_related({select_related_args}) to {class_name}.get_queryset()")
+                                    fixed = True
+                                    break
         
         if not fixed:
             unfixed.append(error)
@@ -5389,62 +5568,6 @@ class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
         _auto_capture_failure(failure_summary, unfixed)
     
     return all_files, fixes_applied, unfixed
-
-
-def _ai_generate_fix(symptom, error_context):
-    """Ask the AI to generate a fix instruction for a new error pattern.
-    Writes the result directly to 13_common_fixes.md."""
-    
-    fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
-    if not fixes_path.exists():
-        return
-    
-    prompt = f"""You are fixing a bug in a Django code generator. Given this error:
-
-ERROR: {error_context[:500]}
-
-Write a fix entry in this EXACT format:
-
-## FIX-XXX: [Short descriptive name]
-**Symptom:** `[key phrase from the error that will match future occurrences]`
-**Cause:** [One line explaining why this happens]
-**Fix instruction for AI retry:** "[Step-by-step instructions to fix this error]"
-
-The symptom must be a substring that will appear in future occurrences of the same error.
-Keep the symptom short and generic enough to match similar errors.
-Make the fix instruction specific and actionable."""
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a Django debugging expert. Return ONLY the formatted fix entry, no other text."},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.2,
-            max_tokens=1000,
-        )
-        
-        ai_fix = response.choices[0].message.content.strip()
-        existing = fixes_path.read_text(encoding="utf-8")
-
-        todo_pattern = r'(## FIX-\d+: \[TODO:.*?\n\*\*Symptom:\*\*.*?\n\*\*Cause:\*\*.*?\n\*\*Fix instruction for AI retry:\*\*.*?\n)'
-        new_content, count = re.subn(todo_pattern, ai_fix + '\n', existing, count=1)
-
-        if count == 0:
-            # The TODO entry didn't match the expected format — don't
-            # silently claim success. Append the new fix at the end
-            # instead of losing it, and flag that the TODO cleanup failed.
-            print(f"⚠️ Could not find matching [TODO] entry to replace — "
-                  f"appending new fix entry instead so it isn't lost")
-            new_content = existing.rstrip() + "\n\n" + ai_fix + "\n"
-
-        fixes_path.write_text(new_content, encoding="utf-8")
-        print(f"🤖 AI generated and saved fix entry to 13_common_fixes.md")
-        print(f"   {ai_fix[:200]}...")
-
-    except Exception as e:
-        print(f"⚠️ AI fix generation failed: {e}")
 
 
 
@@ -5548,6 +5671,10 @@ def _apply_incremental_changes(project, data):
             )
         except Exception as e:
             print(f"❌ _attempt_apply crashed: {traceback.format_exc()}")
+            _log_build_attempt(
+                project, "incremental", prompt, attempt, "failure_exception",
+                validation_errors=[str(e)],
+            )
             return JsonResponse({
                 "status": "error",
                 "message": f"Apply failed with an unexpected error: {e}",
@@ -5558,13 +5685,29 @@ def _apply_incremental_changes(project, data):
             response = result["payload"]
             if retry_log:
                 response["auto_fixed_after_retries"] = retry_log
+            outcome = (
+                "success" if attempt == 1
+                else "success_after_autofix" if any("auto-fix" in str(r.get("reason", "")) for r in retry_log)
+                else "success_after_ai_retry"
+            )
+            _log_build_attempt(project, "incremental", prompt, attempt, outcome)
+            mark_previous_attempt_fix_resolution(project, "incremental")
             return JsonResponse(response)
-
+        
+ 
         # Failed. Try auto-fix first before AI retry
         failure_summary = result["failure_summary"]
         validation_errors = result.get("validation_errors", [])
         retry_log.append({"attempt": attempt, "reason": failure_summary[:500]})
-        
+
+        matched_fix_ids = _extract_fix_ids_from_error_text(failure_summary)
+        _log_build_attempt(
+            project, "incremental", prompt, attempt,
+            "failure_smoke_test" if result.get("smoke_test_errors") else "failure_validation",
+            validation_errors=validation_errors,
+            smoke_test_errors=result.get("smoke_test_errors") or [],
+            fix_patterns_triggered=[{"fix_id": fid, "resolved": None} for fid in matched_fix_ids],
+        )
         # Build all_files dict from current changes for auto-fix
         all_files = {}
         for c in changes:
@@ -5592,99 +5735,20 @@ def _apply_incremental_changes(project, data):
 
         if attempt > MAX_RETRIES or not prompt:
             print(f"❌ APPLY FAILED — retry_log: {json.dumps(retry_log, indent=2)}")
-            return JsonResponse({
-                "status": "error",
-                "message": (
-                    f"Failed after {attempt} attempt(s)."
-                    if prompt else
-                    "Failed and no 'prompt' was provided, so it could not be auto-retried."
-                ),
-                "validation_errors": validation_errors,
-                "smoke_test_errors": result.get("smoke_test_errors"),
-                "retry_log": retry_log,
-            }, status=400 if result.get("validation_errors") else 500)
-
-        
-        # Regenerate changes from the AI using the real failure as context
-        existing_files = File.objects.filter(project=project)
-        
-        # Load common fixes to give the AI specific repair instructions
-        common_fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
-        common_fixes = common_fixes_path.read_text(encoding="utf-8") if common_fixes_path.exists() else ""
-        
-        regenerated = _generate_ai_changes(
-            project, prompt, existing_files,
-            retry_context=[ai_failure_context],
-            previous_changes=changes,
-            common_fixes=common_fixes,
-        )
-        
-        print(f"🔍 regenerated type: {type(regenerated)}")
-        if isinstance(regenerated, dict):
-            print(f"🔍 regenerated keys: {list(regenerated.keys())}")
-            print(f"🔍 regenerated changes count: {len(regenerated.get('changes', []))}")
-        else:
-            print(f"🔍 regenerated is NOT a dict: {regenerated}")
-        
-        if not regenerated or not regenerated.get("changes"):
-            return JsonResponse({
-                "status": "error",
-                "message": "Retry attempt did not produce usable changes.",
-                "retry_log": retry_log,
-            }, status=500)
-
-        changes = regenerated["changes"]
-        requires_migration = regenerated.get("requires_migration", requires_migration)
-        requires_server_restart = regenerated.get("requires_server_restart", requires_server_restart)
-        print(f"🔍 Regenerated {len(changes)} changes: {[c.get('file_path') for c in changes]}")
-        # loop and try again
-    prompt = data.get("prompt", "").strip()
-    changes = data.get("changes", [])
-    requires_migration = data.get("requires_migration", False)
-    requires_server_restart = data.get("requires_server_restart", False)
-
-    if not changes:
-        return JsonResponse({"status": "error", "message": "No changes to apply"}, status=400)
-
-    attempt = 0
-    retry_log = []
-
-    while True:
-        attempt += 1
-        print(f"🔍 Applying {len(changes)} changes: {[c.get('file_path') for c in changes]}")
-        print(f"🔍 requires_migration={requires_migration}, requires_server_restart={requires_server_restart}")
-        try:
-            result = _attempt_apply(
-                project, changes, requires_migration, requires_server_restart
-            )
-        except Exception as e:
-            print(f"❌ _attempt_apply crashed: {traceback.format_exc()}")
-            return JsonResponse({
-                "status": "error",
-                "message": f"Apply failed with an unexpected error: {e}",
-                "retry_log": retry_log,
-            }, status=500)
-
-        if result["ok"]:
-            response = result["payload"]
-            if retry_log:
-                response["auto_fixed_after_retries"] = retry_log
-            return JsonResponse(response)
-
-        # Failed. Can we retry?
-        failure_summary = result["failure_summary"]
-        retry_log.append({"attempt": attempt, "reason": failure_summary[:500]})
-        
-        # Truncate for AI context — 8000 chars is enough to see the errors
-        ai_failure_context = failure_summary[:8000]
-
-        if attempt > MAX_RETRIES or not prompt:
-            print(f"❌ APPLY FAILED — retry_log: {json.dumps(retry_log, indent=2)}")
             
             # Auto-capture new failure patterns before returning
             _auto_capture_failure(
                 result.get("failure_summary", ""),
                 result.get("validation_errors", [])
+            )
+            _log_build_attempt(
+                project, "incremental", prompt, attempt, "failure_max_retries",
+                validation_errors=result.get("validation_errors") or [],
+                smoke_test_errors=result.get("smoke_test_errors") or [],
+                fix_patterns_triggered=[
+                    {"fix_id": fid, "resolved": False}
+                    for fid in _extract_fix_ids_from_error_text(result.get("failure_summary", ""))
+                ],
             )
             
             return JsonResponse({
@@ -5699,7 +5763,6 @@ def _apply_incremental_changes(project, data):
                 "retry_log": retry_log,
             }, status=400 if result.get("validation_errors") else 500)
 
-        
         # Regenerate changes from the AI using the real failure as context
         existing_files = File.objects.filter(project=project)
         
@@ -5720,8 +5783,12 @@ def _apply_incremental_changes(project, data):
             print(f"🔍 regenerated changes count: {len(regenerated.get('changes', []))}")
         else:
             print(f"🔍 regenerated is NOT a dict: {regenerated}")
-        
+   
         if not regenerated or not regenerated.get("changes"):
+            _log_build_attempt(
+                project, "incremental", prompt, attempt, "failure_max_retries",
+                validation_errors=validation_errors,
+            )
             return JsonResponse({
                 "status": "error",
                 "message": "Retry attempt did not produce usable changes.",
@@ -6111,40 +6178,52 @@ def _check_views_select_related(all_files):
                 content
             ))
             model_fk_fields.setdefault(app_name, set()).update(fk_fields)
-
+   
     for file_path, content in all_files.items():
         if not file_path.endswith("views.py") or not content:
             continue
-
         app_name = file_path.split("/")[0]
         known_fk_fields = model_fk_fields.get(app_name, set())
 
-        template_names = set(re.findall(r"template_name\s*=\s*['\"]([^'\"]+)['\"]", content))
-        template_names |= set(re.findall(r"render\([^,]+,\s*['\"]([^'\"]+)['\"]", content))
+        # Split the file into per-class chunks so each view is checked
+        # against ONLY its own template — not every template referenced
+        # anywhere in the file. Previously this pooled all templates
+        # together and blamed every view class for any FK access found
+        # in ANY of them (e.g. a shared navbar fragment in home.html
+        # would incorrectly flag CartView, CheckoutView, etc. too).
+        class_blocks = re.finditer(
+            r'class\s+(\w+)\s*\([^)]*\)\s*:(.*?)(?=\nclass\s|\Z)',
+            content, re.DOTALL
+        )
+        for match in class_blocks:
+            view_class_name, class_body = match.group(1), match.group(2)
 
-        real_fk_accesses = set()
-        for tpl_name in template_names:
-            for tpl_path, tpl_content in template_content_map.items():
-                if tpl_path.endswith(tpl_name) or tpl_path.endswith(f"/{tpl_name}"):
-                    for match in re.finditer(r'\{\{\s*\w+\.(\w+)\.(\w+)\s*\}\}', tpl_content):
-                        field_name, accessed_attr = match.group(1), match.group(2)
-                        # Only flag if the field is a CONFIRMED FK/O2O/M2M on
-                        # this app's models AND the accessed attribute isn't
-                        # a known non-relational field method/property.
-                        if field_name in known_fk_fields and accessed_attr not in NON_RELATIONAL_ATTRS:
-                            real_fk_accesses.add(field_name)
+            own_template_names = set(re.findall(
+                r"template_name\s*=\s*['\"]([^'\"]+)['\"]", class_body
+            ))
+            own_template_names |= set(re.findall(
+                r"render\([^,]+,\s*['\"]([^'\"]+)['\"]", class_body
+            ))
+            if not own_template_names:
+                continue
 
-        if not real_fk_accesses:
-            continue
+            real_fk_accesses = set()
+            for tpl_name in own_template_names:
+                for tpl_path, tpl_content in template_content_map.items():
+                    if tpl_path.endswith(tpl_name) or tpl_path.endswith(f"/{tpl_name}"):
+                        for fk_match in re.finditer(r'\{\{\s*\w+\.(\w+)\.(\w+)\s*\}\}', tpl_content):
+                            field_name, accessed_attr = fk_match.group(1), fk_match.group(2)
+                            if field_name in known_fk_fields and accessed_attr not in NON_RELATIONAL_ATTRS:
+                                real_fk_accesses.add(field_name)
 
-        has_select_related = 'select_related(' in content
-        has_prefetch_related = 'prefetch_related(' in content
+            if not real_fk_accesses:
+                continue
 
-        if not has_select_related and not has_prefetch_related:
-            view_classes = re.findall(r'class\s+(\w+)\s*\([^)]*\)\s*:', content)
-            for vc in view_classes:
+            has_select_related = 'select_related(' in class_body
+            has_prefetch_related = 'prefetch_related(' in class_body
+            if not has_select_related and not has_prefetch_related:
                 errors.append(
-                    f"❌ {vc} in {file_path}: template accesses FK fields {sorted(real_fk_accesses)} "
+                    f"❌ {view_class_name} in {file_path}: template accesses FK fields {sorted(real_fk_accesses)} "
                     f"but get_queryset() has no .select_related()/.prefetch_related() — N+1 query risk"
                 )
 
@@ -6350,7 +6429,8 @@ def _run_static_validation(changes, files_before, all_files):
         validation_errors.extend(_check_login_required_on_user_filtered_views(all_files))
 
     # NEW: Check LoginRequiredMixin has login template
-    validation_errors.extend(_check_login_required_has_template(all_files))
+    # validation_errors.extend(_check_all_includes_and_extends_exist(all_files))
+    validation_errors.extend(_check_load_static_present(all_files))
 
     return validation_errors
 
@@ -7196,7 +7276,15 @@ def validate_and_repair_python_files(files_dict):
 
 
 
-
+def _safe_extract_fix_ids(text):
+    """Never let fix-id extraction crash a build — logging is observability,
+    not a required part of the pipeline."""
+    try:
+        return [{"fix_id": fid, "resolved": None} for fid in _extract_fix_ids_from_error_text(text)]
+    except Exception as e:
+        print(f"⚠️ _extract_fix_ids_from_error_text failed (non-fatal): {e}")
+        return []
+    
 
 def _scaffold_build(project, prompt):
     """
@@ -7692,8 +7780,14 @@ class HomeView(ListView):
         if errors: print(f"⚠️ Validation errors: {errors}")
         if warnings: print(f"⚠️ Validation warnings: {warnings}")
 
-        cache.set(app_cache_key, app_data, timeout=3600)
-
+        # NOTE: intentionally NOT caching app_data here anymore. This used
+        # to cache the AI's raw response before the auto-fix/retry pipeline
+        # even ran — meaning any fix applied later in this same build never
+        # made it back into the cached version, so the next build with a
+        # matching prompt fingerprint would replay the exact same unfixed
+        # response for up to an hour. If re-adding caching later, only
+        # cache AFTER a successful _attempt_apply, using the final
+        # corrected file contents — never the AI's first raw draft.
         # ─────────────────────────────────────────────────────
         # ASSEMBLE FILES — via the SHARED function, so attempt 0
         # and any retry run through the exact same auto-fix passes.
@@ -7746,7 +7840,20 @@ class HomeView(ListView):
             )
 
             if apply_result["ok"]:
+                _log_build_attempt(
+                    project, "scaffold", prompt, scaffold_attempt + 1,
+                    "success" if scaffold_attempt == 0 else "success_after_ai_retry",
+                )
+                mark_previous_attempt_fix_resolution(project, "scaffold")
                 break
+
+            _log_build_attempt(
+                project, "scaffold", prompt, scaffold_attempt + 1,
+                "failure_smoke_test" if apply_result.get("smoke_test_errors") else "failure_validation",
+                validation_errors=apply_result.get("validation_errors") or [],
+                smoke_test_errors=apply_result.get("smoke_test_errors") or [],
+                fix_patterns_triggered=_safe_extract_fix_ids(apply_result.get("failure_summary", "")),
+            )
          
             if scaffold_attempt == 0 and (
                 apply_result.get("validation_errors") or apply_result.get("smoke_test_errors")
@@ -7765,9 +7872,17 @@ class HomeView(ListView):
                     for c in pseudo_changes:
                         if c["file_path"] in all_files_dict:
                             c["content"] = all_files_dict[c["file_path"]]
+                    
+                    # Save fixed files to DB so _attempt_apply picks them up
+                    for c in pseudo_changes:
+                        existing = File.objects.filter(project=project, name=c["file_path"]).first()
+                        if existing and c.get("content"):
+                            existing.content = c["content"]
+                            existing.save(update_fields=["content"])
+                    
                     print(f"🔧 Auto-fixed {fixes_applied} error(s) in scaffold — retrying apply")
                     continue  # retry _attempt_apply with fixed files, skip AI retry
-                
+            
                 error_context = failure_summary[:8000]
                 print(f"⚠️ Scaffold validation failed (attempt {scaffold_attempt + 1}) — regenerating with error context")
 
@@ -7844,7 +7959,7 @@ class HomeView(ListView):
             elif scaffold_attempt > 0:
                 print(f"⚠️ Validation still failing after AI retry — exiting retry loop")
                 break
-      
+       
         if not apply_result["ok"]:
             print(f"❌ Apply failed after {scaffold_attempt + 1} attempt(s): {apply_result['failure_summary'][:8000]}")
             
@@ -7852,6 +7967,11 @@ class HomeView(ListView):
             _auto_capture_failure(
                 apply_result.get("failure_summary", ""),
                 apply_result.get("validation_errors", [])
+            )
+            _log_build_attempt(
+                project, "scaffold", prompt, scaffold_attempt + 1, "failure_max_retries",
+                validation_errors=apply_result.get("validation_errors") or [],
+                smoke_test_errors=apply_result.get("smoke_test_errors") or [],
             )
             
             return JsonResponse({
@@ -7878,11 +7998,14 @@ class HomeView(ListView):
             "migration_result": payload.get("migration_result"),
             "restart_result": payload.get("restart_result"),
         })
-
+    
     except Exception as e:
         print(f"❌ Scaffold Build Error: {traceback.format_exc()}")
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)        
-
+        _log_build_attempt(
+            project, "scaffold", prompt, locals().get("scaffold_attempt", 0) + 1,
+            "failure_exception", validation_errors=[str(e)],
+        )
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
 @login_required
