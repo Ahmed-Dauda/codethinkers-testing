@@ -91,6 +91,17 @@ education trigger words are present.
 apply (admin-only, dashboard home page) → use **Footer 4 / Navbar 4 /
 Card 4** instead of Footer/Navbar/Card 1.
 
+**Example:** "Quiz app where students take tests and see their scores"
+→ do NOT default to Pattern 2 just because "quiz" sounds like static
+content. Each student has their own attempts, scores, and results —
+that's user-owned private data → **Pattern 3** rules apply (full auth,
+all views scoped to `self.request.user`, forms for submitting answers)
+→ education trigger words present → use **Footer 4 / Navbar 4 / Card 4**.
+Models MUST include a result/attempt model with a FK to the user (or
+their profile) and the question/answer set, never just a bare
+Question model with no per-user attempt tracking — a quiz app without
+a way to record who answered what isn't actually a quiz app.
+
 ---
 
 ## Default: When Nothing Matches

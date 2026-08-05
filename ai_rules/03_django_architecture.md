@@ -167,3 +167,4 @@ Putting `{% load static %}` before `{% extends %}` raises a
 If the template does NOT extend another template (e.g. `base.html`
 itself, which has no `{% extends %}`), `{% load static %}` should be
 the very first line instead.
+

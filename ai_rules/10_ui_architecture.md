@@ -9,25 +9,23 @@
 
 ## Base Template
 
-⚠️ HARD REQUIREMENT: The `templates` dict in your JSON response MUST include
-a `"base.html"` key. This is NOT optional — omitting it breaks every single
-page in the app with TemplateDoesNotExist. Before finalizing your response,
-check that `templates["base.html"]` exists.
+base.html is provided automatically by the platform - you do NOT need to
+generate it, and you should NOT include a base.html key in the templates
+dict. It already contains: full HTML structure, Tailwind CSS CDN, Alpine.js
+CDN, a properly working mobile hamburger nav, the correct navbar and footer
+selected automatically per app type, and a flash messages area.
 
-`base.html` MUST contain:
-- HTML structure with `<!DOCTYPE html>`
-- Tailwind CSS CDN in `<head>`
-- The navbar and footer selected per the UI Patterns Selection Table
-  (see the UI Patterns rules) — this determines the actual HTML, not
-  the description here
-- Flash messages area
-- `{% block content %}{% endblock %}` for page content
-⚠️ CRITICAL: Every other template you generate MUST start with:
+CRITICAL: Every template you DO generate MUST start with:
 
 ```html
 {% extends "base.html" %}
 {% block content %}
 ...page content...
 {% endblock %}
+```
+
+Never redefine the navbar, footer, or html/head/body structure in any page
+template - base.html already owns all of that.
 
 - For interactive components (dropdowns, modals, tabs, accordions, toasts), see `12_interactive_components.md` for pre-built accessible Alpine.js patterns. Use those patterns as-is instead of inventing new JS.
+

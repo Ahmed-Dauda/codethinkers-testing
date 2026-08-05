@@ -658,7 +658,6 @@ Layout: icon badge left, label + large percentage/value right.
 ---
 
 ## Base Template Requirement
-
 `base.html` MUST contain:
 - `<!DOCTYPE html>` structure
 - Tailwind CSS CDN in `<head>`
@@ -675,6 +674,21 @@ Layout: icon badge left, label + large percentage/value right.
 - `{% block content %}{% endblock %}` for page content
 - The chosen footer variant, restyled per the Design System, inside
   `{% block footer %}{% endblock %}`
+
+⚠️ CRITICAL — Mobile Menu Requirement: Every navbar MUST include a
+working mobile menu. Do NOT invent your own JavaScript for this. Use
+the "Mobile Nav — Slide-In Drawer" pattern from your interactive
+components rules (Alpine.js `x-data`/`x-show`/`x-trap` slide-in drawer
+with backdrop) — never a bare hamburger icon with no working toggle,
+and never hand-rolled vanilla JS `addEventListener` for menu state.
+
+Any other interactive element you generate (dropdown, modal, tabs,
+toast, accordion, command palette) MUST also come from your
+interactive components rules — those 8 patterns are the ONLY
+JavaScript patterns you're allowed to use. If a feature needs
+JavaScript and isn't one of these 8 patterns, either omit the
+interactivity or use the closest matching pattern — do not invent
+new Alpine directives or write custom `<script>` blocks.
 
 Every other template MUST extend `base.html`:
 

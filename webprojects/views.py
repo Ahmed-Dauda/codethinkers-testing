@@ -2176,6 +2176,7 @@ import psutil  # pip install psutil
 def get_pidfile_path(export_dir):
     return export_dir / ".runserver.pid"
 
+
 def kill_previous_server(export_dir, project_id):
     """Kill any previous server for this project — whether tracked in
     memory (same process lifetime) or orphaned (host app restarted)."""
@@ -2206,14 +2207,36 @@ def kill_previous_server(export_dir, project_id):
                 except (psutil.NoSuchProcess, psutil.TimeoutExpired):
                     pass
                 p.terminate()
-                p.wait(timeout=5)
+                try:
+                    p.wait(timeout=5)
+                except psutil.TimeoutExpired:
+                    p.kill()
+                    p.wait(timeout=3)
         except (ValueError, psutil.NoSuchProcess, psutil.TimeoutExpired):
             pass
         finally:
             pidfile.unlink(missing_ok=True)
-    
-    # 3. Wait for Windows to release file handles
-    time.sleep(1)
+
+    # 3. Fallback: force-kill anything still holding port 8000
+    # 3. Fallback: force-kill anything still holding port 8000
+    try:
+        result = subprocess.run(
+            ['netstat', '-ano'],
+            capture_output=True, text=True, timeout=4
+        )
+        for line in result.stdout.splitlines():
+            if ':8000' in line and 'LISTENING' in line:
+                parts = line.strip().split()
+                pid = int(parts[-1])
+                print(f"   Port fallback: killing PID {pid} still on :8000")
+                subprocess.run(['taskkill', '/PID', str(pid), '/F', '/T'],
+                               capture_output=True, timeout=3)
+               
+    except Exception:
+        pass
+
+    # 4. Wait for Windows to release file handles and port
+    time.sleep(2)
 
 
 import socket
@@ -2307,23 +2330,25 @@ def start_dev_server(export_dir, env, project, max_attempts=3):
             continue
 
         print(f"🚀 Starting server on port {port} (attempt {attempt + 1})")
+        
+        log_path = export_dir / f".server_start_attempt_{attempt}.log"
+        log_file = open(log_path, "w", encoding="utf-8")
 
         proc = subprocess.Popen(
             [sys.executable, "manage.py", "runserver", "--noreload", str(port)],
             cwd=export_dir,
             env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
         )
 
         time.sleep(5)
 
         if proc.poll() is not None:
-            stdout, stderr = proc.communicate()
+            log_file.close()
+            output = log_path.read_text(encoding="utf-8", errors="replace")
             print(f"❌ Server died immediately:")
-            print(f"--- stdout ---\n{stdout}")
-            print(f"--- stderr ---\n{stderr}")
+            print(f"--- output ---\n{output}")
             continue
 
         print(f"⏳ Checking if server is responding on port {port}...")
@@ -2613,17 +2638,20 @@ def kill_previous_server(export_dir, project_id):
 
     # 2. Check pidfile
     pidfile = get_pidfile_path(export_dir)
+    print(f"   checking pidfile at {pidfile}, exists={pidfile.exists()}")
     if pidfile.exists():
         try:
             pid = int(pidfile.read_text().strip())
             print(f"   pidfile has pid={pid}, still alive={psutil.pid_exists(pid)}")
             if psutil.pid_exists(pid):
+                print(f"   about to kill process tree for pid={pid}...")
                 _kill_process_tree(pid)
                 print(f"   killed process tree for pid={pid}")
         except (ValueError, psutil.NoSuchProcess) as e:
             print(f"⚠️ Could not kill PID from pidfile: {e}")
         finally:
             pidfile.unlink(missing_ok=True)
+    print(f"   pidfile block done")
 
     # 3. Clean up info file
     info_path = get_info_path(export_dir)
@@ -3652,10 +3680,24 @@ def _assemble_and_autofix_scaffold_files(app_data, app_name, project_name, setti
                 print(f"⚠️ Model '{model_name}' has no views — generating minimal ListView fallback")
                 if 'from django.views.generic import ListView' not in views_content:
                     views_content = 'from django.views.generic import ListView\n' + views_content
-                if 'from .models import' not in views_content:
+              
+                # Check the actual import line, not just any occurrence of
+                # model_name anywhere in the file — a model name that's a
+                # substring of a class name (e.g. "Settings" inside
+                # "SettingsListView") would otherwise be mistaken for an
+                # existing import and silently skipped.
+                import_match = re.search(r'from \.models import (.+)', views_content)
+                if not import_match:
                     views_content = f'from .models import {model_name}\n' + views_content
-                elif model_name not in views_content:
-                    views_content = re.sub(r'from \.models import (.+)', rf'from .models import \1, {model_name}', views_content)
+                else:
+                    imported_names = {n.strip() for n in import_match.group(1).split(',')}
+                    if model_name not in imported_names:
+                        views_content = re.sub(
+                            r'from \.models import (.+)',
+                            rf'from .models import \1, {model_name}',
+                            views_content,
+                            count=1,
+                        )
 
                 views_content += f'''
 class {model_name}ListView(ListView):
@@ -4058,80 +4100,9 @@ def build_signup_template():
 {% endblock %}'''
 
 
+
 def _fallback_base_html(app_name, project_name, app_type=""):
     display_name = project_name.replace('_', ' ').title()
-    app_type_lower = (app_type or "").lower()
-
-    if "private" in app_type_lower or "admin" in app_type_lower or "internal" in app_type_lower:
-        footer_html = f'''<footer class="bg-gray-800 text-white mt-auto">
-        <div class="max-w-7xl mx-auto px-4 py-6 text-center text-sm text-gray-400">
-            &copy; {{% now "Y" %}} {display_name}. Internal use only. All rights reserved.
-        </div>
-    </footer>'''
-    elif "blog" in app_type_lower or "content" in app_type_lower or "read-only" in app_type_lower:
-        footer_html = f'''<footer class="bg-gray-800 text-white mt-auto">
-        <div class="max-w-7xl mx-auto px-4 py-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">{display_name}</h3>
-                    <p class="text-gray-400 text-sm">Your source for quality content.</p>
-                </div>
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
-                    <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="/" class="hover:text-white transition">Home</a></li>
-                        <li><a href="/admin/" class="hover:text-white transition">Admin</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">Connect</h4>
-                    <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="#" class="hover:text-white transition">Twitter</a></li>
-                        <li><a href="#" class="hover:text-white transition">LinkedIn</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-400">
-                &copy; {{% now "Y" %}} {display_name}. All rights reserved.
-            </div>
-        </div>
-    </footer>'''
-    else:
-        # Default: Footer 3 (SaaS) — safest general-purpose choice
-        footer_html = f'''<footer class="bg-gray-800 text-white mt-auto">
-        <div class="max-w-7xl mx-auto px-4 py-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">{display_name}</h3>
-                    <p class="text-gray-400 text-sm">Built with Django & Tailwind CSS.</p>
-                </div>
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">Product</h4>
-                    <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="/" class="hover:text-white transition">Home</a></li>
-                        <li><a href="/admin/" class="hover:text-white transition">Admin</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">Support</h4>
-                    <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="#" class="hover:text-white transition">Help Center</a></li>
-                        <li><a href="#" class="hover:text-white transition">Contact</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">Legal</h4>
-                    <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="#" class="hover:text-white transition">Privacy</a></li>
-                        <li><a href="#" class="hover:text-white transition">Terms</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-400">
-                &copy; {{% now "Y" %}} {display_name}. All rights reserved.
-            </div>
-        </div>
-    </footer>'''
 
     return f'''<!DOCTYPE html>
 <html lang="en">
@@ -4141,39 +4112,94 @@ def _fallback_base_html(app_name, project_name, app_type=""):
     <title>{{% block title %}}{display_name}{{% endblock %}}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        :root {{
+            --brand: #4f46e5;
+            --surface: #ffffff;
+            --bg: #f8fafc;
+            --ink: #0f172a;
+            --ink-muted: #64748b;
+            --border: #e2e8f0;
+            --radius-md: 10px;
+        }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <a href="/" class="text-lg font-semibold text-gray-900">{display_name}</a>
-                <div class="flex items-center gap-3">
-                    <a href="/admin/" class="text-sm text-gray-600 hover:text-gray-900">Admin</a>
-                </div>
+<body class="bg-[var(--bg)]">
+
+<div x-data="{{ sidebarOpen: false }}" class="min-h-screen flex bg-[var(--bg)]">
+
+    <!-- Desktop sidebar -->
+    <aside class="hidden md:flex md:flex-col w-60 flex-shrink-0 bg-[var(--surface)] border-r border-[var(--border)]">
+        <div class="h-16 flex items-center px-6 border-b border-[var(--border)]">
+            <a href="/" class="font-bold text-lg text-[var(--ink)]">{display_name}</a>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-1">
+            <a href="/" class="block px-3 py-2.5 rounded-[var(--radius-md)] text-sm font-medium bg-[var(--brand)]/10 text-[var(--brand)]">Dashboard</a>
+            <a href="/admin/" class="block px-3 py-2.5 rounded-[var(--radius-md)] text-sm font-medium text-[var(--ink-muted)] hover:bg-[var(--bg)] hover:text-[var(--ink)] transition-colors duration-200">Admin</a>
+        </nav>
+        {{% if user.is_authenticated %}}
+        <div class="border-t border-[var(--border)] p-4 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-[var(--brand)] text-white flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                {{{{ user.username|first|upper }}}}
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-[var(--ink)] truncate">{{{{ user.username }}}}</p>
+                <a href="{{% url 'logout' %}}" class="text-xs text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors duration-200">Sign out</a>
             </div>
         </div>
-    </nav>
-    {{% if messages %}}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 space-y-2">
-        {{% for message in messages %}}
-        <div class="rounded-md p-4 text-sm {{% if message.tags == 'success' %}}bg-emerald-50 text-emerald-800{{% elif message.tags == 'error' %}}bg-red-50 text-red-800{{% else %}}bg-blue-50 text-blue-800{{% endif %}}">
-            {{{{ message }}}}
+        {{% else %}}
+        <div class="border-t border-[var(--border)] p-4">
+            <a href="{{% url 'login' %}}" class="block text-center px-3 py-2 rounded-[var(--radius-md)] bg-[var(--brand)] text-white text-sm font-medium hover:opacity-90 active:scale-[0.98] transition">Sign in</a>
         </div>
-        {{% endfor %}}
+        {{% endif %}}
+    </aside>
+
+    <!-- Mobile drawer -->
+    <div x-show="sidebarOpen" x-trap.noscroll="sidebarOpen" @keydown.escape.window="sidebarOpen = false" class="fixed inset-0 z-50 md:hidden" style="display: none;">
+        <div x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen = false" class="fixed inset-0 bg-black/50"></div>
+        <div x-show="sidebarOpen"
+             x-transition:enter="transition ease-out duration-250" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
+             x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full"
+             class="fixed inset-y-0 left-0 w-64 bg-[var(--surface)] border-r border-[var(--border)] p-4 flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <span class="font-bold text-[var(--ink)]">{display_name}</span>
+                <button @click="sidebarOpen = false" class="text-[var(--ink-muted)] hover:text-[var(--ink)] p-1 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] rounded-[var(--radius-md)]" aria-label="Close menu">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <a href="/" class="px-3 py-2.5 rounded-[var(--radius-md)] text-[var(--ink)] hover:bg-[var(--bg)] transition-colors duration-200">Dashboard</a>
+            <a href="/admin/" class="px-3 py-2.5 rounded-[var(--radius-md)] text-[var(--ink)] hover:bg-[var(--bg)] transition-colors duration-200">Admin</a>
+        </div>
     </div>
-    {{% endif %}}
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        {{% block content %}}{{% endblock %}}
-    </main>
-    {{% block footer %}}
-    {footer_html}
-    {{% endblock %}}
+
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="h-16 flex items-center px-4 md:px-6 bg-[var(--surface)] border-b border-[var(--border)] md:hidden">
+            <button @click="sidebarOpen = true" class="p-2 rounded-[var(--radius-md)] text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)]" aria-label="Open menu">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </button>
+            <span class="font-semibold text-[var(--ink)] ml-3">{display_name}</span>
+        </header>
+
+        {{% if messages %}}
+        <div class="px-4 md:px-8 pt-4 space-y-2">
+            {{% for message in messages %}}
+            <div class="rounded-md p-4 text-sm {{% if message.tags == 'success' %}}bg-emerald-50 text-emerald-800{{% elif message.tags == 'error' %}}bg-red-50 text-red-800{{% else %}}bg-blue-50 text-blue-800{{% endif %}}">
+                {{{{ message }}}}
+            </div>
+            {{% endfor %}}
+        </div>
+        {{% endif %}}
+
+        <main class="flex-1 overflow-y-auto p-4 md:p-8">
+            {{% block content %}}{{% endblock %}}
+        </main>
+    </div>
+</div>
+
 </body>
 </html>'''
-
-
 
 
 def _fallback_component_html(component_name):
@@ -4937,17 +4963,20 @@ def _load_ai_rules():
         "09_skill_templates.md",
         "10_ui_architecture.md",
         "11_ui_patterns.md",
-       
+        "12_interactive_components.md",       
     ]
 
     combined = []
     
     _prune_common_fixes_if_needed()
-
+  
     for filename in rule_files:
         filepath = rules_dir / filename
-        if filepath.exists():
-            combined.append(filepath.read_text(encoding="utf-8"))
+        if filepath.exists() and filepath.is_file():
+            try:
+                combined.append(filepath.read_text(encoding="utf-8"))
+            except (PermissionError, OSError) as e:
+                print(f"⚠️ Could not read {filepath}: {e}")
         else:
             print(f"⚠️ Missing rule file: {filepath}")
 
@@ -4958,10 +4987,13 @@ def _load_ai_rules():
             f for f in rules_dir.glob("[0-9][0-9]_*.md")
             if f.name not in known
         )
+        
         for filepath in extra_files:
-            combined.append(filepath.read_text(encoding="utf-8"))
-            print(f"📄 Auto-loaded new rule file: {filepath.name}")
-
+            try:
+                combined.append(filepath.read_text(encoding="utf-8"))
+                print(f"📄 Auto-loaded new rule file: {filepath.name}")
+            except (PermissionError, OSError) as e:
+                print(f"⚠️ Skipping unreadable rule file entry {filepath.name}: {e}")
     return "\n\n".join(combined)
 
 
@@ -4971,6 +5003,7 @@ def get_public_host():
     On a real server, set PUBLIC_HOST in .env to the domain or public IP
     so generated preview links are actually reachable."""
     return os.environ.get("PUBLIC_HOST", "127.0.0.1")
+
 
 
 @login_required
@@ -4997,7 +5030,7 @@ def ai_build_project(request, project_id):
         return JsonResponse({"status": "error", "message": "Please enter a prompt"}, status=400)
 
     # Hard limit on prompt size to prevent AI timeouts
-    MAX_PROMPT_LENGTH = 800
+    MAX_PROMPT_LENGTH = 8000
     if len(prompt) > MAX_PROMPT_LENGTH and not apply_now:
         return JsonResponse({
             "status": "error",
@@ -5257,10 +5290,13 @@ def _export_project_files(project, export_dir):
 # ═════════════════════════════════════════════════════════════════
 # ENTRY POINT — call this from ai_build_project's apply_now branch
 # ═════════════════════════════════════════════════════════════════
-def _ai_generate_fix(symptom, error_context):
-    """Ask the AI to generate a fix entry for a new error pattern.
-    Writes the completed entry directly to 13_common_fixes.md."""
-    
+def _ai_generate_fix(symptom, error_context, fix_num=None):
+    """Ask the AI to generate a fix instruction for a new error pattern.
+    Writes the result directly to 13_common_fixes.md."""
+    if not fix_num:
+        print("⚠️ _ai_generate_fix called without fix_num — cannot safely target a specific entry, skipping")
+        return
+
     fixes_path = Path(settings.BASE_DIR) / "ai_rules" / "13_common_fixes.md"
     if not fixes_path.exists():
         return
@@ -5289,22 +5325,44 @@ Keep it short and generic. Make the fix instruction specific and actionable."""
             temperature=0.2,
             max_tokens=1000,
         )
-        
+     
         ai_fix = response.choices[0].message.content.strip()
-        
+
+        # The AI is instructed to return "## FIX-XXX: ..." as a format
+        # example, but it often invents its own number instead of using
+        # the one we actually need (observed: it defaults to FIX-001
+        # repeatedly). Never trust the AI's own header — force the
+        # correct fix_num onto whatever it returned, so the file's
+        # numbering stays authoritative and consistent regardless of
+        # what the AI writes.
+        ai_fix = re.sub(r'^## FIX-\d+:', f'## {fix_num}:', ai_fix, count=1)
+        if not ai_fix.startswith(f'## {fix_num}:'):
+            # AI didn't even follow the format loosely enough to match —
+            # prepend the correct header rather than lose the number entirely.
+            ai_fix = f'## {fix_num}: {ai_fix}'
+
         # Read existing content
         existing = fixes_path.read_text(encoding="utf-8")
         
         # Replace the first [TODO] entry with the AI-generated fix
-        todo_pattern = r'## FIX-\d+: \[TODO:.*?\n\*\*Symptom:\*\*.*?\n\*\*Cause:\*\*.*?\n\*\*Fix instruction for AI retry:\*\*.*?\n'
+        # Replace the SPECIFIC fix_num's [TODO] entry, not just "the
+        # first [TODO] in the file" — with multiple pending TODOs at
+        # once, re.search's default "first match" behavior meant every
+        # call kept re-finding and overwriting the SAME earliest entry,
+        # while every entry after it silently stayed [TODO] forever.
+        todo_pattern = (
+            rf'## {re.escape(fix_num)}: \[TODO:.*?\n'
+            rf'\*\*Symptom:\*\*.*?\n\*\*Cause:\*\*.*?\n'
+            rf'\*\*Fix instruction for AI retry:\*\*.*?\n'
+        )
         match = re.search(todo_pattern, existing, re.DOTALL)
         if match:
             existing = existing[:match.start()] + ai_fix + '\n' + existing[match.end():]
             fixes_path.write_text(existing, encoding="utf-8")
-            print(f"🤖 AI generated and saved fix entry to 13_common_fixes.md")
+            print(f"🤖 AI generated and saved fix entry to 13_common_fixes.md ({fix_num})")
         else:
-            print(f"⚠️ No [TODO] entry found to replace")
-        
+            print(f"⚠️ Could not find {fix_num}'s [TODO] entry to replace — appending instead")
+            fixes_path.write_text(existing.rstrip() + "\n\n" + ai_fix + "\n", encoding="utf-8")
     except Exception as e:
         print(f"⚠️ AI fix generation failed: {e}")
 
@@ -5365,7 +5423,7 @@ def _auto_capture_failure(failure_summary, validation_errors):
 **Fix instruction for AI retry:** "[TODO: Add specific fix steps]"
 """
         new_entries.append(new_entry)
-        captured_errors.append((signature, error))
+        captured_errors.append((signature, error, fix_num))
         next_num += 1
     
     if new_entries:
@@ -5384,9 +5442,9 @@ def _auto_capture_failure(failure_summary, validation_errors):
         print(f"📝 Auto-captured {len(new_entries)} new failure pattern(s) to 13_common_fixes.md")
         
         # Ask AI to fill in the fix for each captured error
-        for symptom, full_error in captured_errors:
+        for symptom, full_error, entry_fix_num in captured_errors:
             print(f"🤖 Asking AI to generate fix for: {symptom[:80]}...")
-            _ai_generate_fix(symptom, full_error)
+            _ai_generate_fix(symptom, full_error, fix_num=entry_fix_num)
 
 
 
@@ -5647,8 +5705,8 @@ def fix_database_view(request):
 
 
 
-MAX_RETRIES = 2
 
+MAX_RETRIES = 2
 def _apply_incremental_changes(project, data):
     prompt = data.get("prompt", "").strip()
     changes = data.get("changes", [])
@@ -6417,11 +6475,12 @@ def _run_static_validation(changes, files_before, all_files):
 
     # NEW: Catch models.F()/Q()/Count() used without import
     validation_errors.extend(_check_django_db_models_import(all_files))
-
+  
     select_related_warnings = _check_views_select_related(all_files)
     if select_related_warnings:
         for w in select_related_warnings:
             print(f"⚠️ {w}")
+        validation_errors.extend(select_related_warnings)
 
     root_urls = all_files.get(f"{project_name}/urls.py", "") if project_name else ""
     has_auth = 'accounts/' in root_urls
@@ -6724,10 +6783,37 @@ def _run_smoke_test(export_dir, project_name, project_id, changes):
     errors = []
     for r in results:
         if r.get("error"):
-        
+            # Print the FULL traceback for human debugging — this stays
+            # verbose on purpose, it's what you read in the console.
             print(f"🔴 FULL SMOKE TEST ERROR for {r['name']} ({r.get('url', '?')}):\n{r['error']}\n{'='*80}")
-            errors.append(f"❌ {r['name']} ({r.get('url', '?')}): {r['error']}")
+
+            # But the STORED/captured error should be just the final
+            # exception line (type + message) — not file paths or line
+            # numbers, which are unique to this one crash and make the
+            # signature un-matchable for future occurrences of the same
+            # underlying bug. This is what feeds _auto_capture_failure's
+            # symptom matching, so it needs to be stable and reusable.
+            clean_error = _extract_clean_exception_line(r['error'])
+            errors.append(f"❌ {r['name']} ({r.get('url', '?')}): {clean_error}")
     return errors
+
+
+def _extract_clean_exception_line(traceback_text):
+    """Given a full Python traceback as text, return just the final
+    'ExceptionType: message' line — the reusable, stable part of the
+    error. Falls back to the last non-empty line if no standard
+    'Module.Error: msg' pattern is found."""
+    if not traceback_text:
+        return traceback_text
+    lines = [l for l in traceback_text.strip().split('\n') if l.strip()]
+    for line in reversed(lines):
+        # Standard Python exception line: "some.module.ErrorClass: message"
+        if re.match(r'^[\w.]+(?:Error|Exception|Warning):\s', line.strip()):
+            return line.strip()
+    # Fallback — no clean match found, just use the last line rather
+    # than the whole trace, still better than nothing.
+    return lines[-1].strip() if lines else traceback_text
+
 
 
 def _sync_migration_files_to_db(project, export_dir, apps_with_model_changes):
@@ -6850,10 +6936,11 @@ def _restart_server(export_dir, project, project_name):
             project.save(update_fields=['assigned_port'])
 
         env = build_subprocess_env(export_dir, project_name, project.id)
+
         proc = subprocess.Popen(
             [sys.executable, "manage.py", "runserver", "--noreload", str(use_port)],
             cwd=export_dir, env=env,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         time.sleep(3)
 

@@ -337,10 +337,10 @@ properly closed."
 
 ---
 
-## FIX-023: [TODO: Name this error]
-**Symptom:** `⚠️ boutique_fashion_store_app/templates/home.html: new content (75 chars) looks truncated vs original (1013 chars). Not`
-**Cause:** [TODO: Add root cause]
-**Fix instruction for AI retry:** "[TODO: Add specific fix steps]"
+## FIX-001: Template retrieval error
+**Symptom:** `get_template`
+**Cause:** The template name provided is incorrect or the template file does not exist in the expected directory.
+**Fix instruction for AI retry:** "Verify the template name in the get_template function and ensure the corresponding template file exists in the templates directory."
 
 
 ---
@@ -357,4 +357,129 @@ properly closed."
 **Symptom:** `XYZ_TOTALLY_NEW_THING_TEST_MARKER: uses a completely fictitious pattern that has never been seen before`
 **Cause:** [TODO: Add root cause]
 **Fix instruction for AI retry:** "[TODO: Add specific fix steps]"
+
+
+---
+
+## FIX-026: [TODO: Name this error]
+**Symptom:** `❌ essay_list (/): ers\base.py", line 28, in get_template`
+**Cause:** [TODO: Add root cause]
+**Fix instruction for AI retry:** "[TODO: Add specific fix steps]"
+
+
+---
+
+## FIX-001: New Test Marker Error
+**Symptom:** `a second brand new test marker`
+**Cause:** This error occurs when a new test marker is introduced without proper handling in the code generator.
+**Fix instruction for AI retry:** "Review the test marker definitions in the code generator. Ensure that all new markers are registered correctly and that any necessary logic to handle them is implemented."
+
+
+---
+
+## FIX-027: Wire metricflow_app URLs into root
+**Symptom:** `not wired into root urls.py`
+**Cause:** The application's URLs are not included in the project's main URL configuration.
+**Fix instruction for AI retry:** "Open the root urls.py file and add an import statement for metricflow_app's URLs. Then include metricflow_app.urls in the urlpatterns list."
+
+
+---
+
+## FIX-028: Import Sum from Django ORM
+**Symptom:** `NameError: name 'Sum' is not defined`
+**Cause:** The `Sum` function from Django's aggregation module is not imported in the code.
+**Fix instruction for AI retry:** "Add the line 'from django.db.models import Sum' at the top of your views.py or the relevant file where the error occurs."
+
+
+---
+
+## FIX-029: URL Configuration Issue
+**Symptom:** `self.urlconf_module`
+**Cause:** The URL configuration module is not properly defined or is missing.
+**Fix instruction for AI retry:** "Check the `urls.py` file for correct URL patterns and ensure the `urlpatterns` list is properly defined. Verify that the `ROOT_URLCONF` setting in `settings.py` points to the correct module."
+
+
+---
+
+## FIX-030: URL Configuration Error
+**Symptom:** `self.urlconf_module`
+**Cause:** The URL configuration module is not properly defined or is missing.
+**Fix instruction for AI retry:** "Check the `urls.py` file for correct URL patterns and ensure the `urlpatterns` list is defined. If using include(), verify the referenced module is correctly imported and exists."
+
+
+---
+
+## FIX-031: Import Django Aggregate Functions (Sum, Avg, Count, Max, Min)
+**Symptom:** `NameError: name 'Sum' is not defined` (or Avg/Count/Max/Min — same root cause)
+**Cause:** A django.db.models aggregate function is used but not imported —
+either bare (`Sum(...)`) with no import at all, or expected via
+`models.Sum(...)` without `from django.db import models`.
+**Fix instruction for AI retry:** "If using Sum/Avg/Count/Max/Min as a bare
+name, add `from django.db.models import Sum, Avg, Count, Max, Min` (only
+the ones actually used) at the top of the file. If using them as
+`models.Sum(...)` etc., ensure `from django.db import models` is present
+instead."
+
+---
+
+## FIX-032: Missing URL Configuration
+**Symptom:** `not wired into root urls.py`
+**Cause:** The `record_management/urls.py` file is not included in the project's main URL configuration.
+**Fix instruction for AI retry:** "Open the root `urls.py` file and add an import statement for `record_management.urls`. Then, include it in the `urlpatterns` list using `path('record_management/', include('record_management.urls'))`."
+
+
+---
+
+## FIX-033: URL Configuration Issue
+**Symptom:** `urlpatterns`
+**Cause:** The `urlpatterns` variable is not defined or improperly configured in the URL configuration file.
+**Fix instruction for AI retry:** "Ensure that the `urlpatterns` list is properly defined in your `urls.py` file. Check for any syntax errors or missing imports that may prevent it from being recognized."
+
+
+---
+
+## FIX-034: URL Configuration Error
+**Symptom:** `urlpatterns`
+**Cause:** The `urlpatterns` variable is not defined or improperly configured in the URL configuration file.
+**Fix instruction for AI retry:** "Check the `urls.py` file to ensure that `urlpatterns` is defined as a list or tuple of URL patterns. If it is missing, add the necessary URL patterns. If it is defined, verify that it is correctly formatted and does not contain syntax errors."
+
+
+---
+
+## FIX-035: Truncated content error
+**Symptom:** `new content looks truncated`
+**Cause:** The new content exceeds the character limit set for the update process.
+**Fix instruction for AI retry:** "Increase the character limit for content updates in the code generator to accommodate larger changes."
+
+
+---
+
+## FIX-036: Import ListView in SettingsListView
+**Symptom:** `'ListView' used by 'SettingsListView' but not imported`
+**Cause:** The ListView class is not imported in the views.py file where it is being used.
+**Fix instruction for AI retry:** "Add the line 'from django.views.generic import ListView' at the top of metricflow/views.py to import ListView."
+
+
+---
+
+## FIX-037: Missing ProjectListView in views.py
+**Symptom:** `not found in metricflow/views.py`
+**Cause:** The `ProjectListView` class is referenced in the URL configuration but is not defined in the `views.py` file.
+**Fix instruction for AI retry:** "Define the `ProjectListView` class in `metricflow/views.py` or remove its reference from `metricflow/urls.py` if it is not needed."
+
+
+---
+
+## FIX-038: DashboardView Not Found
+**Symptom:** `not found in metricflow/views.py`
+**Cause:** The `DashboardView` class is either missing from `views.py` or incorrectly named.
+**Fix instruction for AI retry:** "Check if `DashboardView` is defined in `metricflow/views.py`. If not, create the class. If it exists under a different name, update the import in `metricflow/urls.py` to match the correct name."
+
+
+---
+
+## FIX-039: Missing View Reference
+**Symptom:** `views.SettingsView, not found in metricflow/views.py`
+**Cause:** The `SettingsView` class is either not defined in `views.py` or is incorrectly named.
+**Fix instruction for AI retry:** "Check if `SettingsView` is defined in `metricflow/views.py`. If not, create the class. If it exists under a different name, update the reference in `metricflow/urls.py` to match the correct name."
 
