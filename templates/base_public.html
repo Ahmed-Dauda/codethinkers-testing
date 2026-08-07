@@ -1,0 +1,91 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
+    <style>
+        :root {
+            --bg: #f8f9fb;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+            --ink: #111827;
+            --ink-muted: #6b7280;
+            --brand: #2563eb;
+            --radius-md: 0.5rem;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-[var(--bg)]">
+
+<div x-data="{ mobileSearchOpen: false }" class="min-h-screen flex flex-col bg-[var(--bg)] pb-16 md:pb-0">
+
+    <header class="sticky top-0 z-40 bg-[var(--surface)] border-b border-[var(--border)]">
+        <div class="max-w-7xl mx-auto px-4 md:px-6">
+            <div class="h-16 flex items-center gap-4">
+                <a href="/" class="font-bold text-lg text-[var(--ink)] flex-shrink-0">{{ app_name|default:"JobBoard" }}</a>
+
+                <div class="hidden md:flex flex-1 max-w-md">
+                    <div class="relative w-full">
+                        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+                        <input type="search" placeholder="Search jobs, companies..." class="w-full pl-9 pr-3 py-2 rounded-[var(--radius-md)] bg-[var(--bg)] border border-[var(--border)] text-sm text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 ml-auto">
+                    <button @click="mobileSearchOpen = !mobileSearchOpen" class="md:hidden p-2 rounded-[var(--radius-md)] text-[var(--ink)]" aria-label="Search">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+                    </button>
+                    {% if user.is_authenticated %}
+                        <a href="/dashboard/" class="w-8 h-8 rounded-full bg-[var(--brand)] text-white flex items-center justify-center text-xs font-semibold">
+                            {{ user.username|first|upper }}
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-sm font-medium px-4 py-2 rounded-[var(--radius-md)] bg-[var(--brand)] text-white hover:opacity-90">Sign in</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div x-show="mobileSearchOpen" x-transition class="md:hidden pb-3" style="display:none;">
+                <div class="relative">
+                    <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+                    <input type="search" placeholder="Search jobs..." class="w-full pl-9 pr-3 py-2 rounded-[var(--radius-md)] bg-[var(--bg)] border border-[var(--border)] text-sm text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+                </div>
+            </div>
+
+            <nav class="flex gap-2 overflow-x-auto pb-3 -mx-1 px-1 scrollbar-none">
+                <a href="/jobs/" class="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium bg-[var(--brand)] text-white">All Jobs</a>
+                <a href="/jobs/?category=engineering" class="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium bg-[var(--bg)] border border-[var(--border)] text-[var(--ink)] hover:bg-[var(--surface)]">Engineering</a>
+                <a href="/jobs/?category=design" class="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium bg-[var(--bg)] border border-[var(--border)] text-[var(--ink)] hover:bg-[var(--surface)]">Design</a>
+                <a href="/jobs/?category=remote" class="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium bg-[var(--bg)] border border-[var(--border)] text-[var(--ink)] hover:bg-[var(--surface)]">Remote</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[var(--surface)] border-t border-[var(--border)] flex items-center justify-around h-16">
+        <a href="/jobs/" class="flex flex-col items-center gap-1 text-[var(--brand)]">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3" /></svg>
+            <span class="text-[10px] font-medium">Jobs</span>
+        </a>
+        <a href="/search/" class="flex flex-col items-center gap-1 text-[var(--ink-muted)]">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+            <span class="text-[10px] font-medium">Search</span>
+        </a>
+        <a href="{% if user.is_authenticated %}/dashboard/{% else %}{% url 'login' %}{% endif %}" class="flex flex-col items-center gap-1 text-[var(--ink-muted)]">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            <span class="text-[10px] font-medium">Account</span>
+        </a>
+    </nav>
+</div>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

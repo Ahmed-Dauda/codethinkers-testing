@@ -1,4 +1,4 @@
-import datetime
+﻿import datetime
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import JsonResponse
 from functools import wraps
@@ -3606,8 +3606,31 @@ def _assemble_and_autofix_scaffold_files(app_data, app_name, project_name, setti
         new_files[f"{app_name}/templates/{safe_name}"] = template_content
 
     # GUARANTEE base.html exists
+    # GUARANTEE base.html exists with mobile menu
     base_html_path = f"{app_name}/templates/base.html"
+    app_type_hint = app_data.get("thinking", {}).get("app_type", "")
     if base_html_path not in new_files:
+        new_files[base_html_path] = _fallback_base_html(app_name, project_name, app_type_hint)
+        print(f"🔧 Auto-created missing base.html for {app_name}")
+    # dddd
+    else:
+        # Check if AI-generated base.html has mobile menu
+        base_content = new_files[base_html_path]
+        if 'x-data' not in base_content or 'sidebarOpen' not in base_content:
+            # Extract AI's nav links before replacing
+            ai_links = re.findall(r'<a\s+href="[^"]*"[^>]*>.*?</a>', base_content)
+            fallback = _fallback_base_html(app_name, project_name, app_type_hint)
+            if ai_links:
+                # Merge: replace fallback links with AI's links
+                for link in ai_links:
+                    if 'Home' not in link and 'Admin' not in link:
+                        fallback = fallback.replace(
+                            '<a href="/admin/" class="text-gray-600 hover:text-gray-900 transition-colors">Admin</a>',
+                            link + '\n                <a href="/admin/" class="text-gray-600 hover:text-gray-900 transition-colors">Admin</a>'
+                        )
+            new_files[base_html_path] = fallback
+            print(f"🔧 Merged AI nav links into mobile-ready base.html for {app_name}")
+            
         app_type_hint = app_data.get("thinking", {}).get("app_type", "")
         new_files[base_html_path] = _fallback_base_html(app_name, project_name, app_type_hint)
         print(f"🔧 Auto-created missing base.html for {app_name}")
@@ -3662,9 +3685,10 @@ def _assemble_and_autofix_scaffold_files(app_data, app_name, project_name, setti
 
             if not has_view:
                 other_views_exist = bool(re.findall(r'class\s+\w+(?:ListView|DetailView|CreateView|UpdateView|DeleteView)', views_content))
-            
+                # gggg
                 if not other_views_exist and 'HomeView' in views_content:
                     print(f"ℹ️ Model '{model_name}' has no views (private app — admin handles it)")
+                    # Add import
                     if f"import {model_name}" not in admin_content and "from .models import *" not in admin_content:
                         if "from .models import" in admin_content:
                             admin_content = re.sub(
@@ -3674,7 +3698,17 @@ def _assemble_and_autofix_scaffold_files(app_data, app_name, project_name, setti
                             )
                         else:
                             admin_content = f"from .models import {model_name}\n" + admin_content
-                        print(f"🔧 Auto-added import for {model_name} in admin.py (private/no-view model)")
+                    # Also add @admin.register if missing
+                    if f"class {model_name}Admin" not in admin_content:
+                        admin_block = f'''
+                        @admin.register({model_name})
+                        class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
+                            list_display = ('id', '__str__')
+                            search_fields = ('id',)
+                            list_per_page = 25
+                        '''
+                        admin_content += admin_block
+                        print(f"🔧 Auto-registered {model_name} in admin.py (private/no-view model)")
                     continue
 
                 print(f"⚠️ Model '{model_name}' has no views — generating minimal ListView fallback")
@@ -3891,6 +3925,23 @@ class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
                     admin_content = admin_content[:match.start(2)] + new_display + admin_content[match.end(2):]
                     print(f"🔧 Stripped invalid fields {invalid_fields} from {model_name}Admin list_display")
 
+                    # Also strip invalid readonly_fields
+                    pattern2 = rf'(@admin\.register\({model_name}\).*?readonly_fields\s*=\s*\()([^)]+)\)'
+                    match2 = re.search(pattern2, admin_content, re.DOTALL)
+                    if match2:
+                        readonly_str = match2.group(2)
+                        readonly_fields = [f.strip().strip("'\"") for f in readonly_str.split(',')]
+                        valid_readonly = [f for f in readonly_fields if f in real_fields]
+                        invalid_readonly = set(readonly_fields) - set(valid_readonly)
+                        if invalid_readonly:
+                            if valid_readonly:
+                                new_readonly = '(' + ', '.join(f"'{f}'" for f in valid_readonly) + ')'
+                                admin_content = admin_content[:match2.start(2)] + new_readonly + admin_content[match2.end(2):]
+                            else:
+                                # Remove the entire readonly_fields line if no valid fields remain
+                                admin_content = admin_content[:match2.start()] + admin_content[match2.end():]
+                            print(f"🔧 Stripped invalid readonly_fields {invalid_readonly} from {model_name}Admin")
+
     # Auto-fix: Add list_select_related to existing admin classes missing it
     if models_content and admin_content:
         fk_map = _extract_fk_fields_per_model(models_content)
@@ -4102,104 +4153,73 @@ def build_signup_template():
 
 
 def _fallback_base_html(app_name, project_name, app_type=""):
+    """Minimal structural base.html using design patterns from 12_interactive_components.md."""
     display_name = project_name.replace('_', ' ').title()
-
-    return f'''<!DOCTYPE html>
+    
+    html = '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{% block title %}}{display_name}{{% endblock %}}</title>
+    <title>{% block title %}__DISPLAY_NAME__{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        :root {{
-            --brand: #4f46e5;
-            --surface: #ffffff;
-            --bg: #f8fafc;
-            --ink: #0f172a;
-            --ink-muted: #64748b;
-            --border: #e2e8f0;
-            --radius-md: 10px;
-        }}
-        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
-    </style>
 </head>
-<body class="bg-[var(--bg)]">
-
-<div x-data="{{ sidebarOpen: false }}" class="min-h-screen flex bg-[var(--bg)]">
-
-    <!-- Desktop sidebar -->
-    <aside class="hidden md:flex md:flex-col w-60 flex-shrink-0 bg-[var(--surface)] border-r border-[var(--border)]">
-        <div class="h-16 flex items-center px-6 border-b border-[var(--border)]">
-            <a href="/" class="font-bold text-lg text-[var(--ink)]">{display_name}</a>
-        </div>
-        <nav class="flex-1 px-3 py-4 space-y-1">
-            <a href="/" class="block px-3 py-2.5 rounded-[var(--radius-md)] text-sm font-medium bg-[var(--brand)]/10 text-[var(--brand)]">Dashboard</a>
-            <a href="/admin/" class="block px-3 py-2.5 rounded-[var(--radius-md)] text-sm font-medium text-[var(--ink-muted)] hover:bg-[var(--bg)] hover:text-[var(--ink)] transition-colors duration-200">Admin</a>
-        </nav>
-        {{% if user.is_authenticated %}}
-        <div class="border-t border-[var(--border)] p-4 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-[var(--brand)] text-white flex items-center justify-center text-xs font-semibold flex-shrink-0">
-                {{{{ user.username|first|upper }}}}
-            </div>
-            <div class="min-w-0 flex-1">
-                <p class="text-sm font-medium text-[var(--ink)] truncate">{{{{ user.username }}}}</p>
-                <a href="{{% url 'logout' %}}" class="text-xs text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors duration-200">Sign out</a>
-            </div>
-        </div>
-        {{% else %}}
-        <div class="border-t border-[var(--border)] p-4">
-            <a href="{{% url 'login' %}}" class="block text-center px-3 py-2 rounded-[var(--radius-md)] bg-[var(--brand)] text-white text-sm font-medium hover:opacity-90 active:scale-[0.98] transition">Sign in</a>
-        </div>
-        {{% endif %}}
-    </aside>
-
-    <!-- Mobile drawer -->
-    <div x-show="sidebarOpen" x-trap.noscroll="sidebarOpen" @keydown.escape.window="sidebarOpen = false" class="fixed inset-0 z-50 md:hidden" style="display: none;">
-        <div x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen = false" class="fixed inset-0 bg-black/50"></div>
-        <div x-show="sidebarOpen"
-             x-transition:enter="transition ease-out duration-250" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
-             x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full"
-             class="fixed inset-y-0 left-0 w-64 bg-[var(--surface)] border-r border-[var(--border)] p-4 flex flex-col">
-            <div class="flex justify-between items-center mb-6">
-                <span class="font-bold text-[var(--ink)]">{display_name}</span>
-                <button @click="sidebarOpen = false" class="text-[var(--ink-muted)] hover:text-[var(--ink)] p-1 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] rounded-[var(--radius-md)]" aria-label="Close menu">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <nav x-data="{ open: false }" class="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="font-bold text-lg text-gray-900">__DISPLAY_NAME__</a>
+                <div class="hidden md:flex items-center gap-6 text-sm">
+                    <a href="/" class="text-gray-600 hover:text-gray-900 transition-colors">Home</a>
+                    <a href="/admin/" class="text-gray-600 hover:text-gray-900 transition-colors">Admin</a>
+                </div>
+                <button @click="open = true" class="md:hidden p-2 rounded-lg text-gray-600" aria-label="Open menu">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
             </div>
-            <a href="/" class="px-3 py-2.5 rounded-[var(--radius-md)] text-[var(--ink)] hover:bg-[var(--bg)] transition-colors duration-200">Dashboard</a>
-            <a href="/admin/" class="px-3 py-2.5 rounded-[var(--radius-md)] text-[var(--ink)] hover:bg-[var(--bg)] transition-colors duration-200">Admin</a>
         </div>
-    </div>
-
-    <div class="flex-1 flex flex-col min-w-0">
-        <header class="h-16 flex items-center px-4 md:px-6 bg-[var(--surface)] border-b border-[var(--border)] md:hidden">
-            <button @click="sidebarOpen = true" class="p-2 rounded-[var(--radius-md)] text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)]" aria-label="Open menu">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
-            </button>
-            <span class="font-semibold text-[var(--ink)] ml-3">{display_name}</span>
-        </header>
-
-        {{% if messages %}}
-        <div class="px-4 md:px-8 pt-4 space-y-2">
-            {{% for message in messages %}}
-            <div class="rounded-md p-4 text-sm {{% if message.tags == 'success' %}}bg-emerald-50 text-emerald-800{{% elif message.tags == 'error' %}}bg-red-50 text-red-800{{% else %}}bg-blue-50 text-blue-800{{% endif %}}">
-                {{{{ message }}}}
+        <div x-show="open" x-trap.noscroll="open" @keydown.escape.window="open = false" class="fixed inset-0 z-50 md:hidden" style="display: none;">
+            <div x-show="open" x-transition.opacity @click="open = false" class="fixed inset-0 bg-black/50"></div>
+            <div x-show="open" x-transition:enter="transition ease-out duration-250" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full" class="fixed inset-y-0 right-0 w-72 bg-white border-l border-gray-200 p-6">
+                <div class="flex justify-between items-center mb-8">
+                    <span class="font-bold text-gray-900">__DISPLAY_NAME__</span>
+                    <button @click="open = false" class="text-gray-500 p-1">&times;</button>
+                </div>
+                <a href="/" class="block px-3 py-2.5 rounded-lg text-gray-900 hover:bg-gray-50">Home</a>
+                <a href="/admin/" class="block px-3 py-2.5 rounded-lg text-gray-900 hover:bg-gray-50">Admin</a>
             </div>
-            {{% endfor %}}
         </div>
-        {{% endif %}}
-
-        <main class="flex-1 overflow-y-auto p-4 md:p-8">
-            {{% block content %}}{{% endblock %}}
-        </main>
+    </nav>
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 pt-4 space-y-2">
+        {% for message in messages %}
+        <div class="rounded-lg p-4 text-sm {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800{% elif message.tags == 'error' %}bg-red-50 text-red-800{% else %}bg-blue-50 text-blue-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
     </div>
-</div>
-
+    {% endif %}
+    <main class="flex-grow max-w-7xl mx-auto px-4 py-8 w-full">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="mt-auto border-t border-gray-200 bg-white">
+        <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <span class="font-semibold text-gray-900">__DISPLAY_NAME__</span>
+            <div class="flex gap-6 text-sm text-gray-500">
+                <a href="/" class="hover:text-gray-900 transition-colors">Home</a>
+                <a href="/admin/" class="hover:text-gray-900 transition-colors">Admin</a>
+            </div>
+            <span class="text-sm text-gray-400">&copy; {% now "Y" %} __DISPLAY_NAME__</span>
+        </div>
+    </footer>
 </body>
 </html>'''
+    
+    return html.replace('__DISPLAY_NAME__', display_name)
+
 
 
 def _fallback_component_html(component_name):
@@ -4267,11 +4287,22 @@ def ensure_proper_html_structure_for_files(new_files, app_name):
         # since base.html owns all of that. Wrapping them here would break
         # Django's template inheritance (extends must be the first tag).
         if '{% extends' in content:
-            # Fix: Add {% load static %} when {% static %} is used but not loaded
             if "{% static " in content and "{% load static %}" not in content:
                 content = "{% load static %}\n" + content
             new_files[path] = content
             continue
+        
+        # Force standalone HTML templates to extend base.html
+        if not path.endswith('base.html') and ('<!DOCTYPE html>' in content or '<html' in content):
+            body_match = re.search(r'<body[^>]*>(.*?)</body>', content, re.DOTALL)
+            if body_match:
+                body_content = body_match.group(1).strip()
+                content = '{% extends "base.html" %}\n{% block content %}\n' + body_content + '\n{% endblock %}'
+                if "{% static " in content and "{% load static %}" not in content:
+                    content = "{% load static %}\n" + content
+                new_files[path] = content
+                print(f"🔧 Converted {path} to extend base.html")
+                continue
 
         content = re.sub(r'<link[^>]*tailwind[^>]*>', '', content, flags=re.IGNORECASE)
         content = re.sub(r'<script[^>]*tailwindcss[^>]*></script>', '', content, flags=re.IGNORECASE)
@@ -4952,18 +4983,14 @@ def _load_ai_rules():
     rules_dir = Path(settings.BASE_DIR) / "ai_rules"
 
     rule_files = [
-        "01_workflow.md",
-        "02_application_types.md",
-        "03_django_architecture.md",
-        "04_dependency_rules.md",
-        "05_validation.md",
-        "06_project_intelligence.md",
-        "07_code_generation.md",
-        "08_requirements_analysis.md",
-        "09_skill_templates.md",
-        "10_ui_architecture.md",
-        "11_ui_patterns.md",
-        "12_interactive_components.md",       
+        
+        "01_application_types.md",
+        "02_django_architecture.md",
+        "03_dependency_rules.md",
+        "04_validation.md",
+        "05_code_generation.md",
+        "06_interactive_components.md",
+        "07_common_fixes.md",        
     ]
 
     combined = []
@@ -5471,10 +5498,9 @@ def _auto_fix_failure(failure_summary, validation_errors, all_files):
     for error in (validation_errors or []):
         fixed = False
         
-        # Try each known pattern
+        # Try each known pattern from the file
         for symptom, fix_instruction in fix_patterns.items():
             if symptom in error:
-                # Apply the fix instruction
                 if "template_name" in fix_instruction.lower():
                     match = re.search(r'(\w+)\((\w+)\) in (\S+) is missing template_name', error)
                     if match:
@@ -5617,6 +5643,52 @@ class {model_name}Admin(ExportAdminMixin, admin.ModelAdmin):
                                     print(f"🔧 Auto-fixed: Added select_related({select_related_args}) to {class_name}.get_queryset()")
                                     fixed = True
                                     break
+        
+        # Pattern: missing imports (datetime, django.db.models, Sum, Count, etc.)
+        if not fixed and ("is not defined" in error or "missing 'from django.db import models'" in error):
+            file_match = re.search(r'(\S+/views\.py)', error)
+            if file_match:
+                file_path = file_match.group(1)
+                if file_path in all_files:
+                    content = all_files[file_path]
+                    if 'datetime' in error and 'import datetime' not in content:
+                        content = 'import datetime\n' + content
+                        print(f"🔧 Auto-fixed: Added import datetime to {file_path}")
+                    if 'from django.db import models' not in content:
+                        content = 'from django.db import models\n' + content
+                    if 'from django.db.models import' not in content:
+                        content = 'from django.db.models import Sum, Count, Avg, Max, Min, Q, F\n' + content
+                    all_files[file_path] = content
+                    fixes_applied += 1
+                    print(f"🔧 Auto-fixed: Added missing imports to {file_path}")
+                    fixed = True
+
+        # Pattern: DashboardView missing QuerySet
+        if not fixed and "DashboardView is missing a QuerySet" in error:
+            # Find views.py from all_files since error doesn't include path
+            file_path = next((k for k in all_files if k.endswith('/views.py')), None)
+            if file_path:
+                if file_path in all_files:
+                    content = all_files[file_path]
+                    # Replace ListView with TemplateView for DashboardView
+                    content = re.sub(
+                        r'class DashboardView\(ListView\):',
+                        'class DashboardView(TemplateView):',
+                        content
+                    )
+                    # Add get_context_data if missing
+                    if 'def get_context_data' not in content:
+                        content = re.sub(
+                            r'(class DashboardView\(TemplateView\):.*?template_name.*?\n)',
+                            r'\1\n    def get_context_data(self, **kwargs):\n        context = super().get_context_data(**kwargs)\n        return context\n',
+                            content,
+                            count=1,
+                            flags=re.DOTALL
+                        )
+                    all_files[file_path] = content
+                    fixes_applied += 1
+                    print(f"🔧 Auto-fixed: DashboardView converted to TemplateView with get_context_data")
+                    fixed = True
         
         if not fixed:
             unfixed.append(error)
@@ -7950,8 +8022,11 @@ class HomeView(ListView):
                 
                 # Try auto-fix before AI retry
                 all_files_dict = {c["file_path"]: c.get("content", "") for c in pseudo_changes}
+              
                 all_files_dict, fixes_applied, unfixed = _auto_fix_failure(
-                    failure_summary, validation_errors, all_files_dict
+                    failure_summary, 
+                    (validation_errors or []) + (apply_result.get("smoke_test_errors") or []),
+                    all_files_dict
                 )
                 
                 if fixes_applied > 0:
@@ -7969,7 +8044,9 @@ class HomeView(ListView):
                     
                     print(f"🔧 Auto-fixed {fixes_applied} error(s) in scaffold — retrying apply")
                     continue  # retry _attempt_apply with fixed files, skip AI retry
-            
+
+                print(f"🔴 VALIDATION ERRORS: {validation_errors[:3]}")
+                print(f"🔴 FAILURE SUMMARY: {failure_summary[:500]}")
                 error_context = failure_summary[:8000]
                 print(f"⚠️ Scaffold validation failed (attempt {scaffold_attempt + 1}) — regenerating with error context")
 
